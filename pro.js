@@ -316,7 +316,18 @@ function professionalSettingsFromContext(){
    phone:pr.phone||''
  };
 }
-function settings(){return {...SETTINGS_DEFAULT,...load(SETTINGS_KEY,{}),...professionalSettingsFromContext()}}
+function settings(){
+ const local=load(SETTINGS_KEY,{});
+ const remote=professionalSettingsFromContext();
+ const ctx=window.nubemoProfessionalContext||{};
+ const hasRemoteLogo=!!ctx.professional?.logo_storage_path;
+ return {
+   ...SETTINGS_DEFAULT,
+   ...local,
+   ...remote,
+   logoData:hasRemoteLogo?(ctx.logoData||''):(local.logoData||'')
+ };
+}
 function appointments(){
   let a=load(APPT_KEY,null);
   if(!Array.isArray(a)){a=JSON.parse(JSON.stringify(APPT_DEFAULT));save(APPT_KEY,a)}
@@ -3321,6 +3332,8 @@ function professionalDisplayName(s=settings()){
  return n||s.name||'Professionista';
 }
 let pendingProfessionalLogo;
+let pendingProfessionalLogoFile;
+let pendingProfessionalLogoRemove=false;
 function proSupportDeviceInfo(){
  const ua=navigator.userAgent||'';
  let device=/iPhone/i.test(ua)?'iPhone':/iPad/i.test(ua)?'iPad':/Android/i.test(ua)?'Android':/Windows/i.test(ua)?'Windows PC':/Macintosh/i.test(ua)?'Mac':'Dispositivo non identificato';
@@ -3891,6 +3904,9 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
   el('sLogoFile')?.addEventListener('change',e=>{
    const f=e.target.files?.[0];if(!f)return;
    if(f.size>2.5*1024*1024)return alert('Il logo è troppo grande. Usa un file sotto 2,5 MB.');
+   if(!['image/png','image/jpeg','image/webp'].includes(f.type))return alert('Formato logo non supportato. Usa PNG, JPEG o WebP.');
+   pendingProfessionalLogoFile=f;
+   pendingProfessionalLogoRemove=false;
    const r=new FileReader();
    r.onload=()=>{
      pendingProfessionalLogo=String(r.result||'');
@@ -3901,6 +3917,8 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
  });
  el('removeProfessionalLogo')?.addEventListener('click',()=>{
    pendingProfessionalLogo='';
+   pendingProfessionalLogoFile=undefined;
+   pendingProfessionalLogoRemove=true;
    const box=document.querySelector('.pro-logo-preview');
    if(box)box.innerHTML='<span id="professionalLogoEmpty">Nessun logo</span>';
  });
@@ -3910,6 +3928,7 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    const professionalId=ctx.professional?.id;
    if(!professionalId)return alert('Profilo professionale NUBEMO non disponibile.');
 
+   const logoPath=`${professionalId}/logo`;
    const professionalPatch={
      qualification:(el('sQualification')?.value||'').trim()||null,
      display_name:(el('sName')?.value||'').trim()||null,
@@ -3925,31 +3944,71 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    const saveButton=el('saveSettings');
    if(saveButton)saveButton.disabled=true;
    try{
+     let nextLogoData=ctx.logoData||'';
+     let nextLogoPath=ctx.professional?.logo_storage_path||null;
+     let uploadedNewLogo=false;
+
+     if(pendingProfessionalLogoFile){
+       const {error:uploadError}=await window.nubemoSupabase.storage
+         .from('professional-assets')
+         .upload(logoPath,pendingProfessionalLogoFile,{
+           upsert:true,
+           contentType:pendingProfessionalLogoFile.type,
+           cacheControl:'3600'
+         });
+       if(uploadError)throw uploadError;
+       uploadedNewLogo=true;
+       nextLogoPath=logoPath;
+       nextLogoData=pendingProfessionalLogo||'';
+       professionalPatch.logo_storage_path=logoPath;
+     }else if(pendingProfessionalLogoRemove){
+       professionalPatch.logo_storage_path=null;
+       nextLogoPath=null;
+       nextLogoData='';
+     }
+
      const {data:updated,error}=await window.nubemoSupabase
        .from('professionals')
        .update(professionalPatch)
        .eq('id',professionalId)
-       .select('id,profile_id,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,status')
+       .select('id,profile_id,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,status,logo_storage_path')
        .single();
-     if(error)throw error;
+
+     if(error){
+       if(uploadedNewLogo && !ctx.professional?.logo_storage_path){
+         await window.nubemoSupabase.storage.from('professional-assets').remove([logoPath]);
+       }
+       throw error;
+     }
+
+     if(pendingProfessionalLogoRemove && ctx.professional?.logo_storage_path){
+       const {error:removeError}=await window.nubemoSupabase.storage
+         .from('professional-assets')
+         .remove([ctx.professional.logo_storage_path]);
+       if(removeError)console.error('NUBEMO professional logo remove:',removeError);
+     }
 
      window.nubemoProfessionalContext={
        ...ctx,
-       professional:{...ctx.professional,...updated}
+       professional:{...ctx.professional,...updated,logo_storage_path:nextLogoPath},
+       logoData:nextLogoData
      };
 
-     // Logo e impostazioni Agenda restano locali fino ai rispettivi micro-step.
+     // Solo Agenda resta locale. Il logo remoto è ora la fonte principale.
      const local=load(SETTINGS_KEY,{});
      save(SETTINGS_KEY,{
        ...local,
-       logoData:pendingProfessionalLogo===undefined?(prev.logoData||''):pendingProfessionalLogo,
+       logoData:nextLogoPath?'':(local.logoData||''),
        first:+el('sFirst').value||60,
        control:+el('sControl').value||30,
        dayStart:el('sStart').value||'08:00',
        dayEnd:el('sEnd').value||'19:00',
        workDays:+el('sWorkDays').value||5
      });
+
      pendingProfessionalLogo=undefined;
+     pendingProfessionalLogoFile=undefined;
+     pendingProfessionalLogoRemove=false;
      alert('Profilo professionista salvato');
      render();
    }catch(e){

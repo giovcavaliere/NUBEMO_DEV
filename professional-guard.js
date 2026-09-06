@@ -19,7 +19,7 @@
   function loadProfessionalApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'pro.js?v=nubemo40pro4b';
+      script.src = 'pro.js?v=nubemo40pro4b2';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Impossibile caricare l’Area Professionista.'));
       document.body.appendChild(script);
@@ -71,7 +71,7 @@
 
       const { data: professional, error: professionalError } = await client
         .from('professionals')
-        .select('id,profile_id,status,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province')
+        .select('id,profile_id,status,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,logo_storage_path')
         .eq('profile_id', profile.id)
         .maybeSingle();
 
@@ -80,7 +80,25 @@
         return;
       }
 
-      window.nubemoProfessionalContext = { user, profile, professional };
+      let logoData = '';
+      if (professional.logo_storage_path) {
+        try {
+          const { data: logoBlob, error: logoError } = await client.storage
+            .from('professional-assets')
+            .download(professional.logo_storage_path);
+          if (logoError) throw logoError;
+          logoData = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = () => reject(reader.error || new Error('Logo non leggibile'));
+            reader.readAsDataURL(logoBlob);
+          });
+        } catch (logoError) {
+          console.error('NUBEMO professional logo load:', logoError);
+        }
+      }
+
+      window.nubemoProfessionalContext = { user, profile, professional, logoData };
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       await loadProfessionalApp();
