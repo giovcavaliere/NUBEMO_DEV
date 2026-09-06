@@ -19,7 +19,7 @@
   function loadProfessionalApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'pro.js?v=nubemo40pro4a';
+      script.src = 'pro.js?v=nubemo40pro4b';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Impossibile caricare l’Area Professionista.'));
       document.body.appendChild(script);
@@ -54,7 +54,7 @@
 
       const { data: profile, error: profileError } = await client
         .from('profiles')
-        .select('id,auth_user_id,role,status')
+        .select('id,auth_user_id,role,status,first_name,last_name,email')
         .eq('auth_user_id', user.id)
         .single();
 
@@ -71,7 +71,7 @@
 
       const { data: professional, error: professionalError } = await client
         .from('professionals')
-        .select('id,profile_id,status')
+        .select('id,profile_id,status,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province')
         .eq('profile_id', profile.id)
         .maybeSingle();
 
@@ -79,6 +79,8 @@
         showGuardError('Profilo professionale NUBEMO non disponibile.');
         return;
       }
+
+      window.nubemoProfessionalContext = { user, profile, professional };
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       await loadProfessionalApp();

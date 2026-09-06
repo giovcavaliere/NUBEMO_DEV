@@ -297,7 +297,26 @@ function currentPatientWeight(p){
 function bmrMifflin(p){const w=currentPatientWeight(p),h=Number(p.height),a=ageYears(p.birth);if(!w||!h||a==null||!['M','F'].includes(p.sex))return null;return 10*w+6.25*h-5*a+(p.sex==='M'?5:-161)}
 function energyEstimate(p){const b=bmrMifflin(p),f=Number(p.activityFactor);return b&&f?b*f:null}
 
-function settings(){return {...SETTINGS_DEFAULT,...load(SETTINGS_KEY,{})}}
+function professionalSettingsFromContext(){
+ const ctx=window.nubemoProfessionalContext||{};
+ const p=ctx.profile||{};
+ const pr=ctx.professional||{};
+ return {
+   name:pr.display_name||'',
+   firstName:p.first_name||'',
+   surname:p.last_name||'',
+   qualification:pr.qualification||'',
+   address:pr.address||'',
+   zip:pr.zip||'',
+   city:pr.city||'',
+   province:pr.province||'',
+   vat:pr.vat_number||'',
+   cf:pr.tax_code||'',
+   email:p.email||'',
+   phone:pr.phone||''
+ };
+}
+function settings(){return {...SETTINGS_DEFAULT,...load(SETTINGS_KEY,{}),...professionalSettingsFromContext()}}
 function appointments(){
   let a=load(APPT_KEY,null);
   if(!Array.isArray(a)){a=JSON.parse(JSON.stringify(APPT_DEFAULT));save(APPT_KEY,a)}
@@ -3364,8 +3383,8 @@ function settingsPage(){
  <section class="card">
    <div class="section-head"><h2>Dati professionali</h2><span class="pill">Report NUBEMO</span></div>
    <div class="pro-profile-grid">
-     <div><label>Nome</label><input id="sFirstName" value="${esc(s.firstName||'')}"></div>
-     <div><label>Cognome</label><input id="sSurname" value="${esc(s.surname||'')}"></div>
+     <div><label>Nome</label><input id="sFirstName" value="${esc(s.firstName||'')}" readonly></div>
+     <div><label>Cognome</label><input id="sSurname" value="${esc(s.surname||'')}" readonly></div>
    </div>
    <label>Qualifica / titolo professionale</label><input id="sQualification" value="${esc(s.qualification||'')}" placeholder="es. Biologa Nutrizionista">
    <label>Nome visualizzato</label><input id="sName" value="${esc(s.name||display)}" placeholder="es. Dott.ssa Maria Rossi">
@@ -3384,7 +3403,7 @@ function settingsPage(){
      <div><label>Provincia</label><input id="sProvince" value="${esc(s.province||'')}"></div>
    </div>
    <div class="pro-profile-grid">
-     <div><label>E-mail</label><input id="sEmail" type="email" value="${esc(s.email||'')}"></div>
+     <div><label>E-mail</label><input id="sEmail" type="email" value="${esc(s.email||'')}" readonly></div>
      <div><label>Telefono</label><input id="sPhone" value="${esc(s.phone||'')}"></div>
    </div>
  </section>
@@ -3885,32 +3904,60 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    const box=document.querySelector('.pro-logo-preview');
    if(box)box.innerHTML='<span id="professionalLogoEmpty">Nessun logo</span>';
  });
- el('saveSettings')?.addEventListener('click',()=>{
+ el('saveSettings')?.addEventListener('click',async()=>{
    const prev=settings();
-   const firstName=(el('sFirstName')?.value||'').trim();
-   const surname=(el('sSurname')?.value||'').trim();
-   const display=(el('sName')?.value||'').trim()||[firstName,surname].filter(Boolean).join(' ')||prev.name||'Professionista';
-   save(SETTINGS_KEY,{
-     ...prev,
-     name:display,firstName,surname,
-     qualification:(el('sQualification')?.value||'').trim(),
-     address:(el('sAddress')?.value||'').trim(),
-     zip:(el('sZip')?.value||'').trim(),
-     city:(el('sCity')?.value||'').trim(),
-     province:(el('sProvince')?.value||'').trim(),
-     vat:(el('sVat')?.value||'').trim(),
-     cf:(el('sCf')?.value||'').trim(),
-     email:(el('sEmail')?.value||'').trim(),
-     phone:(el('sPhone')?.value||'').trim(),
-     logoData:pendingProfessionalLogo===undefined?(prev.logoData||''):pendingProfessionalLogo,
-     first:+el('sFirst').value||60,
-     control:+el('sControl').value||30,
-     dayStart:el('sStart').value||'08:00',
-     dayEnd:el('sEnd').value||'19:00',
-     workDays:+el('sWorkDays').value||5
-   });
-   pendingProfessionalLogo=undefined;
-   alert('Profilo professionista salvato');
+   const ctx=window.nubemoProfessionalContext||{};
+   const professionalId=ctx.professional?.id;
+   if(!professionalId)return alert('Profilo professionale NUBEMO non disponibile.');
+
+   const professionalPatch={
+     qualification:(el('sQualification')?.value||'').trim()||null,
+     display_name:(el('sName')?.value||'').trim()||null,
+     tax_code:(el('sCf')?.value||'').trim()||null,
+     vat_number:(el('sVat')?.value||'').trim()||null,
+     phone:(el('sPhone')?.value||'').trim()||null,
+     address:(el('sAddress')?.value||'').trim()||null,
+     zip:(el('sZip')?.value||'').trim()||null,
+     city:(el('sCity')?.value||'').trim()||null,
+     province:(el('sProvince')?.value||'').trim()||null
+   };
+
+   const saveButton=el('saveSettings');
+   if(saveButton)saveButton.disabled=true;
+   try{
+     const {data:updated,error}=await window.nubemoSupabase
+       .from('professionals')
+       .update(professionalPatch)
+       .eq('id',professionalId)
+       .select('id,profile_id,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,status')
+       .single();
+     if(error)throw error;
+
+     window.nubemoProfessionalContext={
+       ...ctx,
+       professional:{...ctx.professional,...updated}
+     };
+
+     // Logo e impostazioni Agenda restano locali fino ai rispettivi micro-step.
+     const local=load(SETTINGS_KEY,{});
+     save(SETTINGS_KEY,{
+       ...local,
+       logoData:pendingProfessionalLogo===undefined?(prev.logoData||''):pendingProfessionalLogo,
+       first:+el('sFirst').value||60,
+       control:+el('sControl').value||30,
+       dayStart:el('sStart').value||'08:00',
+       dayEnd:el('sEnd').value||'19:00',
+       workDays:+el('sWorkDays').value||5
+     });
+     pendingProfessionalLogo=undefined;
+     alert('Profilo professionista salvato');
+     render();
+   }catch(e){
+     console.error('NUBEMO professional profile save:',e);
+     alert('Impossibile salvare il profilo professionista. Riprova.');
+   }finally{
+     if(saveButton)saveButton.disabled=false;
+   }
  });
  el('downloadProBackup')?.addEventListener('click',downloadProBackup);
  el('uploadProBackup')?.addEventListener('click',()=>el('proBackupFile')?.click());
