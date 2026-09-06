@@ -3929,6 +3929,7 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    if(!professionalId)return alert('Profilo professionale NUBEMO non disponibile.');
 
    const logoPath=`${professionalId}/logo`;
+   const selectedProfessionalLogoFile=el('sLogoFile')?.files?.[0]||pendingProfessionalLogoFile;
    const professionalPatch={
      qualification:(el('sQualification')?.value||'').trim()||null,
      display_name:(el('sName')?.value||'').trim()||null,
@@ -3948,12 +3949,12 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
      let nextLogoPath=ctx.professional?.logo_storage_path||null;
      let uploadedNewLogo=false;
 
-     if(pendingProfessionalLogoFile){
+     if(selectedProfessionalLogoFile){
        const {error:uploadError}=await window.nubemoSupabase.storage
          .from('professional-assets')
-         .upload(logoPath,pendingProfessionalLogoFile,{
+         .upload(logoPath,selectedProfessionalLogoFile,{
            upsert:true,
-           contentType:pendingProfessionalLogoFile.type,
+           contentType:selectedProfessionalLogoFile.type,
            cacheControl:'3600'
          });
        if(uploadError)throw uploadError;

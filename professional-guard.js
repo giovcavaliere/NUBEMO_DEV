@@ -19,7 +19,7 @@
   function loadProfessionalApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'pro.js?v=nubemo40pro4b2';
+      script.src = 'pro.js?v=nubemo40pro4b2a';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Impossibile caricare l’Area Professionista.'));
       document.body.appendChild(script);
