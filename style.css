@@ -1,0 +1,3365 @@
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#16202a;background:#f2f6f8;--accent:#167d89;--accent2:#2f9f78;--soft:#e7f4f4;--ink:#16202a;--danger:#c74343}*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eaf7f7 0,#f5f7f8 250px,#f5f7f8 100%);min-height:100vh}main{max-width:680px;margin:auto;padding:22px 16px 108px}.hero-title,.page-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.page-title{justify-content:flex-start}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--accent);margin-bottom:2px}h1{font-size:31px;margin:3px 0 18px;letter-spacing:-.025em}h2{font-size:19px;margin:0}.hero-icon{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-size:22px;font-weight:900;box-shadow:0 8px 20px #167d8935}.card{background:#ffffffed;border:1px solid #ffffff;border-radius:22px;padding:18px;margin:12px 0;box-shadow:0 8px 25px #274b5910}.highlight{position:relative;overflow:hidden}.highlight:after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;right:-65px;top:-65px;background:linear-gradient(135deg,#55c6c522,#44b78b33)}.caps{font-size:12px;font-weight:800;letter-spacing:.08em}.muted{color:#70808a}.weight{font-size:44px;font-weight:800;margin:5px 0;letter-spacing:-.04em}.weight small{font-size:20px;letter-spacing:0}.delta{font-weight:750}.good{color:#23805f}.up{color:#c35b46}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}.pill{font-size:12px;font-weight:750;background:var(--soft);color:var(--accent);padding:6px 10px;border-radius:999px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{margin-top:14px}.btn,button{border:0;border-radius:14px;padding:14px 16px;font-size:16px;font-weight:700;background:#e9eef0;color:var(--ink);cursor:pointer}.primary{background:linear-gradient(135deg,var(--accent),#169ba0);color:#fff;width:100%;box-shadow:0 7px 18px #167d8928}.secondary{background:#e5f3f3;color:#126873;width:100%}.danger{background:#fff0f0;color:var(--danger);width:100%}button:disabled{opacity:.45;cursor:not-allowed}.back{width:44px;height:44px;padding:0;border-radius:14px;font-size:31px;line-height:1;background:#ffffffb8;color:var(--accent)}label{display:block;font-weight:700;margin:16px 0 7px}input,textarea{width:100%;border:1px solid #d9e2e5;border-radius:14px;padding:13px 14px;font:inherit;background:#fff;outline:none;transition:.15s}input:focus,textarea:focus{border-color:#55aeb4;box-shadow:0 0 0 3px #55aeb41c}textarea{min-height:78px;resize:vertical}.coffee{display:flex;align-items:center;gap:15px}.coffee button{width:48px;background:var(--soft);color:var(--accent);font-size:20px}.coffee strong{font-size:22px;min-width:24px;text-align:center}.chart-card{color:var(--accent)}.chart-card h2,.chart-card .muted{color:var(--ink)}.chart-wrap{position:relative}.chart{height:320px;width:100%;overflow:visible}.chart-line{stroke:var(--accent);stroke-width:2.4}.chart-point{fill:var(--accent);stroke:var(--accent);stroke-width:.65}.chart-grid{stroke:#dce7e9;stroke-width:.45}.chart-axis{stroke:#8da0a8;stroke-width:.55}.chart-y-label{fill:#657780;font-size:3.5px}.chart-unit{position:absolute;left:0;top:1px;color:#70808a;font-size:12px;font-weight:700}.chart-dates{display:flex;justify-content:space-between;color:#70808a;font-size:13px}.tabs{display:flex;gap:8px;overflow:auto;margin-bottom:8px}.tabs button{white-space:nowrap;padding:10px 12px;font-size:13px}.tabs button.active{background:var(--accent);color:#fff}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stats div{background:#f4f8f8;border-radius:14px;padding:12px}.stats span{display:block;color:#70808a;font-size:12px;margin-bottom:5px}.stats b{font-size:15px}.listitem{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #edf0f1;padding:14px 2px;cursor:pointer}.listitem span{display:flex;flex-direction:column;gap:2px}.listitem small{color:#839099;text-transform:capitalize}.form-actions{display:grid;gap:9px;margin-top:22px}.notice{background:#e6f6ee;color:#216b51;border-radius:16px;padding:13px 15px;margin:2px 0 12px;font-size:14px}.warning{background:#fff4df;color:#8c6217;border-radius:12px;padding:10px 12px;margin-top:8px;font-size:13px}.pdf-btn{background:linear-gradient(135deg,#f0a84d,#e77c4c);color:white;padding:11px 15px;box-shadow:0 7px 18px #d6804030}.mini{font-size:12px;padding:8px 10px;background:#fff2e6;color:#a55825}nav{position:fixed;bottom:0;left:0;right:0;background:#ffffffec;backdrop-filter:blur(16px);border-top:1px solid #dce5e7;display:flex;justify-content:center;gap:8px;padding:10px max(10px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));z-index:5}nav button{padding:10px 13px;font-size:14px;background:transparent;color:#52636d}nav button:hover{background:#edf6f6;color:var(--accent)}@media(max-width:480px){.chart{height:290px}.weight{font-size:40px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.stats div:last-child{grid-column:1/-1}}
+
+.head-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+.import-help{line-height:1.5;margin:7px 0 12px}.import-textarea{min-height:300px;font-size:14px;line-height:1.45;white-space:pre-wrap}.import-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.import-result{margin-top:14px;padding:14px;border-radius:14px;display:grid;gap:4px;font-size:14px}.import-result b{font-size:16px}.import-result.ok{background:#e8f6ef;color:#205f49}.import-result.bad{background:#fff0f0;color:#9a3f3f}.import-warn{color:#9a651d;font-weight:700}.import-errors{margin-top:10px;background:#fff8e8;border-radius:12px;padding:10px 12px;color:#7c5b21;font-size:13px}.import-errors summary{cursor:pointer;font-weight:700;margin-bottom:6px}@media(max-width:480px){.import-textarea{min-height:360px}.import-actions{grid-template-columns:1fr}}
+
+select{width:100%;border:1px solid #d9e2e5;border-radius:14px;padding:13px 14px;font:inherit;background:#fff;color:var(--ink);outline:none}
+select:focus{border-color:#55aeb4;box-shadow:0 0 0 3px #55aeb41c}
+.bmi-now{display:flex;align-items:baseline;gap:8px;margin-top:10px;position:relative;z-index:1}
+.bmi-now span{font-size:12px;font-weight:800;color:#70808a;text-transform:uppercase;letter-spacing:.06em}
+.bmi-now b{font-size:22px;color:var(--accent)}
+.bmi-now small{font-size:12px;color:#70808a}
+.goal-card .goal-row{display:flex;align-items:center;gap:9px;margin:10px 0 8px}
+.goal-card .goal-row span{color:#839099}
+.progress{height:10px;background:#e6edef;border-radius:999px;overflow:hidden}
+.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px}
+.chart-average{stroke:#ef9d45;stroke-width:2;stroke-dasharray:4 2;opacity:.95}
+.chart-bmi-line{stroke:var(--accent);stroke-width:2.4}
+.chart-bmi-point{fill:var(--accent);stroke:var(--accent);stroke-width:.65}
+.toggle{display:flex;align-items:center;gap:7px;margin:0;font-size:12px;color:#657780;font-weight:700}
+.toggle input{width:auto;margin:0;accent-color:var(--accent)}
+.profile-preview{margin:18px 0 4px;padding:14px;border-radius:16px;background:#eef7f7;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;color:#567078}
+.profile-preview b{font-size:24px;color:var(--accent)}
+.profile-preview small{font-size:12px}
+.profile-save{margin-top:14px}
+.search-wrap{margin:10px 0 2px}
+.search-wrap input{background:#f8fbfb}
+.history-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.history-right small{color:#839099}
+@media(max-width:480px){
+  nav{gap:2px}
+  nav button{padding:9px 8px;font-size:12px}
+}
+
+.measure-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.measure-note{margin:10px 0 0}
+.measure-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.measure-table{width:100%;border-collapse:collapse;min-width:680px;font-size:12px}
+.measure-table th,.measure-table td{padding:10px 8px;border-bottom:1px solid #e5ecee;text-align:left;vertical-align:top}
+.measure-table th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#6f8088;background:#f8fbfb}
+.measure-table tbody tr{cursor:pointer}
+.measure-table tbody tr:active{background:#eef7f7}
+.form-card h2{margin:0 0 12px}
+@media(max-width:480px){
+  .measure-grid{grid-template-columns:1fr 1fr}
+  nav{overflow-x:auto;justify-content:flex-start}
+  nav button{min-width:max-content}
+}
+
+.measure-filter{display:flex;align-items:center;gap:9px;margin:10px 0 0;font-weight:700;color:#52656e}
+.measure-filter input{width:auto;margin:0;accent-color:var(--accent)}
+.filter-help{margin:6px 0 12px}
+.empty-cell{text-align:center!important;color:#839099;padding:18px!important}
+
+.next-visit-card{display:flex;align-items:center;gap:12px}
+.next-visit-card .next-visit-icon{font-size:25px;line-height:1}
+.next-visit-card b{display:block;margin-top:3px;font-size:18px}
+
+.pro-landing{padding-top:28px}.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}.mode-card{display:flex;flex-direction:column;gap:5px;padding:20px;border:1px solid #dce7e8;border-radius:20px;background:#fff;color:inherit;text-decoration:none}.mode-card span{color:#71818a}.pro-nav{display:flex;gap:7px;overflow:auto;margin-bottom:16px}.pro-nav button{border:0;border-radius:999px;padding:9px 13px;background:#eef3f4;font-weight:700;white-space:nowrap}.pro-nav button.active{background:var(--accent);color:#fff}.pro-topbar{display:flex;justify-content:space-between;align-items:flex-start}.patient-list{display:flex;flex-direction:column;gap:8px}.patient-row{display:flex;gap:12px;align-items:center;padding:13px;border:1px solid #e4ecee;border-radius:16px}.patient-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eaf5f5;font-weight:800}.patient-main span{display:block;font-size:12px;color:#71818a}.agenda-legend{display:flex;gap:15px;align-items:center;flex-wrap:wrap}.compact{width:auto;margin-left:auto}.appointment{padding:13px;border-radius:15px;margin:8px 0;display:flex;flex-direction:column;gap:4px}.visit-first{background:#fff4bf;border-left:5px solid #e4b93f}.visit-control{background:#dff4df;border-left:5px solid #65a96a}@media(max-width:600px){.mode-grid{grid-template-columns:1fr}}
+
+/* PRO RECOVERY - isolated styles */
+.pro3-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.pro3-top h1{margin:3px 0}
+.pro3-nav{display:flex;gap:7px;overflow:auto;margin-bottom:16px}.pro3-nav button{border:0;border-radius:999px;padding:9px 13px;background:#eef3f4;font-weight:700;white-space:nowrap}.pro3-nav button.active{background:var(--accent);color:#fff}
+.pro3-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.pro3-kpis>div{background:#fff;border:1px solid #e1e9ea;border-radius:16px;padding:13px}.pro3-kpis span,.pro3-kpis b{display:block}.pro3-kpis span{font-size:12px;color:#71818a}.pro3-kpis b{font-size:22px;margin-top:4px}.kpi-first{border-top:4px solid #e4b93f!important}.kpi-control{border-top:4px solid #65a96a!important}
+.pro3-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pro3-event{width:100%;border:0;border-radius:12px;padding:10px 12px;margin:5px 0;text-align:left}.pro3-event b,.pro3-event span{display:block}.pro3-event span{font-size:12px;margin-top:3px}
+.pro-first{background:#fff4bf!important;border-left:5px solid #e4b93f!important}.pro-control{background:#dff4df!important;border-left:5px solid #65a96a!important}.pro-personal{background:#eceff1!important;border-left:5px solid #8b969c!important}
+.pro3-visual{height:140px;display:flex;gap:9px;align-items:end}.pro3-visual div{flex:1;background:#dcebec;border-radius:8px 8px 2px 2px}
+.pro3-patients{display:flex;flex-direction:column;gap:8px;margin-top:10px}.pro3-patient{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid #e4ecee;border-radius:14px;background:#fff;text-align:left}.pro3-patient span{display:block;font-size:12px;color:#71818a}.pro3-back{border:0;background:transparent;color:var(--accent);font-weight:800;margin-bottom:10px}
+.pro3-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.pro3-tabs button{border:0;border-radius:999px;padding:8px 11px;background:#eef3f4;font-weight:700}.pro3-tabs button.active{background:var(--accent);color:#fff}
+.pro3-detail{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pro3-detail>div{padding:12px;border:1px solid #e5ecee;border-radius:12px}.pro3-detail span,.pro3-detail b{display:block}
+.pro3-day{padding:12px;border:1px solid #e4ecee;border-radius:12px;margin-bottom:8px}.pro3-day p{margin:5px 0}
+.pro3-agenda-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pro3-agenda-tools span{margin-left:auto;font-weight:700}.pro3-legend{display:flex;gap:15px;flex-wrap:wrap}
+.pro3-calendar-wrap{overflow-x:auto}.pro3-calendar{display:grid;grid-template-columns:55px repeat(7,minmax(115px,1fr));min-width:900px}.pro3-dayhead{display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid #e6ecee;border-bottom:1px solid #e6ecee}.pro3-time{font-size:10px;color:#7d8c92;padding:3px;border-top:1px solid #edf1f2}.pro3-slot{border:0;border-top:1px solid #edf1f2;border-left:1px solid #edf1f2;background:#fff}.pro3-slot:hover{background:#eef8f8}.pro3-cal-event{z-index:3;margin:2px;border:0;border-radius:8px;padding:4px;text-align:left;overflow:hidden}.pro3-cal-event b,.pro3-cal-event span{display:block;font-size:10px}
+.pro3-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+@media(max-width:800px){.pro3-kpis{grid-template-columns:repeat(2,1fr)}.pro3-two{grid-template-columns:1fr}.pro3-detail{grid-template-columns:1fr}}
+.dual-date{display:grid;grid-template-columns:1fr 1fr;gap:10px}.patient-section,.pro-accordion{background:#fff;border:1px solid #e3ebed;border-radius:16px;margin:10px 0;padding:0 14px 14px}.patient-section summary,.pro-accordion summary{cursor:pointer;padding:14px 0;font-weight:800}.check-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.check-grid label{margin:2px}.check-grid input{width:auto}.patient-summary-grid,.pro-read-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.patient-summary-grid>div,.pro-read-grid>div{border:1px solid #e5ecee;border-radius:14px;padding:12px;min-width:0}.patient-summary-grid span,.pro-read-grid span{display:block;font-size:12px;color:#70808a}.summary-hero{grid-column:span 2}.labs-table-desktop{overflow-x:auto}.labs-table{border-collapse:collapse;width:100%;font-size:12px}.labs-table td,.labs-table th{padding:8px;border-bottom:1px solid #e5ecee;white-space:nowrap}.labs-cards-mobile{display:none}.lab-card{border:1px solid #e4ecee;border-radius:14px;padding:12px;margin:8px 0}.lab-values{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lab-values>div{background:#f7f9fa;padding:8px;border-radius:10px}.lab-values span{display:block;font-size:11px;color:#70808a}.plan-pro-card{border:1px solid #e4ecee;border-radius:16px;padding:15px}.plan-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.plan-actions .secondary,.plan-card .secondary{width:auto}.danger-text{color:#a64747!important}@media(min-width:900px){main{max-width:1100px}}@media(max-width:700px){.dual-date,.patient-summary-grid,.pro-read-grid{grid-template-columns:1fr}.summary-hero{grid-column:auto}.check-grid{grid-template-columns:1fr}.labs-table-desktop{display:none}.labs-cards-mobile{display:block}.pro3-tabs{flex-wrap:nowrap;overflow-x:auto}.pro3-tabs button{min-width:max-content}.plan-actions{display:grid}.plan-actions button{width:100%!important}}
+/* Step 16 - UI polish */
+.date-entry{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:stretch}
+.date-entry>input{min-width:0}
+.date-picker-btn{position:relative;display:flex;align-items:center;justify-content:center;margin:0;border:1px solid #d9e2e5;border-radius:14px;background:#f6f9fa;font-size:19px;cursor:pointer;overflow:hidden}
+.date-picker-btn input[type="date"]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;border:0}
+.patient-summary-grid small{display:block;margin-top:8px;line-height:1.35}
+.patient-summary-grid>div b+small{margin-top:8px}
+
+
+
+
+/* Step 17 - Grafici più puliti e proporzionati */
+.chart-card{
+  padding-bottom:18px;
+}
+.chart-wrap{
+  position:relative;
+  margin-top:10px;
+  padding:4px 2px 0;
+  background:transparent;
+  border:0;
+  border-radius:0;
+}
+.chart{
+  width:100%;
+  height:300px!important;
+  overflow:visible;
+}
+.chart-grid{
+  stroke:#e5ecee;
+  stroke-width:.34;
+}
+.chart-axis{
+  stroke:#9aabb1;
+  stroke-width:.46;
+}
+.chart-y-label{
+  fill:#71838a;
+  font-size:3.55px;
+  font-weight:500;
+}
+.chart-line,
+.chart-bmi-line{
+  stroke-width:2.05;
+}
+.chart-point,
+.chart-bmi-point{
+  r:.43;
+  stroke-width:.45;
+}
+.chart-average{
+  stroke-width:1.55;
+  opacity:.62;
+}
+.chart-unit{
+  left:4px;
+  top:0;
+  font-size:11px;
+  font-weight:700;
+  color:#809097;
+}
+.chart-dates{
+  margin-top:4px;
+  padding:0 2px;
+  font-size:12px;
+  font-weight:500;
+  color:#7c8c92;
+}
+.chart-card .tabs{
+  margin:8px 0 8px;
+  gap:5px;
+}
+.chart-card .tabs button{
+  padding:8px 11px;
+  font-size:12px;
+  border-radius:12px;
+}
+.chart-card .section-head{
+  margin-bottom:2px;
+}
+.chart-card .section-head h2{
+  margin-bottom:0;
+}
+@media(max-width:700px){
+  .chart{height:270px!important}
+  .chart-y-label{font-size:3.8px}
+  .chart-card{padding-left:13px;padding-right:13px}
+}
+@media(max-width:420px){
+  .chart{height:250px!important}
+  .chart-card .tabs button{padding:7px 9px;font-size:11px}
+}
+
+/* Step 18 - ordinate più compatte */
+.chart-y-label{
+  font-size:3.0px!important;
+  font-weight:500!important;
+  letter-spacing:-.08px;
+}
+@media(max-width:700px){
+  .chart-y-label{font-size:3.15px!important}
+}
+
+/* Step 19 - ordinate più strette e verticalmente più leggibili */
+.chart-y-label{
+  font-size:2.65px!important;
+  font-weight:600!important;
+  letter-spacing:-.18px!important;
+  transform-box:fill-box;
+  transform-origin:center;
+  transform:scaleX(.78) scaleY(1.14);
+}
+@media(max-width:700px){
+  .chart-y-label{
+    font-size:2.8px!important;
+    transform:scaleX(.80) scaleY(1.12);
+  }
+}
+
+/* Step 20A bugfix */
+.pro3-event-clickable{width:100%;text-align:left;cursor:pointer;border-left-width:4px}
+.pro3-event-clickable:hover{filter:brightness(.985)}
+
+/* Step 20B */
+.login-shell{max-width:480px;margin:7vh auto 0}.upload-button{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;width:auto}.alert-card{border-left:4px solid #e4b93f}
+.date-entry{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:stretch}.date-picker-btn{position:relative;display:flex;align-items:center;justify-content:center;margin:0;border:1px solid #d9e2e5;border-radius:14px;background:#f6f9fa;font-size:18px;cursor:pointer;overflow:hidden}.date-picker-btn input[type=date]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+
+.calorie-estimate{display:block;margin-top:4px;font-size:10px;font-weight:600;color:#7b8b91;white-space:nowrap}
+
+/* Step 20D — esami più leggibili */
+.labs-table th,.labs-table td{text-align:center;vertical-align:middle}
+.labs-table th:first-child,.labs-table td:first-child{text-align:center}
+.labs-table th:last-child,.labs-table td:last-child{text-align:center}
+.lab-values>div{text-align:center;align-items:center}
+.lab-values>div span,.lab-values>div b{display:block;text-align:center;width:100%}
+
+.diary-calorie-card{margin-bottom:14px}
+.calorie-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.calorie-summary-grid>div{padding:12px 14px;border:1px solid #e6ecee;border-radius:14px;background:#fbfcfc}
+.calorie-summary-grid span,.calorie-summary-grid small{display:block;color:#718087}
+.calorie-summary-grid b{display:block;font-size:20px;margin:5px 0}
+.calorie-disclaimer{margin:10px 0 0}
+@media(max-width:640px){.calorie-summary-grid{grid-template-columns:1fr}}
+
+/* Step 20G — calorie per giornata */
+.day-calorie-preview{margin:14px 0 4px;padding:13px 14px;border:1px solid #dfe8ea;border-radius:14px;background:#f8fbfb}
+.day-calorie-preview span,.day-calorie-preview b,.day-calorie-preview small{display:block}
+.day-calorie-preview span{font-size:12px;color:#71818a;font-weight:700}
+.day-calorie-preview b{font-size:20px;margin:5px 0;color:#31484f}
+.day-calorie-preview small{color:#7b8b91;line-height:1.35}
+.history-right small+small{margin-top:3px}
+
+/* Step 20I — fix iPhone notifica analisi, nessuna modifica iPad */
+@media(max-width:480px){
+  .alert-card .pro3-patient{
+    grid-template-columns:38px minmax(0,1fr);
+    gap:9px;
+    align-items:center;
+  }
+  .alert-card .pro3-patient>div:nth-child(2){
+    min-width:0;
+  }
+  .alert-card .pro3-patient span{
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .alert-card .pro3-patient>strong{
+    grid-column:2;
+    justify-self:start;
+    margin-top:2px;
+    font-size:12px;
+  }
+}
+
+
+/* Step 20M — eliminazione referto in fase di verifica */
+.danger-soft{border:1px solid #d7a5a5;background:#fff5f5;color:#9d3030}
+.lab-review-actions{display:flex;flex-wrap:wrap;gap:10px}
+.lab-review-actions button{flex:1 1 150px}
+@media(max-width:480px){
+ .lab-review-actions{display:grid;grid-template-columns:1fr 1fr}
+ .lab-review-actions button{width:100%;min-width:0}
+ .lab-review-actions #confirmLabReview{grid-column:1/-1}
+}
+
+/* Step 20N — stima calorie guidata */
+
+
+
+
+/* Step 20O — calorie live + BMR in alto */
+.diary-top-metrics{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+ margin:14px 0 8px;
+}
+.diary-top-metrics>div{
+ padding:12px 14px;
+ border:1px solid #dfe8ea;
+ border-radius:14px;
+ background:#f8fbfb;
+}
+.diary-top-metrics span,
+.diary-top-metrics b,
+.diary-top-metrics small{display:block}
+.diary-top-metrics span{
+ font-size:11px;
+ color:#71838a;
+ text-transform:uppercase;
+ letter-spacing:.04em;
+}
+.diary-top-metrics b{font-size:20px;margin-top:4px}
+.diary-top-metrics small{font-size:11px;color:#7b8b91;margin-top:3px}
+.calorie-writing-tip-single{
+ margin:0 2px 16px;
+ color:#6f8088;
+ font-size:11px;
+ line-height:1.45;
+}
+@media(max-width:480px){
+ .diary-top-metrics{grid-template-columns:1fr 1fr;gap:8px}
+ .diary-top-metrics>div{padding:10px}
+ .diary-top-metrics b{font-size:17px}
+}
+
+/* Step 20R — controllo prima della registrazione giornata */
+.calorie-review-overlay{position:fixed;inset:0;z-index:9999;background:rgba(20,35,40,.42);display:flex;align-items:center;justify-content:center;padding:18px}
+.calorie-review-modal{width:min(430px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 55px rgba(0,0,0,.22)}
+.calorie-review-modal h3{margin:0 0 12px}
+.calorie-review-message{font-size:14px;line-height:1.6;color:#465a62;white-space:normal}
+.calorie-review-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.calorie-review-actions button{width:100%}
+
+/* Step 20T — calorie e BMR nella Home */
+.home-calorie-note{margin-top:6px}
+@media(max-width:480px){
+ .diary-calorie-card .calorie-summary-grid{gap:8px}
+ .diary-calorie-card .calorie-summary-grid>div{padding:10px}
+}
+/* MONUBI 3.1 — full visual redesign */
+:root{--accent:#0b6b55;--accent-dark:#064b43;--accent-deep:#033e38;--accent2:#68c600;--soft:#eef7e9;--ink:#10231f;--muted:#6b7d76;--line:#dce8df;--surface:#fff;--danger:#b63b47;--shadow-sm:0 8px 24px rgba(17,53,43,.06);--shadow-md:0 20px 50px rgba(17,53,43,.11);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}html{background:#f2f6f0}body{color:var(--ink);background:radial-gradient(circle at 95% 0,rgba(104,198,0,.14),transparent 26rem),radial-gradient(circle at 8% 15%,rgba(6,75,67,.08),transparent 30rem),linear-gradient(180deg,#f7faf4,#f1f5ef);min-height:100vh}body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(7,89,72,.024) 1px,transparent 1px),linear-gradient(90deg,rgba(7,89,72,.024) 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(#000,transparent 70%)}
+.brand-rail,.pro-brand{position:sticky;top:0;z-index:40;height:74px;display:flex;align-items:center;justify-content:space-between;padding:10px 22px;background:rgba(250,252,248,.88);backdrop-filter:blur(22px);border-bottom:1px solid rgba(6,75,67,.08)}.brand-lock{display:flex;align-items:center;gap:11px}.brand-lock img{width:48px;height:48px;object-fit:cover;border-radius:15px;box-shadow:0 8px 22px rgba(6,75,67,.14)}.brand-lock>div{display:flex;flex-direction:column}.brand-lock strong{font-size:21px;letter-spacing:.09em;color:var(--accent-dark);line-height:1;font-weight:900}.brand-lock span{margin-top:5px;font-size:11px;color:#71817a}.install-link,.area-switch{border:1px solid #dbe7d8!important;background:#fff!important;color:var(--accent-dark)!important;padding:10px 14px!important;border-radius:999px!important;font-size:12px!important;font-weight:800!important;text-decoration:none;width:auto!important;box-shadow:none!important}
+main#app{max-width:1120px;margin:0 auto;padding:38px 26px 126px}.hero-title,.page-title{margin-bottom:22px;align-items:flex-end}.page-title{align-items:center}.hero-title h1,.page-title h1{font-size:clamp(34px,4vw,52px);line-height:.98;letter-spacing:-.05em;margin:7px 0 0;font-weight:880;color:var(--ink)}.page-title h1{font-size:clamp(31px,3.4vw,44px)}.eyebrow{color:var(--accent);letter-spacing:.17em;font-size:10px;font-weight:900}h2{font-size:20px;letter-spacing:-.025em;color:var(--ink)}.muted{color:var(--muted)}
+.card{background:rgba(255,255,255,.9);border:1px solid rgba(8,77,64,.08);backdrop-filter:blur(14px);border-radius:24px;padding:22px;margin:16px 0;box-shadow:var(--shadow-sm)}.highlight{min-height:244px;background:radial-gradient(circle at 90% 8%,rgba(151,226,58,.26),transparent 35%),linear-gradient(145deg,#063f39,#075b4d 58%,#0c7358);color:#fff;border:0;box-shadow:0 25px 58px rgba(5,74,61,.22)}.highlight:after{width:280px;height:280px;right:-110px;top:-110px;background:radial-gradient(circle,rgba(205,246,149,.23),transparent 70%)}.highlight .muted,.highlight .caps{color:rgba(255,255,255,.72)}.highlight .weight{font-size:clamp(54px,7vw,76px);line-height:.95;color:#fff;margin:16px 0 12px}.highlight .weight small{color:rgba(255,255,255,.68)}.highlight .delta{color:#cbf69a!important}.highlight .bmi-now span,.highlight .bmi-now small{color:rgba(255,255,255,.68)}.highlight .bmi-now b{color:#d7ffa7}.diary-calorie-card{background:linear-gradient(150deg,#fff,#f2faeb);border-color:rgba(105,181,29,.15);box-shadow:0 18px 42px rgba(75,126,30,.08)}.calorie-summary-grid>div,.diary-top-metrics>div,.stats div,.profile-read-grid>div{background:linear-gradient(145deg,#fff,#f7faf5)!important;border:1px solid rgba(11,107,85,.08)!important;border-radius:18px!important;padding:16px!important}.calorie-summary-grid b,.diary-top-metrics b{color:var(--accent-dark);font-size:23px}.next-visit-card{background:linear-gradient(135deg,#f0fae6,#fff);border-color:rgba(105,190,0,.16)}.next-visit-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#e4f7ce}.goal-card{background:linear-gradient(160deg,#fff,#f5f9f2)}.progress{height:12px;background:#e5eee4}.progress span{background:linear-gradient(90deg,var(--accent),var(--accent2))}.pill{background:#eaf6df;color:#3f7f0a;border:1px solid #d9edc7;font-weight:850}.plan-card{background:linear-gradient(140deg,#fff9ec,#fff)}
+label{color:#2e403a;font-size:13px;margin-top:19px}input,textarea,select{border:1px solid #d6e3da;border-radius:16px;padding:14px 15px;background:#fbfdfb;color:var(--ink)}input:focus,textarea:focus,select:focus{border-color:#63ad41;box-shadow:0 0 0 4px rgba(100,190,55,.12);background:#fff}textarea{min-height:92px;line-height:1.45}.date-picker-btn{border-color:#d6e3da;background:#f4f8f2;color:var(--accent-dark);border-radius:16px}.coffee button{background:#eef7e9!important;color:var(--accent-dark)!important;border:1px solid #dcebd6!important}.profile-preview{background:#edf7e7;color:#52665d;border:1px solid #dcecd5}.profile-preview b{color:var(--accent-dark)}.measure-table th{background:#eef5ec;color:#53655f}.measure-table tbody tr:hover{background:#f4f8f2}.listitem{border-top:1px solid #e5ece7;padding:16px 4px}.chart-line{stroke:var(--accent);stroke-width:2.8}.chart-point{fill:var(--accent2);stroke:#fff;stroke-width:1.1}.chart-grid{stroke:#e6eee8}
+button,.btn{border:1px solid transparent;border-radius:16px;font-weight:800;transition:transform .14s ease,box-shadow .14s ease}.primary,.btn.primary,button.primary{background:linear-gradient(135deg,#07594b,#0c7458)!important;color:#fff!important;border-color:#07594b!important;box-shadow:0 10px 24px rgba(5,89,73,.18)!important}.secondary,.btn.secondary,button.secondary{background:#edf6e8!important;color:#07594b!important;border-color:#d8e9d1!important;box-shadow:none!important}.mini{background:#f1f6ef!important;color:#07594b!important;border:1px solid #dce8d8!important;box-shadow:none!important}.pdf-btn{background:linear-gradient(135deg,#e7a43d,#cb7d27)!important;color:#fff!important;border:0!important}.danger,.danger-text{color:#a72f3c!important}.primary *{color:inherit!important}
+nav{background:rgba(250,252,248,.94);backdrop-filter:blur(22px);border-color:rgba(6,75,67,.1);gap:4px}nav button{color:#65766f!important;background:transparent!important;border:0!important;display:flex;align-items:center;gap:7px;border-radius:14px!important}nav button i{font-style:normal;font-size:19px;color:#4d6259}body[data-page=home] nav button[data-page=home],body[data-page=add] nav button[data-page=add],body[data-page=trend] nav button[data-page=trend],body[data-page=measures] nav button[data-page=measures],body[data-page=profile] nav button[data-page=profile]{background:#e9f5e3!important;color:#064b43!important}body[data-page=home] nav button[data-page=home] i,body[data-page=add] nav button[data-page=add] i,body[data-page=trend] nav button[data-page=trend] i,body[data-page=measures] nav button[data-page=measures] i,body[data-page=profile] nav button[data-page=profile] i{color:#55a90a!important}
+@media(min-width:900px){body:not(.landing-body):not(.pro-body){padding-left:246px}.brand-rail{position:fixed;left:0;top:0;width:246px;height:168px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:24px 20px;background:rgba(248,251,246,.97);border-right:1px solid rgba(6,75,67,.08);border-bottom:0}.brand-rail .brand-lock img{width:60px;height:60px;border-radius:18px}.brand-rail .brand-lock span{white-space:normal;line-height:1.35}.brand-rail .install-link,.brand-rail .area-switch{margin-top:20px;width:100%!important;text-align:center}body:not(.landing-body):not(.pro-body) nav{position:fixed;left:0;top:168px;bottom:0;width:246px;right:auto;flex-direction:column;justify-content:flex-start;align-items:stretch;padding:16px 14px;border-right:1px solid rgba(6,75,67,.08);border-top:0;background:rgba(248,251,246,.97)}body:not(.landing-body):not(.pro-body) nav button{justify-content:flex-start;padding:13px 14px!important;font-size:14px!important}body:not(.landing-body):not(.pro-body) nav button i{width:25px;text-align:center}body:not(.landing-body):not(.pro-body) main#app{padding:48px 38px 70px}body[data-page=home] main#app{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-items:start}body[data-page=home] main#app>.hero-title{grid-column:1/-1;margin-bottom:2px}body[data-page=home] main#app>.card{grid-column:span 6;margin:0}body[data-page=home] main#app>.patient-readonly-notice{grid-column:1/-1}body[data-page=home] main#app>.highlight{grid-column:span 7}body[data-page=home] main#app>.diary-calorie-card{grid-column:span 5;min-height:244px}body[data-page=home] main#app>.chart-card{grid-column:1/-1}body[data-page=home] main#app>.actions{grid-column:1/-1;margin-top:0}body[data-page=add] main#app,body[data-page=trend] main#app,body[data-page=measures] main#app,body[data-page=profile] main#app{max-width:980px}}
+@media(max-width:899px){.brand-rail{height:68px;padding:9px 15px}.brand-lock img{width:44px;height:44px}.brand-lock strong{font-size:18px}.brand-lock span{font-size:10px}.brand-rail .install-link{font-size:0!important;width:40px!important;height:40px;padding:0!important}.brand-rail .install-link:after{content:"↓";font-size:18px}main#app{padding:24px 15px 110px}.hero-title h1,.page-title h1{font-size:34px}.card{border-radius:21px;padding:18px}.highlight{min-height:220px}.highlight .weight{font-size:58px}}@media(max-width:520px){nav{justify-content:space-around;overflow:visible}nav button{min-width:0;flex:1;padding:8px 4px!important;font-size:10px!important;flex-direction:column;gap:3px}.diary-top-metrics{grid-template-columns:1fr 1fr}}
+/* Landing */.landing-body{background:#071f1b}.monubi-landing{max-width:none!important;margin:0!important;padding:0!important;min-height:100vh;display:grid;grid-template-columns:minmax(380px,1.08fr) minmax(430px,.92fr);background:radial-gradient(circle at 82% 18%,rgba(124,211,15,.15),transparent 25rem),linear-gradient(135deg,#082b25,#061c19)}.landing-visual{min-height:100vh;display:grid;place-items:center;padding:40px;overflow:hidden;position:relative}.landing-visual:before{content:"";position:absolute;width:520px;height:520px;border:1px solid rgba(174,231,102,.12);border-radius:50%}.landing-visual img{width:min(720px,92%);max-height:86vh;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 30px 55px rgba(0,0,0,.28))}.landing-panel{background:#f7faf4;border-radius:40px 0 0 40px;margin:18px 0;padding:clamp(36px,6vw,80px);display:flex;flex-direction:column;justify-content:center;box-shadow:-30px 0 80px rgba(0,0,0,.13)}.landing-mini-brand{display:flex;align-items:center;gap:10px;margin-bottom:36px}.landing-mini-brand img{width:46px;height:46px;border-radius:14px}.landing-mini-brand span{font-weight:900;letter-spacing:.1em;color:var(--accent-dark)}.landing-panel h1{font-size:clamp(44px,5vw,66px);line-height:.95;margin:9px 0 20px;letter-spacing:-.055em}.landing-panel h1 em{font-style:normal;color:#64b509}.landing-lead{font-size:17px;line-height:1.55;color:#65766f;max-width:520px;margin:0 0 30px}.landing-panel .mode-grid{grid-template-columns:1fr!important;gap:12px!important}.mode-card{text-decoration:none;display:grid!important;grid-template-columns:50px 1fr 26px;align-items:center;gap:14px;padding:18px!important;border-radius:20px!important;border:1px solid #dce8d8!important;background:#fff!important;color:var(--ink)!important;box-shadow:var(--shadow-sm)!important;transition:.18s}.mode-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)!important}.mode-card .mode-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:#edf7e5;color:var(--accent-dark);font-size:22px}.mode-card b{font-size:17px}.mode-card small{display:block;color:#76867f;margin-top:4px}.mode-card>strong{font-size:25px;color:#7abf24}.landing-import{margin-top:22px;padding:16px 0;border-top:1px solid #dfe7dc;display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px}.landing-import div{display:flex;flex-direction:column}.landing-import span{font-size:12px;color:#78877f;margin-top:4px}.landing-import p{grid-column:1/-1;margin:0}.landing-install{align-self:flex-start;margin-top:14px}@media(max-width:880px){.monubi-landing{grid-template-columns:1fr;background:#f7faf4}.landing-visual{min-height:310px;padding:24px;background:linear-gradient(145deg,#08342c,#061f1b)}.landing-visual img{max-height:300px}.landing-panel{border-radius:32px 32px 0 0;margin:-18px 0 0;padding:32px 20px;position:relative;z-index:2}.landing-panel h1{font-size:42px}.landing-mini-brand{margin-bottom:24px}}
+/* Professional */.pro-body{background:#f2f6f0}.pro-body .pro-brand{position:sticky;top:0;height:76px;background:rgba(249,251,247,.94);border-bottom:1px solid rgba(6,75,67,.09)}.pro-body #proApp{max-width:1380px;padding:32px 28px 80px}.pro-body .pro3-top h1{font-size:clamp(34px,4vw,52px);letter-spacing:-.045em;margin:4px 0 0}.pro-body .pro3-top>a{display:none}.pro3-nav{background:#eaf1e7!important;border:1px solid #dce7d8!important;border-radius:18px!important;padding:5px!important;gap:5px!important;margin-bottom:22px!important}.pro3-nav button{color:#53675e!important;background:transparent!important;border:0!important;border-radius:13px!important;padding:11px 16px!important}.pro3-nav button.active{background:#fff!important;color:#07594b!important;box-shadow:0 5px 14px rgba(6,75,67,.08)!important}.pro3-kpis>div{background:linear-gradient(150deg,#fff,#f5f9f2)!important;border:1px solid #dfe9dc!important;border-radius:21px!important;padding:21px!important;box-shadow:var(--shadow-sm)!important}.pro3-kpis b{color:#073f38!important;font-size:34px!important}.pro3-patient,.pro3-event{background:#f8faf7!important;color:var(--ink)!important;border:1px solid #e1eae0!important;border-radius:16px!important}.patient-avatar{background:linear-gradient(135deg,#07594b,#6dc314)!important;color:#fff!important}.pro3-dayhead{background:#edf5e9!important;color:#275046!important}.pro3-slot{background:#fff!important}.pro3-slot:hover{background:#f0f7eb!important}.alert-card{background:#fffaf0!important;border-color:#f1d8a7!important}@media(max-width:760px){.pro-body #proApp{padding:24px 14px 90px}.pro3-nav{overflow:auto;flex-wrap:nowrap!important}.pro3-nav button{white-space:nowrap}}
+/* Modals */.monubi-overlay{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:18px;background:rgba(3,27,23,.58);backdrop-filter:blur(10px)}.monubi-modal{width:min(520px,100%);position:relative;overflow:hidden;background:#fbfdf9;color:var(--ink);border-radius:28px;padding:27px;border:1px solid rgba(255,255,255,.7);box-shadow:0 34px 90px rgba(0,0,0,.28)}.modal-brand{display:flex;align-items:center;gap:11px;margin-bottom:24px}.modal-brand img{width:50px;height:50px;border-radius:15px}.modal-brand>div{display:flex;flex-direction:column}.modal-brand strong{font-size:18px;font-weight:900;letter-spacing:.1em;color:#064b43}.modal-brand span{font-size:11px;color:#71817a;margin-top:4px}.migration-brand img{width:62px;height:62px;border-radius:19px}.modal-kicker{font-size:10px;letter-spacing:.17em;font-weight:900;color:#5eaa13;margin-bottom:7px}.monubi-modal h2{font-size:31px;line-height:1.03;letter-spacing:-.045em;margin:0 0 12px}.monubi-modal h2 em{font-style:normal;color:#58aa0d}.monubi-modal-lead{font-size:15px;line-height:1.55;color:#607269}.monubi-x{position:absolute;right:16px;top:14px;width:38px;height:38px;padding:0!important;border-radius:50%!important;background:#eef3eb!important;color:#53655c!important;border:0!important;font-size:24px}.install-steps{display:grid;gap:10px;margin:20px 0}.install-steps>div{display:grid;grid-template-columns:35px 1fr;align-items:center;gap:10px;padding:12px;background:#f0f7eb;border-radius:15px}.install-steps b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#07594b;color:#fff}.install-steps i{font-style:normal}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.migration-badges{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.migration-badges span{background:#edf7e5;color:#41770f;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800}.migration-orb{position:absolute;right:-120px;top:-120px;width:270px;height:270px;border-radius:50%;background:radial-gradient(circle,#b5ee6e66,transparent 68%)}@media(max-width:520px){.monubi-modal{padding:22px;border-radius:24px}.monubi-modal h2{font-size:28px}.modal-actions{grid-template-columns:1fr}}
+.hero-brand-chip{width:76px;height:76px;border-radius:23px;background:#fff;padding:5px;box-shadow:0 14px 35px rgba(6,75,67,.13);flex:0 0 auto}.hero-brand-chip img{width:100%;height:100%;object-fit:cover;border-radius:18px}@media(max-width:520px){.hero-brand-chip{width:58px;height:58px;border-radius:18px}.hero-brand-chip img{border-radius:14px}}
+
+
+/* MONUBI 3.2 — demo navigation refinements */
+.patient-session-actions{display:flex;justify-content:flex-end;margin:0 0 10px}
+.pro3-nav button{display:flex;align-items:center;gap:8px}
+.pro3-nav button i{font-style:normal;font-size:17px;line-height:1;width:21px;text-align:center;color:currentColor}
+.pro3-nav button span{color:inherit}
+
+@media(min-width:900px){
+  .pro-body{padding-left:246px}
+  .pro-body .pro-brand{
+    position:fixed;left:0;top:0;width:246px;height:168px;z-index:50;
+    display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
+    padding:24px 20px;background:rgba(248,251,246,.97);
+    border-right:1px solid rgba(6,75,67,.08);border-bottom:0;
+  }
+  .pro-body .pro-brand .brand-lock img{width:60px;height:60px;border-radius:18px}
+  .pro-body .pro-brand .brand-lock span{white-space:normal;line-height:1.35}
+  .pro-body .pro-brand .area-switch{margin-top:20px;width:100%!important;text-align:center}
+  .pro-body #proApp{max-width:1380px;margin:0 auto;padding:48px 38px 80px}
+  .pro-body .pro3-nav{
+    position:fixed;left:0;top:168px;bottom:0;width:246px;z-index:45;
+    display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;
+    gap:4px!important;padding:16px 14px!important;margin:0!important;
+    overflow-y:auto;overflow-x:hidden;
+    background:rgba(248,251,246,.97)!important;
+    border:0!important;border-right:1px solid rgba(6,75,67,.08)!important;
+    border-radius:0!important;box-shadow:none!important;
+  }
+  .pro-body .pro3-nav button{
+    width:100%;justify-content:flex-start;gap:12px;
+    padding:13px 14px!important;border-radius:14px!important;
+    font-size:14px!important;text-align:left;color:#65766f!important;
+  }
+  .pro-body .pro3-nav button i{width:25px;font-size:18px}
+  .pro-body .pro3-nav button.active{
+    background:#e9f5e3!important;color:#064b43!important;
+    box-shadow:none!important;
+  }
+  .pro-body .pro3-nav button.active i{color:#55a90a!important}
+}
+
+@media(max-width:899px){
+  .pro-body .pro-brand .area-switch{display:inline-flex}
+  .pro3-nav button{justify-content:center;gap:6px}
+}
+
+/* MONUBI 3.3 — Hydration + demo access */
+.water-entry{
+  margin:18px 0 6px;padding:15px 16px;border:1px solid #d8e9e4;border-radius:19px;
+  background:linear-gradient(135deg,#f2fbfa,#f8fcf6);display:grid;grid-template-columns:48px 1fr;gap:13px;align-items:center
+}
+.water-entry-icon{
+  width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-size:23px;
+  background:linear-gradient(135deg,#dff5f1,#e7f7d6);box-shadow:inset 0 0 0 1px rgba(7,89,75,.05)
+}
+.water-entry-field label{margin:0 0 7px}
+.water-entry-field input{background:#fff}
+.water-entry-field small{display:block;margin-top:6px;color:#74857e;font-size:11px}
+.water-detail{background:linear-gradient(145deg,#eefaf8,#f7fcf3)!important}
+.water-detail b{color:#08745f!important}
+
+.login-shell{
+  min-height:calc(100vh - 220px);display:grid;place-items:center;padding:28px 14px
+}
+.login-card{
+  width:min(500px,100%);padding:30px!important;box-shadow:0 28px 70px rgba(5,68,56,.14)!important;
+  background:linear-gradient(155deg,#fff,#f7fbf5)!important
+}
+.login-card h1{font-size:clamp(32px,5vw,48px);line-height:1;letter-spacing:-.045em;margin:8px 0 15px}
+.login-card .primary{margin-top:22px}
+.login-area-link{display:inline-flex!important;margin-top:12px;text-decoration:none;justify-content:center}
+.login-brand-mark{display:flex;align-items:center;gap:12px;margin-bottom:27px}
+.login-brand-mark img{width:58px;height:58px;border-radius:18px;box-shadow:0 10px 25px rgba(6,75,67,.13)}
+.login-brand-mark>div{display:flex;flex-direction:column}
+.login-brand-mark b{font-size:20px;letter-spacing:.1em;color:#064b43}
+.login-brand-mark span{font-size:11px;color:#75867f;margin-top:4px}
+.pro-login-shell{min-height:calc(100vh - 160px)}
+.pro-logout{cursor:pointer}
+.pro-brand .pro-logout{margin-top:8px!important;background:#eef6e8!important;color:#07594b!important;border-color:#d8e9d1!important}
+@media(min-width:900px){
+  .pro-body .pro-brand .pro-logout{width:100%!important;justify-content:center}
+}
+@media(max-width:520px){
+  .water-entry{grid-template-columns:42px 1fr;padding:13px}
+  .water-entry-icon{width:40px;height:40px}
+  .login-card{padding:22px!important}
+}
+
+/* NUBEMO 3.4 — professional sidebar + agenda refinements */
+@media(min-width:900px){
+  .pro-body .pro-brand{height:220px}
+  .pro-body .pro3-nav{top:220px}
+}
+.pro3-cal-event{min-height:42px;padding-top:5px!important;padding-bottom:5px!important}
+.pro3-cal-event span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.15!important}
+
+/* NUBEMO 3.5 — brand cleanup */
+.monubi-brand-lockup img,
+.login-brand-mark img{
+  background:transparent!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+}
+.landing-visual img{
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+
+/* NUBEMO 3.6 — logo applicazione separato dall'icona dispositivo */
+.monubi-brand-lockup img,.login-brand-mark img{
+  object-fit:cover!important;background:transparent!important;box-shadow:none!important;border:0!important;border-radius:16px!important;
+}
+
+/* NUBEMO 3.7 — logo pulito: nessun angolo/riquadro bianco */
+.monubi-brand-lockup img,
+.login-brand-mark img{
+  background:none!important;
+  box-shadow:none!important;
+  border:none!important;
+  outline:none!important;
+}
+.monubi-brand-lockup,
+.login-brand-mark{
+  background:transparent!important;
+}
+
+/* NUBEMO 3.8 — correzioni mirate paziente */
+.hero-brand-chip{
+  background:transparent!important;
+  padding:0!important;
+  box-shadow:none!important;
+  border:none!important;
+  outline:none!important;
+}
+.hero-brand-chip img{
+  background:transparent!important;
+  box-shadow:none!important;
+  border:none!important;
+  outline:none!important;
+  border-radius:0!important;
+}
+
+.patient-session-actions{
+  justify-content:flex-start!important;
+  width:100%;
+  margin:0 0 10px!important;
+}
+
+/* NUBEMO 3.9 — arrotondamento logo paziente */
+.hero-brand-chip img{
+  border-radius:18px!important;
+}
+
+/* NUBEMO 3.10 — profilo professionista */
+#saveProAccount{margin-top:10px!important}
+
+/* NUBEMO 3.11 — logout paziente allineato a destra */
+.patient-session-actions{
+  justify-content:flex-end!important;
+  width:100%;
+}
+
+/* NUBEMO 3.12 — logout paziente sotto Cambia area */
+.brand-rail .patient-logout-header{margin-left:8px}
+@media(min-width:900px){
+  body:not(.pro-body) .brand-rail{
+    align-items:center;
+  }
+  .brand-rail .patient-logout-header{
+    margin-left:8px;
+  }
+}
+
+.brand-rail{
+  display:grid!important;
+  grid-template-columns:1fr auto!important;
+  grid-template-rows:auto auto!important;
+}
+.brand-rail .brand-lock{grid-column:1;grid-row:1 / span 2}
+.brand-rail>.area-switch:not(.patient-logout-header){grid-column:2;grid-row:1}
+.brand-rail>.patient-logout-header{
+  grid-column:2;grid-row:2;
+  margin:6px 0 0!important;
+  justify-self:stretch;
+  justify-content:center;
+}
+
+/* NUBEMO 3.13 — header paziente demo coerente col professionista */
+@media(min-width:900px){
+  body:not(.pro-body) .brand-rail{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    width:246px!important;
+    height:220px!important;
+    padding:24px 20px!important;
+  }
+
+  body:not(.pro-body) .brand-rail .brand-lock{
+    width:100%!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+
+  body:not(.pro-body) .brand-rail>.area-switch:not(.patient-logout-header),
+  body:not(.pro-body) .brand-rail>.patient-logout-header{
+    width:100%!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    justify-content:center!important;
+    text-align:center!important;
+    box-sizing:border-box!important;
+  }
+
+  body:not(.pro-body) .brand-rail>.area-switch:not(.patient-logout-header){
+    margin-top:20px!important;
+  }
+
+  body:not(.pro-body) .brand-rail>.patient-logout-header{
+    margin-top:8px!important;
+  }
+
+  body:not(.pro-body) nav{
+    top:220px!important;
+  }
+}
+
+/* Su mobile restano compatti nell'header */
+@media(max-width:899px){
+  body:not(.pro-body) .brand-rail{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+  }
+
+  body:not(.pro-body) .brand-rail>.patient-logout-header{
+    margin-left:8px!important;
+  }
+}
+
+/* NUBEMO 3.15 — grafici responsive */
+.chart-wrap{overflow:hidden!important}
+.chart{overflow:visible}
+.chart-y-label{font-size:3.2px}
+@media(max-width:900px){
+  .chart-wrap{padding-left:2px!important;padding-right:2px!important}
+  .chart-y-label{font-size:3px}
+}
+
+/* NUBEMO 3.16 — peso e BMI: marker identici */
+.chart-point,
+.chart-bmi-point{
+  fill:var(--accent2)!important;
+  stroke:#fff!important;
+  stroke-width:1.1!important;
+}
+.chart-line,
+.chart-bmi-line{
+  stroke:var(--accent)!important;
+  stroke-width:2.4!important;
+}
+
+/* NUBEMO 3.19 — assi grafici realmente responsive */
+.chart-wrap{position:relative;overflow:hidden!important}
+.chart.responsive-chart{
+  width:100%!important;
+  height:clamp(210px,34vw,300px)!important;
+  display:block;
+  overflow:hidden!important;
+}
+.chart-y-label,.chart-x-label,.chart-unit-svg{
+  fill:#657780;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+.chart-y-label{font-size:4.1px!important}
+.chart-x-label{font-size:4.2px;font-weight:650}
+.chart-unit-svg{font-size:4px;font-weight:800}
+.chart-dates,.chart-unit{display:none!important}
+@media(max-width:520px){
+  .chart.responsive-chart{height:220px!important}
+  .chart-y-label{font-size:4.3px!important}
+  .chart-x-label{font-size:4.3px}
+}
+@media(min-width:521px) and (max-width:1100px){
+  .chart.responsive-chart{height:270px!important}
+}
+
+/* NUBEMO 3.19 — cartella paziente e profilo professionista */
+.pro-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pro-profile-grid.three{grid-template-columns:.65fr 1.35fr .65fr}
+.pro-logo-editor{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:14px}
+.pro-logo-preview{
+  width:180px;height:100px;border:1px dashed #cbdcd2;border-radius:18px;
+  display:grid;place-items:center;background:#f8fbf7;overflow:hidden;color:#7a8b83;font-size:12px
+}
+.pro-logo-preview img{max-width:100%;max-height:100%;object-fit:contain}
+.pro-logo-actions{display:flex;gap:8px;flex-wrap:wrap}
+.file-button{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:11px 14px!important;border-radius:14px}
+.patient-detail-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.clinical-overlay{
+  position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:18px;
+  background:rgba(3,27,23,.58);backdrop-filter:blur(10px)
+}
+.clinical-modal{
+  position:relative;width:min(540px,100%);background:#fbfdf9;border-radius:28px;padding:28px;
+  box-shadow:0 32px 85px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.75)
+}
+.clinical-modal h2{font-size:30px;line-height:1.04;letter-spacing:-.035em;margin:8px 0 12px}
+.clinical-check{
+  margin:20px 0 8px!important;padding:15px;border:1px solid #dce9d8;border-radius:17px;background:#f2f8ee;
+  display:flex!important;align-items:flex-start;gap:11px;cursor:pointer
+}
+.clinical-check input{width:auto;margin:3px 0 0}
+.clinical-check span{display:flex;flex-direction:column;gap:4px}
+.clinical-check small{font-weight:400;color:#72827b}
+.clinical-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+@media(max-width:680px){
+  .pro-profile-grid,.pro-profile-grid.three{grid-template-columns:1fr}
+  .patient-detail-toolbar{align-items:stretch}
+  .patient-detail-toolbar>.head-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .clinical-actions{grid-template-columns:1fr}
+}
+
+/* NUBEMO 3.20 — navigazione professionista a scomparsa */
+.pro-top-brand{
+  border:0;background:transparent;padding:0;display:flex;align-items:center;gap:12px;
+  text-align:left;cursor:pointer;color:inherit
+}
+.pro-top-brand img{width:54px;height:54px;border-radius:16px;object-fit:cover;display:block}
+.pro-top-brand h1{margin:2px 0 0}
+.pro-drawer-backdrop{
+  position:fixed;inset:0;background:rgba(3,25,21,.42);backdrop-filter:blur(3px);
+  z-index:20000;opacity:0;pointer-events:none;transition:opacity .2s ease
+}
+.pro-drawer-backdrop.open{opacity:1;pointer-events:auto}
+.pro-drawer{
+  position:fixed;left:0;top:0;bottom:0;width:min(390px,86vw);z-index:20001;
+  background:#f8fbf6;border-right:1px solid #d7e4d3;box-shadow:24px 0 60px rgba(0,0,0,.18);
+  transform:translateX(-105%);transition:transform .24s ease;overflow:auto
+}
+.pro-drawer.open{transform:translateX(0)}
+.drawer-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 18px;
+  border-bottom:1px solid #dfe9dc;background:#fff
+}
+.drawer-brand{display:flex;align-items:center;gap:12px}
+.drawer-brand img{width:56px;height:56px;border-radius:17px;object-fit:cover}
+.drawer-brand b{display:block;font-size:20px;letter-spacing:.08em;color:#075449}
+.drawer-brand span{display:block;margin-top:4px;color:#74817b;font-size:12px}
+.drawer-close{border:0;background:#edf5e8;width:40px;height:40px;border-radius:50%;font-size:25px;color:#075449}
+.drawer-nav{padding:16px}
+.drawer-root,.drawer-node,.drawer-sub button{
+  width:100%;border:0;background:transparent;border-radius:14px;padding:13px 14px;
+  text-align:left;color:#17332d;font-size:15px;cursor:pointer
+}
+.drawer-root{display:flex;align-items:center;gap:9px;font-size:16px;margin-bottom:4px}
+.drawer-root.active,.drawer-sub button.active{background:#e5f2df;color:#075449}
+.drawer-group{margin:2px 0 10px 14px;padding-left:10px;border-left:2px solid #d8e8d2}
+.drawer-node{display:flex;align-items:center;gap:8px;color:#075449;padding-left:7px}
+.drawer-sub{display:grid;gap:2px;margin-top:2px}
+.drawer-sub button{padding-left:28px;font-size:14px}
+.drawer-sub button[data-drawer-clinical]{margin-top:8px;background:#eef6ea;font-weight:800}
+.patient-content-card{overflow:visible}
+.patient-section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+.patient-section-head h2{margin:3px 0 0;font-size:28px}
+
+@media(max-width:899px){
+  .desktop-pro-nav{display:none!important}
+  .pro3-top{padding-top:4px}
+  .pro-top-brand{width:100%}
+  .pro-top-brand img{width:50px;height:50px}
+  .pro-top-brand .eyebrow{font-size:10px}
+  .pro-top-brand h1{font-size:24px}
+  .patient-content-card{margin-top:12px}
+}
+@media(min-width:900px){
+  .pro-drawer{width:390px}
+}
+
+/* NUBEMO 3.21 — rifiniture desktop */
+.patient-section-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+@media(max-width:899px){
+  .desktop-clinical-pdf{display:none!important}
+}
+@media(min-width:900px){
+  .chart-wrap{overflow:hidden!important}
+  .chart.responsive-chart{
+    width:calc(100% + 54px)!important;
+    max-width:none!important;
+    margin-left:-54px!important;
+  }
+}
+
+/* NUBEMO 3.22 — scheda paziente desktop completa */
+.patient-desktop-tabs{
+  display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:12px;
+  background:#fff;border:1px solid #e0e9e2;border-radius:20px
+}
+.patient-desktop-tabs button{
+  border:0;background:#edf2f4;color:#18332e;padding:10px 14px;border-radius:14px;
+  font-weight:750;cursor:pointer
+}
+.patient-desktop-tabs button.active{background:#087b64;color:#fff}
+@media(max-width:899px){.patient-desktop-tabs{display:none!important}}
+
+/* NUBEMO 3.23 — unità grafici e rifiniture */
+.chart-wrap{position:relative!important}
+.chart-unit-fixed{
+  position:absolute;left:6px;top:7px;
+  color:#71828a;font-size:12px;font-weight:800;
+  line-height:1;z-index:2;pointer-events:none
+}
+.chart-unit-svg{display:none!important}
+.patient-section-head h2{margin:0;font-size:30px}
+@media(max-width:899px){
+  .patient-section-head{display:block}
+  .patient-section-actions{margin-top:10px}
+}
+
+/* NUBEMO 3.28 — azioni scheda paziente professionista */
+.patient-section-head-clean{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  margin-bottom:18px
+}
+.patient-section-head-clean h2{margin:0}
+.patient-summary-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  flex-wrap:wrap
+}
+.patient-summary-actions button{white-space:nowrap}
+.patient-edit-btn{
+  min-width:auto!important;
+  padding:11px 16px!important
+}
+.desktop-clinical-pdf{
+  width:auto!important;
+  min-width:auto!important;
+  padding:11px 18px!important
+}
+.patient-more-wrap{position:relative}
+.patient-more-btn{
+  width:42px;height:42px;padding:0!important;border:1px solid #d8e5d5;
+  background:#f4f8f1;color:#075449;border-radius:14px;font-size:23px;
+  line-height:1;display:grid;place-items:center;cursor:pointer
+}
+.patient-more-menu{
+  display:none;position:absolute;right:0;top:48px;z-index:5000;
+  min-width:180px;padding:7px;background:#fff;border:1px solid #dce7da;
+  border-radius:14px;box-shadow:0 14px 35px rgba(0,0,0,.12)
+}
+.patient-more-menu.open{display:block}
+.patient-more-menu button{
+  width:100%;text-align:left;border:0;background:transparent;padding:10px 12px;
+  border-radius:10px;cursor:pointer;font-weight:700
+}
+.patient-more-menu .danger-link{color:#a13f3f}
+.patient-more-menu .danger-link:hover{background:#fff1f1}
+#editPatientProfileLegacy{display:none!important}
+
+@media(max-width:899px){
+  .patient-section-head-clean{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:12px
+  }
+  .patient-summary-actions{
+    width:100%;
+    justify-content:flex-start
+  }
+  .patient-edit-btn,.desktop-clinical-pdf{
+    flex:1 1 150px
+  }
+}
+@media(max-width:520px){
+  .patient-summary-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr auto;
+    gap:8px
+  }
+  .patient-edit-btn,.desktop-clinical-pdf{
+    width:100%!important;
+    padding:10px 9px!important;
+    font-size:13px
+  }
+}
+
+
+/* NUBEMO 3.32 — navigazione professionista portrait iPhone/iPad */
+@media (orientation:portrait) and (max-width:1024px){
+  /* La testata globale è ridondante in portrait: resta la testata contestuale cliccabile. */
+  .pro-body > .pro-brand{display:none!important}
+  .pro-body #proApp{padding-top:max(18px,env(safe-area-inset-top))!important}
+
+  .pro3-top{padding-top:0!important;margin-bottom:18px}
+  .pro-top-brand{
+    width:100%!important;display:flex!important;align-items:center!important;
+    justify-content:flex-start!important;gap:14px!important;text-align:left!important;
+    padding:0!important;border:0!important;background:transparent!important
+  }
+  .pro-top-brand img{width:58px!important;height:58px!important;flex:0 0 58px;border-radius:17px}
+  .pro-top-brand .eyebrow{font-size:10px!important;letter-spacing:.17em!important}
+  .pro-top-brand h1{font-size:clamp(30px,6vw,42px)!important;line-height:1!important;margin-top:6px!important}
+
+  /* Drawer: vera colonna verticale, niente navigazione appoggiata in fondo. */
+  .pro-drawer{
+    width:min(88vw,430px)!important;max-width:none!important;
+    display:flex!important;flex-direction:column!important;
+    overflow-y:auto!important;overflow-x:hidden!important;
+    background:#fbfdf9!important
+  }
+  .drawer-head{
+    flex:0 0 auto!important;display:flex!important;align-items:center!important;
+    justify-content:space-between!important;gap:16px!important;
+    padding:22px 20px!important
+  }
+  .drawer-brand{min-width:0}
+  .drawer-brand img{width:58px!important;height:58px!important;flex:0 0 58px}
+  .drawer-close{
+    flex:0 0 44px!important;width:44px!important;height:44px!important;
+    padding:0!important;display:grid!important;place-items:center!important;
+    line-height:1!important;font-size:0!important
+  }
+  .drawer-close span{
+    display:block!important;font-size:31px!important;line-height:31px!important;
+    height:31px!important;width:31px!important;text-align:center!important;
+    transform:translateY(-1px)
+  }
+  .drawer-nav{
+    position:static!important;inset:auto!important;flex:1 1 auto!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    justify-content:flex-start!important;gap:5px!important;
+    padding:16px 18px 30px!important;border:0!important
+  }
+  .drawer-root,.drawer-node,.drawer-sub button,.drawer-link{
+    width:100%!important;box-sizing:border-box!important;display:flex!important;
+    align-items:center!important;justify-content:flex-start!important;
+    text-align:left!important;margin:0!important
+  }
+  .drawer-root{padding:13px 14px!important;min-height:48px!important}
+  .drawer-link{text-decoration:none!important}
+  .drawer-group{
+    width:100%!important;margin:0 0 8px 12px!important;padding:2px 0 4px 12px!important;
+    border-left:2px solid #d8e8d2!important
+  }
+  .drawer-node{padding:10px 12px!important;gap:8px!important}
+  .drawer-sub{display:flex!important;flex-direction:column!important;gap:2px!important;margin:2px 0 0!important}
+  .drawer-sub button{padding:10px 12px 10px 28px!important;min-height:42px!important}
+  .drawer-sub button[data-drawer-clinical]{margin-top:5px!important}
+  .drawer-separator{height:1px;background:#dfe9dc;margin:9px 4px!important}
+  .drawer-logout{color:#9a4646!important}
+
+  /* La vecchia nav professionista non deve comparire in portrait. */
+  .desktop-pro-nav{display:none!important}
+}
+
+
+/* NUBEMO 3.33 — solo iPhone verticale */
+@media (orientation:portrait) and (max-width:600px){
+  .pro-drawer{
+    width:88vw!important;
+  }
+
+  .drawer-head{
+    padding:17px 16px!important;
+  }
+
+  .drawer-brand img{
+    width:50px!important;
+    height:50px!important;
+    flex:0 0 50px!important;
+  }
+
+  .drawer-brand b{
+    font-size:18px!important;
+  }
+
+  .drawer-brand span{
+    font-size:11px!important;
+    margin-top:2px!important;
+  }
+
+  .drawer-close{
+    width:40px!important;
+    height:40px!important;
+    flex:0 0 40px!important;
+  }
+
+  .drawer-close span{
+    font-size:28px!important;
+    line-height:28px!important;
+    width:28px!important;
+    height:28px!important;
+  }
+
+  .drawer-nav{
+    padding:12px 14px 18px!important;
+    gap:2px!important;
+  }
+
+  .drawer-root{
+    min-height:40px!important;
+    padding:9px 10px!important;
+    font-size:15px!important;
+  }
+
+  .drawer-group{
+    margin:0 0 4px 10px!important;
+    padding:0 0 2px 10px!important;
+  }
+
+  .drawer-node{
+    min-height:38px!important;
+    padding:8px 10px!important;
+    font-size:14px!important;
+  }
+
+  .drawer-sub{
+    gap:0!important;
+    margin-top:0!important;
+  }
+
+  .drawer-sub button{
+    min-height:34px!important;
+    padding:7px 10px 7px 22px!important;
+    font-size:13px!important;
+    line-height:1.15!important;
+  }
+
+  .drawer-sub button[data-drawer-clinical]{
+    margin-top:3px!important;
+  }
+
+  .drawer-separator{
+    margin:6px 2px!important;
+  }
+}
+
+
+/* NUBEMO 3.34 — reset definitivo navigazione iPhone */
+@media (max-width:600px){
+  .desktop-pro-nav,
+  .pro3-nav{
+    display:none!important;
+  }
+
+  .pro-drawer{
+    width:88vw!important;
+    max-width:390px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    background:#fbfdf9!important;
+  }
+
+  .drawer-head{
+    flex:0 0 auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:14px!important;
+    padding:16px 15px!important;
+  }
+
+  .drawer-brand{
+    display:flex!important;
+    align-items:center!important;
+    gap:11px!important;
+    min-width:0!important;
+  }
+
+  .drawer-brand img{
+    width:50px!important;
+    height:50px!important;
+    flex:0 0 50px!important;
+    border-radius:15px!important;
+  }
+
+  .drawer-brand b{
+    font-size:18px!important;
+    line-height:1.05!important;
+  }
+
+  .drawer-brand span{
+    font-size:11px!important;
+    margin-top:3px!important;
+  }
+
+  .drawer-close{
+    width:40px!important;
+    height:40px!important;
+    flex:0 0 40px!important;
+    padding:0!important;
+    display:grid!important;
+    place-items:center!important;
+    line-height:1!important;
+  }
+
+  .drawer-close span{
+    width:28px!important;
+    height:28px!important;
+    line-height:28px!important;
+    font-size:28px!important;
+    text-align:center!important;
+    transform:none!important;
+  }
+
+  .drawer-nav{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    flex:1 1 auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:2px!important;
+    padding:10px 13px 18px!important;
+    margin:0!important;
+    border:0!important;
+  }
+
+  .drawer-root,
+  .drawer-node,
+  .drawer-sub button,
+  .drawer-link{
+    width:100%!important;
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    text-align:left!important;
+    margin:0!important;
+  }
+
+  .drawer-root{
+    min-height:38px!important;
+    padding:8px 10px!important;
+    font-size:14px!important;
+  }
+
+  .drawer-group{
+    width:auto!important;
+    margin:0 0 3px 10px!important;
+    padding:0 0 2px 10px!important;
+    border-left:2px solid #d8e8d2!important;
+  }
+
+  .drawer-node{
+    min-height:34px!important;
+    padding:6px 8px!important;
+    gap:7px!important;
+    font-size:13px!important;
+  }
+
+  .drawer-sub{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:0!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .drawer-sub button{
+    min-height:29px!important;
+    padding:5px 8px 5px 19px!important;
+    font-size:12.5px!important;
+    line-height:1.1!important;
+  }
+
+  .drawer-sub button[data-drawer-clinical]{
+    margin-top:2px!important;
+  }
+
+  .drawer-separator{
+    height:1px!important;
+    margin:5px 2px!important;
+    background:#dfe9dc!important;
+  }
+}
+
+/* iPhone landscape */
+@media (orientation:landscape) and (max-width:950px){
+  .desktop-pro-nav,
+  .pro3-nav{
+    display:none!important;
+  }
+
+  .pro-drawer{
+    width:min(64vw,420px)!important;
+    max-width:420px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+
+  .drawer-head{
+    padding:10px 13px!important;
+  }
+
+  .drawer-brand img{
+    width:42px!important;
+    height:42px!important;
+    flex:0 0 42px!important;
+  }
+
+  .drawer-brand b{font-size:16px!important}
+  .drawer-brand span{font-size:10px!important}
+
+  .drawer-close{
+    width:36px!important;
+    height:36px!important;
+    flex:0 0 36px!important;
+  }
+
+  .drawer-nav{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:1px!important;
+    padding:7px 11px 12px!important;
+    margin:0!important;
+  }
+
+  .drawer-root{
+    min-height:31px!important;
+    padding:5px 8px!important;
+    font-size:13px!important;
+  }
+
+  .drawer-group{
+    margin:0 0 2px 9px!important;
+    padding:0 0 2px 9px!important;
+  }
+
+  .drawer-node{
+    min-height:29px!important;
+    padding:4px 7px!important;
+    font-size:12.5px!important;
+  }
+
+  .drawer-sub{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:0!important;
+    margin:0!important;
+  }
+
+  .drawer-sub button{
+    min-height:25px!important;
+    padding:3px 7px 3px 17px!important;
+    font-size:12px!important;
+  }
+}
+
+
+/* NUBEMO 3.35 — drawer iPhone realmente compatto */
+@media (max-width:600px){
+  /* Nasconde la testata generale anche quando l'iPhone è orizzontale. */
+  .pro-body > .pro-brand{
+    display:none!important;
+  }
+
+  .pro-body #proApp{
+    padding-top:max(14px,env(safe-area-inset-top))!important;
+  }
+
+  .pro-drawer{
+    width:min(88vw,390px)!important;
+  }
+
+  .drawer-nav{
+    display:block!important;
+    padding:10px 14px 18px!important;
+  }
+
+  .drawer-root,
+  .drawer-link,
+  .drawer-node,
+  .drawer-sub button{
+    display:block!important;
+    width:100%!important;
+    text-align:left!important;
+    justify-content:initial!important;
+    align-items:initial!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+  }
+
+  .drawer-root,
+  .drawer-link{
+    min-height:0!important;
+    padding:10px 12px!important;
+    font-size:15px!important;
+    line-height:1.2!important;
+  }
+
+  .drawer-group{
+    margin:2px 0 5px 14px!important;
+    padding:0 0 0 11px!important;
+    border-left:2px solid #d8e8d2!important;
+  }
+
+  .drawer-node{
+    min-height:0!important;
+    padding:9px 10px!important;
+    font-size:14px!important;
+    line-height:1.2!important;
+    cursor:pointer!important;
+  }
+
+  .drawer-chevron{
+    display:inline-block!important;
+    width:18px!important;
+    margin-right:4px!important;
+    text-align:center!important;
+  }
+
+  /* Su iPhone le sezioni del paziente sono chiuse di default. */
+  .drawer-group .drawer-sub{
+    display:none!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .drawer-group.expanded .drawer-sub{
+    display:block!important;
+  }
+
+  .drawer-sub button{
+    min-height:0!important;
+    padding:7px 10px 7px 32px!important;
+    font-size:13px!important;
+    line-height:1.15!important;
+  }
+
+  .drawer-sub button[data-drawer-clinical]{
+    margin-top:2px!important;
+  }
+
+  .drawer-separator{
+    margin:6px 4px!important;
+  }
+}
+
+/* iPhone landscape: stessa logica compatta, senza pannello NUBEMO permanente. */
+@media (orientation:landscape) and (max-width:950px){
+  .pro-body > .pro-brand{
+    display:none!important;
+  }
+
+  .pro-body #proApp{
+    padding-top:12px!important;
+  }
+
+  .pro-drawer{
+    width:min(56vw,390px)!important;
+    max-width:390px!important;
+  }
+
+  .drawer-head{
+    padding:9px 12px!important;
+  }
+
+  .drawer-nav{
+    display:block!important;
+    padding:6px 11px 10px!important;
+  }
+
+  .drawer-root,
+  .drawer-link{
+    min-height:0!important;
+    padding:6px 9px!important;
+    font-size:13px!important;
+    line-height:1.15!important;
+  }
+
+  .drawer-group{
+    margin:1px 0 3px 11px!important;
+    padding-left:9px!important;
+  }
+
+  .drawer-node{
+    min-height:0!important;
+    padding:5px 8px!important;
+    font-size:12.5px!important;
+  }
+
+  .drawer-sub button{
+    min-height:0!important;
+    padding:4px 8px 4px 27px!important;
+    font-size:12px!important;
+  }
+}
+
+
+/* NUBEMO 3.36 — solo iPhone orizzontale: layout pagina */
+@media (orientation:landscape) and (max-width:950px){
+
+  /* La pagina non deve ereditare il layout desktop centrato. */
+  .pro-body #proApp{
+    width:100%!important;
+    max-width:none!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:12px 16px 38px!important;
+  }
+
+  .pro3-top{
+    width:100%!important;
+    max-width:none!important;
+    margin:0 0 14px!important;
+    padding:0!important;
+  }
+
+  .pro-top-brand{
+    width:100%!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:11px!important;
+    text-align:left!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .pro-top-brand img{
+    width:46px!important;
+    height:46px!important;
+    flex:0 0 46px!important;
+    border-radius:14px!important;
+  }
+
+  .pro-top-brand .eyebrow{
+    font-size:9px!important;
+    letter-spacing:.14em!important;
+  }
+
+  .pro-top-brand h1{
+    font-size:30px!important;
+    line-height:1!important;
+    margin:3px 0 0!important;
+  }
+
+  /* I KPI passano da desktop 4-colonne a 2 colonne. */
+  .pro3-kpis{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    width:100%!important;
+  }
+
+  .pro3-kpis>div{
+    min-width:0!important;
+    padding:13px 15px!important;
+    border-radius:17px!important;
+  }
+
+  .pro3-kpis b{
+    font-size:28px!important;
+  }
+
+  /* Le sezioni dashboard non devono restare in colonne desktop rigide. */
+  .pro3-dashboard,
+  .pro-dashboard-grid{
+    grid-template-columns:1fr!important;
+    width:100%!important;
+    gap:12px!important;
+  }
+
+  .pro-body .card{
+    max-width:none!important;
+  }
+
+  .section-head{
+    gap:10px!important;
+  }
+}
+
+
+/* NUBEMO 3.37 — iPhone landscape stabile anche dopo navigazione Safari */
+@media (orientation:landscape) and (max-width:950px){
+
+  /* Evita che Safari riattivi il vecchio header dopo un cambio pagina. */
+  .pro-body > .pro-brand{
+    display:none!important;
+  }
+
+  .pro-body #proApp{
+    width:100%!important;
+    max-width:none!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:12px 16px 38px!important;
+  }
+
+  .desktop-pro-nav,
+  .pro3-nav{
+    display:none!important;
+  }
+
+  .pro3-top{
+    display:block!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0 0 14px!important;
+    padding:0!important;
+  }
+
+  .pro-top-brand{
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    width:100%!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:11px!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .pro-top-brand img{
+    display:block!important;
+    width:46px!important;
+    height:46px!important;
+    flex:0 0 46px!important;
+    border-radius:14px!important;
+  }
+
+  .pro-top-brand .eyebrow{
+    display:block!important;
+    font-size:9px!important;
+    letter-spacing:.14em!important;
+  }
+
+  .pro-top-brand h1{
+    display:block!important;
+    font-size:30px!important;
+    line-height:1!important;
+    margin:3px 0 0!important;
+  }
+
+  /* Drawer sempre disponibile e verticale dopo ogni render(). */
+  .pro-drawer{
+    width:min(56vw,390px)!important;
+    max-width:390px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    background:#fbfdf9!important;
+  }
+
+  .drawer-head{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    padding:9px 12px!important;
+  }
+
+  .drawer-nav{
+    position:static!important;
+    inset:auto!important;
+    display:block!important;
+    width:100%!important;
+    padding:6px 11px 10px!important;
+    margin:0!important;
+  }
+
+  .drawer-root,
+  .drawer-link{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding:6px 9px!important;
+    margin:0!important;
+    text-align:left!important;
+    font-size:13px!important;
+    line-height:1.15!important;
+  }
+
+  .drawer-group{
+    margin:1px 0 3px 11px!important;
+    padding:0 0 2px 9px!important;
+    border-left:2px solid #d8e8d2!important;
+  }
+
+  .drawer-node{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding:5px 8px!important;
+    font-size:12.5px!important;
+    text-align:left!important;
+  }
+
+  /* Stessa logica iPhone del portrait: sottosezioni chiuse finché non si apre il paziente. */
+  .drawer-group .drawer-sub{
+    display:none!important;
+  }
+
+  .drawer-group.expanded .drawer-sub{
+    display:block!important;
+  }
+
+  .drawer-sub button{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding:4px 8px 4px 27px!important;
+    font-size:12px!important;
+    text-align:left!important;
+  }
+
+  .pro3-kpis{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    width:100%!important;
+  }
+
+  .pro3-kpis>div{
+    min-width:0!important;
+    padding:13px 15px!important;
+    border-radius:17px!important;
+  }
+
+  .pro3-kpis b{
+    font-size:28px!important;
+  }
+
+  .pro-body .card{
+    max-width:none!important;
+  }
+}
+
+
+/* NUBEMO 3.38 — iPhone landscape: sidebar permanente, non drawer */
+@media (orientation:landscape) and (max-width:950px){
+
+  /* Sidebar sempre presente. */
+  .pro-drawer{
+    position:fixed!important;
+    left:0!important;
+    top:0!important;
+    bottom:0!important;
+    width:250px!important;
+    max-width:250px!important;
+    transform:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    z-index:1500!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    box-shadow:8px 0 24px rgba(4,42,35,.08)!important;
+    border-right:1px solid #dce8d9!important;
+    background:#fbfdf9!important;
+  }
+
+  /* In landscape non è un overlay. */
+  .pro-drawer-backdrop{
+    display:none!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
+  /* La X non serve su una sidebar permanente. */
+  .drawer-close{
+    display:none!important;
+  }
+
+  .drawer-head{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    min-height:0!important;
+    padding:12px 13px!important;
+    border-bottom:1px solid #e0e9dd!important;
+  }
+
+  .drawer-brand{
+    display:flex!important;
+    align-items:center!important;
+    gap:9px!important;
+  }
+
+  .drawer-brand img{
+    width:42px!important;
+    height:42px!important;
+    flex:0 0 42px!important;
+    border-radius:13px!important;
+  }
+
+  .drawer-brand b{
+    font-size:15px!important;
+    line-height:1.05!important;
+  }
+
+  .drawer-brand span{
+    font-size:9px!important;
+    margin-top:2px!important;
+  }
+
+  .drawer-nav{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    flex:1 1 auto!important;
+    padding:8px 10px 14px!important;
+    margin:0!important;
+  }
+
+  .drawer-root,
+  .drawer-link{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    box-sizing:border-box!important;
+    padding:7px 9px!important;
+    margin:0!important;
+    text-align:left!important;
+    font-size:12.5px!important;
+    line-height:1.15!important;
+  }
+
+  .drawer-group{
+    margin:1px 0 3px 9px!important;
+    padding:0 0 1px 8px!important;
+    border-left:2px solid #d8e8d2!important;
+  }
+
+  .drawer-node{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding:5px 7px!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.15!important;
+  }
+
+  .drawer-chevron{
+    display:inline-block!important;
+    width:16px!important;
+    margin-right:3px!important;
+  }
+
+  .drawer-group .drawer-sub{
+    display:none!important;
+  }
+
+  .drawer-group.expanded .drawer-sub{
+    display:block!important;
+  }
+
+  .drawer-sub button{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding:4px 7px 4px 23px!important;
+    margin:0!important;
+    text-align:left!important;
+    font-size:11.5px!important;
+    line-height:1.1!important;
+  }
+
+  .drawer-separator{
+    margin:5px 2px!important;
+  }
+
+  /* Tutta l'app vive a destra della sidebar. */
+  .pro-body #proApp{
+    width:calc(100% - 250px)!important;
+    max-width:none!important;
+    box-sizing:border-box!important;
+    margin:0 0 0 250px!important;
+    padding:12px 14px 32px!important;
+  }
+
+  /* Il brand è già nella sidebar: qui mostriamo solo il titolo pagina. */
+  .pro3-top{
+    width:100%!important;
+    margin:0 0 12px!important;
+    padding:0!important;
+  }
+
+  .pro-top-brand{
+    pointer-events:none!important;
+    display:block!important;
+    width:100%!important;
+    padding:0!important;
+    margin:0!important;
+  }
+
+  .pro-top-brand img,
+  .pro-top-brand .eyebrow{
+    display:none!important;
+  }
+
+  .pro-top-brand h1{
+    display:block!important;
+    margin:0!important;
+    font-size:28px!important;
+    line-height:1!important;
+  }
+
+  .desktop-pro-nav,
+  .pro3-nav{
+    display:none!important;
+  }
+
+  .pro3-kpis{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+  }
+
+  .pro3-kpis>div{
+    padding:11px 13px!important;
+    border-radius:16px!important;
+  }
+
+  .pro3-kpis b{
+    font-size:26px!important;
+  }
+
+  .pro-body .card{
+    max-width:none!important;
+  }
+}
+
+
+/* NUBEMO 3.39 — sidebar iPhone landscape governata da JS, non dal viewport Safari */
+body.iphone-landscape.pro-body > .pro-brand{
+  display:none!important;
+}
+
+body.iphone-landscape .pro-drawer{
+  position:fixed!important;
+  left:0!important;
+  top:0!important;
+  bottom:0!important;
+  width:250px!important;
+  max-width:250px!important;
+  transform:translateX(0)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  z-index:20001!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  background:#fbfdf9!important;
+  border-right:1px solid #dce8d9!important;
+  box-shadow:8px 0 24px rgba(4,42,35,.08)!important;
+}
+
+body.iphone-landscape .pro-drawer-backdrop{
+  display:none!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+
+body.iphone-landscape .drawer-close{
+  display:none!important;
+}
+
+body.iphone-landscape #proApp{
+  width:calc(100% - 250px)!important;
+  max-width:none!important;
+  margin-left:250px!important;
+  margin-right:0!important;
+  padding:12px 14px 32px!important;
+  box-sizing:border-box!important;
+}
+
+body.iphone-landscape .pro3-top{
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 12px!important;
+  padding:0!important;
+}
+
+body.iphone-landscape .pro-top-brand{
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  pointer-events:none!important;
+}
+
+body.iphone-landscape .pro-top-brand img,
+body.iphone-landscape .pro-top-brand .eyebrow{
+  display:none!important;
+}
+
+body.iphone-landscape .pro-top-brand h1{
+  display:block!important;
+  margin:0!important;
+  font-size:28px!important;
+  line-height:1!important;
+}
+
+body.iphone-landscape .desktop-pro-nav,
+body.iphone-landscape .pro3-nav{
+  display:none!important;
+}
+
+body.iphone-landscape .drawer-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  padding:12px 13px!important;
+}
+
+body.iphone-landscape .drawer-nav{
+  position:static!important;
+  display:block!important;
+  width:100%!important;
+  padding:8px 10px 14px!important;
+  margin:0!important;
+}
+
+body.iphone-landscape .drawer-root,
+body.iphone-landscape .drawer-link{
+  display:block!important;
+  width:100%!important;
+  padding:7px 9px!important;
+  margin:0!important;
+  text-align:left!important;
+  font-size:12.5px!important;
+  line-height:1.15!important;
+}
+
+body.iphone-landscape .drawer-group{
+  margin:1px 0 3px 9px!important;
+  padding:0 0 1px 8px!important;
+  border-left:2px solid #d8e8d2!important;
+}
+
+body.iphone-landscape .drawer-node{
+  display:block!important;
+  width:100%!important;
+  padding:5px 7px!important;
+  text-align:left!important;
+  font-size:12px!important;
+}
+
+body.iphone-landscape .drawer-group .drawer-sub{
+  display:none!important;
+}
+
+body.iphone-landscape .drawer-group.expanded .drawer-sub{
+  display:block!important;
+}
+
+body.iphone-landscape .drawer-sub button{
+  display:block!important;
+  width:100%!important;
+  padding:4px 7px 4px 23px!important;
+  margin:0!important;
+  text-align:left!important;
+  font-size:11.5px!important;
+}
+
+body.iphone-landscape .pro3-kpis{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;
+}
+
+body.iphone-landscape .pro3-kpis>div{
+  padding:11px 13px!important;
+  border-radius:16px!important;
+}
+
+body.iphone-landscape .pro3-kpis b{
+  font-size:26px!important;
+}
+
+
+/* NUBEMO 3.40 — rifinitura grafica iPhone landscape */
+body.iphone-landscape .pro-drawer{
+  width:205px!important;
+  max-width:205px!important;
+}
+
+body.iphone-landscape .drawer-head{
+  min-height:68px!important;
+  padding:10px 12px 9px!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+}
+
+body.iphone-landscape .drawer-brand{
+  width:100%!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  min-width:0!important;
+}
+
+body.iphone-landscape .drawer-brand img{
+  width:44px!important;
+  height:44px!important;
+  flex:0 0 44px!important;
+  object-fit:cover!important;
+  border-radius:13px!important;
+  margin:0!important;
+}
+
+body.iphone-landscape .drawer-brand b{
+  display:block!important;
+  font-size:14px!important;
+  line-height:1.05!important;
+  letter-spacing:.08em!important;
+  white-space:nowrap!important;
+}
+
+body.iphone-landscape .drawer-brand span{
+  display:block!important;
+  margin-top:3px!important;
+  font-size:9px!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+}
+
+body.iphone-landscape .drawer-nav{
+  padding:10px 9px 12px!important;
+}
+
+body.iphone-landscape .drawer-root,
+body.iphone-landscape .drawer-link{
+  padding:6px 8px!important;
+  font-size:12px!important;
+  line-height:1.15!important;
+}
+
+body.iphone-landscape .drawer-group{
+  margin:2px 0 4px 7px!important;
+  padding:0 0 1px 7px!important;
+}
+
+body.iphone-landscape .drawer-node{
+  padding:4px 6px!important;
+  font-size:11.5px!important;
+  line-height:1.15!important;
+}
+
+body.iphone-landscape .drawer-sub button{
+  padding:3.5px 6px 3.5px 20px!important;
+  font-size:11px!important;
+  line-height:1.1!important;
+}
+
+body.iphone-landscape .drawer-sub button[data-drawer-clinical]{
+  margin-top:2px!important;
+}
+
+/* Sposta tutto il contenuto a destra della sidebar più stretta */
+body.iphone-landscape #proApp{
+  width:calc(100% - 205px)!important;
+  margin-left:205px!important;
+  padding:12px 14px 28px!important;
+}
+
+/* Titolo pagina allineato con KPI e contenuto */
+body.iphone-landscape .pro3-top{
+  margin:0 0 10px!important;
+}
+
+body.iphone-landscape .pro-top-brand h1{
+  font-size:27px!important;
+  line-height:1!important;
+  margin:0!important;
+}
+
+/* KPI compatti e coerenti */
+body.iphone-landscape .pro3-kpis{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin-bottom:10px!important;
+}
+
+body.iphone-landscape .pro3-kpis>div{
+  padding:10px 12px!important;
+  border-radius:15px!important;
+}
+
+body.iphone-landscape .pro3-kpis span{
+  font-size:11px!important;
+}
+
+body.iphone-landscape .pro3-kpis b{
+  font-size:25px!important;
+}
+
+/* In landscape la sidebar è l'unica navigazione del paziente */
+body.iphone-landscape .patient-desktop-tabs{
+  display:none!important;
+}
+
+/* Evita spazio bianco ereditato dalla vecchia area tab */
+body.iphone-landscape .patient-content-card{
+  margin-top:0!important;
+}
+
+body.iphone-landscape .patient-section-head{
+  margin-bottom:10px!important;
+}
+
+body.iphone-landscape .patient-section-head h2{
+  font-size:24px!important;
+  margin:0!important;
+}
+
+/* Azioni riepilogo più compatte */
+body.iphone-landscape .patient-summary-actions{
+  gap:6px!important;
+}
+
+body.iphone-landscape .patient-edit-btn,
+body.iphone-landscape .desktop-clinical-pdf{
+  padding:8px 11px!important;
+  font-size:12px!important;
+}
+
+body.iphone-landscape .patient-more-btn{
+  width:36px!important;
+  height:36px!important;
+  border-radius:11px!important;
+}
+
+/* Card contenuto senza larghezze desktop rigide */
+body.iphone-landscape .patient-content-card,
+body.iphone-landscape .card{
+  max-width:none!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+
+
+/* NUBEMO 3.41 — fix reale spazio vuoto iPhone landscape */
+body.iphone-landscape.pro-body{
+  padding-left:0!important;
+  margin:0!important;
+  width:100%!important;
+  max-width:none!important;
+  overflow-x:hidden!important;
+}
+
+/* Neutralizza completamente il vecchio layout desktop >=900px */
+body.iphone-landscape.pro-body > .pro-brand{
+  display:none!important;
+}
+
+body.iphone-landscape .pro3-nav,
+body.iphone-landscape .desktop-pro-nav{
+  display:none!important;
+}
+
+body.iphone-landscape #proApp{
+  position:relative!important;
+  left:0!important;
+  right:auto!important;
+  width:calc(100vw - 205px)!important;
+  max-width:none!important;
+  margin:0 0 0 205px!important;
+  padding:12px 14px 28px!important;
+  box-sizing:border-box!important;
+}
+
+/* La sidebar parte esattamente dal bordo sinistro */
+body.iphone-landscape .pro-drawer{
+  left:0!important;
+  top:0!important;
+  width:205px!important;
+  max-width:205px!important;
+  margin:0!important;
+  transform:none!important;
+}
+
+/* Evita qualsiasi centratura residua del contenuto */
+body.iphone-landscape .pro3-top,
+body.iphone-landscape .pro3-kpis,
+body.iphone-landscape .patient-content-card,
+body.iphone-landscape .card{
+  margin-left:0!important;
+  margin-right:0!important;
+  max-width:none!important;
+}
+
+/* La navigazione paziente in landscape resta solo nella sidebar */
+body.iphone-landscape .patient-desktop-tabs{
+  display:none!important;
+}
+
+
+/* NUBEMO 3.42 — iPhone landscape definitivo
+   Non dipende da .iphone-landscape per annullare il vecchio desktop. */
+@media (orientation:landscape) and (max-width:950px){
+
+  /* QUESTO è il vecchio offset desktop che generava il buco di ~246px */
+  body.pro-body{
+    padding-left:0!important;
+    margin:0!important;
+    width:100vw!important;
+    max-width:none!important;
+    overflow-x:hidden!important;
+  }
+
+  body.pro-body > .pro-brand{
+    display:none!important;
+  }
+
+  /* Sidebar fissa, 205px reali */
+  body.pro-body .pro-drawer{
+    position:fixed!important;
+    left:0!important;
+    top:0!important;
+    bottom:0!important;
+    width:205px!important;
+    max-width:205px!important;
+    margin:0!important;
+    transform:translateX(0)!important;
+    display:flex!important;
+    flex-direction:column!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    z-index:20001!important;
+    background:#fbfdf9!important;
+    border-right:1px solid #dce8d9!important;
+    box-shadow:8px 0 24px rgba(4,42,35,.08)!important;
+  }
+
+  body.pro-body .pro-drawer-backdrop{
+    display:none!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
+  body.pro-body .drawer-close{
+    display:none!important;
+  }
+
+  body.pro-body .drawer-head{
+    min-height:64px!important;
+    box-sizing:border-box!important;
+    padding:10px 11px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    overflow:visible!important;
+  }
+
+  body.pro-body .drawer-brand{
+    display:flex!important;
+    align-items:center!important;
+    gap:8px!important;
+    min-width:0!important;
+  }
+
+  body.pro-body .drawer-brand img{
+    width:42px!important;
+    height:42px!important;
+    flex:0 0 42px!important;
+    border-radius:12px!important;
+    object-fit:cover!important;
+  }
+
+  body.pro-body .drawer-brand b{
+    display:block!important;
+    font-size:13px!important;
+    line-height:1.05!important;
+    white-space:nowrap!important;
+  }
+
+  body.pro-body .drawer-brand span{
+    display:block!important;
+    margin-top:2px!important;
+    font-size:8.5px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+
+  body.pro-body .drawer-nav{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    display:block!important;
+    padding:8px 9px 12px!important;
+    margin:0!important;
+  }
+
+  body.pro-body .drawer-root,
+  body.pro-body .drawer-link{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:6px 8px!important;
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.15!important;
+  }
+
+  body.pro-body .drawer-group{
+    margin:1px 0 3px 7px!important;
+    padding:0 0 1px 7px!important;
+    border-left:2px solid #d8e8d2!important;
+  }
+
+  body.pro-body .drawer-node{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding:4px 6px!important;
+    text-align:left!important;
+    font-size:11.5px!important;
+    line-height:1.1!important;
+  }
+
+  body.pro-body .drawer-group .drawer-sub{
+    display:none!important;
+  }
+
+  body.pro-body .drawer-group.expanded .drawer-sub{
+    display:block!important;
+  }
+
+  body.pro-body .drawer-sub button{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:3.5px 6px 3.5px 20px!important;
+    text-align:left!important;
+    font-size:10.8px!important;
+    line-height:1.08!important;
+  }
+
+  /* Il contenuto comincia ESATTAMENTE a x=205px.
+     Niente margin:auto, niente padding-left desktop, niente offset aggiuntivi. */
+  body.pro-body #proApp{
+    position:relative!important;
+    left:0!important;
+    right:auto!important;
+    width:calc(100vw - 205px)!important;
+    max-width:none!important;
+    margin:0 0 0 205px!important;
+    padding:12px 14px 28px!important;
+    box-sizing:border-box!important;
+  }
+
+  body.pro-body .desktop-pro-nav,
+  body.pro-body .pro3-nav,
+  body.pro-body .patient-desktop-tabs{
+    display:none!important;
+  }
+
+  body.pro-body .pro3-top{
+    width:100%!important;
+    max-width:none!important;
+    margin:0 0 10px!important;
+    padding:0!important;
+  }
+
+  body.pro-body .pro-top-brand{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    pointer-events:none!important;
+  }
+
+  body.pro-body .pro-top-brand img,
+  body.pro-body .pro-top-brand .eyebrow{
+    display:none!important;
+  }
+
+  body.pro-body .pro-top-brand h1{
+    display:block!important;
+    margin:0!important;
+    font-size:27px!important;
+    line-height:1!important;
+  }
+
+  body.pro-body .pro3-kpis{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    width:100%!important;
+    margin:0 0 10px!important;
+  }
+
+  body.pro-body .pro3-kpis>div{
+    min-width:0!important;
+    padding:10px 12px!important;
+    border-radius:15px!important;
+  }
+
+  body.pro-body .pro3-kpis span{
+    font-size:11px!important;
+  }
+
+  body.pro-body .pro3-kpis b{
+    font-size:25px!important;
+  }
+
+  body.pro-body .patient-content-card,
+  body.pro-body .card{
+    width:100%!important;
+    max-width:none!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    box-sizing:border-box!important;
+  }
+}
+
+/* ==========================================================================
+   NUBEMO 3.53 — RESPONSIVE STABILIZATION
+   Baseline: 3.52
+   Scopo: consolidare le patch 3.43–3.52 senza cambiare la UI approvata.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   A. AREA PROFESSIONISTA — iPhone landscape
+   -------------------------------------------------------------------------- */
+@media (orientation:landscape) and (max-width:950px){
+  body.pro-body .drawer-link,
+  body.pro-body .drawer-logout{
+    position:relative!important;
+    font-family:inherit!important;
+    font-size:12px!important;
+    font-weight:800!important;
+    line-height:1.15!important;
+    text-decoration:none!important;
+  }
+
+  body.pro-body .drawer-link{
+    color:#17332d!important;
+    border-top:0!important;          /* niente riga arrotondata sul bottone */
+    margin-top:14px!important;
+    padding-top:14px!important;
+  }
+
+  /* Riga divisoria indipendente dal bordo/radius del pulsante */
+  body.pro-body .drawer-link::before{
+    content:""!important;
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    top:0!important;
+    height:1px!important;
+    background:#dbe8d7!important;
+    border:0!important;
+    border-radius:0!important;
+  }
+
+  body.pro-body .drawer-logout{
+    color:#a13f3f!important;
+  }
+
+  body.pro-body .drawer-link strong,
+  body.pro-body .drawer-logout strong{
+    font:inherit!important;
+    color:inherit!important;
+    text-decoration:none!important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   B. AREA PAZIENTE — portrait iPhone + iPad
+   -------------------------------------------------------------------------- */
+@media (orientation:portrait) and (max-width:1024px){
+  body:not(.pro-body) .brand-rail>.area-switch:not(.patient-logout-header),
+  body:not(.pro-body) .brand-rail>.patient-logout-header{
+    box-sizing:border-box!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    height:40px!important;
+    min-height:40px!important;
+    margin-top:0!important;
+    margin-bottom:0!important;
+    padding:0 14px!important;
+    line-height:1!important;
+    font-family:inherit!important;
+    font-size:13px!important;
+    font-weight:800!important;
+    vertical-align:middle!important;
+  }
+
+  body:not(.pro-body) .brand-rail>.patient-logout-header{
+    margin-left:8px!important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   C. AREA PAZIENTE — iPhone landscape
+   -------------------------------------------------------------------------- */
+@media (orientation:landscape) and (max-height:500px){
+  body:not(.landing-body):not(.pro-body) .brand-rail{
+    height:174px!important;
+    padding:13px 12px!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) .brand-rail .brand-lock img{
+    width:45px!important;
+    height:45px!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) .brand-rail .brand-lock strong{
+    font-size:14px!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) .brand-rail .brand-lock span{
+    font-size:8.5px!important;
+    line-height:1.1!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) .brand-rail>.area-switch:not(.patient-logout-header),
+  body:not(.landing-body):not(.pro-body) .brand-rail>.patient-logout-header{
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    height:28px!important;
+    min-height:28px!important;
+    padding:0 8px!important;
+    font-size:10px!important;
+    line-height:28px!important;
+    vertical-align:middle!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) .brand-rail>.area-switch:not(.patient-logout-header){
+    margin-top:9px!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) .brand-rail>.patient-logout-header{
+    margin-top:6px!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) nav{
+    top:174px!important;
+    padding:5px 8px!important;
+    gap:1px!important;
+    overflow:hidden!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) nav button{
+    min-height:0!important;
+    padding:5px 8px!important;
+    font-size:10.5px!important;
+    line-height:1!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) nav button i{
+    width:18px!important;
+    font-size:13px!important;
+  }
+
+  body:not(.landing-body):not(.pro-body) nav button span{
+    font-size:10.5px!important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   D. AREA PROFESSIONISTA — iPad drawer overlay
+   La classe ipad-layout è stabile durante la rotazione e non dipende dalla
+   larghezza corrente del viewport.
+   -------------------------------------------------------------------------- */
+body.pro-body.ipad-layout .pro-drawer{
+  position:fixed!important;
+  left:0!important;
+  top:0!important;
+  bottom:0!important;
+  width:min(390px,86vw)!important;
+  max-width:390px!important;
+  height:100dvh!important;
+  margin:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  background:#f8fbf6!important;
+  transform:translateX(-105%)!important;
+}
+
+body.pro-body.ipad-layout .pro-drawer.open{
+  transform:translateX(0)!important;
+}
+
+body.pro-body.ipad-layout .drawer-head{
+  position:static!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  min-height:0!important;
+  padding:22px 18px!important;
+  margin:0!important;
+}
+
+body.pro-body.ipad-layout .drawer-brand{
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+
+body.pro-body.ipad-layout .drawer-brand img{
+  width:56px!important;
+  height:56px!important;
+  flex:0 0 56px!important;
+}
+
+body.pro-body.ipad-layout .drawer-close{
+  position:static!important;
+  display:grid!important;
+  place-items:center!important;
+  align-self:center!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  height:40px!important;
+  margin:0!important;
+  top:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+}
+
+body.pro-body.ipad-layout .drawer-nav{
+  position:static!important;
+  inset:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  width:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  align-content:stretch!important;
+  justify-content:flex-start!important;
+  gap:5px!important;
+  padding:16px 18px 24px!important;
+  margin:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+
+body.pro-body.ipad-layout .drawer-root,
+body.pro-body.ipad-layout .drawer-node,
+body.pro-body.ipad-layout .drawer-sub button,
+body.pro-body.ipad-layout .drawer-link,
+body.pro-body.ipad-layout .drawer-logout{
+  position:static!important;
+  flex:0 0 auto!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin-left:0!important;
+  margin-right:0!important;
+}
+
+body.pro-body.ipad-layout .drawer-root{
+  min-height:48px!important;
+  padding:13px 14px!important;
+}
+
+body.pro-body.ipad-layout .drawer-group{
+  position:static!important;
+  flex:0 0 auto!important;
+  width:calc(100% - 12px)!important;
+  margin:0 0 8px 12px!important;
+  padding:2px 0 4px 12px!important;
+}
+
+body.pro-body.ipad-layout .drawer-node{
+  min-height:42px!important;
+  padding:10px 12px!important;
+}
+
+body.pro-body.ipad-layout .drawer-sub{
+  position:static!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:2px!important;
+  margin:2px 0 0!important;
+  padding:0!important;
+}
+
+body.pro-body.ipad-layout .drawer-sub button{
+  min-height:42px!important;
+  padding:10px 12px 10px 28px!important;
+}
+
+body.pro-body.ipad-layout .drawer-separator{
+  position:static!important;
+  flex:0 0 auto!important;
+  height:1px!important;
+  margin:9px 4px!important;
+}
+
+/* iPad: colori/decoro comuni */
+body.pro-body.ipad-layout .drawer-link{
+  position:relative!important;
+  text-decoration:none!important;
+  color:#17332d!important;
+}
+
+body.pro-body.ipad-layout .drawer-link strong{
+  text-decoration:none!important;
+  color:inherit!important;
+}
+
+body.pro-body.ipad-layout .drawer-logout{
+  color:#a13f3f!important;
+}
+
+body.pro-body.ipad-layout .drawer-logout strong{
+  color:inherit!important;
+}
+
+/* iPad portrait: nessuna linea extra */
+@media (orientation:portrait){
+  body.pro-body.ipad-layout .drawer-link{
+    border-top:0!important;
+    margin-top:0!important;
+    padding-top:13px!important;
+  }
+
+  body.pro-body.ipad-layout .drawer-link::before{
+    content:none!important;
+  }
+}
+
+/* iPad landscape: una sola linea piatta prima di Cambia area */
+@media (orientation:landscape){
+  body.pro-body.ipad-layout .drawer-link{
+    border-top:0!important;
+    margin-top:9px!important;
+    padding-top:14px!important;
+  }
+
+  body.pro-body.ipad-layout .drawer-link::before{
+    content:""!important;
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    top:0!important;
+    height:1px!important;
+    background:#dbe8d7!important;
+    border:0!important;
+    border-radius:0!important;
+  }
+}
+
+
+
+/* NUBEMO 3.55 — Cartella PDF dinamica */
+.clinical-option-box{
+  margin-top:12px;
+  padding:14px 15px;
+  border:1px solid #dce8d9;
+  border-radius:16px;
+  background:#f7fbf5;
+}
+.clinical-option-box label{margin-top:0}
+.clinical-option-box small{
+  display:block;
+  margin-top:7px;
+  color:#72817a;
+  font-size:12px;
+  line-height:1.35;
+}
+
+/* NUBEMO 3.56 — PDF: pagina 2 tabellare + diario tabellare per giorno */
+
+/* NUBEMO 3.57 — PDF: sezioni stabili, misure tabellari, dettaglio settimanale, diario più leggibile */
+
+
+/* NUBEMO 3.60 — Documents Core */
+.document-form{margin-top:16px;padding-top:16px;border-top:1px solid #e3ebe1}
+.document-file-name{padding:12px 14px;border:1px solid #dce7d8;border-radius:14px;background:#f7faf5;color:#40564c;font-weight:700;overflow-wrap:anywhere}
+.document-list{display:flex;flex-direction:column;margin-top:12px}
+.document-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 2px;border-top:1px solid #e7eee4}
+.document-row:first-child{border-top:0}
+.document-row>div:first-child{min-width:0}
+.document-row b,.document-row span{display:block}
+.document-row b{color:#073f38;overflow-wrap:anywhere}
+.document-row span{margin-top:4px;color:#718078;font-size:12px;overflow-wrap:anywhere}
+.document-row-actions{display:flex;gap:7px;flex:0 0 auto}
+.document-pro-upload{max-width:310px;margin:10px 0 4px}
+@media(max-width:600px){
+ .document-row{align-items:flex-start;flex-direction:column}
+ .document-row-actions{width:100%}
+ .document-row-actions button{flex:1}
+}
+body[data-page=documents] nav button[data-page=documents]{background:#e9f5e3!important;color:#064b43!important}
+body[data-page=documents] nav button[data-page=documents] i{color:#55a90a!important}
+@media(min-width:900px){
+ body[data-page=documents] main#app{max-width:980px}
+}
+
+@media(max-width:520px){body:not(.pro-body) nav button{font-size:9px!important;padding-left:2px!important;padding-right:2px!important}}
+
+/* v3.61 — document unread indicator */
+nav button[data-page="documents"]{position:relative}
+.document-alert-badge{
+ position:absolute;top:3px;right:7px;min-width:17px;height:17px;padding:0 4px;
+ border-radius:999px;background:#e24b4b;color:#fff;font-size:11px;font-weight:900;
+ line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff
+}
+.document-alert-inline{
+ display:inline-flex;align-items:center;justify-content:center;margin-left:7px;
+ min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#e24b4b;
+ color:#fff;font-size:11px;font-weight:900;vertical-align:middle
+}
+
+
+/* NUBEMO 3.62 — document notification UX */
+.document-row-unread{
+  background:#fff8f7;
+  border:1px solid #f3d1cd!important;
+  border-radius:14px;
+  padding-left:12px!important;
+  padding-right:12px!important;
+}
+.document-new-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:8px;
+  padding:2px 7px;
+  min-height:18px;
+  border-radius:999px;
+  background:#e24b4b;
+  color:#fff;
+  font-size:10px;
+  font-weight:900;
+  line-height:1;
+  vertical-align:middle;
+}
+.document-dashboard-alert{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0 0 16px;
+  padding:13px 15px;
+  border:1px solid #f0c8c4;
+  border-radius:16px;
+  background:#fff8f7;
+  color:#66312d;
+  text-align:left;
+  cursor:pointer;
+}
+.document-dashboard-alert .document-alert-dot{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:22px;
+  height:22px;
+  border-radius:999px;
+  background:#e24b4b;
+  color:#fff;
+  font-weight:900;
+}
+.document-dashboard-alert span:nth-child(2){
+  flex:1;
+  font-weight:800;
+}
+.document-dashboard-alert b{
+  color:#a13f3f;
+  white-space:nowrap;
+}
+
+/* NUBEMO 3.64 — Analisi integrate nei Documenti */
+.document-form-card{scroll-margin-top:18px}
+.labs-document-panel{margin:14px 0 18px;padding:14px 15px;border:1px solid #dfe9dc;border-radius:16px;background:#f8fbf6}
+.labs-document-panel .subsection-title{margin-bottom:8px;color:#124d43;font-weight:900;font-size:13px}
+
+/* NUBEMO 3.65 — Analisi migrate nel nuovo archivio */
+.patient-desktop-tabs .document-alert-inline,
+.pro-drawer .document-alert-inline{margin-left:5px;transform:translateY(-1px)}
+
+
+/* NUBEMO 3.66 — Dashboard paziente: piano corrente più compatto */
+.plan-card-current{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  padding:16px 18px;
+  background:linear-gradient(135deg,#fffdfa,#fbf8ef);
+  border-color:#eee8d9;
+}
+.plan-card-current .plan-card-icon{
+  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
+  background:#eef7e9;font-size:23px;
+}
+.plan-card-current .plan-card-copy{min-width:0}
+.plan-card-current .plan-card-kicker{font-size:10px;font-weight:900;letter-spacing:.08em;color:#6a8a3d;margin-bottom:3px}
+.plan-card-current h2{margin:0 0 5px;font-size:18px}
+.plan-card-current .plan-card-file{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#31423b}
+.plan-card-current .plan-card-date{display:block;margin-top:4px;font-size:12px;color:#78847e}
+.plan-card-current .plan-card-open{width:auto;min-width:98px;margin:0}
+@media(max-width:600px){
+ .plan-card-current{grid-template-columns:44px minmax(0,1fr);gap:11px;padding:14px}
+ .plan-card-current .plan-card-icon{width:42px;height:42px;font-size:20px}
+ .plan-card-current .plan-card-open{grid-column:1/-1;width:100%;margin-top:2px}
+}
+
+/* NUBEMO 3.66 — Android smartphone landscape isolato.
+   Il vecchio layout mobile imposta nav top+bottom e copre il contenuto centrale.
+   Su Android telefono ripristiniamo header/nav compatti senza toccare iOS/iPadOS. */
+body.android-phone-landscape:not(.landing-body):not(.pro-body) .brand-rail{
+  height:auto!important;
+  min-height:64px!important;
+  padding:8px 12px!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) .brand-rail .brand-lock{
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) .brand-rail .brand-lock img{
+  width:42px!important;height:42px!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) .brand-rail>.area-switch:not(.patient-logout-header),
+body.android-phone-landscape:not(.landing-body):not(.pro-body) .brand-rail>.patient-logout-header{
+  width:auto!important;
+  height:32px!important;min-height:32px!important;
+  margin:0!important;padding:0 10px!important;
+  font-size:10.5px!important;line-height:32px!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) nav{
+  top:auto!important;
+  bottom:0!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:5px 8px max(5px,env(safe-area-inset-bottom))!important;
+  gap:1px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) nav button{
+  flex:1 0 auto!important;
+  min-width:76px!important;
+  padding:5px 7px!important;
+  font-size:10px!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) main#app{
+  display:block!important;
+  visibility:visible!important;
+  max-width:920px!important;
+  width:100%!important;
+  margin:0 auto!important;
+  padding:12px 14px 72px!important;
+  min-height:0!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) .hero-title h1{
+  font-size:24px!important;
+  margin-bottom:10px!important;
+}
+body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
+  margin:8px 0!important;
+  padding:13px!important;
+}
+
+
+/* NUBEMO 3.67 — Dashboard paziente: Obiettivo full width, Piano + Visita sotto */
+.patient-dashboard-care-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+.patient-dashboard-goal>.goal-card,
+.patient-dashboard-plan>.plan-card-current,
+.patient-dashboard-visit>.next-visit-card{
+  margin:0;
+  width:100%;
+  height:100%;
+}
+.patient-dashboard-secondary{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  align-items:stretch;
+}
+.patient-dashboard-visit>.next-visit-card{
+  min-height:100%;
+}
+@media(min-width:900px){
+  body[data-page=home] main#app>.patient-dashboard-care-grid{
+    grid-column:1/-1;
+    margin:0;
+  }
+}
+@media(max-width:899px){
+  .patient-dashboard-care-grid{gap:14px}
+  .patient-dashboard-secondary{gap:14px}
+}
+@media(max-width:600px){
+  .patient-dashboard-secondary{grid-template-columns:1fr}
+}
+
+/* NUBEMO 3.68 — Piani alimentari con decorrenza e storico */
+.plan-current-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 16px;padding:15px 16px;border:1px solid #dce8d9;border-radius:16px;background:#f7fbf5}
+.plan-current-summary div{min-width:0}.plan-current-summary span,.plan-current-summary b,.plan-current-summary small{display:block}.plan-current-summary span{font-size:10px;font-weight:900;letter-spacing:.08em;color:#6a8a3d}.plan-current-summary b{margin-top:4px;color:#17332d}.plan-current-summary small{margin-top:4px;color:#74827b}
+.plan-upload-form{margin:14px 0 18px;padding:16px;border:1px solid #dce8d9;border-radius:16px;background:#f8fbf6;scroll-margin-top:18px}.plan-history-head{margin-top:18px}
+.plan-status-badge,.plan-future-badge{display:inline-flex;align-items:center;margin-left:8px;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:900;line-height:1.4;vertical-align:middle}
+.plan-status-badge{background:#e7f5de;color:#3d7614}.plan-future-badge{background:#eef2f6;color:#536372}
+@media(max-width:600px){.plan-current-summary{align-items:flex-start;flex-direction:column}.plan-current-summary button{width:100%}}
+
+/* NUBEMO 3.70 — Documenti contabili */
+.document-pro-section+.document-pro-section{margin-top:28px;padding-top:24px;border-top:1px solid #e3eaec}
+.accounting-documents-section .document-form{margin-bottom:16px}
+
+/* NUBEMO 3.71 — Pensiero del giorno */
+.daily-quote{
+  grid-column:1/-1;
+  position:relative;
+  margin:0;
+  padding:13px 18px 14px;
+  border-left:3px solid #8fb85b;
+  border-radius:0 14px 14px 0;
+  background:linear-gradient(90deg,rgba(143,184,91,.10),rgba(143,184,91,.025));
+}
+.daily-quote-label{
+  display:block;
+  margin-bottom:4px;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.11em;
+  color:#6c8e42;
+}
+.daily-quote p{
+  margin:0;
+  font-size:15px;
+  line-height:1.42;
+  font-weight:650;
+  color:#29413b;
+}
+@media(max-width:600px){
+  .daily-quote{padding:11px 14px 12px}
+  .daily-quote p{font-size:14px}
+}
+
+
+/* NUBEMO 3.74 — fix chirurgico Dashboard paziente */
+@media(min-width:900px){
+  body[data-page=home] main#app>.patient-dashboard-daily-row{
+    grid-column:1/-1;
+    width:100%;
+    min-width:0;
+  }
+}
+.patient-dashboard-daily-row{
+  display:grid;
+  grid-template-columns:minmax(0,7fr) minmax(0,5fr);
+  gap:16px;
+  width:100%;
+  min-width:0;
+  align-items:stretch;
+}
+.patient-dashboard-daily-row>.highlight,
+.patient-dashboard-summary-wrap{
+  min-width:0;
+  width:100%;
+  margin:0;
+  box-sizing:border-box;
+}
+.patient-dashboard-summary-wrap{
+  display:flex;
+}
+.patient-dashboard-summary-wrap>*{
+  flex:1 1 auto;
+  width:100%;
+  max-width:none!important;
+  min-width:0;
+  margin:0!important;
+  box-sizing:border-box;
+}
+@media(max-width:899px){
+  .patient-dashboard-daily-row{
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+}
+@media(max-width:720px){
+  .patient-dashboard-daily-row{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* NUBEMO 3.75 — più spazio sotto il Pensiero del giorno su iPhone/iPad verticali */
+@media (orientation:portrait) and (max-width:1024px){
+  body[data-page=home] .daily-quote{
+    margin-bottom:22px;
+  }
+}
+
+
+/* NUBEMO 3.76 — posizione Elimina in Modifica giornata su iPad */
+@media (min-width:521px) and (max-width:1180px){
+  body[data-page=add] .page-title > .danger-text{
+    margin-left:auto!important;
+    flex:0 0 auto;
+  }
+}
+
+
+/* NUBEMO 3.77 — Agenda: ricerca paziente + creazione rapida */
+.agenda-patient-picker{display:grid;gap:10px}
+.agenda-patient-picker>input[type=search]{margin:0}
+.agenda-patient-results{
+  display:grid;
+  gap:6px;
+  max-height:230px;
+  overflow:auto;
+  padding:4px;
+  border:1px solid rgba(8,77,64,.10);
+  border-radius:16px;
+  background:rgba(247,250,248,.78);
+}
+.agenda-patient-option{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 13px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:#fff;
+  color:var(--ink);
+  text-align:left;
+  box-shadow:none;
+}
+.agenda-patient-option:hover{border-color:rgba(22,125,137,.25)}
+.agenda-patient-option.selected{
+  border-color:var(--accent);
+  background:var(--soft);
+  box-shadow:inset 3px 0 0 var(--accent);
+}
+.agenda-patient-option span{font-weight:800;min-width:0}
+.agenda-patient-option small{color:var(--muted);white-space:nowrap}
+.agenda-new-patient-toggle{justify-self:start;margin:0!important}
+.agenda-quick-patient{
+  padding:16px;
+  border:1px solid rgba(8,77,64,.12);
+  border-radius:18px;
+  background:rgba(255,255,255,.86);
+}
+.agenda-quick-patient[hidden]{display:none!important}
+.agenda-quick-patient h3{margin:0;font-size:17px}
+.agenda-quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){
+  .agenda-quick-grid{grid-template-columns:1fr}
+  .agenda-patient-option{align-items:flex-start;flex-direction:column;gap:2px}
+  .agenda-patient-results{max-height:210px}
+}
+
+
+/* NUBEMO 3.78 — fix filtro ricerca pazienti Agenda */
+.agenda-patient-option[hidden]{
+  display:none!important;
+}
+
+
+/* NUBEMO 3.79 — Data inizio percorso */
+.patient-start-date-help{
+  margin:7px 0 2px;
+  font-size:12px;
+  line-height:1.45;
+}
+
+
+/* NUBEMO 3.81 — nota interna per piano alimentare */
+.plan-private-note-help{
+  margin:6px 0 2px;
+  font-size:12px;
+}
+.plan-history-copy{
+  min-width:0;
+  flex:1;
+}
+.plan-professional-note{
+  margin-top:8px;
+  padding:8px 10px;
+  border-left:3px solid #9dbf73;
+  border-radius:0 10px 10px 0;
+  background:#f6faef;
+}
+.plan-professional-note strong{
+  display:block;
+  margin-bottom:2px;
+  font-size:10px;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:#66863f;
+}
+.plan-professional-note p{
+  margin:0;
+  font-size:13px;
+  line-height:1.4;
+  color:#33463f;
+}
+.plan-professional-note.empty{
+  opacity:.7;
+  background:#f8faf8;
+}
+.plan-note-editor{
+  margin-top:9px;
+  padding:10px;
+  border:1px solid rgba(8,77,64,.12);
+  border-radius:13px;
+  background:#fff;
+}
+.plan-note-editor[hidden]{display:none!important}
+.plan-note-editor textarea{margin:0}
+.plan-note-editor .pro3-actions{margin-top:8px}
+@media(max-width:700px){
+  .plan-history-row{
+    align-items:flex-start;
+  }
+  .plan-history-row .document-row-actions{
+    width:100%;
+    flex-wrap:wrap;
+  }
+}
+
+
+/* NUBEMO 3.82 — scelta periodo PDF diario */
+.diary-export-modal{max-width:520px}
+.diary-period-options{display:grid;gap:9px;margin-top:16px}
+.diary-period-options button{
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  width:100%;padding:14px 16px;border:1px solid rgba(8,77,64,.13);
+  border-radius:15px;background:#f8fbf7;color:var(--ink);text-align:left;
+}
+.diary-period-options button:hover{border-color:var(--accent);background:var(--soft)}
+.diary-period-options b{font-size:15px}
+.diary-period-options span{font-size:12px;color:var(--muted);font-weight:500}
+
+
+/* NUBEMO 3.83 — filtro pazienti con documenti da leggere */
+.patient-list-tools{display:grid;gap:10px;margin-bottom:12px}
+.patient-list-tools #searchPatient{margin:0}
+.patient-unread-filter{
+  display:flex;align-items:center;gap:9px;width:max-content;max-width:100%;
+  padding:9px 12px;border:1px solid rgba(8,77,64,.13);border-radius:13px;
+  background:#f8fbf9;cursor:pointer;font-size:13px;font-weight:700;color:#42575d;
+}
+.patient-unread-filter input{width:17px;height:17px;margin:0;accent-color:var(--accent)}
+.patient-unread-filter b{
+  min-width:22px;padding:2px 7px;border-radius:999px;background:#fff;
+  text-align:center;font-size:11px;color:var(--accent);
+}
+.patient-filter-empty{
+  display:flex;flex-direction:column;gap:4px;padding:22px 16px;
+  border:1px dashed rgba(8,77,64,.18);border-radius:15px;text-align:center;color:#53666c;
+}
+.patient-filter-empty span{font-size:12px;color:var(--muted)}
+@media(max-width:600px){
+ .patient-unread-filter{width:100%;box-sizing:border-box}
+}
+
+
+/* NUBEMO 3.86 — Modifica scheda globale nella testata paziente */
+.patient-global-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:14px;
+}
+.patient-global-title{
+  flex:1 1 auto;
+  min-width:0;
+}
+.patient-global-title .pro3-top{
+  margin-bottom:0;
+}
+.patient-global-edit{
+  flex:0 0 auto;
+  width:auto!important;
+  min-width:160px!important;
+  margin-top:24px;
+  padding:11px 18px!important;
+  white-space:nowrap;
+}
+@media(max-width:899px){
+  .patient-global-head{
+    align-items:center;
+    gap:12px;
+  }
+  .patient-global-edit{
+    margin-top:8px;
+    min-width:auto!important;
+    padding:10px 14px!important;
+  }
+}
+@media(max-width:600px){
+  .patient-global-head{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:8px;
+  }
+  .patient-global-edit{
+    margin-top:0;
+    width:100%!important;
+    justify-self:stretch;
+  }
+}
+
+
+/* NUBEMO 3.87 — allineamento Modifica scheda su iPhone landscape */
+@media (orientation:landscape) and (max-width:950px){
+  .iphone-landscape .patient-global-head{
+    align-items:flex-start!important;
+  }
+  .iphone-landscape .patient-global-edit{
+    margin-top:0!important;
+    align-self:flex-start!important;
+  }
+}
+
+
+/* NUBEMO 3.88 — Assistenza NUBEMO */
+.support-entry-card{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+}
+.support-entry-card h2{margin:2px 0 5px}
+.support-entry-card p{margin:0}
+.support-entry-card button{flex:0 0 auto;width:auto}
+.support-card{max-width:760px}
+.support-card>p{line-height:1.55}
+.support-tech-info{
+  display:grid;grid-template-columns:max-content minmax(0,1fr);
+  gap:7px 14px;margin:16px 0;padding:14px 16px;
+  border:1px solid rgba(8,77,64,.12);border-radius:15px;background:#f8fbf9;
+}
+.support-tech-info span{font-size:12px;color:var(--muted)}
+.support-tech-info b{font-size:13px;overflow-wrap:anywhere}
+.support-send{margin-top:12px}
+.support-privacy{margin:10px 0 0!important;font-size:12px;line-height:1.45!important}
+.support-care-note b{display:block;margin-bottom:5px}
+.support-care-note p{margin:0;color:var(--muted);line-height:1.5}
+@media(max-width:600px){
+ .support-entry-card{display:grid;grid-template-columns:1fr}
+ .support-entry-card button{width:100%}
+ .support-tech-info{grid-template-columns:1fr;gap:3px}
+ .support-tech-info b{margin-bottom:7px}
+}
+
+
+/* NUBEMO 3.89 — Assistenza: layout + selezione area */
+.support-care-note{
+  max-width:760px;
+}
+.support-card select{
+  width:100%;
+  margin-bottom:14px;
+}
+@media(max-width:600px){
+  .support-care-note{
+    max-width:none;
+  }
+}
+
+
+/* NUBEMO 3.92 — icona Assistenza NUBEMO */
+.support-menu-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 18px;
+  width:18px;
+  height:18px;
+  font-weight:900;
+  line-height:1;
+}
+
+
+/* NUBEMO 3.93 — controllo calorie e valori energetici */
+.patient-energy-setting{
+  margin-top:22px;
+  padding:16px;
+  border:1px solid rgba(8,77,64,.12);
+  border-radius:16px;
+  background:#f8fbf9;
+}
+.patient-energy-setting h2{margin:0 0 14px}
+.patient-energy-setting p{margin:8px 0 0;line-height:1.5}
+
+/* NUBEMO 3.96 — sola consultazione */
+.patient-readonly-notice{border-style:dashed}.patient-readonly-notice h2{margin:4px 0 6px}.patient-readonly-notice p{margin:0;line-height:1.5}
+
+/* NUBEMO 4.0 DEV — micro-step Auth 1 */
+.nubemo-login-form{display:grid;gap:10px;max-width:520px}.nubemo-login-form label{font-size:13px;font-weight:800;color:#40554d;margin-top:5px}.nubemo-login-form input{width:100%;box-sizing:border-box;border:1px solid #cfddd4;border-radius:14px;background:#fff;padding:14px 15px;font:inherit;color:var(--ink);outline:none}.nubemo-login-form input:focus{border-color:#78b83d;box-shadow:0 0 0 3px rgba(120,184,61,.12)}.nubemo-login-form button{margin-top:8px}.nubemo-login-message{min-height:22px;margin:2px 0 0;font-size:13px;color:#53675f}.nubemo-login-message.is-error{color:#a22f2f}.nubemo-login-success{max-width:540px}.nubemo-login-identity{display:flex;flex-direction:column;gap:7px;padding:20px;margin:4px 0 22px;border:1px solid #dce8d8;border-radius:20px;background:#fff;box-shadow:var(--shadow-sm)}.nubemo-login-identity strong{font-size:21px;color:var(--accent-dark)}.nubemo-login-identity span{font-size:14px;color:#65766f}
+
+/* NUBEMO 4.0 DEV — micro-step Admin 3C: elenco + invito professionisti */
+.admin-panel{overflow-y:auto}.admin-content{max-width:680px}.admin-professionals-section{margin:8px 0 26px;padding:20px;border:1px solid #dce8d8;border-radius:20px;background:#fff;box-shadow:var(--shadow-sm)}.admin-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.admin-section-head h2{margin:0 0 4px;color:var(--accent-dark)}.admin-section-head p{margin:0;color:var(--muted);font-size:13px}.admin-invite-toggle{width:auto!important;flex:0 0 auto;margin:0!important}.admin-professionals-list{display:grid;gap:10px;margin-top:8px}.admin-professional-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 15px;border:1px solid rgba(8,77,64,.12);border-radius:15px;background:#f8fbf9}.admin-professional-copy{display:flex;flex-direction:column;gap:3px;min-width:0}.admin-professional-copy strong{color:var(--ink);font-size:15px}.admin-professional-copy span{color:var(--muted);font-size:12px;overflow-wrap:anywhere}.admin-professional-status{flex:0 0 auto;font-size:12px;font-weight:800;color:var(--accent-dark)}.admin-professional-empty{padding:18px;border:1px dashed rgba(8,77,64,.18);border-radius:15px;text-align:center;color:var(--muted);font-size:13px}.admin-invite-panel{margin-top:16px;padding-top:18px;border-top:1px solid rgba(8,77,64,.12)}.admin-invite-panel[hidden]{display:none!important}.admin-invite-panel h3{margin:0 0 12px;color:var(--accent-dark)}.admin-invite-actions{display:flex;gap:10px;margin-top:4px}.admin-invite-actions button{margin:0;flex:1}.admin-logout{margin-top:4px}.admin-professionals-section .nubemo-login-message{margin:10px 0 0}.admin-professionals-section .nubemo-login-message:empty{min-height:0;margin:0}.admin-invite-panel .nubemo-login-message.is-error,.admin-professionals-section .nubemo-login-message.is-error{color:#a22f2f}
+@media(max-width:700px){.admin-section-head{display:grid;grid-template-columns:1fr}.admin-invite-toggle{width:100%!important}.admin-professional-row{align-items:flex-start;flex-direction:column;gap:8px}.admin-invite-actions{flex-direction:column}.admin-professionals-section{padding:16px}}
+
+.admin-professional-status-line{color:var(--muted);font-size:12px}.admin-professional-action{width:auto!important;flex:0 0 auto;margin:0!important}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#064b43">
+  <link rel="manifest" href="manifest.json?v=nubemo40admin3d">
+  <link rel="apple-touch-icon" href="assets/nubemo-n-icon-180.png?v=nubemo40admin3d">
+  <link rel="icon" href="assets/nubemo-n-icon-192.png?v=nubemo40admin3d">
+  <link rel="stylesheet" href="style.css?v=nubemo40admin3d">
+  <title>NUBEMO · Area Admin</title>
+</head>
+<body class="landing-body admin-body">
+  <main class="monubi-landing admin-landing">
+    <section class="landing-visual"><img src="assets/nubemo-brand-clean-v2.png" alt="NUBEMO"></section>
+    <section class="landing-panel admin-panel">
+      <div class="landing-mini-brand"><img src="assets/nubemo-brand-clean-v2.png" alt=""><span>NUBEMO</span></div>
+
+      <section id="admin-loading">
+        <div class="eyebrow">NUBEMO 4.0 · DEV</div>
+        <h1>Verifica<br><em>accesso.</em></h1>
+        <p class="landing-lead">Controllo sessione e autorizzazioni Admin in corso.</p>
+      </section>
+
+      <section id="admin-content" class="nubemo-login-success admin-content" hidden>
+        <div class="eyebrow">AREA ADMIN NUBEMO</div>
+        <h1>Gestione<br><em>professionisti.</em></h1>
+        <div id="admin-identity" class="nubemo-login-identity"></div>
+
+        <section class="admin-professionals-section" aria-labelledby="admin-professionals-title">
+          <div class="admin-section-head">
+            <div>
+              <h2 id="admin-professionals-title">Professionisti</h2>
+              <p>Account professionali presenti in NUBEMO.</p>
+            </div>
+            <button id="admin-invite-toggle" class="secondary admin-invite-toggle" type="button" aria-expanded="false" aria-controls="admin-invite-panel">+ Invita professionista</button>
+          </div>
+
+          <p id="admin-professionals-message" class="nubemo-login-message" aria-live="polite"></p>
+          <div id="admin-professionals-list" class="admin-professionals-list"></div>
+
+          <div id="admin-invite-panel" class="admin-invite-panel" hidden>
+            <h3>Invita professionista</h3>
+            <form id="admin-invite-form" class="nubemo-login-form" novalidate>
+              <label for="admin-invite-first-name">Nome</label>
+              <input id="admin-invite-first-name" name="first_name" type="text" autocomplete="given-name" required>
+
+              <label for="admin-invite-last-name">Cognome</label>
+              <input id="admin-invite-last-name" name="last_name" type="text" autocomplete="family-name" required>
+
+              <label for="admin-invite-email">Email</label>
+              <input id="admin-invite-email" name="email" type="email" inputmode="email" autocomplete="email" required>
+
+              <p id="admin-invite-message" class="nubemo-login-message" aria-live="polite"></p>
+              <div class="admin-invite-actions">
+                <button id="admin-invite-submit" type="submit">Invia invito</button>
+                <button id="admin-invite-cancel" class="secondary" type="button">Annulla</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <button id="admin-logout" class="secondary admin-logout" type="button">Esci</button>
+      </section>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=nubemo40admin3d"></script>
+  <script src="auth-guard.js?v=nubemo40admin3d"></script>
+</body>
+</html>

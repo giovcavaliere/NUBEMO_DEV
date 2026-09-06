@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#064b43">
+  <link rel="manifest" href="manifest.json?v=nubemo40auth1">
+  <link rel="apple-touch-icon" href="assets/nubemo-n-icon-180.png?v=nubemo40auth1">
+  <link rel="icon" href="assets/nubemo-n-icon-192.png?v=nubemo40auth1">
+  <link rel="stylesheet" href="style.css?v=nubemo40auth1">
+  <title>NUBEMO · Accesso</title>
+</head>
+<body class="landing-body" data-asset-prefix="">
+  <main class="monubi-landing">
+    <section class="landing-visual"><img src="assets/nubemo-brand-clean-v2.png" alt="NUBEMO"></section>
+    <section class="landing-panel">
+      <div class="landing-mini-brand"><img src="assets/nubemo-brand-clean-v2.png" alt=""><span>NUBEMO</span></div>
+
+      <div id="login-view">
+        <div class="eyebrow">NUBEMO 4.0 · DEV</div>
+        <h1>Il tuo percorso,<br><em>ogni giorno.</em></h1>
+        <p class="landing-lead">Accedi con il tuo account NUBEMO.</p>
+        <form id="nubemo-login-form" class="nubemo-login-form" novalidate>
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" autocomplete="username" required>
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+          <button id="login-submit" type="submit">Accedi</button>
+          <p id="login-message" class="nubemo-login-message" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <section id="login-success" class="nubemo-login-success" hidden>
+        <div class="eyebrow">ACCESSO NUBEMO RIUSCITO</div>
+        <h1>Identità<br><em>verificata.</em></h1>
+        <div id="login-identity" class="nubemo-login-identity"></div>
+        <p class="landing-lead">Questo micro-step verifica Auth, sessione, RLS e lettura del proprio profilo. L'instradamento alle aree verrà aggiunto nel passaggio successivo.</p>
+        <button id="login-logout" class="secondary" type="button">Esci</button>
+      </section>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=nubemo40auth2"></script>
+  <script src="auth.js?v=nubemo40auth2"></script>
+</body>
+</html>

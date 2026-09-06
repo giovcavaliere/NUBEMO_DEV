@@ -1,0 +1,23 @@
+{
+  "name": "NUBEMO Demo",
+  "short_name": "NUBEMO",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f2",
+  "theme_color": "#064b43",
+  "icons": [
+    {
+      "src": "assets/nubemo-n-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/nubemo-n-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
