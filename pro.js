@@ -235,7 +235,7 @@ const APPT_DEFAULT=[
 let proDiarySearch='';
 let proDiaryDate='';
 let view='dashboard';
-let selected='main';
+let selected='';
 let selectedBmiCategory='';
 let tab='summary';
 let editing=null;
@@ -432,17 +432,20 @@ function demoPatient(p){
   return {...p,measures,entries:p.diary||[],first,last,delta:first!=null&&last!=null?last-first:null,real:p.real===true};
 }
 function patients(){
- const deleted=new Set(load(DELETED_PATIENTS_KEY,[]));
- return [
-   ...(!deleted.has('main')?[mainPatient()]:[]),
-   ...DEMOS.filter(p=>!deleted.has(p.id)).map(demoPatient),
-   ...extraPatients().filter(p=>!deleted.has(p.id)).map(p=>demoPatient({
-     ...p,
-     weights:Array.isArray(p.weights)?p.weights:[],
-     diary:Array.isArray(p.diary)?p.diary:[],
-     measures:Array.isArray(p.measures)?p.measures:[]
-   }))
- ];
+ const rows=Array.isArray(window.nubemoProfessionalContext?.patients)?window.nubemoProfessionalContext.patients:[];
+ return rows.map(row=>{
+   const profile=row.profile||{};
+   const name=[profile.first_name,profile.last_name].filter(Boolean).join(' ').trim()||profile.email||'Paziente';
+   return {
+     id:row.id, profileId:row.profile_id, name,
+     firstName:profile.first_name||'', surname:profile.last_name||'', email:profile.email||'',
+     birth:row.birth_date||'', height:row.height_cm==null?'':Number(row.height_cm), sex:row.sex||'',
+     startDate:row.pathway_start_date||'', status:row.status||'',
+     relationshipStatus:row.relationship?.status||'',
+     weights:[], diary:[], entries:[], measures:[],
+     first:null,last:null,delta:null,remote:true,real:true
+   };
+ });
 }
 function patient(id){const p=patients().find(p=>p.id===id);return p?{...p,startDate:patientStartDateFor(id,p.startDate||'')}:p}
 function typeLabel(t){return t==='first'?'Prima visita':t==='control'?'Controllo':'Impegno personale'}
@@ -693,31 +696,17 @@ function studioSummaryChart(){
 
 function patientsPage(){
  const all=patients();
- const visible=all.filter(p=>{
-   const searchOk=!patientSearchText||p.name.toLowerCase().includes(patientSearchText.toLowerCase());
-   const unreadOk=!patientsUnreadOnly||hasUnreadProfessionalActivity(p.id);
-   return searchOk&&unreadOk;
- });
+ const visible=all.filter(p=>!patientSearchText||p.name.toLowerCase().includes(patientSearchText.toLowerCase()));
  return `${top('Pazienti')}${nav()}
- <section class="card"><div class="section-head"><h2>Anagrafiche</h2><button class="mini" id="newPatient">＋ Nuovo paziente</button></div>
- <div class="patient-list-tools">
-   <input id="searchPatient" type="search" placeholder="Cerca paziente..." value="${esc(patientSearchText)}">
-   <label class="patient-unread-filter"><input id="filterUnreadPatients" type="checkbox" ${patientsUnreadOnly?'checked':''}><span>Solo con documenti da leggere</span>${patientsUnreadOnly?`<b>${visible.length}</b>`:''}</label>
- </div>
- <div class="pro3-patients">${visible.map(p=>{
-   const delta=p.delta!=null?(p.delta>0?'+':'')+p.delta.toFixed(1).replace('.',',')+' kg':'—';
-   return `<button data-patient="${p.id}" class="pro3-patient" style="font-weight:400">
-     <div class="patient-avatar">${p.name.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
-     <div>
-       <span style="display:block;font-size:15px;font-weight:700;color:#34484f">${esc(p.name)}${hasUnreadProfessionalActivity(p.id)?'<span class="document-alert-inline">!</span>':''}</span>
-       <span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">${p.last!=null?'Ultimo peso '+p.last.toFixed(1).replace('.',',')+' kg':'Dati non disponibili'}</span>
-     </div>
-     <span style="font-size:12px;font-weight:600;color:${p.delta<0?'#3d8b69':p.delta>0?'#a66a45':'#7b898f'}">${delta}</span>
-   </button>`;
- }).join('')||`<div class="patient-filter-empty"><b>Nessun paziente trovato</b><span>${patientsUnreadOnly?'Non ci sono pazienti con documenti da leggere.':'Modifica i criteri di ricerca.'}</span></div>`}</div></section>`;
+ <section class="card"><div class="section-head"><h2>Anagrafiche</h2><button class="mini" id="newPatient" disabled title="Disponibile dal prossimo micro-step">＋ Nuovo paziente</button></div>
+ <div class="patient-list-tools"><input id="searchPatient" type="search" placeholder="Cerca paziente..." value="${esc(patientSearchText)}"></div>
+ <div class="pro3-patients">${visible.map(p=>`<button data-patient="${p.id}" class="pro3-patient" style="font-weight:400">
+   <div class="patient-avatar">${p.name.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+   <div><span style="display:block;font-size:15px;font-weight:700;color:#34484f">${esc(p.name)}</span>
+   <span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">Dati non disponibili</span></div>
+   <span style="font-size:12px;font-weight:600;color:#7b898f">—</span>
+ </button>`).join('')||`<div class="patient-filter-empty"><b>Nessun paziente trovato</b><span>${patientSearchText?'Modifica i criteri di ricerca.':'Nessun paziente associato.'}</span></div>`}</div></section>`;
 }
-
-
 
 let patientsUnreadOnly=false;
 let patientSearchText='';
@@ -1724,7 +1713,7 @@ function details(){
        <div class="patient-more-wrap">
          <button class="patient-more-btn" id="patientMoreBtn" aria-label="Altre azioni">⋯</button>
          <div class="patient-more-menu" id="patientMoreMenu">
-           <button id="deletePatient" class="danger-link">Elimina paziente</button>
+           <button class="danger-link" disabled title="Disponibile dal prossimo micro-step">Elimina paziente</button>
          </div>
        </div>
      </div>`:''}
@@ -3742,7 +3731,7 @@ function bind(){
  document.querySelectorAll('[data-event]').forEach(b=>b.onclick=()=>{editing=appointments().find(a=>a.id===b.dataset.event)||null;window.prefill=null;view='event';render()});
  document.querySelectorAll('.pro3-slot').forEach(b=>b.onclick=()=>{editing=null;window.prefill={date:b.dataset.date,time:b.dataset.time};view='event';render()});
  el('goAgenda')?.addEventListener('click',()=>{view='agenda';render()});
- el('newPatient')?.addEventListener('click',()=>{view='newPatient';render()});
+
  el('editPatientProfileLegacy')?.addEventListener('click',()=>{view='editProfile';render()});
  el('cancelEditProfile')?.addEventListener('click',()=>{view='details';tab='summary';render()});
  el('saveEditProfile')?.addEventListener('click',saveEditedPatientProfile);if(view==='editProfile'){const p=patient(selected),m={Diagnosis:p.diagnosis,TheoreticalWeight:p.theoreticalWeight,Bowel:p.bowel,Metabolism:p.metabolism,Feeg:p.feeg,Impedance:p.impedance,PreviousDiets:p.previousDiets,Allergies:p.allergies,Medications:p.medications,GiIssues:p.giIssues,PastConditions:p.pastConditions,Observations:p.observations,Objectives:p.objectives};Object.entries(m).forEach(([k,v])=>{const x=el('ep'+k);if(x)x.value=v||''});[['FamObesity','famObesity'],['FamDiabetes','famDiabetes'],['FamHypertension','famHypertension'],['FamCardiovascular','famCardiovascular'],['FamDyslipidemia','famDyslipidemia'],['FamThyroid','famThyroid']].forEach(([id,k])=>{const x=el('ep'+id);if(x)x.checked=!!p[k]})}
@@ -3890,7 +3879,7 @@ document.querySelectorAll('[data-delete-pro-plan]').forEach(b=>b.addEventListene
    render();
  }));
 
- el('deletePatient')?.addEventListener('click',deleteSelectedPatient);
+
  el('searchPatient')?.addEventListener('input',e=>{
  patientSearchText=e.target.value||'';
  const pos=document.scrollingElement?.scrollTop||0;

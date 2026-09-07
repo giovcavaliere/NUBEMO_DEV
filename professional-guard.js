@@ -19,7 +19,7 @@
   function loadProfessionalApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'pro.js?v=nubemo40pro4b2a';
+      script.src = 'pro.js?v=nubemo40pro4c1';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Impossibile caricare l’Area Professionista.'));
       document.body.appendChild(script);
@@ -98,7 +98,39 @@
         }
       }
 
-      window.nubemoProfessionalContext = { user, profile, professional, logoData };
+      const { data: relationships, error: relationshipsError } = await client
+        .from('professional_patients')
+        .select('patient_id,status,started_at,ended_at')
+        .eq('professional_id', professional.id)
+        .neq('status', 'ended');
+      if (relationshipsError) throw relationshipsError;
+
+      const patientIds = (relationships || []).map(row => row.patient_id);
+      let remotePatients = [];
+      if (patientIds.length) {
+        const { data: patientRows, error: patientsError } = await client
+          .from('patients')
+          .select('id,profile_id,birth_date,sex,height_cm,pathway_start_date,status')
+          .in('id', patientIds);
+        if (patientsError) throw patientsError;
+
+        const profileIds = (patientRows || []).map(row => row.profile_id);
+        const { data: patientProfiles, error: patientProfilesError } = await client
+          .from('profiles')
+          .select('id,first_name,last_name,email,status')
+          .in('id', profileIds);
+        if (patientProfilesError) throw patientProfilesError;
+
+        const profilesById = new Map((patientProfiles || []).map(row => [row.id, row]));
+        const relationshipsByPatient = new Map((relationships || []).map(row => [row.patient_id, row]));
+        remotePatients = (patientRows || []).map(row => ({
+          ...row,
+          profile: profilesById.get(row.profile_id) || null,
+          relationship: relationshipsByPatient.get(row.id) || null
+        }));
+      }
+
+      window.nubemoProfessionalContext = { user, profile, professional, logoData, patients: remotePatients };
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       await loadProfessionalApp();
