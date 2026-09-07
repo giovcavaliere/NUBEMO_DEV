@@ -698,7 +698,7 @@ function patientsPage(){
  const all=patients();
  const visible=all.filter(p=>!patientSearchText||p.name.toLowerCase().includes(patientSearchText.toLowerCase()));
  return `${top('Pazienti')}${nav()}
- <section class="card"><div class="section-head"><h2>Anagrafiche</h2><button class="mini" id="newPatient" disabled title="Disponibile dal prossimo micro-step">＋ Nuovo paziente</button></div>
+ <section class="card"><div class="section-head"><h2>Anagrafiche</h2><button class="mini" id="newPatient">＋ Nuovo paziente</button></div>
  <div class="patient-list-tools"><input id="searchPatient" type="search" placeholder="Cerca paziente..." value="${esc(patientSearchText)}"></div>
  <div class="pro3-patients">${visible.map(p=>`<button data-patient="${p.id}" class="pro3-patient" style="font-weight:400">
    <div class="patient-avatar">${p.name.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
@@ -2893,12 +2893,15 @@ function tabContent(p){
 function newPatientForm(){
  return `${top('Nuovo paziente')}
  <section class="card">
-   <h2>Dati personali</h2>
+   <h2>Dati paziente</h2>
    <label>Nome</label>
-   <input id="npName" type="text" placeholder="es. Mario">
+   <input id="npName" type="text" autocomplete="given-name" placeholder="es. Mario">
 
    <label>Cognome</label>
-   <input id="npSurname" type="text" placeholder="es. Rossi">
+   <input id="npSurname" type="text" autocomplete="family-name" placeholder="es. Rossi">
+
+   <label>Email</label>
+   <input id="npEmail" type="email" autocomplete="email" placeholder="es. mario.rossi@email.it">
 
    <label>Data di nascita</label>
    ${proDateControl('npBirth','')}
@@ -2914,96 +2917,61 @@ function newPatientForm(){
    <label>Altezza (cm)</label>
    <input id="npHeight" type="number" min="80" max="250" step="1" placeholder="es. 175">
 
-   <label>Peso obiettivo (kg)</label>
-   <input id="npGoal" type="number" min="30" max="300" step="0.1" placeholder="Facoltativo">
+   <label>Data inizio percorso</label>
+   ${proDateControl('npStartDate','')}
 
-   <label>Data prossima visita</label>
-
-   <h2 style="margin-top:22px">Storia del peso</h2>
-   <label>Peso minimo storico (kg)</label>
-   <input id="npMinWeight" type="number" min="30" max="300" step="0.1" placeholder="Facoltativo">
-
-   <label>Peso massimo storico (kg)</label>
-   <input id="npMaxWeight" type="number" min="30" max="300" step="0.1" placeholder="Facoltativo">
-
-   <label>Peso ragionevole / concordato (kg)</label>
-   <input id="npReasonableWeight" type="number" min="30" max="300" step="0.1" placeholder="Facoltativo">
-
-   <h2 style="margin-top:22px">Stile di vita</h2>
-   <label>Attività lavorativa</label>
-   <textarea id="npWork" rows="2" placeholder="Campo libero"></textarea>
-
-   <label>Attività fisica abituale</label>
-   <textarea id="npActivity" rows="2" placeholder="es. camminate, palestra, sport"></textarea>
-   <label>Livello attività per stima energetica</label><select id="npActivityFactor"><option value="">Non impostato</option><option value="1.2">Sedentario</option><option value="1.375">Leggermente attivo</option><option value="1.55">Moderatamente attivo</option><option value="1.725">Molto attivo</option><option value="1.9">Estremamente attivo</option></select>
-
-   <label>Fumo</label>
-   <input id="npSmoking" type="text" placeholder="Campo libero">
-
-   <label>Alcol</label>
-   <input id="npAlcohol" type="text" placeholder="Campo libero">
-
-<details class="pro-accordion"><summary>Dati clinici aggiuntivi</summary><label>Diagnosi / motivo</label><textarea id="npDiagnosis"></textarea><label>Peso teorico (kg)</label><input id="npTheoreticalWeight" type="number" step="0.1"><label>Alvo</label><input id="npBowel"><label>Metabolismo basale</label><input id="npMetabolism"><label>FEEG / fabbisogno</label><input id="npFeeg"><label>Impedenziometria</label><input id="npImpedance"></details><details class="pro-accordion"><summary>Familiarità</summary><div class="check-grid"><label><input id="npFamObesity" type="checkbox"> Obesità</label><label><input id="npFamDiabetes" type="checkbox"> Diabete</label><label><input id="npFamHypertension" type="checkbox"> Ipertensione</label><label><input id="npFamCardiovascular" type="checkbox"> Cardiovascolare</label><label><input id="npFamDyslipidemia" type="checkbox"> Dislipidemie</label><label><input id="npFamThyroid" type="checkbox"> Tiroide</label></div></details><details class="pro-accordion"><summary>Anamnesi patologica e obiettivi</summary><label>Diete pregresse</label><textarea id="npPreviousDiets"></textarea><label>Allergie / intolleranze</label><textarea id="npAllergies"></textarea><label>Farmaci</label><textarea id="npMedications"></textarea><label>Disturbi gastrointestinali</label><textarea id="npGiIssues"></textarea><label>Patologie / interventi pregressi</label><textarea id="npPastConditions"></textarea><label>Osservazioni</label><textarea id="npObservations"></textarea><label>Obiettivi</label><textarea id="npObjectives"></textarea></details>   <div class="pro3-actions">
+   <p class="muted">Il paziente riceverà un invito NUBEMO all'indirizzo email indicato per impostare la propria password.</p>
+   <div class="pro3-actions">
      <button class="secondary" id="cancelNewPatient">Annulla</button>
-     <button class="primary" id="saveNewPatient">Salva paziente</button>
+     <button class="primary" id="saveNewPatient">Crea e invita paziente</button>
    </div>
  </section>`;
 }
 
-function saveNewPatient(){
- const name=(el('npName')?.value||'').trim();
- const surname=(el('npSurname')?.value||'').trim();
- if(!name || !surname)return alert('Inserisci nome e cognome.');
+async function saveNewPatient(){
+ const firstName=(el('npName')?.value||'').trim();
+ const lastName=(el('npSurname')?.value||'').trim();
+ const email=(el('npEmail')?.value||'').trim().toLowerCase();
+ const birthDate=readProDate('npBirth')||'';
+ const sex=el('npSex')?.value||'';
+ const heightRaw=(el('npHeight')?.value||'').trim().replace(',','.');
+ const pathwayStartDate=readProDate('npStartDate')||'';
 
- const num=id=>{
-   const v=(el(id)?.value||'').trim().replace(',','.');
-   return v===''?'':Number(v);
- };
+ if(!firstName || !lastName || !email)return alert('Inserisci nome, cognome ed email.');
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert('Inserisci un indirizzo email valido.');
+ const height=heightRaw===''?null:Number(heightRaw);
+ if(height!==null && (!Number.isFinite(height) || height<80 || height>250))return alert('Controlla l’altezza inserita.');
 
- const height=num('npHeight');
- const goal=num('npGoal');
- const minWeight=num('npMinWeight');
- const maxWeight=num('npMaxWeight');
- const reasonableWeight=num('npReasonableWeight');
-
- if(height!=='' && (!Number.isFinite(height) || height<80 || height>250))return alert('Controlla l’altezza inserita.');
- for(const v of [goal,minWeight,maxWeight,reasonableWeight]){
-   if(v!=='' && (!Number.isFinite(v) || v<30 || v>300))return alert('Controlla i valori di peso inseriti.');
+ const button=el('saveNewPatient');
+ if(button){button.disabled=true;button.textContent='Creazione in corso…';}
+ try{
+   const client=window.nubemoSupabase;
+   const {data:{session},error:sessionError}=await client.auth.getSession();
+   if(sessionError || !session?.access_token)throw new Error('Sessione professionista non disponibile.');
+   const {data,error}=await client.functions.invoke('swift-endpoint',{
+     body:{
+       action:'create-patient',
+       first_name:firstName,
+       last_name:lastName,
+       email,
+       birth_date:birthDate||null,
+       sex:sex||null,
+       height_cm:height,
+       pathway_start_date:pathwayStartDate||null
+     },
+     headers:{Authorization:`Bearer ${session.access_token}`}
+   });
+   if(error || !data?.ok)throw new Error(data?.error||'Creazione paziente non completata.');
+   if(typeof window.nubemoReloadProfessionalPatients==='function')await window.nubemoReloadProfessionalPatients();
+   view='patients';
+   patientSearchText='';
+   render();
+   alert(`Paziente ${firstName} ${lastName} creato. Invito inviato a ${email}.`);
+ }catch(error){
+   alert(error?.message||'Impossibile creare il paziente.');
+   if(button){button.disabled=false;button.textContent='Crea e invita paziente';}
  }
-
- const arr=extraPatients();
- const id='patient-'+Date.now();
- arr.push({
-   id,
-   name:`${name} ${surname}`,
-   firstName:name,
-   surname,
-   birth:readProDate('npBirth')||'',
-   sex:el('npSex')?.value||'',
-   height,
-   goal,
-   startDate:'',
-   minWeight,
-   maxWeight,
-   reasonableWeight,
-   work:(el('npWork')?.value||'').trim(),
-   activity:(el('npActivity')?.value||'').trim(),activityFactor:el('npActivityFactor')?.value||'',
-   smoking:(el('npSmoking')?.value||'').trim(),
-   alcohol:(el('npAlcohol')?.value||'').trim(), diagnosis:(el('npDiagnosis')?.value||'').trim(), theoreticalWeight:num('npTheoreticalWeight'), bowel:(el('npBowel')?.value||'').trim(), metabolism:(el('npMetabolism')?.value||'').trim(), feeg:(el('npFeeg')?.value||'').trim(), impedance:(el('npImpedance')?.value||'').trim(), famObesity:!!el('npFamObesity')?.checked, famDiabetes:!!el('npFamDiabetes')?.checked, famHypertension:!!el('npFamHypertension')?.checked, famCardiovascular:!!el('npFamCardiovascular')?.checked, famDyslipidemia:!!el('npFamDyslipidemia')?.checked, famThyroid:!!el('npFamThyroid')?.checked, previousDiets:(el('npPreviousDiets')?.value||'').trim(), allergies:(el('npAllergies')?.value||'').trim(), medications:(el('npMedications')?.value||'').trim(), giIssues:(el('npGiIssues')?.value||'').trim(), pastConditions:(el('npPastConditions')?.value||'').trim(), observations:(el('npObservations')?.value||'').trim(), objectives:(el('npObjectives')?.value||'').trim(),
-   showEnergyValues:true,
-   readOnly:false,
-   weights:[],
-   diary:[],
-   measures:[]
- });
- saveExtraPatients(arr);
-
- selected=id;
- tab='summary';
- view='details';
- render();
 }
-
 
 
 function editPatientProfileForm(){
@@ -3864,6 +3832,7 @@ document.querySelectorAll('[data-delete-pro-plan]').forEach(b=>b.addEventListene
      if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length)}
    });
  });
+ el('newPatient')?.addEventListener('click',()=>{view='newPatient';render()});
  el('cancelNewPatient')?.addEventListener('click',()=>{view='patients';render()});
  el('saveNewPatient')?.addEventListener('click',saveNewPatient);
  el('newEvent')?.addEventListener('click',()=>{editing=null;window.prefill=null;view='event';render()});
