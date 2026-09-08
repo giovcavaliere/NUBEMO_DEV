@@ -220,13 +220,13 @@
     const patientId = inferCurrentPatient();
     if (!patientId) return;
 
-    const oldEdit = document.getElementById('editPatientProfileTop');
-    if (oldEdit && !document.getElementById('nubemoEditDemographics')) {
-      const edit = oldEdit.cloneNode(true);
+    const existingEdit = document.getElementById('editPatientProfileTop');
+    if (existingEdit && !document.getElementById('nubemoEditDemographics')) {
+      const edit = existingEdit.cloneNode(true);
       edit.id = 'nubemoEditDemographics';
-      edit.textContent = 'Modifica dati';
-      oldEdit.replaceWith(edit);
+      edit.textContent = 'Modifica anagrafica';
       edit.addEventListener('click', () => openEditDialog(patientId));
+      existingEdit.insertAdjacentElement('afterend', edit);
 
       const end = document.createElement('button');
       end.id = 'nubemoEndPathway';
