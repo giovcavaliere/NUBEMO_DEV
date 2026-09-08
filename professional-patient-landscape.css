@@ -1,0 +1,56 @@
+/* NUBEMO 4C.2b — testata paziente ottimizzata per iPhone/iPad in landscape */
+@media (orientation: landscape) and (max-width: 1366px) and (pointer: coarse) {
+  body[data-pro-view="details"] .patient-global-head {
+    display: grid !important;
+    grid-template-columns: minmax(140px, 1fr) minmax(132px, auto) minmax(150px, auto) !important;
+    grid-template-rows: auto auto !important;
+    align-items: start !important;
+    column-gap: 10px !important;
+    row-gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  body[data-pro-view="details"] .patient-global-title {
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    min-width: 0 !important;
+    align-self: start !important;
+  }
+
+  body[data-pro-view="details"] #editPatientProfileTop {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+
+  body[data-pro-view="details"] #nubemoEditDemographics {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+  }
+
+  body[data-pro-view="details"] #nubemoEndPathway {
+    grid-column: 2 / 4 !important;
+    grid-row: 2 !important;
+    justify-self: stretch !important;
+  }
+
+  body[data-pro-view="details"] .patient-global-edit {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 0 !important;
+    padding: 10px 12px !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* iPhone landscape stretto: azioni più compatte senza alterare il portrait. */
+@media (orientation: landscape) and (max-width: 900px) and (pointer: coarse) {
+  body[data-pro-view="details"] .patient-global-head {
+    grid-template-columns: minmax(120px, 1fr) minmax(118px, auto) minmax(132px, auto) !important;
+    column-gap: 8px !important;
+  }
+
+  body[data-pro-view="details"] .patient-global-edit {
+    padding: 9px 9px !important;
+    font-size: 14px !important;
+  }
+}
