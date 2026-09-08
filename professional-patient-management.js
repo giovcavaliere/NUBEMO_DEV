@@ -240,10 +240,19 @@
 
   function patchEndedPatients() {
     if (document.body.dataset.proView !== 'patients') return;
-    document.getElementById('endedPatientsCard')?.remove();
 
     const rows = endedPatients();
-    if (!rows.length) return;
+    const existing = document.getElementById('endedPatientsCard');
+    if (!rows.length) {
+      existing?.remove();
+      return;
+    }
+
+    const signature = rows
+      .map(row => `${row.id}:${row.relationship?.ended_at || ''}:${patientName(row)}`)
+      .join('|');
+    if (existing?.dataset?.signature === signature) return;
+    existing?.remove();
 
     const activeCard = app.querySelector('section.card');
     if (!activeCard) return;
@@ -251,6 +260,7 @@
     const card = document.createElement('section');
     card.className = 'card';
     card.id = 'endedPatientsCard';
+    card.dataset.signature = signature;
     card.innerHTML = `
       <div class="section-head"><h2>Percorsi terminati</h2></div>
       <div class="pro3-patients">
