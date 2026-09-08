@@ -1,12 +1,26 @@
+/* NUBEMO 4C.2b — azioni testata paziente compatte su tutti i dispositivi */
+body[data-pro-view="details"] .patient-global-head {
+  gap: 12px !important;
+}
+
+body[data-pro-view="details"] .patient-global-edit {
+  min-width: 0 !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+}
+
 /* NUBEMO 4C.2b — testata paziente ottimizzata per iPhone/iPad in landscape */
 @media (orientation: landscape) and (max-width: 1366px) and (pointer: coarse) {
   body[data-pro-view="details"] .patient-global-head {
     display: grid !important;
-    grid-template-columns: minmax(140px, 1fr) minmax(132px, auto) minmax(150px, auto) !important;
+    grid-template-columns: minmax(140px, 1fr) minmax(118px, auto) minmax(136px, auto) !important;
     grid-template-rows: auto auto !important;
     align-items: start !important;
-    column-gap: 10px !important;
-    row-gap: 8px !important;
+    column-gap: 8px !important;
+    row-gap: 6px !important;
     margin-bottom: 12px !important;
   }
 
@@ -35,22 +49,21 @@
 
   body[data-pro-view="details"] .patient-global-edit {
     width: 100% !important;
-    min-width: 0 !important;
     margin-top: 0 !important;
-    padding: 10px 12px !important;
-    white-space: nowrap !important;
+    padding: 7px 10px !important;
+    font-size: 13.5px !important;
   }
 }
 
-/* iPhone landscape stretto: azioni più compatte senza alterare il portrait. */
+/* iPhone landscape stretto: azioni ancora più compatte senza alterare il portrait. */
 @media (orientation: landscape) and (max-width: 900px) and (pointer: coarse) {
   body[data-pro-view="details"] .patient-global-head {
-    grid-template-columns: minmax(120px, 1fr) minmax(118px, auto) minmax(132px, auto) !important;
-    column-gap: 8px !important;
+    grid-template-columns: minmax(120px, 1fr) minmax(106px, auto) minmax(122px, auto) !important;
+    column-gap: 6px !important;
   }
 
   body[data-pro-view="details"] .patient-global-edit {
-    padding: 9px 9px !important;
-    font-size: 14px !important;
+    padding: 7px 8px !important;
+    font-size: 13px !important;
   }
 }
