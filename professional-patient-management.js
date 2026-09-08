@@ -292,7 +292,17 @@
     }
   }
 
-  document.addEventListener('click', e => rememberPatientFromEvent(e.target), true);
+  document.addEventListener('click', e => {
+    rememberPatientFromEvent(e.target);
+    if (
+      document.body.dataset.proView === 'details' &&
+      e.target?.closest?.('.patient-global-title h1')
+    ) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }, true);
+
   const observer = new MutationObserver(() => queueMicrotask(patch));
   observer.observe(app, { childList: true, subtree: true });
   patch();
