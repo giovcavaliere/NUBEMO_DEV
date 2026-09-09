@@ -636,7 +636,7 @@ nav{background:rgba(250,252,248,.94);backdrop-filter:blur(22px);border-color:rgb
   background:rgba(3,27,23,.58);backdrop-filter:blur(10px)
 }
 .clinical-modal{
-  position:relative;width:min(540px,100%);background:#fbfdf9;border-radius:28px;padding:28px;
+  position:relative;width:min(540px,100%);max-height:calc(100dvh - 36px);overflow-y:auto;-webkit-overflow-scrolling:touch;background:#fbfdf9;border-radius:28px;padding:28px;
   box-shadow:0 32px 85px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.75)
 }
 .clinical-modal h2{font-size:30px;line-height:1.04;letter-spacing:-.035em;margin:8px 0 12px}
