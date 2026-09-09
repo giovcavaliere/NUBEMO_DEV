@@ -32,6 +32,19 @@
     'objectives'
   ].join(',');
 
+  const MEASUREMENT_COLUMNS = [
+    'id',
+    'patient_id',
+    'measured_at',
+    'weight_kg',
+    'waist_cm',
+    'hips_cm',
+    'notes',
+    'created_by_user_id',
+    'created_at',
+    'updated_at'
+  ].join(',');
+
   async function loadPatients(professionalId) {
     const { data: relationships, error: relationshipsError } = await client
       .from('professional_patients')
@@ -163,11 +176,60 @@
     return data;
   }
 
+  async function loadPatientMeasurements(patientId) {
+    const { data, error } = await client
+      .from('patient_measurements')
+      .select(MEASUREMENT_COLUMNS)
+      .eq('patient_id', patientId)
+      .is('deleted_at', null)
+      .order('measured_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  }
+
+  function measurementPayload(values) {
+    return {
+      measured_at: values.measuredAt,
+      weight_kg: values.weightKg,
+      waist_cm: values.waistCm,
+      hips_cm: values.hipsCm,
+      notes: values.notes
+    };
+  }
+
+  async function createPatientMeasurement(patientId, values, createdByUserId) {
+    const { data, error } = await client
+      .from('patient_measurements')
+      .insert({
+        patient_id: patientId,
+        created_by_user_id: createdByUserId,
+        ...measurementPayload(values)
+      })
+      .select(MEASUREMENT_COLUMNS)
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function updatePatientMeasurement(measurementId, values) {
+    const { data, error } = await client
+      .from('patient_measurements')
+      .update(measurementPayload(values))
+      .eq('id', measurementId)
+      .select(MEASUREMENT_COLUMNS)
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   window.nubemoProfessionalServices = Object.freeze({
     loadPatients,
     updatePatientDemographics,
     setPatientPathwayStatus,
     loadPatientClinicalProfile,
-    savePatientAnamnesis
+    savePatientAnamnesis,
+    loadPatientMeasurements,
+    createPatientMeasurement,
+    updatePatientMeasurement
   });
 })();
