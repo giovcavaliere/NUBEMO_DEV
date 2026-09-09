@@ -99,7 +99,7 @@
       }
 
       await loadScript(
-        'professional-services.js?v=nubemo-anamnesis1',
+        'professional-services.js?v=nubemo-measures1',
         'Impossibile caricare i servizi dell’Area Professionista.'
       );
 
@@ -135,7 +135,7 @@
         'Impossibile caricare il modulo Pazienti.'
       );
       await loadScript(
-        'professional-clinical.js?v=nubemo-anamnesis1',
+        'professional-clinical.js?v=nubemo-measures1',
         'Impossibile caricare il modulo Clinico.'
       );
       window.nubemoProfessionalPatients?.syncView?.();
