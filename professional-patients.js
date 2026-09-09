@@ -264,6 +264,7 @@
     try {
       enhanceDetails();
       enhancePatientList();
+      window.nubemoProfessionalClinical?.syncView?.();
     } finally {
       patching = false;
     }
@@ -282,7 +283,9 @@
     init,
     syncView,
     getActivePatients: activePatients,
-    getEndedPatients: endedPatients
+    getEndedPatients: endedPatients,
+    getCurrentPatientId: inferCurrentPatient,
+    getPatientById: patientById
   });
 
   init();
