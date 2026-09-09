@@ -1,5 +1,5 @@
 // NUBEMO — Area Professionista / modulo Clinico
-// Primo perimetro migrato: Anamnesi del paziente su Supabase.
+// Perimetri migrati: Anamnesi e Misure del paziente su Supabase.
 (() => {
   'use strict';
 
@@ -9,6 +9,8 @@
 
   const cache = new Map();
   const pending = new Map();
+  const measurementsCache = new Map();
+  const measurementsPending = new Map();
 
   const esc = (value = '') => String(value)
     .replaceAll('&', '&amp;')
@@ -46,6 +48,11 @@
     return !!document.querySelector('[data-patient-tab="anamnesis"].active');
   }
 
+  function isMeasuresTab() {
+    if (!isDetailsView()) return false;
+    return !!document.querySelector('[data-patient-tab="measures"].active');
+  }
+
   async function loadProfile(patientId, force = false) {
     if (!force && cache.has(patientId)) return cache.get(patientId);
     if (!force && pending.has(patientId)) return pending.get(patientId);
@@ -61,24 +68,42 @@
     return request;
   }
 
+  async function loadMeasurements(patientId, force = false) {
+    if (!force && measurementsCache.has(patientId)) return measurementsCache.get(patientId);
+    if (!force && measurementsPending.has(patientId)) return measurementsPending.get(patientId);
+
+    const request = services.loadPatientMeasurements(patientId)
+      .then(rows => {
+        measurementsCache.set(patientId, rows || []);
+        return rows || [];
+      })
+      .finally(() => measurementsPending.delete(patientId));
+
+    measurementsPending.set(patientId, request);
+    return request;
+  }
+
   function clinicalBodyHost() {
     return document.querySelector('.patient-content-card');
   }
 
-  function bodySignature(profile) {
-    return JSON.stringify(profile || null);
+  function bodySignature(value) {
+    return JSON.stringify(value || null);
   }
 
-  function replaceClinicalBody(patientId, html, signature) {
+  function replaceClinicalBody(bodyId, patientId, html, signature, afterRender) {
     const card = clinicalBodyHost();
     if (!card) return;
 
-    const existing = document.getElementById('nubemoProfessionalAnamnesis');
+    const existing = document.getElementById(bodyId);
     if (
       existing &&
       existing.dataset.patientId === patientId &&
       existing._nubemoSignature === signature
-    ) return;
+    ) {
+      if (afterRender) afterRender(existing);
+      return;
+    }
 
     const head = card.querySelector(':scope > .patient-section-head');
     Array.from(card.children).forEach(child => {
@@ -86,11 +111,12 @@
     });
 
     const body = document.createElement('div');
-    body.id = 'nubemoProfessionalAnamnesis';
+    body.id = bodyId;
     body.dataset.patientId = patientId;
     body._nubemoSignature = signature;
     body.innerHTML = html;
     card.appendChild(body);
+    if (afterRender) afterRender(body);
   }
 
   function anamnesisHtml(profile) {
@@ -138,6 +164,7 @@
 
   function renderLoading(patientId) {
     replaceClinicalBody(
+      'nubemoProfessionalAnamnesis',
       patientId,
       '<p class="muted">Caricamento anamnesi...</p>',
       'loading'
@@ -146,6 +173,7 @@
 
   function renderError(patientId) {
     replaceClinicalBody(
+      'nubemoProfessionalAnamnesis',
       patientId,
       '<p class="muted">Non è stato possibile caricare l’anamnesi.</p>',
       'error'
@@ -153,7 +181,12 @@
   }
 
   function renderProfile(patientId, profile) {
-    replaceClinicalBody(patientId, anamnesisHtml(profile), bodySignature(profile));
+    replaceClinicalBody(
+      'nubemoProfessionalAnamnesis',
+      patientId,
+      anamnesisHtml(profile),
+      bodySignature(profile)
+    );
   }
 
   async function syncAnamnesis() {
@@ -343,6 +376,214 @@
     }
   }
 
+  function formatDate(date) {
+    const parts = String(date || '').split('-');
+    if (parts.length !== 3) return display(date);
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+
+  function formatMeasurement(value, suffix = '') {
+    if (value === null || value === undefined || value === '') return '—';
+    const number = Number(value);
+    if (!Number.isFinite(number)) return display(value);
+    return `${number.toFixed(1).replace('.', ',')}${suffix}`;
+  }
+
+  function measurementsHtml(rows, canEdit) {
+    const bodyRows = rows.length
+      ? rows.map(row => `
+        <tr>
+          <td>${formatDate(row.measured_at)}</td>
+          <td>${formatMeasurement(row.weight_kg, ' kg')}</td>
+          <td>${formatMeasurement(row.waist_cm)}</td>
+          <td>${formatMeasurement(row.hips_cm)}</td>
+          <td>${display(row.notes)}</td>
+          <td>${canEdit ? `<button class="mini" data-nubemo-edit-measure="${esc(row.id)}">Modifica</button>` : ''}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="6">Nessuna misura.</td></tr>';
+
+    return `
+      <div class="section-head">
+        <h2>Misure</h2>
+        ${canEdit ? '<button class="mini" id="nubemoNewPatientMeasure">＋ Aggiungi misura</button>' : ''}
+      </div>
+      <div class="measure-table-wrap">
+        <table class="measure-table">
+          <thead><tr><th>Data</th><th>Peso rilevato</th><th>Vita</th><th>Fianchi</th><th>Note</th><th></th></tr></thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function closeMeasurementEditor() {
+    document.getElementById('patientMeasurementOverlay')?.remove();
+  }
+
+  function numberValue(id) {
+    const raw = String(document.getElementById(id)?.value || '').trim().replace(',', '.');
+    if (raw === '') return null;
+    const number = Number(raw);
+    return Number.isFinite(number) ? number : NaN;
+  }
+
+  function todayIso() {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function measurementById(patientId, measurementId) {
+    return (measurementsCache.get(patientId) || []).find(row => row.id === measurementId) || null;
+  }
+
+  function openMeasurementEditor(patientId, measurementId = null) {
+    const row = patientsModule.getPatientById?.(patientId);
+    if (!patientIsActive(row)) return alert('Paziente attivo non disponibile.');
+
+    const existing = measurementId ? measurementById(patientId, measurementId) : null;
+    if (measurementId && !existing) return alert('Misurazione non disponibile.');
+
+    closeMeasurementEditor();
+    const overlay = document.createElement('div');
+    overlay.id = 'patientMeasurementOverlay';
+    overlay.className = 'clinical-overlay';
+    overlay.innerHTML = `
+      <section class="clinical-modal">
+        <button class="monubi-x" id="closePatientMeasurement" type="button">×</button>
+        <div class="eyebrow">SCHEDA PAZIENTE</div>
+        <h2>${existing ? 'Modifica misurazione' : 'Nuova misurazione'}</h2>
+        <label>Data</label>
+        <input id="pmRemoteDate" type="date" value="${esc(existing?.measured_at || todayIso())}">
+        <label>Peso rilevato dal professionista (kg)</label>
+        <input id="pmRemoteWeight" type="number" min="30" max="300" step="0.1" value="${existing?.weight_kg ?? ''}" placeholder="Facoltativo">
+        <label>Circonferenza vita (cm)</label>
+        <input id="pmRemoteWaist" type="number" min="20" max="300" step="0.1" value="${existing?.waist_cm ?? ''}">
+        <label>Circonferenza fianchi (cm)</label>
+        <input id="pmRemoteHips" type="number" min="20" max="300" step="0.1" value="${existing?.hips_cm ?? ''}">
+        <label>Note</label>
+        <textarea id="pmRemoteNotes" rows="3">${esc(existing?.notes || '')}</textarea>
+        <div class="pro3-actions">
+          <button class="secondary" id="cancelPatientMeasurement" type="button">Annulla</button>
+          <button class="primary" id="savePatientMeasurement" type="button">${existing ? 'Salva modifiche' : 'Salva misura'}</button>
+        </div>
+      </section>`;
+
+    document.body.appendChild(overlay);
+    document.getElementById('closePatientMeasurement')?.addEventListener('click', closeMeasurementEditor);
+    document.getElementById('cancelPatientMeasurement')?.addEventListener('click', closeMeasurementEditor);
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) closeMeasurementEditor();
+    });
+
+    document.getElementById('savePatientMeasurement')?.addEventListener('click', async () => {
+      const button = document.getElementById('savePatientMeasurement');
+      const measuredAt = String(document.getElementById('pmRemoteDate')?.value || '').trim();
+      const weightKg = numberValue('pmRemoteWeight');
+      const waistCm = numberValue('pmRemoteWaist');
+      const hipsCm = numberValue('pmRemoteHips');
+      const notesRaw = String(document.getElementById('pmRemoteNotes')?.value || '').trim();
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(measuredAt)) return alert('Inserisci una data valida.');
+      if (weightKg !== null && (!Number.isFinite(weightKg) || weightKg < 30 || weightKg > 300)) return alert('Controlla il peso rilevato.');
+      for (const [label, value] of [['vita', waistCm], ['fianchi', hipsCm]]) {
+        if (value !== null && (!Number.isFinite(value) || value < 20 || value > 300)) return alert(`Controlla il valore ${label}.`);
+      }
+
+      const values = {
+        measuredAt,
+        weightKg,
+        waistCm,
+        hipsCm,
+        notes: notesRaw === '' ? null : notesRaw
+      };
+
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Salvataggio...';
+      }
+
+      try {
+        if (existing) {
+          await services.updatePatientMeasurement(existing.id, values);
+        } else {
+          const userId = window.nubemoProfessionalContext?.user?.id || '';
+          if (!userId) throw new Error('Authenticated professional user unavailable');
+          await services.createPatientMeasurement(patientId, values, userId);
+        }
+
+        const rows = await loadMeasurements(patientId, true);
+        closeMeasurementEditor();
+        if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurements(patientId, rows);
+      } catch (error) {
+        console.error('NUBEMO professional clinical save measurement:', error);
+        if (error?.code === '23505') alert('Esiste già una misurazione per questa data.');
+        else alert('Non è stato possibile salvare la misurazione.');
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = existing ? 'Salva modifiche' : 'Salva misura';
+        }
+      }
+    });
+  }
+
+  function bindMeasurementActions(host, patientId, canEdit) {
+    if (!canEdit) return;
+    host.querySelector('#nubemoNewPatientMeasure')?.addEventListener('click', () => openMeasurementEditor(patientId));
+    host.querySelectorAll('[data-nubemo-edit-measure]').forEach(button => {
+      button.addEventListener('click', () => openMeasurementEditor(patientId, button.dataset.nubemoEditMeasure));
+    });
+  }
+
+  function renderMeasurements(patientId, rows) {
+    const canEdit = patientIsActive(currentPatient());
+    replaceClinicalBody(
+      'nubemoProfessionalMeasurements',
+      patientId,
+      measurementsHtml(rows || [], canEdit),
+      bodySignature(rows || []),
+      host => bindMeasurementActions(host, patientId, canEdit)
+    );
+  }
+
+  function renderMeasurementsLoading(patientId) {
+    replaceClinicalBody(
+      'nubemoProfessionalMeasurements',
+      patientId,
+      '<p class="muted">Caricamento misure...</p>',
+      'loading'
+    );
+  }
+
+  function renderMeasurementsError(patientId) {
+    replaceClinicalBody(
+      'nubemoProfessionalMeasurements',
+      patientId,
+      '<p class="muted">Non è stato possibile caricare le misure.</p>',
+      'error'
+    );
+  }
+
+  async function syncMeasurements() {
+    if (!isMeasuresTab()) return;
+    const patientId = currentPatientId();
+    if (!patientId) return;
+
+    if (measurementsCache.has(patientId)) {
+      renderMeasurements(patientId, measurementsCache.get(patientId));
+      return;
+    }
+
+    renderMeasurementsLoading(patientId);
+    try {
+      const rows = await loadMeasurements(patientId);
+      if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurements(patientId, rows);
+    } catch (error) {
+      console.error('NUBEMO professional clinical load measurements:', error);
+      if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurementsError(patientId);
+    }
+  }
+
   function bindEditButton() {
     if (!isDetailsView()) return;
     const patientId = currentPatientId();
@@ -361,6 +602,7 @@
   function syncView() {
     bindEditButton();
     void syncAnamnesis();
+    void syncMeasurements();
   }
 
   async function reload(patientId = currentPatientId()) {
@@ -370,10 +612,19 @@
     return profile;
   }
 
+  async function reloadMeasurements(patientId = currentPatientId()) {
+    if (!patientId) return [];
+    const rows = await loadMeasurements(patientId, true);
+    if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurements(patientId, rows);
+    return rows;
+  }
+
   window.nubemoProfessionalClinical = Object.freeze({
     syncView,
     reload,
-    openEditor
+    reloadMeasurements,
+    openEditor,
+    openMeasurementEditor
   });
 
   syncView();
