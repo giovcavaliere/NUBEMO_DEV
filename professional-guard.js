@@ -99,7 +99,7 @@
       }
 
       await loadScript(
-        'professional-services.js?v=nubemo-cleanup1',
+        'professional-services.js?v=nubemo-anamnesis1',
         'Impossibile caricare i servizi dell’Area Professionista.'
       );
 
@@ -131,9 +131,14 @@
         'Impossibile caricare l’Area Professionista.'
       );
       await loadScript(
-        'professional-patients.js?v=nubemo-cleanup1',
+        'professional-patients.js?v=nubemo-anamnesis1',
         'Impossibile caricare il modulo Pazienti.'
       );
+      await loadScript(
+        'professional-clinical.js?v=nubemo-anamnesis1',
+        'Impossibile caricare il modulo Clinico.'
+      );
+      window.nubemoProfessionalPatients?.syncView?.();
     } catch (error) {
       console.error('NUBEMO Professional guard:', error);
       showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');
