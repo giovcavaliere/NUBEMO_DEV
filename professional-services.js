@@ -5,6 +5,33 @@
   const client = window.nubemoSupabase;
   if (!client) return;
 
+  const ANAMNESIS_COLUMNS = [
+    'patient_id',
+    'theoretical_weight_kg',
+    'work',
+    'activity',
+    'smoking',
+    'alcohol',
+    'diagnosis',
+    'bowel',
+    'metabolism',
+    'feeg',
+    'impedance',
+    'family_obesity',
+    'family_diabetes',
+    'family_hypertension',
+    'family_cardiovascular',
+    'family_dyslipidemia',
+    'family_thyroid',
+    'previous_diets',
+    'allergies',
+    'medications',
+    'gi_issues',
+    'past_conditions',
+    'observations',
+    'objectives'
+  ].join(',');
+
   async function loadPatients(professionalId) {
     const { data: relationships, error: relationshipsError } = await client
       .from('professional_patients')
@@ -74,9 +101,73 @@
     if (error) throw error;
   }
 
+  async function loadPatientClinicalProfile(patientId) {
+    const { data, error } = await client
+      .from('patient_clinical_profiles')
+      .select(ANAMNESIS_COLUMNS)
+      .eq('patient_id', patientId)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  function anamnesisPayload(values) {
+    return {
+      theoretical_weight_kg: values.theoreticalWeight,
+      work: values.work,
+      activity: values.activity,
+      smoking: values.smoking,
+      alcohol: values.alcohol,
+      diagnosis: values.diagnosis,
+      bowel: values.bowel,
+      metabolism: values.metabolism,
+      feeg: values.feeg,
+      impedance: values.impedance,
+      family_obesity: values.familyObesity,
+      family_diabetes: values.familyDiabetes,
+      family_hypertension: values.familyHypertension,
+      family_cardiovascular: values.familyCardiovascular,
+      family_dyslipidemia: values.familyDyslipidemia,
+      family_thyroid: values.familyThyroid,
+      previous_diets: values.previousDiets,
+      allergies: values.allergies,
+      medications: values.medications,
+      gi_issues: values.giIssues,
+      past_conditions: values.pastConditions,
+      observations: values.observations,
+      objectives: values.objectives
+    };
+  }
+
+  async function savePatientAnamnesis(patientId, values) {
+    const existing = await loadPatientClinicalProfile(patientId);
+    const payload = anamnesisPayload(values);
+
+    if (existing) {
+      const { data, error } = await client
+        .from('patient_clinical_profiles')
+        .update(payload)
+        .eq('patient_id', patientId)
+        .select(ANAMNESIS_COLUMNS)
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    const { data, error } = await client
+      .from('patient_clinical_profiles')
+      .insert({ patient_id: patientId, ...payload })
+      .select(ANAMNESIS_COLUMNS)
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   window.nubemoProfessionalServices = Object.freeze({
     loadPatients,
     updatePatientDemographics,
-    setPatientPathwayStatus
+    setPatientPathwayStatus,
+    loadPatientClinicalProfile,
+    savePatientAnamnesis
   });
 })();
