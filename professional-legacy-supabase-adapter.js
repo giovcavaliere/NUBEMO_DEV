@@ -175,15 +175,34 @@
   }
 
   async function syncPatientMeasurements(patientId, incoming) {
+    const rows = Array.isArray(incoming) ? incoming : [];
     const existingRows = remoteMeasurements.get(patientId) || [];
+    const byId = new Map(existingRows.map(x => [x.id, x]));
     const byDate = new Map(existingRows.map(x => [x.measured_at, x]));
-    for (const m of Array.isArray(incoming) ? incoming : []) {
+    const retained = new Set();
+
+    for (const m of rows) {
       if (!m?.date) continue;
-      const old = byDate.get(m.date);
+      let old = m._remoteId ? byId.get(m._remoteId) : null;
+      if (!old) old = byDate.get(m.date) || null;
       const values = { measuredAt:m.date, weightKg:numberOrNull(m.professionalWeight), waistCm:numberOrNull(m.waist), hipsCm:numberOrNull(m.hips), notes:m.notes || null };
-      if (old) await services().updatePatientMeasurement(old.id, values);
-      else await services().createPatientMeasurement(patientId, values, context.user.id);
+      if (old) {
+        await services().updatePatientMeasurement(old.id, values);
+        retained.add(old.id);
+      } else {
+        const created = await services().createPatientMeasurement(patientId, values, context.user.id);
+        retained.add(created.id);
+      }
     }
+
+    for (const old of existingRows) {
+      if (!retained.has(old.id)) {
+        const result = await client.rpc('soft_delete_associated_patient_measurement',{p_measurement_id:old.id});
+        if (result.error) throw result.error;
+        if (result.data !== true) throw new Error('Misurazione non eliminata.');
+      }
+    }
+
     remoteMeasurements.set(patientId, await services().loadPatientMeasurements(patientId));
   }
 
