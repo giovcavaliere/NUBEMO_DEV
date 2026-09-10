@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4-patient1';
+const CACHE='nubemo-demo-v4-patient2';
 const CORE=[
   './',
   './index.html',
@@ -8,6 +8,7 @@ const CORE=[
   './diary-pdf.js?v=nubemo40patient1',
   './patient-services.js?v=nubemo40patient1',
   './patient-app.js?v=nubemo40patient1',
+  './patient-measurements.js?v=nubemo40patient1',
   './patient-guard.js?v=nubemo40patient1',
   './monubi-ui.js?v=nubemo40patient1',
   './supabase-client.js?v=nubemo40patient1',
