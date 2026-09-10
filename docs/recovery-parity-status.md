@@ -1,6 +1,6 @@
 # NUBEMO 3.98 → Supabase — stato parità recovery
 
-Riferimento frontend: `main` @ `d2eeab75e469eba9f8105f642ba51e14a3b520ab`.
+Riferimento prodotto: frontend NUBEMO 3.98 recuperato come contratto visivo/funzionale.
 Branch recovery: `recovery/398-supabase-preserved`.
 
 Legenda: ✅ preservato/verificato staticamente · ⚠️ migrato ma richiede test runtime · 🔄 variazione architetturale approvata · ❌ non accettabile / da recuperare.
@@ -8,7 +8,7 @@ Legenda: ✅ preservato/verificato staticamente · ⚠️ migrato ma richiede te
 | Dominio | Stato | Note |
 |---|---|---|
 | Bootstrap/Auth | ⚠️ | Login Supabase e guard separati; test browser finale ancora necessario. |
-| Frontend Paziente 3.98 | ✅ | `app.js` resta il motore UI/UX; recovery usa adapter dati e contract post-boot. |
+| Frontend Paziente 3.98 | ✅ | `app.js` è invariato e resta il motore UI/UX; recovery usa adapter dati e contract post-boot. |
 | Home Paziente | ✅ | Pensiero del giorno, KPI e comportamento 3.98 restano nel motore originale. |
 | Diario/Aggiungi | ⚠️ | UI 3.98 preservata; persistenza su `diary_entries`; CRUD da testare end-to-end. |
 | Andamento | ✅ | Grafici, filtri e media mobile restano nel motore 3.98. |
@@ -17,24 +17,30 @@ Legenda: ✅ preservato/verificato staticamente · ⚠️ migrato ma richiede te
 | Privacy Paziente | 🔄 | Informativa ufficiale centralizzata; apertura obbligatoria prima dell’accettazione; non più PDF demo locale. |
 | Impostazioni Paziente | ⚠️ | `showEnergyValues` e `readOnly` persistiti in `patient_settings`. |
 | Backup/Restore/Import Paziente | 🔄 | Rimossi come da decisione architetturale; non devono tornare. |
-| Frontend PRO 3.98 | ✅ | `pro.js` resta owner principale del rendering e dei flussi. |
-| Pazienti/Anagrafica | ⚠️ | UI 3.98; identità e relazione professionista-paziente su Supabase. |
+| Frontend PRO 3.98 | ✅ statico | Il recovery ha ripristinato il motore PRO completo con lista pazienti, filtri/indicatori, scheda, misure, piani, esami e PDF maturi. Nessun renderer PRO semplificato deve sostituirlo. |
+| Pazienti/Anagrafica | ⚠️ | Flusso 3.98 preservato; identità e relazione professionista-paziente su Supabase. L'email nel nuovo paziente è l'unica aggiunta necessaria per Auth/invito. |
 | Anamnesi | ⚠️ | UI 3.98; `patient_clinical_profiles` come source of truth. |
-| Misure PRO | ⚠️ | UI 3.98; `patient_measurements`; create/update già allineati al service. |
+| Misure PRO | ⚠️ | UI e form 3.98 (`Nuova misurazione` / `Modifica misurazione`) preservati; `patient_measurements` dietro adapter. |
 | Agenda | ⚠️ | UI 3.98; source unica `appointments` + `appointment_patients`; test sincronizzazione richiesto. |
 | Visite | ⚠️ | Stessa source Agenda; nessun secondo modello dati ammesso. |
 | Note professionista | ⚠️ | UI 3.98; persistenza `professional_notes`. |
-| Documenti PRO | ⚠️ | UI 3.98; Storage + `documents`; badge NUOVO su `document_read_status`. |
+| Documenti PRO | ⚠️ | UI 3.98; Storage + `documents`; badge NUOVO su `document_read_status`. Le azioni legacy IndexedDB sono intercettate dai bridge. |
 | Piani alimentari | ⚠️ | UI/storico 3.98; `nutrition_plans` + `nutrition_plan_documents` + Storage. |
 | Esami ematici | ⚠️ | UI 3.98; `laboratory_reports` + `laboratory_values`; pending review ripristinato. |
 | Account paziente | 🔄 | Credenziali demo locali eliminate; accesso gestito da Supabase Auth. |
-| Privacy PRO | 🔄 | Professionista vede stato di accettazione; informative gestite centralmente. |
-| PDF Diario | ✅ | Renderer `diary-pdf.js` 3.98 mantenuto; nessun renderer alternativo ammesso. |
-| Cartella PDF | ✅ statico / ⚠️ runtime | Renderer storico `exportClinicalPdf` resta quello 3.98; dati clinici, misure, esami, diario, impostazioni e logo arrivano dai bridge Supabase. Va ancora eseguito il collaudo reale del PDF generato. |
+| Privacy PRO | 🔄 | Professionista vede stato di accettazione; informative gestite centralmente. Azioni PDF/privacy demo locali bloccate. |
+| PDF Diario | ✅ statico | Renderer `diary-pdf.js` invariato rispetto alla baseline; nessun renderer alternativo ammesso. |
+| Cartella PDF | ✅ statico / ⚠️ runtime | È presente il renderer maturo `exportClinicalPdf`: logo NUBEMO/professionista, antropometria, esami, grafici peso, allegato peso o Diario 7/30/completo e impaginazione storica. I dati arrivano dagli adapter Supabase. Va ancora generato e confrontato in browser. |
 | Service Worker/cache | ⚠️ | Asset recovery versionati in modo uniforme; test installazione/aggiornamento PWA finale richiesto. |
 
+## Audit integrità Supabase
+Controllo referenziale eseguito durante il recovery: 0 documenti orfani, 0 piani orfani, 0 link piano-documento rotti, 0 referti orfani, 0 valori laboratorio orfani, 0 link appuntamento-paziente rotti, 0 relazioni professionista-paziente rotte.
+
+## Audit frontend PRO
+Il diff PRO non viene considerato automaticamente valido solo perché usa il vecchio file. Sono stati ricontrollati i punti che avevano causato la perdita di prodotto: lista pazienti completa, dati peso/delta, filtri documenti da leggere, form nuovo paziente completo, Modifica scheda, Nuova/Modifica misurazione, storico piani, esami, Agenda/Visite e renderer Cartella PDF. Le variazioni di Account/Privacy e invito email restano soltanto quelle imposte dalla nuova architettura Auth/privacy.
+
 ## Regola di chiusura
-Nessun dominio passa a ✅ runtime senza prova reale sul flusso completo. Ogni differenza visiva o funzionale rispetto alla 3.98 è regressione, salvo le sole variazioni esplicitamente approvate.
+Nessun dominio passa a ✅ runtime senza prova reale sul flusso completo. Ogni differenza visiva o funzionale rispetto alla 3.98 è regressione, salvo le sole variazioni esplicitamente approvate o strettamente necessarie per Auth/privacy già definite.
 
 ## Test finali obbligatori
 Desktop + iPhone: login, apertura paziente, modifica scheda, nuova/modifica misura, Agenda, Visite, Diario, Andamento, Documenti, Piano, Esami, Privacy, PDF Diario, Cartella PDF, logout e riapertura PWA.
