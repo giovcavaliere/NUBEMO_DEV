@@ -9,7 +9,7 @@
   function enforce(){
     app.querySelectorAll('button[onclick]').forEach(button=>{
       const action=String(button.getAttribute('onclick')||'');
-      if(action.includes('showImport()')||action.includes('exportBackup()')||action.includes("backupFile").replace('"','')) button.remove();
+      if(action.includes('showImport()')||action.includes('exportBackup()')||action.includes('backupFile')) button.remove();
     });
     app.querySelectorAll('#backupFile').forEach(input=>input.remove());
   }
