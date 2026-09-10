@@ -62,7 +62,7 @@
         } catch (logoError) { console.error('NUBEMO professional logo load:', logoError); }
       }
 
-      await loadScript('professional-services.js?v=nubemo-profull1', 'Impossibile caricare i servizi dell’Area Professionista.');
+      await loadScript('professional-services.js?v=nubemo-profull2', 'Impossibile caricare i servizi dell’Area Professionista.');
       const services = window.nubemoProfessionalServices;
       if (!services) throw new Error('Servizi Area Professionista non inizializzati.');
 
@@ -78,10 +78,10 @@
       if (logoutButton) logoutButton.style.display = 'inline-flex';
 
       await loadScript('pro.js?v=nubemo40pro4c2a', 'Impossibile caricare l’Area Professionista.');
-      await loadScript('professional-patients.js?v=nubemo-profull1', 'Impossibile caricare il modulo Pazienti.');
-      await loadScript('professional-clinical.js?v=nubemo-profull1', 'Impossibile caricare il modulo Clinico.');
-      await loadScript('professional-agenda.js?v=nubemo-profull1', 'Impossibile caricare il modulo Visite.');
-      await loadScript('professional-pdf.js?v=nubemo-profull1', 'Impossibile caricare il modulo PDF.');
+      await loadScript('professional-patients.js?v=nubemo-profull2', 'Impossibile caricare il modulo Pazienti.');
+      await loadScript('professional-clinical.js?v=nubemo-profull2', 'Impossibile caricare il modulo Clinico.');
+      await loadScript('professional-agenda.js?v=nubemo-profull2', 'Impossibile caricare il modulo Visite.');
+      await loadScript('professional-pdf.js?v=nubemo-profull2', 'Impossibile caricare il modulo PDF.');
       window.nubemoProfessionalPatients?.syncView?.();
     } catch (error) {
       console.error('NUBEMO Professional guard:', error);
