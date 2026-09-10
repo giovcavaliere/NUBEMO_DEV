@@ -176,13 +176,45 @@
     }
   }
 
+  async function bloodReportDeletionDecision(row) {
+    const isBlood = row.category === 'health' && row.sub_category === 'blood_test';
+    if (!isBlood || !row.patient_id || !row.document_date) return { deleteReportIds: [] };
+
+    const result = await client.from('laboratory_reports')
+      .select('id,document_id,report_date,status')
+      .eq('patient_id', row.patient_id)
+      .eq('report_date', row.document_date)
+      .is('deleted_at', null);
+    if (result.error) throw result.error;
+
+    const reports = result.data || [];
+    const linkedPending = reports.filter(r => r.document_id === row.id && r.status === 'pending_review');
+    const confirmed = reports.filter(r => r.status === 'confirmed');
+    const deleteReportIds = linkedPending.map(r => r.id);
+
+    if (confirmed.length === 1) {
+      if (confirm(`Vuoi eliminare anche la registrazione dei valori del ${new Date(row.document_date+'T12:00:00').toLocaleDateString('it-IT')}?`)) {
+        deleteReportIds.push(confirmed[0].id);
+      }
+    } else if (confirmed.length > 1) {
+      alert(`Per il ${new Date(row.document_date+'T12:00:00').toLocaleDateString('it-IT')} risultano presenti più registrazioni di valori. Il PDF verrà eliminato, ma i valori saranno mantenuti per evitare una cancellazione ambigua.`);
+    }
+    return { deleteReportIds: [...new Set(deleteReportIds)] };
+  }
+
   async function deleteRemote(id) {
     if (busy) return;
     const row = remoteDocuments.get(id);
     if (!row) return alert('Documento non disponibile.');
-    if (!confirm(`Eliminare il documento “${esc(row.title || row.original_filename || 'Documento')}”?`)) return;
+    if (!confirm(`Eliminare “${esc(row.title || row.original_filename || 'Documento')}” dalla cartella del paziente?`)) return;
     busy = true;
     try {
+      const { deleteReportIds } = await bloodReportDeletionDecision(row);
+      for (const reportId of deleteReportIds) {
+        const labDelete = await client.rpc('soft_delete_associated_laboratory_report', { p_report_id: reportId });
+        if (labDelete.error) throw labDelete.error;
+      }
+
       const { error } = await client.rpc('soft_delete_associated_patient_document', { p_document_id: id });
       if (error) throw error;
       if (row.storage_bucket && row.storage_path) {
@@ -190,6 +222,7 @@
         if (removal.error) console.error('NUBEMO PRO orphan document cleanup:', removal.error);
       }
       await hydrate();
+      await window.nubemoProfessionalLabsBridge?.refresh?.();
       rerenderDocuments();
     } catch (error) {
       console.error('NUBEMO PRO delete document:', error);
