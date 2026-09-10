@@ -25,6 +25,7 @@
   ]);
 
   const memory = new Map();
+  const legacyAppointmentIds = new Map();
   let installed = false;
   let context = null;
   let remotePatients = new Map();
@@ -147,7 +148,7 @@
       : label.includes('personal') || label.includes('impegno') || label === 'personal' ? 'personal'
       : 'control';
     return {
-      id: row.id,
+      id: legacyAppointmentIds.get(row.id) || row.id,
       patientId: type === 'personal' ? null : (patientId || null),
       date: local.slice(0, 10),
       time: local.slice(11, 16),
@@ -160,33 +161,15 @@
 
   function clinicalValues(p) {
     return {
-      goalWeight: numberOrNull(p.goal),
-      minWeight: numberOrNull(p.minWeight),
-      maxWeight: numberOrNull(p.maxWeight),
-      reasonableWeight: numberOrNull(p.reasonableWeight),
-      theoreticalWeight: numberOrNull(p.theoreticalWeight),
-      work: p.work || null,
-      activity: p.activity || null,
-      activityFactor: numberOrNull(p.activityFactor),
-      smoking: p.smoking || null,
-      alcohol: p.alcohol || null,
-      diagnosis: p.diagnosis || null,
-      bowel: p.bowel || null,
-      metabolism: p.metabolism || null,
-      feeg: p.feeg || null,
-      impedance: p.impedance || null,
-      familyObesity: !!p.famObesity,
-      familyDiabetes: !!p.famDiabetes,
-      familyHypertension: !!p.famHypertension,
-      familyCardiovascular: !!p.famCardiovascular,
-      familyDyslipidemia: !!p.famDyslipidemia,
-      familyThyroid: !!p.famThyroid,
-      previousDiets: p.previousDiets || null,
-      allergies: p.allergies || null,
-      medications: p.medications || null,
-      giIssues: p.giIssues || null,
-      pastConditions: p.pastConditions || null,
-      observations: p.observations || null,
+      goalWeight: numberOrNull(p.goal), minWeight: numberOrNull(p.minWeight), maxWeight: numberOrNull(p.maxWeight),
+      reasonableWeight: numberOrNull(p.reasonableWeight), theoreticalWeight: numberOrNull(p.theoreticalWeight),
+      work: p.work || null, activity: p.activity || null, activityFactor: numberOrNull(p.activityFactor),
+      smoking: p.smoking || null, alcohol: p.alcohol || null, diagnosis: p.diagnosis || null,
+      bowel: p.bowel || null, metabolism: p.metabolism || null, feeg: p.feeg || null, impedance: p.impedance || null,
+      familyObesity: !!p.famObesity, familyDiabetes: !!p.famDiabetes, familyHypertension: !!p.famHypertension,
+      familyCardiovascular: !!p.famCardiovascular, familyDyslipidemia: !!p.famDyslipidemia, familyThyroid: !!p.famThyroid,
+      previousDiets: p.previousDiets || null, allergies: p.allergies || null, medications: p.medications || null,
+      giIssues: p.giIssues || null, pastConditions: p.pastConditions || null, observations: p.observations || null,
       objectives: p.objectives || null
     };
   }
@@ -197,13 +180,7 @@
     for (const m of Array.isArray(incoming) ? incoming : []) {
       if (!m?.date) continue;
       const old = byDate.get(m.date);
-      const values = {
-        measuredAt: m.date,
-        weightKg: numberOrNull(m.professionalWeight),
-        waistCm: numberOrNull(m.waist),
-        hipsCm: numberOrNull(m.hips),
-        notes: m.notes || null
-      };
+      const values = { measuredAt:m.date, weightKg:numberOrNull(m.professionalWeight), waistCm:numberOrNull(m.waist), hipsCm:numberOrNull(m.hips), notes:m.notes || null };
       if (old) await services().updatePatientMeasurement(old.id, values);
       else await services().createPatientMeasurement(patientId, values, context.user.id);
     }
@@ -215,33 +192,20 @@
     if (!Array.isArray(incoming)) return;
     const known = new Set(remotePatients.keys());
 
-    // La creazione di nuovi account resta dominio Auth/Admin: non viene simulata
-    // dal bridge legacy. Gli oggetti non ancora presenti in Supabase non vengono persistiti.
     for (const p of incoming) {
       if (!p?.id || !known.has(p.id)) continue;
       const row = remotePatients.get(p.id);
       await services().updatePatientDemographics(row, {
-        firstName: p.firstName || String(p.name || '').trim().split(/\s+/)[0] || '',
-        lastName: p.surname || '',
-        birthDate: p.birth || null,
-        sex: p.sex || null,
-        height: numberOrNull(p.height),
-        pathwayStart: p.startDate || null
+        firstName:p.firstName || String(p.name || '').trim().split(/\s+/)[0] || '', lastName:p.surname || '',
+        birthDate:p.birth || null, sex:p.sex || null, height:numberOrNull(p.height), pathwayStart:p.startDate || null
       });
       await services().savePatientAnamnesis(p.id, clinicalValues(p));
       await syncPatientMeasurements(p.id, p.measures);
     }
 
-    // Se la 3.98 rimuove un paziente già esistente, nel nuovo modello significa
-    // terminare il percorso, mai cancellare la scheda clinica.
     const incomingIds = new Set(incoming.map(p => p?.id).filter(id => known.has(id)));
-    for (const id of known) {
-      if (!incomingIds.has(id)) await services().setPatientPathwayStatus(context.professional.id, id, 'ended');
-    }
-
-    if (typeof window.nubemoReloadProfessionalPatients === 'function') {
-      await window.nubemoReloadProfessionalPatients();
-    }
+    for (const id of known) if (!incomingIds.has(id)) await services().setPatientPathwayStatus(context.professional.id, id, 'ended');
+    if (typeof window.nubemoReloadProfessionalPatients === 'function') await window.nubemoReloadProfessionalPatients();
   }
 
   function appointmentPayload(a) {
@@ -249,27 +213,22 @@
     if (Number.isNaN(start.getTime())) throw new Error('Data o ora appuntamento non valida.');
     const duration = Math.max(1, Number(a.duration) || 30);
     const end = new Date(start.getTime() + duration * 60000);
-    const type = a.type === 'first' ? 'Prima visita' : a.type === 'personal' ? 'Impegno personale' : 'Controllo';
     return {
-      starts_at: start.toISOString(),
-      ends_at: end.toISOString(),
-      appointment_type: type,
-      status: 'scheduled',
-      notes: a.type === 'personal' ? (a.title || a.note || null) : (a.note || null)
+      starts_at:start.toISOString(), ends_at:end.toISOString(),
+      appointment_type:a.type === 'first' ? 'Prima visita' : a.type === 'personal' ? 'Impegno personale' : 'Controllo',
+      status:'scheduled', notes:a.type === 'personal' ? (a.title || a.note || null) : (a.note || null)
     };
   }
 
   async function createAppointment(a) {
-    const payload = appointmentPayload(a);
     const { data, error } = await client.from('appointments').insert({
-      professional_id: context.professional.id,
-      created_by_user_id: context.user.id,
-      ...payload
+      professional_id:context.professional.id, created_by_user_id:context.user.id, ...appointmentPayload(a)
     }).select('*').single();
     if (error) throw error;
+    legacyAppointmentIds.set(data.id, a.id);
     if (a.type !== 'personal' && a.patientId) {
-      const { error: linkError } = await client.from('appointment_patients').insert({ appointment_id: data.id, patient_id: a.patientId });
-      if (linkError) throw linkError;
+      const { error: linkError } = await client.from('appointment_patients').insert({appointment_id:data.id, patient_id:a.patientId});
+      if (linkError) { await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:data.id}); throw linkError; }
     }
     return data;
   }
@@ -277,16 +236,16 @@
   async function updateAppointment(remote, a) {
     const { error } = await client.from('appointments').update(appointmentPayload(a)).eq('id', remote.id);
     if (error) throw error;
-    const { data: links, error: linkReadError } = await client.from('appointment_patients').select('patient_id').eq('appointment_id', remote.id);
+    const { data:links, error:linkReadError } = await client.from('appointment_patients').select('patient_id').eq('appointment_id', remote.id);
     if (linkReadError) throw linkReadError;
     const oldPatientId = links?.[0]?.patient_id || null;
     const newPatientId = a.type === 'personal' ? null : (a.patientId || null);
     if (oldPatientId && oldPatientId !== newPatientId) {
-      const { error: delError } = await client.from('appointment_patients').delete().eq('appointment_id', remote.id).eq('patient_id', oldPatientId);
+      const { error:delError } = await client.from('appointment_patients').delete().eq('appointment_id',remote.id).eq('patient_id',oldPatientId);
       if (delError) throw delError;
     }
     if (newPatientId && oldPatientId !== newPatientId) {
-      const { error: addError } = await client.from('appointment_patients').insert({ appointment_id: remote.id, patient_id: newPatientId });
+      const { error:addError } = await client.from('appointment_patients').insert({appointment_id:remote.id,patient_id:newPatientId});
       if (addError) throw addError;
     }
   }
@@ -294,109 +253,83 @@
   async function syncAppointments(serialized) {
     const incoming = parse(serialized, []);
     if (!Array.isArray(incoming)) return;
-    const remoteById = new Map(remoteAppointments.map(x => [x.id, x]));
-    const incomingRemoteIds = new Set(incoming.map(x => x?.id).filter(id => remoteById.has(id)));
-
-    for (const remote of remoteAppointments) {
-      if (!incomingRemoteIds.has(remote.id)) {
-        const { error } = await client.from('appointments').update({ deleted_at: new Date().toISOString() }).eq('id', remote.id);
-        if (error) throw error;
-      }
-    }
+    const remoteByLegacyId = new Map(remoteAppointments.map(x => [legacyAppointmentIds.get(x.id) || x.id, x]));
+    const retainedRemoteIds = new Set();
 
     for (const a of incoming) {
       if (!a?.date) continue;
-      const remote = remoteById.get(a.id);
-      if (remote) await updateAppointment(remote, a);
-      else await createAppointment(a);
+      const remote = remoteByLegacyId.get(a.id);
+      if (remote) { retainedRemoteIds.add(remote.id); await updateAppointment(remote, a); }
+      else { const created = await createAppointment(a); retainedRemoteIds.add(created.id); }
+    }
+
+    for (const remote of remoteAppointments) {
+      if (!retainedRemoteIds.has(remote.id)) {
+        const { error } = await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:remote.id});
+        if (error) throw error;
+      }
     }
     await hydrateAppointments();
   }
 
   async function hydrateAppointments() {
-    const { data: rows, error } = await client.from('appointments')
+    const { data:rows, error } = await client.from('appointments')
       .select('id,professional_id,starts_at,ends_at,appointment_type,status,notes,created_by_user_id,created_at,updated_at')
-      .eq('professional_id', context.professional.id)
-      .is('deleted_at', null)
-      .order('starts_at');
+      .eq('professional_id',context.professional.id).is('deleted_at',null).order('starts_at');
     if (error) throw error;
     remoteAppointments = rows || [];
     const ids = remoteAppointments.map(x => x.id);
     let links = [];
     if (ids.length) {
-      const result = await client.from('appointment_patients').select('appointment_id,patient_id').in('appointment_id', ids);
+      const result = await client.from('appointment_patients').select('appointment_id,patient_id').in('appointment_id',ids);
       if (result.error) throw result.error;
       links = result.data || [];
     }
-    const patientByAppointment = new Map(links.map(x => [x.appointment_id, x.patient_id]));
-    memory.set(APPT_KEY, json(remoteAppointments.map(row => legacyAppointment(row, patientByAppointment.get(row.id) || null))));
+    const patientByAppointment = new Map(links.map(x => [x.appointment_id,x.patient_id]));
+    memory.set(APPT_KEY,json(remoteAppointments.map(row => legacyAppointment(row,patientByAppointment.get(row.id)||null))));
   }
 
   async function hydratePatients() {
     const rows = Array.isArray(context.patients) ? context.patients : [];
     const resolved = await Promise.all(rows.map(async row => {
       const [clinical, diary, measurements] = await Promise.all([
-        services().loadPatientClinicalProfile(row.id),
-        services().loadPatientDiary(row.id),
-        services().loadPatientMeasurements(row.id)
+        services().loadPatientClinicalProfile(row.id), services().loadPatientDiary(row.id), services().loadPatientMeasurements(row.id)
       ]);
-      remotePatients.set(row.id, row);
-      remoteMeasurements.set(row.id, measurements || []);
-      return legacyPatient(row, clinical, diary, measurements);
+      remotePatients.set(row.id,row); remoteMeasurements.set(row.id,measurements || []);
+      return legacyPatient(row,clinical,diary,measurements);
     }));
-
-    // La 3.98 costruisce main + due demo in proprio. Li nascondiamo e usiamo
-    // esclusivamente le anagrafiche reali Supabase nel medesimo frontend.
-    memory.set(DELETED_PATIENTS_KEY, json(['main', 'laura', 'marco']));
-    memory.set(EXTRA_PATIENTS_KEY, json(resolved));
-    memory.set(DEMO_MEASURES_KEY, '{}');
-    memory.set(KEY, '[]');
-    memory.set(PROFILE_KEY, '{}');
-    memory.set(MEASURE_KEY, '[]');
-    memory.set(ACCOUNT_KEY, '{}');
-    memory.set(PATIENT_START_DATE_KEY, json(Object.fromEntries(resolved.map(p => [p.id, p.startDate || '']))));
+    memory.set(DELETED_PATIENTS_KEY,json(['main','laura','marco']));
+    memory.set(EXTRA_PATIENTS_KEY,json(resolved));
+    memory.set(DEMO_MEASURES_KEY,'{}'); memory.set(KEY,'[]'); memory.set(PROFILE_KEY,'{}'); memory.set(MEASURE_KEY,'[]'); memory.set(ACCOUNT_KEY,'{}');
+    memory.set(PATIENT_START_DATE_KEY,json(Object.fromEntries(resolved.map(p => [p.id,p.startDate || '']))));
   }
 
   function installVirtualStorage() {
     if (installed) return;
     installed = true;
-
     storageProto.getItem = function(key) {
-      const k = String(key);
-      if (this === window.localStorage && MANAGED_KEYS.has(k)) return memory.has(k) ? memory.get(k) : null;
-      return nativeGetItem.call(this, key);
+      const k=String(key); if (this===window.localStorage && MANAGED_KEYS.has(k)) return memory.has(k)?memory.get(k):null;
+      return nativeGetItem.call(this,key);
     };
-
-    storageProto.setItem = function(key, value) {
-      const k = String(key);
-      if (this !== window.localStorage || !MANAGED_KEYS.has(k)) return nativeSetItem.call(this, key, value);
-      const v = String(value);
-      memory.set(k, v);
-      if (k === EXTRA_PATIENTS_KEY) {
-        patientQueue = patientQueue.then(() => syncPatients(v)).catch(error => reportSyncError('pazienti', error));
-      } else if (k === APPT_KEY) {
-        appointmentQueue = appointmentQueue.then(() => syncAppointments(v)).catch(error => reportSyncError('agenda', error));
-      }
+    storageProto.setItem = function(key,value) {
+      const k=String(key); if (this!==window.localStorage || !MANAGED_KEYS.has(k)) return nativeSetItem.call(this,key,value);
+      const v=String(value); memory.set(k,v);
+      if (k===EXTRA_PATIENTS_KEY) patientQueue=patientQueue.then(()=>syncPatients(v)).catch(error=>reportSyncError('pazienti',error));
+      else if (k===APPT_KEY) appointmentQueue=appointmentQueue.then(()=>syncAppointments(v)).catch(error=>reportSyncError('agenda',error));
     };
-
     storageProto.removeItem = function(key) {
-      const k = String(key);
-      if (this === window.localStorage && MANAGED_KEYS.has(k)) { memory.delete(k); return; }
-      return nativeRemoveItem.call(this, key);
+      const k=String(key); if (this===window.localStorage && MANAGED_KEYS.has(k)) {memory.delete(k);return;}
+      return nativeRemoveItem.call(this,key);
     };
   }
 
   async function init(ctx) {
     if (!client || !services()) throw new Error('Servizi Supabase PRO non disponibili.');
     if (!ctx?.professional?.id || !ctx?.user?.id) throw new Error('Contesto professionista incompleto.');
-    context = ctx;
-    await Promise.all([hydratePatients(), hydrateAppointments()]);
+    context=ctx;
+    await Promise.all([hydratePatients(),hydrateAppointments()]);
     installVirtualStorage();
   }
-
-  async function flush() {
-    await Promise.all([patientQueue, appointmentQueue]);
-  }
-
-  window.nubemoProfessionalLegacyAdapter = Object.freeze({ init, flush });
+  async function flush(){await Promise.all([patientQueue,appointmentQueue]);}
+  window.nubemoProfessionalLegacyAdapter=Object.freeze({init,flush});
 })();
