@@ -26,11 +26,12 @@
   }
 
   function loadPatientApp() {
-    return loadScript('app.js?v=nubemo398recovery17','Impossibile caricare l’Area Paziente.');
+    return loadScript('app.js?v=nubemo398recovery19','Impossibile caricare l’Area Paziente.');
   }
 
   async function logout() {
     try {
+      await window.nubemoPatientDocumentReadBridge?.flush?.();
       await window.nubemoPatientLegacyAdapter?.flush?.();
       await client.auth.signOut();
     } finally { backToLogin(); }
@@ -71,7 +72,9 @@
       const context = await window.nubemoPatientServices.loadContext();
       window.nubemoPatientContext = context;
       await window.nubemoPatientLegacyAdapter.init(context);
-      await loadScript('patient-settings-supabase-bridge.js?v=nubemo398recovery17','Impossibile applicare le impostazioni dell’Area Paziente.');
+      await loadScript('patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile applicare le impostazioni dell’Area Paziente.');
+      await loadScript('patient-document-read-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare lo stato di lettura dei documenti.');
+      await window.nubemoPatientDocumentReadBridge?.ready;
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       window.patientLogout = logout;
