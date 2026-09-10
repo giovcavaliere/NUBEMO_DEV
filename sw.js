@@ -16,6 +16,7 @@ const CORE=[
   './patient-legacy-supabase-adapter.js?v=nubemo398recovery19',
   './patient-settings-supabase-bridge.js?v=nubemo398recovery19',
   './patient-document-read-supabase-bridge.js?v=nubemo398recovery19',
+  './patient-recovery-contract.js?v=nubemo398recovery19',
   './patient-guard.js?v=nubemo398recovery19',
   './professional-services.js?v=nubemo398recovery19',
   './professional-legacy-supabase-adapter.js?v=nubemo398recovery19',
