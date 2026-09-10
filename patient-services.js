@@ -42,8 +42,9 @@
     const { data, error } = await q.select('*').single(); throwIf(error); return data;
   }
   async function deleteDiaryEntry(id) {
-    const { error } = await client.rpc('soft_delete_own_diary_entry', { p_entry_id: id });
+    const { data, error } = await client.rpc('soft_delete_own_diary_entry', { p_entry_id: id });
     throwIf(error, 'Non è stato possibile eliminare la giornata.');
+    if (data !== true) throw new Error('Giornata non eliminata.');
   }
 
   async function loadSelfMeasurements(patientId) {
@@ -58,8 +59,9 @@
     const { data, error } = await q.select('*').single(); throwIf(error); return data;
   }
   async function deleteSelfMeasurement(id) {
-    const { error } = await client.from('patient_self_measurements').update({ deleted_at: new Date().toISOString() }).eq('id', id);
-    throwIf(error);
+    const { data, error } = await client.rpc('soft_delete_own_patient_self_measurement', { p_measurement_id: id });
+    throwIf(error, 'Non è stato possibile eliminare la misurazione.');
+    if (data !== true) throw new Error('Misurazione non eliminata.');
   }
 
   async function loadDocuments(patientId) {
