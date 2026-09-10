@@ -1,4 +1,4 @@
-// NUBEMO 4.0 DEV — micro-step Auth: login -> profilo proprio (RLS) -> ruolo/stato.
+// NUBEMO recovery 3.98 — Auth Supabase e instradamento alle aree
 (() => {
   const client = window.nubemoSupabase;
   const form = document.getElementById('nubemo-login-form');
@@ -6,20 +6,17 @@
   const password = document.getElementById('login-password');
   const submit = document.getElementById('login-submit');
   const message = document.getElementById('login-message');
-  const loginView = document.getElementById('login-view');
-  const successView = document.getElementById('login-success');
-  const identity = document.getElementById('login-identity');
-  const logout = document.getElementById('login-logout');
 
-  const roleLabel = { admin: 'Admin', professional: 'Professionista', patient: 'Paziente' };
   const statusLabel = { active: 'Attivo', suspended: 'Sospeso', disabled: 'Disabilitato' };
 
   function setMessage(text, isError = false) {
+    if (!message) return;
     message.textContent = text || '';
     message.classList.toggle('is-error', isError);
   }
 
   function setBusy(busy) {
+    if (!submit) return;
     submit.disabled = busy;
     submit.textContent = busy ? 'Accesso…' : 'Accedi';
   }
@@ -38,48 +35,45 @@
     return data;
   }
 
-  function showProfile(profile) {
+  function routeProfile(profile) {
     if (profile.status !== 'active') {
       setMessage(`Account ${statusLabel[profile.status] || profile.status}. Accesso a NUBEMO non consentito.`, true);
-      return;
+      return false;
     }
 
     if (profile.role === 'admin') {
       window.location.replace('admin.html');
-      return;
+      return true;
     }
-
     if (profile.role === 'professional') {
       window.location.replace('pro.html');
-      return;
+      return true;
+    }
+    if (profile.role === 'patient') {
+      window.location.replace('patient.html');
+      return true;
     }
 
-    const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
-    identity.innerHTML = '';
-    const name = document.createElement('strong');
-    name.textContent = fullName || profile.email;
-    const role = document.createElement('span');
-    role.textContent = `Ruolo: ${roleLabel[profile.role] || profile.role}`;
-    const status = document.createElement('span');
-    status.textContent = `Stato: ${statusLabel[profile.status] || profile.status}`;
-    identity.append(name, role, status);
-    loginView.hidden = true;
-    successView.hidden = false;
-    setMessage('');
+    setMessage('Ruolo NUBEMO non riconosciuto.', true);
+    return false;
   }
 
   async function restoreSession() {
-    const { data: { session } } = await client.auth.getSession();
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error) {
+      setMessage(error.message, true);
+      return;
+    }
     if (!session) return;
     try {
-      showProfile(await loadOwnProfile());
+      routeProfile(await loadOwnProfile());
     } catch (error) {
       await client.auth.signOut();
       setMessage(error.message, true);
     }
   }
 
-  form.addEventListener('submit', async event => {
+  form?.addEventListener('submit', async event => {
     event.preventDefault();
     setMessage('');
     setBusy(true);
@@ -89,22 +83,13 @@
         password: password.value
       });
       if (error) throw error;
-      showProfile(await loadOwnProfile());
-      password.value = '';
+      const routed = routeProfile(await loadOwnProfile());
+      if (routed && password) password.value = '';
     } catch (error) {
       setMessage(error.message === 'Invalid login credentials' ? 'Email o password non corretti.' : error.message, true);
     } finally {
       setBusy(false);
     }
-  });
-
-  logout.addEventListener('click', async () => {
-    await client.auth.signOut();
-    successView.hidden = true;
-    loginView.hidden = false;
-    form.reset();
-    setMessage('');
-    email.focus();
   });
 
   restoreSession();
