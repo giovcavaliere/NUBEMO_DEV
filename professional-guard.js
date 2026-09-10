@@ -44,26 +44,26 @@
       let logoData='';
       if(professional.logo_storage_path){try{const {data:logoBlob,error:logoError}=await client.storage.from('professional-assets').download(professional.logo_storage_path);if(logoError)throw logoError;logoData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error||new Error('Logo non leggibile'));reader.readAsDataURL(logoBlob);});}catch(logoError){console.error('NUBEMO professional logo load:',logoError);}}
 
-      await loadScript('professional-services.js?v=nubemo398recovery18','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      await loadScript('professional-services.js?v=nubemo398recovery19','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       const services=window.nubemoProfessionalServices;if(!services)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       const loaded=await services.loadPatients(professional.id);
       window.nubemoProfessionalContext={user,profile,professional,logoData,patients:loaded.activePatients,endedPatients:loaded.endedPatients};
       window.nubemoReloadProfessionalPatients=async()=>{const loadedPatients=await services.loadPatients(professional.id);window.nubemoProfessionalContext.patients=loadedPatients.activePatients;window.nubemoProfessionalContext.endedPatients=loadedPatients.endedPatients;return loadedPatients.activePatients;};
 
-      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo398recovery18','Impossibile preparare i dati dell’Area Professionista.');
+      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo398recovery19','Impossibile preparare i dati dell’Area Professionista.');
       if(!window.nubemoProfessionalLegacyAdapter)throw new Error('Adattatore dati PRO non inizializzato.');
       await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
-      await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery18','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;
-      await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery18','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;
-      await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery18','Impossibile preparare le note del professionista.');await window.nubemoProfessionalNotesBridge?.ready;
-      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery18','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;
-      await loadScript('professional-document-read-supabase-bridge.js?v=nubemo398recovery18','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;
-      await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery18','Impossibile preparare i piani alimentari.');await window.nubemoProfessionalPlansBridge?.ready;
-      await loadScript('professional-labs-supabase-bridge.js?v=nubemo398recovery18','Impossibile preparare gli esami del paziente.');await window.nubemoProfessionalLabsBridge?.ready;
+      await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;
+      await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;
+      await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le note del professionista.');await window.nubemoProfessionalNotesBridge?.ready;
+      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;
+      await loadScript('professional-document-read-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;
+      await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare i piani alimentari.');await window.nubemoProfessionalPlansBridge?.ready;
+      await loadScript('professional-labs-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare gli esami del paziente.');await window.nubemoProfessionalLabsBridge?.ready;
       if(logoutButton)logoutButton.style.display='inline-flex';
-      await loadScript('pro.js?v=nubemo398recovery18','Impossibile caricare l’Area Professionista.');
-      await loadScript('professional-patient-management.js?v=nubemo398recovery18','Impossibile caricare la gestione dei pazienti.');
-      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery18','Impossibile caricare Account e Privacy del paziente.');
+      await loadScript('pro.js?v=nubemo398recovery19','Impossibile caricare l’Area Professionista.');
+      await loadScript('professional-patient-management.js?v=nubemo398recovery19','Impossibile caricare la gestione dei pazienti.');
+      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery19','Impossibile caricare Account e Privacy del paziente.');
     } catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}
   }
   authorize();
