@@ -24,22 +24,29 @@ Legenda: ✅ preservato/verificato staticamente · ⚠️ migrato ma richiede te
 | Agenda | ⚠️ | UI 3.98; source unica `appointments` + `appointment_patients`; test sincronizzazione richiesto. |
 | Visite | ⚠️ | Stessa source Agenda; nessun secondo modello dati ammesso. |
 | Note professionista | ⚠️ | UI 3.98; persistenza `professional_notes`. |
-| Documenti PRO | ⚠️ | UI 3.98; Storage + `documents`; badge NUOVO su `document_read_status`. Le azioni legacy IndexedDB sono intercettate dai bridge. |
-| Piani alimentari | ⚠️ | UI/storico 3.98; `nutrition_plans` + `nutrition_plan_documents` + Storage. |
+| Documenti PRO | ⚠️ | UI 3.98; Storage + `documents`; badge NUOVO su `document_read_status`. Le azioni legacy IndexedDB sono intercettate dai bridge. Il numero documento contabile torna obbligatorio come nella 3.98. |
+| Piani alimentari | ⚠️ | UI/storico 3.98; `nutrition_plans` + `nutrition_plan_documents` + Storage. Le vecchie metadata locali dei piani sono escluse dalla source runtime. |
 | Esami ematici | ⚠️ | UI 3.98; `laboratory_reports` + `laboratory_values`; pending review ripristinato. |
 | Account paziente | 🔄 | Credenziali demo locali eliminate; accesso gestito da Supabase Auth. |
-| Privacy PRO | 🔄 | Professionista vede stato di accettazione; informative gestite centralmente. Azioni PDF/privacy demo locali bloccate. |
+| Privacy PRO | 🔄 | Professionista vede stato di accettazione; informative gestite centralmente. Azioni e metadata privacy demo locali escluse dal runtime. |
 | PDF Diario | ✅ statico | Renderer `diary-pdf.js` invariato rispetto alla baseline; nessun renderer alternativo ammesso. |
 | Cartella PDF | ✅ statico / ⚠️ runtime | È presente il renderer maturo `exportClinicalPdf`: logo NUBEMO/professionista, antropometria, esami, grafici peso, allegato peso o Diario 7/30/completo e impaginazione storica. I dati arrivano dagli adapter Supabase. Va ancora generato e confrontato in browser. |
-| Service Worker/cache | ⚠️ | Asset recovery versionati in modo uniforme; test installazione/aggiornamento PWA finale richiesto. |
+| Service Worker/cache | ⚠️ | Cache recovery20 include anche il contratto runtime PRO; test installazione/aggiornamento PWA finale richiesto. |
 
 ## Audit integrità Supabase
 Controllo referenziale eseguito durante il recovery: 0 documenti orfani, 0 piani orfani, 0 link piano-documento rotti, 0 referti orfani, 0 valori laboratorio orfani, 0 link appuntamento-paziente rotti, 0 relazioni professionista-paziente rotte.
 
+Controllo aggiuntivo piani: 0 documenti piano non collegati, 0 mismatch `valid_from` tra documento e piano, 0 mismatch delle note professionista tra documento e piano. Le RPC usate dai flussi di soft-delete sono tutte presenti nello schema pubblico.
+
 ## Audit frontend PRO
 Il diff PRO non viene considerato automaticamente valido solo perché usa il vecchio file. Sono stati ricontrollati i punti che avevano causato la perdita di prodotto: lista pazienti completa, dati peso/delta, filtri documenti da leggere, form nuovo paziente completo, Modifica scheda, Nuova/Modifica misurazione, storico piani, esami, Agenda/Visite e renderer Cartella PDF. Le variazioni di Account/Privacy e invito email restano soltanto quelle imposte dalla nuova architettura Auth/privacy.
 
-## Regola di chiusura
+Il controllo finale sugli store legacy ha escluso dal runtime PRO `diario-pro-plan-meta-v1` e `diario-pro-privacy-meta-v1`: eventuali residui presenti nel browser non possono più diventare source of truth o far riapparire flussi locali/IndexedDB. Il controllo del numero documento contabile è stato riallineato alla 3.98 prima che il bridge Supabase intercetti il salvataggio.
+
+## Stato chiusura statica
+La recovery lato codice/architettura è chiusa. Non risultano altri blocchi statici noti da correggere prima del collaudo. La branch non deve essere promossa su `main` finché i domini marcati ⚠️ non superano il test reale desktop + iPhone.
+
+## Regola di chiusura runtime
 Nessun dominio passa a ✅ runtime senza prova reale sul flusso completo. Ogni differenza visiva o funzionale rispetto alla 3.98 è regressione, salvo le sole variazioni esplicitamente approvate o strettamente necessarie per Auth/privacy già definite.
 
 ## Test finali obbligatori
