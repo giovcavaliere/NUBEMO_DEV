@@ -29,6 +29,7 @@
   async function logout() {
     if (logoutButton) logoutButton.disabled = true;
     try {
+      await window.nubemoProfessionalLegacyAdapter?.flush?.();
       await client.auth.signOut();
     } finally {
       redirectToLogin();
@@ -98,10 +99,8 @@
         }
       }
 
-      // Carica soltanto il livello servizi. Nessun modulo nuovo deve sostituire
-      // il DOM della 3.98: pro.js resta owner del frontend.
       await loadScript(
-        'professional-services.js?v=nubemo398recovery1',
+        'professional-services.js?v=nubemo398recovery7',
         'Impossibile caricare i servizi Supabase dell’Area Professionista.'
       );
       const services = window.nubemoProfessionalServices;
@@ -124,18 +123,22 @@
         return loadedPatients.activePatients;
       };
 
+      // Il bridge prepara la stessa struttura dati sincrona che la 3.98 si aspetta,
+      // ma la mantiene solo in memoria e la sincronizza con Supabase.
+      await loadScript(
+        'professional-legacy-supabase-adapter.js?v=nubemo398recovery7',
+        'Impossibile preparare i dati dell’Area Professionista.'
+      );
+      if (!window.nubemoProfessionalLegacyAdapter) throw new Error('Adattatore dati PRO non inizializzato.');
+      await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
+
       if (logoutButton) logoutButton.style.display = 'inline-flex';
 
-      // Frontend 3.98 originale.
+      // Unico owner del frontend: motore NUBEMO 3.98 verificato.
+      // Nessun modulo successivo modifica il DOM dopo il render.
       await loadScript(
-        'pro.js?v=nubemo40pro4c2a',
+        'pro.js?v=nubemo398recovery7',
         'Impossibile caricare l’Area Professionista.'
-      );
-
-      // Estensione già presente nella baseline: gestione anagrafica/percorso.
-      await loadScript(
-        'professional-patient-management.js?v=nubemo40pro4c2b',
-        'Impossibile caricare la gestione pazienti.'
       );
     } catch (error) {
       console.error('NUBEMO Professional guard:', error);
