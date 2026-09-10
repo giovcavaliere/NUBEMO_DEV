@@ -1,5 +1,5 @@
 // NUBEMO — Area Professionista / modulo Clinico
-// Perimetri migrati: Anamnesi e Misure del paziente su Supabase.
+// Proprietario delle sezioni cliniche della scheda paziente.
 (() => {
   'use strict';
 
@@ -7,625 +7,183 @@
   const patientsModule = window.nubemoProfessionalPatients;
   if (!services || !patientsModule) return;
 
-  const cache = new Map();
+  const caches = {
+    anamnesis: new Map(), measures: new Map(), summary: new Map(), labs: new Map(), plans: new Map(),
+    documents: new Map(), privacy: new Map(), diary: new Map(), notes: new Map()
+  };
   const pending = new Map();
-  const measurementsCache = new Map();
-  const measurementsPending = new Map();
 
   const esc = (value = '') => String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-
-  const display = value => {
-    if (value === null || value === undefined || String(value).trim() === '') return '—';
-    return esc(value);
-  };
-
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+  const display = value => value === null || value === undefined || String(value).trim() === '' ? '—' : esc(value);
   const yesNo = value => value === true ? 'Sì' : 'No';
+  const currentPatientId = () => patientsModule.getCurrentPatientId?.() || '';
+  const currentPatient = () => patientsModule.getPatientById?.(currentPatientId()) || null;
+  const patientIsActive = row => !!row && row.relationship?.status !== 'ended';
+  const isDetailsView = () => document.body.dataset.proView === 'details';
+  const isTab = tab => isDetailsView() && !!document.querySelector(`[data-patient-tab="${tab}"].active`);
+  const bodySignature = value => JSON.stringify(value ?? null);
 
-  function currentPatientId() {
-    return patientsModule.getCurrentPatientId?.() || '';
+  function fmtDate(date) {
+    if (!date) return '—';
+    const s = String(date);
+    const p = s.slice(0, 10).split('-');
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : esc(s);
   }
-
-  function currentPatient() {
-    const id = currentPatientId();
-    return id ? patientsModule.getPatientById?.(id) || null : null;
+  function fmtDateTime(value) {
+    if (!value) return '—';
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? display(value) : d.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
   }
-
-  function patientIsActive(row) {
-    return !!row && row.relationship?.status !== 'ended';
+  function fmtNumber(value, suffix = '') {
+    if (value === null || value === undefined || value === '') return '—';
+    const n = Number(value);
+    return Number.isFinite(n) ? `${n.toFixed(1).replace('.', ',')}${suffix}` : display(value);
   }
-
-  function isDetailsView() {
-    return document.body.dataset.proView === 'details';
+  function todayIso() {
+    const n = new Date();
+    return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   }
-
-  function isAnamnesisTab() {
-    if (!isDetailsView()) return false;
-    return !!document.querySelector('[data-patient-tab="anamnesis"].active');
-  }
-
-  function isMeasuresTab() {
-    if (!isDetailsView()) return false;
-    return !!document.querySelector('[data-patient-tab="measures"].active');
-  }
-
-  async function loadProfile(patientId, force = false) {
-    if (!force && cache.has(patientId)) return cache.get(patientId);
-    if (!force && pending.has(patientId)) return pending.get(patientId);
-
-    const request = services.loadPatientClinicalProfile(patientId)
-      .then(profile => {
-        cache.set(patientId, profile);
-        return profile;
-      })
-      .finally(() => pending.delete(patientId));
-
-    pending.set(patientId, request);
-    return request;
-  }
-
-  async function loadMeasurements(patientId, force = false) {
-    if (!force && measurementsCache.has(patientId)) return measurementsCache.get(patientId);
-    if (!force && measurementsPending.has(patientId)) return measurementsPending.get(patientId);
-
-    const request = services.loadPatientMeasurements(patientId)
-      .then(rows => {
-        measurementsCache.set(patientId, rows || []);
-        return rows || [];
-      })
-      .finally(() => measurementsPending.delete(patientId));
-
-    measurementsPending.set(patientId, request);
-    return request;
-  }
-
-  function clinicalBodyHost() {
-    return document.querySelector('.patient-content-card');
-  }
-
-  function bodySignature(value) {
-    return JSON.stringify(value || null);
-  }
-
-  function replaceClinicalBody(bodyId, patientId, html, signature, afterRender) {
+  function clinicalBodyHost() { return document.querySelector('.patient-content-card'); }
+  function replaceBody(bodyId, patientId, html, signature, afterRender) {
     const card = clinicalBodyHost();
     if (!card) return;
-
     const existing = document.getElementById(bodyId);
-    if (
-      existing &&
-      existing.dataset.patientId === patientId &&
-      existing._nubemoSignature === signature
-    ) {
-      if (afterRender) afterRender(existing);
-      return;
+    if (existing && existing.dataset.patientId === patientId && existing._nubemoSignature === signature) {
+      afterRender?.(existing); return;
     }
-
     const head = card.querySelector(':scope > .patient-section-head');
-    Array.from(card.children).forEach(child => {
-      if (child !== head) child.remove();
-    });
-
+    Array.from(card.children).forEach(child => { if (child !== head) child.remove(); });
     const body = document.createElement('div');
-    body.id = bodyId;
-    body.dataset.patientId = patientId;
-    body._nubemoSignature = signature;
-    body.innerHTML = html;
-    card.appendChild(body);
-    if (afterRender) afterRender(body);
+    body.id = bodyId; body.dataset.patientId = patientId; body._nubemoSignature = signature; body.innerHTML = html;
+    card.appendChild(body); afterRender?.(body);
+  }
+  function renderLoading(id, patientId, label) { replaceBody(id, patientId, `<p class="muted">Caricamento ${esc(label)}...</p>`, 'loading'); }
+  function renderError(id, patientId, label) { replaceBody(id, patientId, `<p class="muted">Non è stato possibile caricare ${esc(label)}.</p>`, 'error'); }
+
+  async function cached(key, patientId, loader, force = false) {
+    const cache = caches[key];
+    const pkey = `${key}:${patientId}`;
+    if (!force && cache.has(patientId)) return cache.get(patientId);
+    if (!force && pending.has(pkey)) return pending.get(pkey);
+    const request = Promise.resolve(loader()).then(data => { cache.set(patientId, data); return data; }).finally(() => pending.delete(pkey));
+    pending.set(pkey, request); return request;
   }
 
+  // ---------- Anamnesi ----------
   function anamnesisHtml(profile) {
     const p = profile || {};
-    return `
-      <details class="pro-accordion" open>
-        <summary>Dati e stile di vita</summary>
-        <div class="pro-read-grid">
-          <div><span>Diagnosi / motivo</span><b>${display(p.diagnosis)}</b></div>
-          <div><span>Peso teorico</span><b>${p.theoretical_weight_kg != null ? `${display(p.theoretical_weight_kg)} kg` : '—'}</b></div>
-          <div><span>Lavoro</span><b>${display(p.work)}</b></div>
-          <div><span>Attività fisica</span><b>${display(p.activity)}</b></div>
-          <div><span>Alvo</span><b>${display(p.bowel)}</b></div>
-          <div><span>Fumo</span><b>${display(p.smoking)}</b></div>
-          <div><span>Alcol</span><b>${display(p.alcohol)}</b></div>
-          <div><span>Metabolismo basale</span><b>${display(p.metabolism)}</b></div>
-          <div><span>FEEG</span><b>${display(p.feeg)}</b></div>
-          <div><span>Impedenziometria</span><b>${display(p.impedance)}</b></div>
-        </div>
-      </details>
-      <details class="pro-accordion">
-        <summary>Familiarità</summary>
-        <div class="pro-read-grid">
-          <div><span>Obesità</span><b>${yesNo(p.family_obesity)}</b></div>
-          <div><span>Diabete</span><b>${yesNo(p.family_diabetes)}</b></div>
-          <div><span>Ipertensione</span><b>${yesNo(p.family_hypertension)}</b></div>
-          <div><span>Cardiovascolare</span><b>${yesNo(p.family_cardiovascular)}</b></div>
-          <div><span>Dislipidemie</span><b>${yesNo(p.family_dyslipidemia)}</b></div>
-          <div><span>Tiroide</span><b>${yesNo(p.family_thyroid)}</b></div>
-        </div>
-      </details>
-      <details class="pro-accordion">
-        <summary>Anamnesi patologica</summary>
-        <div class="pro-read-grid">
-          <div><span>Diete pregresse</span><b>${display(p.previous_diets)}</b></div>
-          <div><span>Allergie</span><b>${display(p.allergies)}</b></div>
-          <div><span>Farmaci</span><b>${display(p.medications)}</b></div>
-          <div><span>Disturbi GI</span><b>${display(p.gi_issues)}</b></div>
-          <div><span>Patologie / interventi</span><b>${display(p.past_conditions)}</b></div>
-          <div><span>Osservazioni</span><b>${display(p.observations)}</b></div>
-          <div><span>Obiettivi</span><b>${display(p.objectives)}</b></div>
-        </div>
-      </details>`;
+    return `<details class="pro-accordion" open><summary>Dati e stile di vita</summary><div class="pro-read-grid">
+      <div><span>Diagnosi / motivo</span><b>${display(p.diagnosis)}</b></div><div><span>Peso teorico</span><b>${p.theoretical_weight_kg != null ? `${display(p.theoretical_weight_kg)} kg` : '—'}</b></div>
+      <div><span>Lavoro</span><b>${display(p.work)}</b></div><div><span>Attività fisica</span><b>${display(p.activity)}</b></div><div><span>Alvo</span><b>${display(p.bowel)}</b></div>
+      <div><span>Fumo</span><b>${display(p.smoking)}</b></div><div><span>Alcol</span><b>${display(p.alcohol)}</b></div><div><span>Metabolismo basale</span><b>${display(p.metabolism)}</b></div>
+      <div><span>FEEG</span><b>${display(p.feeg)}</b></div><div><span>Impedenziometria</span><b>${display(p.impedance)}</b></div></div></details>
+      <details class="pro-accordion"><summary>Familiarità</summary><div class="pro-read-grid">
+      <div><span>Obesità</span><b>${yesNo(p.family_obesity)}</b></div><div><span>Diabete</span><b>${yesNo(p.family_diabetes)}</b></div><div><span>Ipertensione</span><b>${yesNo(p.family_hypertension)}</b></div>
+      <div><span>Cardiovascolare</span><b>${yesNo(p.family_cardiovascular)}</b></div><div><span>Dislipidemie</span><b>${yesNo(p.family_dyslipidemia)}</b></div><div><span>Tiroide</span><b>${yesNo(p.family_thyroid)}</b></div></div></details>
+      <details class="pro-accordion"><summary>Anamnesi patologica</summary><div class="pro-read-grid">
+      <div><span>Diete pregresse</span><b>${display(p.previous_diets)}</b></div><div><span>Allergie</span><b>${display(p.allergies)}</b></div><div><span>Farmaci</span><b>${display(p.medications)}</b></div>
+      <div><span>Disturbi GI</span><b>${display(p.gi_issues)}</b></div><div><span>Patologie / interventi</span><b>${display(p.past_conditions)}</b></div><div><span>Osservazioni</span><b>${display(p.observations)}</b></div><div><span>Obiettivi</span><b>${display(p.objectives)}</b></div></div></details>`;
   }
-
-  function renderLoading(patientId) {
-    replaceClinicalBody(
-      'nubemoProfessionalAnamnesis',
-      patientId,
-      '<p class="muted">Caricamento anamnesi...</p>',
-      'loading'
-    );
-  }
-
-  function renderError(patientId) {
-    replaceClinicalBody(
-      'nubemoProfessionalAnamnesis',
-      patientId,
-      '<p class="muted">Non è stato possibile caricare l’anamnesi.</p>',
-      'error'
-    );
-  }
-
-  function renderProfile(patientId, profile) {
-    replaceClinicalBody(
-      'nubemoProfessionalAnamnesis',
-      patientId,
-      anamnesisHtml(profile),
-      bodySignature(profile)
-    );
-  }
-
   async function syncAnamnesis() {
-    if (!isAnamnesisTab()) return;
-    const patientId = currentPatientId();
-    if (!patientId) return;
-
-    if (cache.has(patientId)) {
-      renderProfile(patientId, cache.get(patientId));
-      return;
-    }
-
-    renderLoading(patientId);
+    if (!isTab('anamnesis')) return;
+    const patientId = currentPatientId(); if (!patientId) return;
+    renderLoading('nubemoProfessionalAnamnesis', patientId, 'anamnesi');
     try {
-      const profile = await loadProfile(patientId);
-      if (isAnamnesisTab() && currentPatientId() === patientId) {
-        renderProfile(patientId, profile);
-      }
-    } catch (error) {
-      console.error('NUBEMO professional clinical load anamnesis:', error);
-      if (isAnamnesisTab() && currentPatientId() === patientId) renderError(patientId);
-    }
+      const p = await cached('anamnesis', patientId, () => services.loadPatientClinicalProfile(patientId));
+      if (isTab('anamnesis') && currentPatientId() === patientId) replaceBody('nubemoProfessionalAnamnesis', patientId, anamnesisHtml(p), bodySignature(p));
+    } catch (e) { console.error('NUBEMO anamnesis load', e); renderError('nubemoProfessionalAnamnesis', patientId, 'l’anamnesi'); }
   }
-
-  function closeEditor() {
-    document.getElementById('patientAnamnesisOverlay')?.remove();
-  }
-
-  function value(id) {
-    const raw = document.getElementById(id)?.value ?? '';
-    const trimmed = String(raw).trim();
-    return trimmed === '' ? null : trimmed;
-  }
-
-  function checked(id) {
-    return !!document.getElementById(id)?.checked;
-  }
-
-  function openEditorWithProfile(patientId, profile) {
-    const p = profile || {};
-    closeEditor();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'patientAnamnesisOverlay';
-    overlay.className = 'clinical-overlay';
-    overlay.innerHTML = `
-      <section class="clinical-modal">
-        <button class="monubi-x" id="closePatientAnamnesis" type="button">×</button>
-        <div class="eyebrow">SCHEDA PAZIENTE</div>
-        <h2>Modifica anamnesi</h2>
-
-        <details class="pro-accordion" open>
-          <summary>Dati e stile di vita</summary>
-          <label>Diagnosi / motivo</label>
-          <textarea id="caDiagnosis" rows="2">${esc(p.diagnosis || '')}</textarea>
-          <label>Peso teorico (kg)</label>
-          <input id="caTheoreticalWeight" type="number" min="0.1" step="0.1" value="${p.theoretical_weight_kg ?? ''}">
-          <label>Attività lavorativa</label>
-          <textarea id="caWork" rows="2">${esc(p.work || '')}</textarea>
-          <label>Attività fisica abituale</label>
-          <textarea id="caActivity" rows="2">${esc(p.activity || '')}</textarea>
-          <label>Alvo</label>
-          <input id="caBowel" value="${esc(p.bowel || '')}">
-          <label>Fumo</label>
-          <input id="caSmoking" value="${esc(p.smoking || '')}">
-          <label>Alcol</label>
-          <input id="caAlcohol" value="${esc(p.alcohol || '')}">
-          <label>Metabolismo basale</label>
-          <input id="caMetabolism" value="${esc(p.metabolism || '')}">
-          <label>FEEG / fabbisogno</label>
-          <input id="caFeeg" value="${esc(p.feeg || '')}">
-          <label>Impedenziometria</label>
-          <input id="caImpedance" value="${esc(p.impedance || '')}">
-        </details>
-
-        <details class="pro-accordion">
-          <summary>Familiarità</summary>
-          <div class="check-grid">
-            <label><input id="caFamilyObesity" type="checkbox" ${p.family_obesity === true ? 'checked' : ''}> Obesità</label>
-            <label><input id="caFamilyDiabetes" type="checkbox" ${p.family_diabetes === true ? 'checked' : ''}> Diabete</label>
-            <label><input id="caFamilyHypertension" type="checkbox" ${p.family_hypertension === true ? 'checked' : ''}> Ipertensione</label>
-            <label><input id="caFamilyCardiovascular" type="checkbox" ${p.family_cardiovascular === true ? 'checked' : ''}> Cardiovascolare</label>
-            <label><input id="caFamilyDyslipidemia" type="checkbox" ${p.family_dyslipidemia === true ? 'checked' : ''}> Dislipidemie</label>
-            <label><input id="caFamilyThyroid" type="checkbox" ${p.family_thyroid === true ? 'checked' : ''}> Tiroide</label>
-          </div>
-        </details>
-
-        <details class="pro-accordion">
-          <summary>Anamnesi patologica e obiettivi</summary>
-          <label>Diete pregresse</label>
-          <textarea id="caPreviousDiets" rows="2">${esc(p.previous_diets || '')}</textarea>
-          <label>Allergie / intolleranze</label>
-          <textarea id="caAllergies" rows="2">${esc(p.allergies || '')}</textarea>
-          <label>Farmaci</label>
-          <textarea id="caMedications" rows="2">${esc(p.medications || '')}</textarea>
-          <label>Disturbi gastrointestinali</label>
-          <textarea id="caGiIssues" rows="2">${esc(p.gi_issues || '')}</textarea>
-          <label>Patologie / interventi pregressi</label>
-          <textarea id="caPastConditions" rows="2">${esc(p.past_conditions || '')}</textarea>
-          <label>Osservazioni</label>
-          <textarea id="caObservations" rows="2">${esc(p.observations || '')}</textarea>
-          <label>Obiettivi</label>
-          <textarea id="caObjectives" rows="2">${esc(p.objectives || '')}</textarea>
-        </details>
-
-        <div class="pro3-actions">
-          <button class="secondary" id="cancelPatientAnamnesis" type="button">Annulla</button>
-          <button class="primary" id="savePatientAnamnesis" type="button">Salva modifiche</button>
-        </div>
-      </section>`;
-
-    document.body.appendChild(overlay);
-
-    document.getElementById('closePatientAnamnesis')?.addEventListener('click', closeEditor);
-    document.getElementById('cancelPatientAnamnesis')?.addEventListener('click', closeEditor);
-    overlay.addEventListener('click', event => {
-      if (event.target === overlay) closeEditor();
-    });
-
-    document.getElementById('savePatientAnamnesis')?.addEventListener('click', async () => {
-      const button = document.getElementById('savePatientAnamnesis');
-      const weightRaw = (document.getElementById('caTheoreticalWeight')?.value || '').trim();
-      const theoreticalWeight = weightRaw === '' ? null : Number(weightRaw.replace(',', '.'));
-
-      if (theoreticalWeight !== null && (!Number.isFinite(theoreticalWeight) || theoreticalWeight <= 0)) {
-        return alert('Inserisci un peso teorico valido.');
-      }
-
-      const values = {
-        theoreticalWeight,
-        work: value('caWork'),
-        activity: value('caActivity'),
-        smoking: value('caSmoking'),
-        alcohol: value('caAlcohol'),
-        diagnosis: value('caDiagnosis'),
-        bowel: value('caBowel'),
-        metabolism: value('caMetabolism'),
-        feeg: value('caFeeg'),
-        impedance: value('caImpedance'),
-        familyObesity: checked('caFamilyObesity'),
-        familyDiabetes: checked('caFamilyDiabetes'),
-        familyHypertension: checked('caFamilyHypertension'),
-        familyCardiovascular: checked('caFamilyCardiovascular'),
-        familyDyslipidemia: checked('caFamilyDyslipidemia'),
-        familyThyroid: checked('caFamilyThyroid'),
-        previousDiets: value('caPreviousDiets'),
-        allergies: value('caAllergies'),
-        medications: value('caMedications'),
-        giIssues: value('caGiIssues'),
-        pastConditions: value('caPastConditions'),
-        observations: value('caObservations'),
-        objectives: value('caObjectives')
-      };
-
-      if (button) {
-        button.disabled = true;
-        button.textContent = 'Salvataggio...';
-      }
-
-      try {
-        const saved = await services.savePatientAnamnesis(patientId, values);
-        cache.set(patientId, saved);
-        closeEditor();
-        if (isAnamnesisTab() && currentPatientId() === patientId) renderProfile(patientId, saved);
-      } catch (error) {
-        console.error('NUBEMO professional clinical save anamnesis:', error);
-        alert('Non è stato possibile salvare l’anamnesi.');
-      } finally {
-        if (button) {
-          button.disabled = false;
-          button.textContent = 'Salva modifiche';
-        }
-      }
-    });
-  }
-
-  async function openEditor(patientId) {
+  function closeAnamnesisEditor() { document.getElementById('patientAnamnesisOverlay')?.remove(); }
+  function fieldValue(id) { const v = String(document.getElementById(id)?.value ?? '').trim(); return v === '' ? null : v; }
+  function checked(id) { return !!document.getElementById(id)?.checked; }
+  async function openEditor(patientId = currentPatientId()) {
     const row = patientsModule.getPatientById?.(patientId);
     if (!patientIsActive(row)) return alert('Paziente attivo non disponibile.');
-
-    try {
-      const profile = await loadProfile(patientId);
-      openEditorWithProfile(patientId, profile);
-    } catch (error) {
-      console.error('NUBEMO professional clinical open anamnesis:', error);
-      alert('Non è stato possibile caricare l’anamnesi.');
-    }
+    let p;
+    try { p = await cached('anamnesis', patientId, () => services.loadPatientClinicalProfile(patientId)); }
+    catch (e) { console.error(e); return alert('Non è stato possibile caricare l’anamnesi.'); }
+    p ||= {}; closeAnamnesisEditor();
+    const o = document.createElement('div'); o.id='patientAnamnesisOverlay'; o.className='clinical-overlay';
+    o.innerHTML=`<section class="clinical-modal"><button class="monubi-x" id="closePatientAnamnesis" type="button">×</button><div class="eyebrow">SCHEDA PAZIENTE</div><h2>Modifica anamnesi</h2>
+      <details class="pro-accordion" open><summary>Dati e stile di vita</summary>
+      <label>Diagnosi / motivo</label><textarea id="caDiagnosis" rows="2">${esc(p.diagnosis||'')}</textarea><label>Peso teorico (kg)</label><input id="caTheoreticalWeight" type="number" min="0.1" step="0.1" value="${p.theoretical_weight_kg??''}">
+      <label>Attività lavorativa</label><textarea id="caWork" rows="2">${esc(p.work||'')}</textarea><label>Attività fisica abituale</label><textarea id="caActivity" rows="2">${esc(p.activity||'')}</textarea>
+      <label>Alvo</label><input id="caBowel" value="${esc(p.bowel||'')}"><label>Fumo</label><input id="caSmoking" value="${esc(p.smoking||'')}"><label>Alcol</label><input id="caAlcohol" value="${esc(p.alcohol||'')}">
+      <label>Metabolismo basale</label><input id="caMetabolism" value="${esc(p.metabolism||'')}"><label>FEEG / fabbisogno</label><input id="caFeeg" value="${esc(p.feeg||'')}"><label>Impedenziometria</label><input id="caImpedance" value="${esc(p.impedance||'')}"></details>
+      <details class="pro-accordion"><summary>Familiarità</summary><div class="check-grid">
+      ${[['caFamilyObesity','Obesità',p.family_obesity],['caFamilyDiabetes','Diabete',p.family_diabetes],['caFamilyHypertension','Ipertensione',p.family_hypertension],['caFamilyCardiovascular','Cardiovascolare',p.family_cardiovascular],['caFamilyDyslipidemia','Dislipidemie',p.family_dyslipidemia],['caFamilyThyroid','Tiroide',p.family_thyroid]].map(([id,l,v])=>`<label><input id="${id}" type="checkbox" ${v===true?'checked':''}> ${l}</label>`).join('')}</div></details>
+      <details class="pro-accordion"><summary>Anamnesi patologica e obiettivi</summary>
+      <label>Diete pregresse</label><textarea id="caPreviousDiets" rows="2">${esc(p.previous_diets||'')}</textarea><label>Allergie / intolleranze</label><textarea id="caAllergies" rows="2">${esc(p.allergies||'')}</textarea>
+      <label>Farmaci</label><textarea id="caMedications" rows="2">${esc(p.medications||'')}</textarea><label>Disturbi gastrointestinali</label><textarea id="caGiIssues" rows="2">${esc(p.gi_issues||'')}</textarea>
+      <label>Patologie / interventi pregressi</label><textarea id="caPastConditions" rows="2">${esc(p.past_conditions||'')}</textarea><label>Osservazioni</label><textarea id="caObservations" rows="2">${esc(p.observations||'')}</textarea><label>Obiettivi</label><textarea id="caObjectives" rows="2">${esc(p.objectives||'')}</textarea></details>
+      <div class="pro3-actions"><button class="secondary" id="cancelPatientAnamnesis">Annulla</button><button class="primary" id="savePatientAnamnesis">Salva modifiche</button></div></section>`;
+    document.body.appendChild(o);
+    const close=closeAnamnesisEditor; document.getElementById('closePatientAnamnesis')?.addEventListener('click',close); document.getElementById('cancelPatientAnamnesis')?.addEventListener('click',close); o.addEventListener('click',e=>{if(e.target===o)close();});
+    document.getElementById('savePatientAnamnesis')?.addEventListener('click',async()=>{
+      const b=document.getElementById('savePatientAnamnesis'); const wr=String(document.getElementById('caTheoreticalWeight')?.value||'').trim().replace(',','.'); const theoreticalWeight=wr===''?null:Number(wr);
+      if(theoreticalWeight!==null&&(!Number.isFinite(theoreticalWeight)||theoreticalWeight<=0))return alert('Inserisci un peso teorico valido.');
+      const values={theoreticalWeight,work:fieldValue('caWork'),activity:fieldValue('caActivity'),smoking:fieldValue('caSmoking'),alcohol:fieldValue('caAlcohol'),diagnosis:fieldValue('caDiagnosis'),bowel:fieldValue('caBowel'),metabolism:fieldValue('caMetabolism'),feeg:fieldValue('caFeeg'),impedance:fieldValue('caImpedance'),familyObesity:checked('caFamilyObesity'),familyDiabetes:checked('caFamilyDiabetes'),familyHypertension:checked('caFamilyHypertension'),familyCardiovascular:checked('caFamilyCardiovascular'),familyDyslipidemia:checked('caFamilyDyslipidemia'),familyThyroid:checked('caFamilyThyroid'),previousDiets:fieldValue('caPreviousDiets'),allergies:fieldValue('caAllergies'),medications:fieldValue('caMedications'),giIssues:fieldValue('caGiIssues'),pastConditions:fieldValue('caPastConditions'),observations:fieldValue('caObservations'),objectives:fieldValue('caObjectives')};
+      if(b){b.disabled=true;b.textContent='Salvataggio...';} try{const saved=await services.savePatientAnamnesis(patientId,values);caches.anamnesis.set(patientId,saved);close();if(isTab('anamnesis'))replaceBody('nubemoProfessionalAnamnesis',patientId,anamnesisHtml(saved),bodySignature(saved));caches.summary.delete(patientId);}catch(e){console.error(e);alert('Non è stato possibile salvare l’anamnesi.');}finally{if(b){b.disabled=false;b.textContent='Salva modifiche';}}
+    });
   }
 
-  function formatDate(date) {
-    const parts = String(date || '').split('-');
-    if (parts.length !== 3) return display(date);
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  }
-
-  function formatMeasurement(value, suffix = '') {
-    if (value === null || value === undefined || value === '') return '—';
-    const number = Number(value);
-    if (!Number.isFinite(number)) return display(value);
-    return `${number.toFixed(1).replace('.', ',')}${suffix}`;
-  }
-
+  // ---------- Misure ----------
   function measurementsHtml(rows, canEdit) {
-    const bodyRows = rows.length
-      ? rows.map(row => `
-        <tr>
-          <td>${formatDate(row.measured_at)}</td>
-          <td>${formatMeasurement(row.weight_kg, ' kg')}</td>
-          <td>${formatMeasurement(row.waist_cm)}</td>
-          <td>${formatMeasurement(row.hips_cm)}</td>
-          <td>${display(row.notes)}</td>
-          <td>${canEdit ? `<button class="mini" data-nubemo-edit-measure="${esc(row.id)}">Modifica</button>` : ''}</td>
-        </tr>`).join('')
-      : '<tr><td colspan="6">Nessuna misura.</td></tr>';
-
-    return `
-      <div class="section-head">
-        <h2>Misure</h2>
-        ${canEdit ? '<button class="mini" id="nubemoNewPatientMeasure">＋ Aggiungi misura</button>' : ''}
-      </div>
-      <div class="measure-table-wrap">
-        <table class="measure-table">
-          <thead><tr><th>Data</th><th>Peso rilevato</th><th>Vita</th><th>Fianchi</th><th>Note</th><th></th></tr></thead>
-          <tbody>${bodyRows}</tbody>
-        </table>
-      </div>`;
+    const trs=rows.length?rows.map(r=>`<tr><td>${fmtDate(r.measured_at)}</td><td>${fmtNumber(r.weight_kg,' kg')}</td><td>${fmtNumber(r.waist_cm)}</td><td>${fmtNumber(r.hips_cm)}</td><td>${display(r.notes)}</td><td>${canEdit?`<button class="mini" data-edit-measure-id="${esc(r.id)}">Modifica</button>`:''}</td></tr>`).join(''):'<tr><td colspan="6">Nessuna misura.</td></tr>';
+    return `<div class="section-head"><h2>Misure</h2>${canEdit?'<button class="mini" id="nubemoNewMeasure">＋ Aggiungi misura</button>':''}</div><div class="measure-table-wrap"><table class="measure-table"><thead><tr><th>Data</th><th>Peso rilevato</th><th>Vita</th><th>Fianchi</th><th>Note</th><th></th></tr></thead><tbody>${trs}</tbody></table></div>`;
   }
+  async function syncMeasurements(){if(!isTab('measures'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalMeasurements',pid,'misure');try{const rows=await cached('measures',pid,()=>services.loadPatientMeasurements(pid));if(isTab('measures'))renderMeasurements(pid,rows);}catch(e){console.error(e);renderError('nubemoProfessionalMeasurements',pid,'le misure');}}
+  function renderMeasurements(pid,rows){const canEdit=patientIsActive(currentPatient());replaceBody('nubemoProfessionalMeasurements',pid,measurementsHtml(rows||[],canEdit),bodySignature(rows),host=>{if(!canEdit)return;host.querySelector('#nubemoNewMeasure')?.addEventListener('click',()=>openMeasurementEditor(pid));host.querySelectorAll('[data-edit-measure-id]').forEach(b=>b.addEventListener('click',()=>openMeasurementEditor(pid,b.dataset.editMeasureId)));});}
+  function closeMeasurementEditor(){document.getElementById('patientMeasurementOverlay')?.remove();}
+  function numValue(id){const raw=String(document.getElementById(id)?.value||'').trim().replace(',','.');return raw===''?null:Number(raw);}
+  async function openMeasurementEditor(pid=currentPatientId(),measurementId=null){if(!patientIsActive(patientsModule.getPatientById?.(pid)))return alert('Paziente attivo non disponibile.');const rows=await cached('measures',pid,()=>services.loadPatientMeasurements(pid));const existing=measurementId?rows.find(r=>r.id===measurementId):null;if(measurementId&&!existing)return alert('Misurazione non disponibile.');closeMeasurementEditor();const o=document.createElement('div');o.id='patientMeasurementOverlay';o.className='clinical-overlay';o.innerHTML=`<section class="clinical-modal"><button class="monubi-x" id="closePatientMeasurement">×</button><div class="eyebrow">SCHEDA PAZIENTE</div><h2>${existing?'Modifica misurazione':'Nuova misurazione'}</h2><label>Data</label><input id="pmRemoteDate" type="date" value="${esc(existing?.measured_at||todayIso())}"><label>Peso rilevato dal professionista (kg)</label><input id="pmRemoteWeight" type="number" min="30" max="300" step="0.1" value="${existing?.weight_kg??''}"><label>Circonferenza vita (cm)</label><input id="pmRemoteWaist" type="number" min="20" max="300" step="0.1" value="${existing?.waist_cm??''}"><label>Circonferenza fianchi (cm)</label><input id="pmRemoteHips" type="number" min="20" max="300" step="0.1" value="${existing?.hips_cm??''}"><label>Note</label><textarea id="pmRemoteNotes" rows="3">${esc(existing?.notes||'')}</textarea><div class="pro3-actions"><button class="secondary" id="cancelPatientMeasurement">Annulla</button><button class="primary" id="savePatientMeasurement">${existing?'Salva modifiche':'Salva misura'}</button></div></section>`;document.body.appendChild(o);const close=closeMeasurementEditor;document.getElementById('closePatientMeasurement')?.addEventListener('click',close);document.getElementById('cancelPatientMeasurement')?.addEventListener('click',close);o.addEventListener('click',e=>{if(e.target===o)close();});document.getElementById('savePatientMeasurement')?.addEventListener('click',async()=>{const b=document.getElementById('savePatientMeasurement');const measuredAt=document.getElementById('pmRemoteDate')?.value||'';const weightKg=numValue('pmRemoteWeight'),waistCm=numValue('pmRemoteWaist'),hipsCm=numValue('pmRemoteHips');if(!/^\d{4}-\d{2}-\d{2}$/.test(measuredAt))return alert('Inserisci una data valida.');if(weightKg!==null&&(!Number.isFinite(weightKg)||weightKg<30||weightKg>300))return alert('Controlla il peso rilevato.');for(const [l,v] of [['vita',waistCm],['fianchi',hipsCm]])if(v!==null&&(!Number.isFinite(v)||v<20||v>300))return alert(`Controlla il valore ${l}.`);if(b){b.disabled=true;b.textContent='Salvataggio...';}try{const vals={measuredAt,weightKg,waistCm,hipsCm,notes:fieldValue('pmRemoteNotes')};if(existing)await services.updatePatientMeasurement(existing.id,vals);else await services.createPatientMeasurement(pid,vals,window.nubemoProfessionalContext?.user?.id);const fresh=await cached('measures',pid,()=>services.loadPatientMeasurements(pid),true);close();renderMeasurements(pid,fresh);caches.summary.delete(pid);}catch(e){console.error(e);alert(e?.code==='23505'?'Esiste già una misurazione per questa data.':'Non è stato possibile salvare la misurazione.');}finally{if(b){b.disabled=false;b.textContent=existing?'Salva modifiche':'Salva misura';}}});}
 
-  function closeMeasurementEditor() {
-    document.getElementById('patientMeasurementOverlay')?.remove();
-  }
+  // ---------- Riepilogo ----------
+  async function loadSummary(pid){return Promise.all([services.loadPatientClinicalProfile(pid),services.loadPatientMeasurements(pid),services.loadNutritionPlans(pid),services.loadPatientAppointments(pid),services.loadPatientDocuments(pid)]).then(([profile,measures,plans,visits,documents])=>({profile,measures,plans,visits,documents}));}
+  function summaryHtml(data){const row=currentPatient()||{};const profile=row.profile||{};const latest=data.measures?.[0];const activePlan=(data.plans||[]).find(p=>p.status==='active')||data.plans?.[0];const future=(data.visits||[]).filter(v=>new Date(v.starts_at)>=new Date()).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at))[0];return `<div class="pro-read-grid"><div><span>Paziente</span><b>${display([profile.first_name,profile.last_name].filter(Boolean).join(' '))}</b></div><div><span>Data di nascita</span><b>${fmtDate(row.birth_date)}</b></div><div><span>Altezza</span><b>${row.height_cm?`${display(row.height_cm)} cm`:'—'}</b></div><div><span>Inizio percorso</span><b>${fmtDate(row.pathway_start_date||row.relationship?.started_at)}</b></div><div><span>Ultimo peso professionista</span><b>${latest?fmtNumber(latest.weight_kg,' kg'):'—'}</b></div><div><span>Piano corrente</span><b>${activePlan?display(activePlan.title):'—'}</b></div><div><span>Prossima visita</span><b>${future?fmtDateTime(future.starts_at):'—'}</b></div><div><span>Documenti</span><b>${data.documents?.length||0}</b></div></div><details class="pro-accordion" open><summary>Quadro clinico</summary><div class="pro-read-grid"><div><span>Diagnosi / motivo</span><b>${display(data.profile?.diagnosis)}</b></div><div><span>Obiettivi</span><b>${display(data.profile?.objectives)}</b></div><div><span>Allergie</span><b>${display(data.profile?.allergies)}</b></div><div><span>Farmaci</span><b>${display(data.profile?.medications)}</b></div></div></details>`;}
+  async function syncSummary(){if(!isTab('summary'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalSummary',pid,'riepilogo');try{const data=await cached('summary',pid,()=>loadSummary(pid));if(isTab('summary'))replaceBody('nubemoProfessionalSummary',pid,summaryHtml(data),bodySignature(data));}catch(e){console.error(e);renderError('nubemoProfessionalSummary',pid,'il riepilogo');}}
 
-  function numberValue(id) {
-    const raw = String(document.getElementById(id)?.value || '').trim().replace(',', '.');
-    if (raw === '') return null;
-    const number = Number(raw);
-    return Number.isFinite(number) ? number : NaN;
-  }
+  // ---------- Documenti ----------
+  function documentListHtml(rows,canEdit){return `<div class="section-head"><h2>Documenti</h2>${canEdit?'<button class="mini" id="nubemoUploadDocument">＋ Aggiungi documento</button>':''}</div>${rows.length?rows.map(d=>`<div class="pro3-event"><b>${display(d.title)}</b><span>${display(d.category)} · ${fmtDate(d.document_date||d.created_at)}</span>${d.professional_note?`<span>${display(d.professional_note)}</span>`:''}<button class="mini" data-open-doc="${esc(d.id)}">Apri</button></div>`).join(''):'<p class="muted">Nessun documento.</p>'}`;}
+  async function syncDocuments(){if(!isTab('documents'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalDocuments',pid,'documenti');try{const rows=await cached('documents',pid,()=>services.loadPatientDocuments(pid));if(isTab('documents'))renderDocuments(pid,rows);}catch(e){console.error(e);renderError('nubemoProfessionalDocuments',pid,'i documenti');}}
+  function renderDocuments(pid,rows){const canEdit=patientIsActive(currentPatient());replaceBody('nubemoProfessionalDocuments',pid,documentListHtml(rows,canEdit),bodySignature(rows),host=>{host.querySelector('#nubemoUploadDocument')?.addEventListener('click',()=>openDocumentEditor(pid));host.querySelectorAll('[data-open-doc]').forEach(b=>b.addEventListener('click',()=>openDoc(rows.find(d=>d.id===b.dataset.openDoc))));});}
+  async function openDoc(doc){if(!doc)return;try{const url=await services.openDocumentUrl(doc);if(url)window.open(url,'_blank','noopener');}catch(e){console.error(e);alert('Non è stato possibile aprire il documento.');}}
+  function openDocumentEditor(pid,category='document',afterSave=null){if(!patientIsActive(currentPatient()))return alert('Paziente attivo non disponibile.');const o=document.createElement('div');o.className='clinical-overlay';o.id='patientDocumentOverlay';o.innerHTML=`<section class="clinical-modal"><button class="monubi-x" id="closePatientDocument">×</button><div class="eyebrow">DOCUMENTI</div><h2>Nuovo documento</h2><label>Titolo</label><input id="docTitle"><label>Categoria</label><select id="docCategory"><option value="document" ${category==='document'?'selected':''}>Documento</option><option value="lab" ${category==='lab'?'selected':''}>Esame / referto</option><option value="plan" ${category==='plan'?'selected':''}>Piano alimentare</option><option value="privacy">Privacy</option></select><label>Data documento</label><input id="docDate" type="date" value="${todayIso()}"><label>Nota professionista</label><textarea id="docNote" rows="2"></textarea><label>File</label><input id="docFile" type="file"><div class="pro3-actions"><button class="secondary" id="cancelPatientDocument">Annulla</button><button class="primary" id="savePatientDocument">Carica</button></div></section>`;document.body.appendChild(o);const close=()=>o.remove();o.querySelector('#closePatientDocument')?.addEventListener('click',close);o.querySelector('#cancelPatientDocument')?.addEventListener('click',close);o.addEventListener('click',e=>{if(e.target===o)close();});o.querySelector('#savePatientDocument')?.addEventListener('click',async()=>{const b=o.querySelector('#savePatientDocument'),file=o.querySelector('#docFile')?.files?.[0],title=String(o.querySelector('#docTitle')?.value||'').trim();if(!file)return alert('Seleziona un file.');if(!title)return alert('Inserisci un titolo.');if(b){b.disabled=true;b.textContent='Caricamento...';}try{const saved=await services.uploadPatientDocument(pid,file,{category:o.querySelector('#docCategory')?.value||category,title,documentDate:o.querySelector('#docDate')?.value||null,professionalNote:String(o.querySelector('#docNote')?.value||'').trim()||null});caches.documents.delete(pid);close();afterSave?.(saved);if(isTab('documents'))renderDocuments(pid,await cached('documents',pid,()=>services.loadPatientDocuments(pid),true));}catch(e){console.error(e);alert('Non è stato possibile caricare il documento.');}finally{if(b){b.disabled=false;b.textContent='Carica';}}});}
 
-  function todayIso() {
-    const now = new Date();
-    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-    return local.toISOString().slice(0, 10);
-  }
+  // ---------- Esami ----------
+  function labsHtml(rows,canEdit){return `<div class="section-head"><h2>Esami</h2>${canEdit?'<button class="mini" id="nubemoNewLab">＋ Aggiungi esame</button>':''}</div>${rows.length?rows.map(r=>`<details class="pro-accordion"><summary>${fmtDate(r.report_date)} · ${display(r.title||'Referto')} · ${r.status==='confirmed'?'Confermato':'Da revisionare'}</summary>${r.values?.length?`<div class="measure-table-wrap"><table class="measure-table"><thead><tr><th>Esame</th><th>Valore</th><th>Unità</th><th>Riferimento</th></tr></thead><tbody>${r.values.map(v=>`<tr><td>${display(v.test_name)}</td><td>${display(v.value_numeric??v.value_text)}</td><td>${display(v.unit)}</td><td>${display(v.reference_text || ((v.reference_min!=null||v.reference_max!=null)?`${v.reference_min??''} - ${v.reference_max??''}`:''))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessun valore strutturato.</p>'}<div class="pro3-actions">${r.document_id?`<button class="mini" data-lab-doc="${esc(r.document_id)}">Apri referto</button>`:''}${canEdit&&r.status!=='confirmed'?`<button class="mini" data-confirm-lab="${esc(r.id)}">Conferma revisione</button>`:''}</div></details>`).join(''):'<p class="muted">Nessun esame.</p>'}`;}
+  async function syncLabs(){if(!isTab('labs'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalLabs',pid,'esami');try{const rows=await cached('labs',pid,()=>services.loadLaboratoryReports(pid));if(isTab('labs'))renderLabs(pid,rows);}catch(e){console.error(e);renderError('nubemoProfessionalLabs',pid,'gli esami');}}
+  function renderLabs(pid,rows){const canEdit=patientIsActive(currentPatient());replaceBody('nubemoProfessionalLabs',pid,labsHtml(rows,canEdit),bodySignature(rows),host=>{host.querySelector('#nubemoNewLab')?.addEventListener('click',()=>openLabEditor(pid));host.querySelectorAll('[data-confirm-lab]').forEach(b=>b.addEventListener('click',async()=>{try{await services.confirmLaboratoryReport(b.dataset.confirmLab);const fresh=await cached('labs',pid,()=>services.loadLaboratoryReports(pid),true);renderLabs(pid,fresh);}catch(e){console.error(e);alert('Non è stato possibile confermare il referto.');}}));host.querySelectorAll('[data-lab-doc]').forEach(b=>b.addEventListener('click',async()=>{const docs=await services.loadPatientDocuments(pid);openDoc(docs.find(d=>d.id===b.dataset.labDoc));}));});}
+  function openLabEditor(pid){const o=document.createElement('div');o.className='clinical-overlay';o.id='patientLabOverlay';o.innerHTML=`<section class="clinical-modal"><button class="monubi-x" id="closeLab">×</button><div class="eyebrow">ESAMI</div><h2>Nuovo esame</h2><label>Titolo</label><input id="labTitle" placeholder="Es. Esami ematici"><label>Data referto</label><input id="labDate" type="date" value="${todayIso()}"><label>Valori (una riga per esame: Nome | Valore | Unità)</label><textarea id="labValues" rows="7" placeholder="Glicemia | 90 | mg/dL"></textarea><label>Referto PDF/immagine (facoltativo)</label><input id="labFile" type="file"><div class="pro3-actions"><button class="secondary" id="cancelLab">Annulla</button><button class="primary" id="saveLab">Salva esame</button></div></section>`;document.body.appendChild(o);const close=()=>o.remove();o.querySelector('#closeLab')?.addEventListener('click',close);o.querySelector('#cancelLab')?.addEventListener('click',close);o.querySelector('#saveLab')?.addEventListener('click',async()=>{const b=o.querySelector('#saveLab'),title=String(o.querySelector('#labTitle')?.value||'').trim(),reportDate=o.querySelector('#labDate')?.value||null,file=o.querySelector('#labFile')?.files?.[0];if(!title)return alert('Inserisci un titolo.');if(b){b.disabled=true;b.textContent='Salvataggio...';}try{let documentId=null;if(file){const doc=await services.uploadPatientDocument(pid,file,{category:'lab',title,documentDate:reportDate});documentId=doc.id;caches.documents.delete(pid);}const report=await services.createLaboratoryReport(pid,{title,reportDate,documentId});const lines=String(o.querySelector('#labValues')?.value||'').split('\n').map(x=>x.trim()).filter(Boolean);const vals=lines.map(line=>{const [testName,value,unit]=line.split('|').map(x=>x?.trim()||'');const n=Number(String(value).replace(',','.'));return{testName,valueNumeric:Number.isFinite(n)?n:null,valueText:Number.isFinite(n)?null:value,unit:unit||null};}).filter(x=>x.testName);if(vals.length)await services.saveLaboratoryValues(report.id,vals);close();const fresh=await cached('labs',pid,()=>services.loadLaboratoryReports(pid),true);renderLabs(pid,fresh);}catch(e){console.error(e);alert('Non è stato possibile salvare l’esame.');}finally{if(b){b.disabled=false;b.textContent='Salva esame';}}});}
 
-  function measurementById(patientId, measurementId) {
-    return (measurementsCache.get(patientId) || []).find(row => row.id === measurementId) || null;
-  }
+  // ---------- Piano ----------
+  function plansHtml(rows,canEdit){return `<div class="section-head"><h2>Piano alimentare</h2>${canEdit?'<button class="mini" id="nubemoNewPlan">＋ Nuovo piano</button>':''}</div>${rows.length?rows.map(p=>`<details class="pro-accordion" ${p.status==='active'?'open':''}><summary>${display(p.title)} · ${display(p.status)}</summary><div class="pro-read-grid"><div><span>Validità</span><b>${fmtDate(p.valid_from)} → ${fmtDate(p.valid_to)}</b></div><div><span>Nota professionista</span><b>${display(p.professional_note)}</b></div></div>${p.documents?.map(d=>`<button class="mini" data-plan-doc="${esc(d.id)}">Apri ${esc(d.title)}</button>`).join('')||'<p class="muted">Nessun file associato.</p>'}${canEdit?`<div class="pro3-actions"><button class="mini" data-edit-plan="${esc(p.id)}">Modifica</button></div>`:''}</details>`).join(''):'<p class="muted">Nessun piano alimentare.</p>'}`;}
+  async function syncPlans(){if(!isTab('plan'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalPlans',pid,'piano alimentare');try{const rows=await cached('plans',pid,()=>services.loadNutritionPlans(pid));if(isTab('plan'))renderPlans(pid,rows);}catch(e){console.error(e);renderError('nubemoProfessionalPlans',pid,'il piano alimentare');}}
+  function renderPlans(pid,rows){const canEdit=patientIsActive(currentPatient());replaceBody('nubemoProfessionalPlans',pid,plansHtml(rows,canEdit),bodySignature(rows),host=>{host.querySelector('#nubemoNewPlan')?.addEventListener('click',()=>openPlanEditor(pid,null));host.querySelectorAll('[data-edit-plan]').forEach(b=>b.addEventListener('click',()=>openPlanEditor(pid,rows.find(p=>p.id===b.dataset.editPlan))));host.querySelectorAll('[data-plan-doc]').forEach(b=>b.addEventListener('click',()=>{for(const p of rows){const d=p.documents?.find(x=>x.id===b.dataset.planDoc);if(d)return openDoc(d);}}));});}
+  function openPlanEditor(pid,existing){const o=document.createElement('div');o.className='clinical-overlay';o.id='patientPlanOverlay';o.innerHTML=`<section class="clinical-modal"><button class="monubi-x" id="closePlan">×</button><div class="eyebrow">PIANO</div><h2>${existing?'Modifica piano':'Nuovo piano'}</h2><label>Titolo</label><input id="planTitle" value="${esc(existing?.title||'')}"><label>Stato</label><select id="planStatus">${['draft','active','expired','archived'].map(s=>`<option value="${s}" ${existing?.status===s?'selected':''}>${s}</option>`).join('')}</select><label>Valido dal</label><input id="planFrom" type="date" value="${existing?.valid_from||todayIso()}"><label>Valido al</label><input id="planTo" type="date" value="${existing?.valid_to||''}"><label>Nota professionista</label><textarea id="planNote" rows="3">${esc(existing?.professional_note||'')}</textarea>${existing?'':'<label>File piano (facoltativo)</label><input id="planFile" type="file">'}<div class="pro3-actions"><button class="secondary" id="cancelPlan">Annulla</button><button class="primary" id="savePlan">Salva</button></div></section>`;document.body.appendChild(o);const close=()=>o.remove();o.querySelector('#closePlan')?.addEventListener('click',close);o.querySelector('#cancelPlan')?.addEventListener('click',close);o.querySelector('#savePlan')?.addEventListener('click',async()=>{const b=o.querySelector('#savePlan'),values={title:String(o.querySelector('#planTitle')?.value||'').trim(),status:o.querySelector('#planStatus')?.value||'draft',validFrom:o.querySelector('#planFrom')?.value||null,validTo:o.querySelector('#planTo')?.value||null,professionalNote:String(o.querySelector('#planNote')?.value||'').trim()||null};if(!values.title)return alert('Inserisci un titolo.');if(values.validFrom&&values.validTo&&values.validTo<values.validFrom)return alert('Controlla le date di validità.');if(b){b.disabled=true;b.textContent='Salvataggio...';}try{let plan=existing?await services.updateNutritionPlan(existing.id,values):await services.createNutritionPlan(pid,values);const file=o.querySelector('#planFile')?.files?.[0];if(file){const doc=await services.uploadPatientDocument(pid,file,{category:'plan',title:values.title,documentDate:values.validFrom,professionalNote:values.professionalNote});await services.linkNutritionPlanDocument(plan.id,doc.id);caches.documents.delete(pid);}close();const fresh=await cached('plans',pid,()=>services.loadNutritionPlans(pid),true);renderPlans(pid,fresh);caches.summary.delete(pid);}catch(e){console.error(e);alert('Non è stato possibile salvare il piano.');}finally{if(b){b.disabled=false;b.textContent='Salva';}}});}
 
-  function openMeasurementEditor(patientId, measurementId = null) {
-    const row = patientsModule.getPatientById?.(patientId);
-    if (!patientIsActive(row)) return alert('Paziente attivo non disponibile.');
+  // ---------- Privacy ----------
+  function privacyHtml(rows){return `<p class="muted">Stato privacy del paziente. Questa sezione è consultabile dal professionista e non modifica le accettazioni.</p>${rows.length?rows.map(r=>`<div class="pro3-event"><b>${display(r.title)} · v${display(r.version)}</b><span>${r.acceptance?`Accettata il ${fmtDateTime(r.acceptance.accepted_at)}`:'Non ancora accettata'}</span></div>`).join(''):'<p class="muted">Nessuna informativa privacy attiva.</p>'}`;}
+  async function syncPrivacy(){if(!isTab('privacy'))return;const pid=currentPatientId();const row=currentPatient();if(!pid||!row?.profile_id)return;renderLoading('nubemoProfessionalPrivacy',pid,'privacy');try{const rows=await cached('privacy',pid,()=>services.loadPrivacyStatus(row.profile_id));if(isTab('privacy'))replaceBody('nubemoProfessionalPrivacy',pid,privacyHtml(rows),bodySignature(rows));}catch(e){console.error(e);renderError('nubemoProfessionalPrivacy',pid,'la privacy');}}
 
-    const existing = measurementId ? measurementById(patientId, measurementId) : null;
-    if (measurementId && !existing) return alert('Misurazione non disponibile.');
+  // ---------- Diario ----------
+  function diaryHtml(rows){return `<div class="card" style="margin-bottom:14px"><b>Diario compilato dal paziente</b><p class="muted" style="margin-bottom:0">I dati mostrati in questa sezione sono registrati direttamente dal paziente e sono disponibili al professionista in sola lettura.</p></div>${rows.length?rows.map(r=>`<details class="pro-accordion"><summary>${fmtDate(r.entry_date)}${r.weight_kg!=null?` · Peso registrato dal paziente: ${fmtNumber(r.weight_kg,' kg')}`:''}</summary><div class="pro-read-grid"><div><span>Acqua</span><b>${fmtNumber(r.water)}</b></div><div><span>Caffè</span><b>${display(r.coffee)}</b></div><div><span>Dolcificante</span><b>${display(r.sweetener)}</b></div><div><span>Colazione</span><b>${display(r.breakfast)}</b></div><div><span>Spuntino mattina</span><b>${display(r.morning_snack)}</b></div><div><span>Pranzo</span><b>${display(r.lunch)}</b></div><div><span>Spuntino pomeriggio</span><b>${display(r.afternoon_snack)}</b></div><div><span>Cena</span><b>${display(r.dinner)}</b></div><div><span>Sport / attività</span><b>${display(r.sport)}</b></div><div><span>Note</span><b>${display(r.notes)}</b></div></div></details>`).join(''):'<p class="muted">Il paziente non ha ancora compilato il diario.</p>'}`;}
+  async function syncDiary(){if(!isTab('diary'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalDiary',pid,'diario');try{const rows=await cached('diary',pid,()=>services.loadPatientDiary(pid));if(isTab('diary'))replaceBody('nubemoProfessionalDiary',pid,diaryHtml(rows),bodySignature(rows));}catch(e){console.error(e);renderError('nubemoProfessionalDiary',pid,'il diario');}}
 
-    closeMeasurementEditor();
-    const overlay = document.createElement('div');
-    overlay.id = 'patientMeasurementOverlay';
-    overlay.className = 'clinical-overlay';
-    overlay.innerHTML = `
-      <section class="clinical-modal">
-        <button class="monubi-x" id="closePatientMeasurement" type="button">×</button>
-        <div class="eyebrow">SCHEDA PAZIENTE</div>
-        <h2>${existing ? 'Modifica misurazione' : 'Nuova misurazione'}</h2>
-        <label>Data</label>
-        <input id="pmRemoteDate" type="date" value="${esc(existing?.measured_at || todayIso())}">
-        <label>Peso rilevato dal professionista (kg)</label>
-        <input id="pmRemoteWeight" type="number" min="30" max="300" step="0.1" value="${existing?.weight_kg ?? ''}" placeholder="Facoltativo">
-        <label>Circonferenza vita (cm)</label>
-        <input id="pmRemoteWaist" type="number" min="20" max="300" step="0.1" value="${existing?.waist_cm ?? ''}">
-        <label>Circonferenza fianchi (cm)</label>
-        <input id="pmRemoteHips" type="number" min="20" max="300" step="0.1" value="${existing?.hips_cm ?? ''}">
-        <label>Note</label>
-        <textarea id="pmRemoteNotes" rows="3">${esc(existing?.notes || '')}</textarea>
-        <div class="pro3-actions">
-          <button class="secondary" id="cancelPatientMeasurement" type="button">Annulla</button>
-          <button class="primary" id="savePatientMeasurement" type="button">${existing ? 'Salva modifiche' : 'Salva misura'}</button>
-        </div>
-      </section>`;
+  // ---------- Andamento ----------
+  async function syncTrend(){if(!isTab('trend'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalTrend',pid,'andamento');try{const [diary,measures]=await Promise.all([cached('diary',pid,()=>services.loadPatientDiary(pid)),cached('measures',pid,()=>services.loadPatientMeasurements(pid))]);const rows=[...(diary||[]).filter(x=>x.weight_kg!=null).map(x=>({date:x.entry_date,weight:x.weight_kg,source:'Paziente'})),...(measures||[]).filter(x=>x.weight_kg!=null).map(x=>({date:x.measured_at,weight:x.weight_kg,source:'Professionista'}))].sort((a,b)=>String(b.date).localeCompare(String(a.date)));const first=rows[0],last=rows[rows.length-1];const delta=first&&last?Number(first.weight)-Number(last.weight):null;const html=`<div class="pro-read-grid"><div><span>Ultimo peso</span><b>${first?fmtNumber(first.weight,' kg'):'—'}</b></div><div><span>Variazione nel periodo</span><b>${delta==null?'—':`${delta>0?'+':''}${delta.toFixed(1).replace('.',',')} kg`}</b></div></div><p class="muted">Le fonti sono mantenute separate: “Paziente” indica peso registrato nel diario; “Professionista” indica peso rilevato nella tab Misure.</p><div class="measure-table-wrap"><table class="measure-table"><thead><tr><th>Data</th><th>Peso</th><th>Fonte</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td>${fmtDate(r.date)}</td><td>${fmtNumber(r.weight,' kg')}</td><td>${r.source}</td></tr>`).join(''):'<tr><td colspan="3">Nessun dato disponibile.</td></tr>'}</tbody></table></div>`;if(isTab('trend'))replaceBody('nubemoProfessionalTrend',pid,html,bodySignature(rows));}catch(e){console.error(e);renderError('nubemoProfessionalTrend',pid,'l’andamento');}}
 
-    document.body.appendChild(overlay);
-    document.getElementById('closePatientMeasurement')?.addEventListener('click', closeMeasurementEditor);
-    document.getElementById('cancelPatientMeasurement')?.addEventListener('click', closeMeasurementEditor);
-    overlay.addEventListener('click', event => {
-      if (event.target === overlay) closeMeasurementEditor();
-    });
+  // ---------- Note ----------
+  function notesHtml(rows,canEdit){return `<div class="section-head"><h2>Note professionista</h2>${canEdit?'<button class="mini" id="nubemoNewNote">＋ Nuova nota</button>':''}</div>${rows.length?rows.map(n=>`<div class="pro3-event"><b>${fmtDateTime(n.created_at)}</b><span>${display(n.content)}</span>${canEdit?`<button class="mini" data-edit-note="${esc(n.id)}">Modifica</button>`:''}</div>`).join(''):'<p class="muted">Nessuna nota.</p>'}`;}
+  async function syncNotes(){if(!isTab('notes'))return;const pid=currentPatientId();if(!pid)return;renderLoading('nubemoProfessionalNotes',pid,'note');try{const rows=await cached('notes',pid,()=>services.loadProfessionalNotes(pid));if(isTab('notes'))renderNotes(pid,rows);}catch(e){console.error(e);renderError('nubemoProfessionalNotes',pid,'le note');}}
+  function renderNotes(pid,rows){const canEdit=patientIsActive(currentPatient());replaceBody('nubemoProfessionalNotes',pid,notesHtml(rows,canEdit),bodySignature(rows),host=>{host.querySelector('#nubemoNewNote')?.addEventListener('click',()=>openNoteEditor(pid,null));host.querySelectorAll('[data-edit-note]').forEach(b=>b.addEventListener('click',()=>openNoteEditor(pid,rows.find(n=>n.id===b.dataset.editNote)));});}
+  function openNoteEditor(pid,existing){const o=document.createElement('div');o.className='clinical-overlay';o.id='patientNoteOverlay';o.innerHTML=`<section class="clinical-modal"><button class="monubi-x" id="closeNote">×</button><div class="eyebrow">NOTE</div><h2>${existing?'Modifica nota':'Nuova nota'}</h2><label>Nota professionista</label><textarea id="noteContent" rows="8">${esc(existing?.content||'')}</textarea><div class="pro3-actions"><button class="secondary" id="cancelNote">Annulla</button><button class="primary" id="saveNote">Salva</button></div></section>`;document.body.appendChild(o);const close=()=>o.remove();o.querySelector('#closeNote')?.addEventListener('click',close);o.querySelector('#cancelNote')?.addEventListener('click',close);o.querySelector('#saveNote')?.addEventListener('click',async()=>{const b=o.querySelector('#saveNote'),content=String(o.querySelector('#noteContent')?.value||'').trim();if(!content)return alert('Inserisci una nota.');if(b){b.disabled=true;b.textContent='Salvataggio...';}try{if(existing)await services.updateProfessionalNote(existing.id,content);else await services.createProfessionalNote(pid,content);close();const fresh=await cached('notes',pid,()=>services.loadProfessionalNotes(pid),true);renderNotes(pid,fresh);}catch(e){console.error(e);alert('Non è stato possibile salvare la nota.');}finally{if(b){b.disabled=false;b.textContent='Salva';}}});}
 
-    document.getElementById('savePatientMeasurement')?.addEventListener('click', async () => {
-      const button = document.getElementById('savePatientMeasurement');
-      const measuredAt = String(document.getElementById('pmRemoteDate')?.value || '').trim();
-      const weightKg = numberValue('pmRemoteWeight');
-      const waistCm = numberValue('pmRemoteWaist');
-      const hipsCm = numberValue('pmRemoteHips');
-      const notesRaw = String(document.getElementById('pmRemoteNotes')?.value || '').trim();
+  function syncView(){void syncSummary();void syncAnamnesis();void syncLabs();void syncPlans();void syncDocuments();void syncPrivacy();void syncDiary();void syncTrend();void syncMeasurements();void syncNotes();}
+  async function reload(patientId=currentPatientId()){if(!patientId)return null;for(const c of Object.values(caches))c.delete(patientId);syncView();return true;}
 
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(measuredAt)) return alert('Inserisci una data valida.');
-      if (weightKg !== null && (!Number.isFinite(weightKg) || weightKg < 30 || weightKg > 300)) return alert('Controlla il peso rilevato.');
-      for (const [label, value] of [['vita', waistCm], ['fianchi', hipsCm]]) {
-        if (value !== null && (!Number.isFinite(value) || value < 20 || value > 300)) return alert(`Controlla il valore ${label}.`);
-      }
-
-      const values = {
-        measuredAt,
-        weightKg,
-        waistCm,
-        hipsCm,
-        notes: notesRaw === '' ? null : notesRaw
-      };
-
-      if (button) {
-        button.disabled = true;
-        button.textContent = 'Salvataggio...';
-      }
-
-      try {
-        if (existing) {
-          await services.updatePatientMeasurement(existing.id, values);
-        } else {
-          const userId = window.nubemoProfessionalContext?.user?.id || '';
-          if (!userId) throw new Error('Authenticated professional user unavailable');
-          await services.createPatientMeasurement(patientId, values, userId);
-        }
-
-        const rows = await loadMeasurements(patientId, true);
-        closeMeasurementEditor();
-        if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurements(patientId, rows);
-      } catch (error) {
-        console.error('NUBEMO professional clinical save measurement:', error);
-        if (error?.code === '23505') alert('Esiste già una misurazione per questa data.');
-        else alert('Non è stato possibile salvare la misurazione.');
-      } finally {
-        if (button) {
-          button.disabled = false;
-          button.textContent = existing ? 'Salva modifiche' : 'Salva misura';
-        }
-      }
-    });
-  }
-
-  function bindMeasurementActions(host, patientId, canEdit) {
-    if (!canEdit) return;
-    host.querySelector('#nubemoNewPatientMeasure')?.addEventListener('click', () => openMeasurementEditor(patientId));
-    host.querySelectorAll('[data-nubemo-edit-measure]').forEach(button => {
-      button.addEventListener('click', () => openMeasurementEditor(patientId, button.dataset.nubemoEditMeasure));
-    });
-  }
-
-  function renderMeasurements(patientId, rows) {
-    const canEdit = patientIsActive(currentPatient());
-    replaceClinicalBody(
-      'nubemoProfessionalMeasurements',
-      patientId,
-      measurementsHtml(rows || [], canEdit),
-      bodySignature(rows || []),
-      host => bindMeasurementActions(host, patientId, canEdit)
-    );
-  }
-
-  function renderMeasurementsLoading(patientId) {
-    replaceClinicalBody(
-      'nubemoProfessionalMeasurements',
-      patientId,
-      '<p class="muted">Caricamento misure...</p>',
-      'loading'
-    );
-  }
-
-  function renderMeasurementsError(patientId) {
-    replaceClinicalBody(
-      'nubemoProfessionalMeasurements',
-      patientId,
-      '<p class="muted">Non è stato possibile caricare le misure.</p>',
-      'error'
-    );
-  }
-
-  async function syncMeasurements() {
-    if (!isMeasuresTab()) return;
-    const patientId = currentPatientId();
-    if (!patientId) return;
-
-    if (measurementsCache.has(patientId)) {
-      renderMeasurements(patientId, measurementsCache.get(patientId));
-      return;
-    }
-
-    renderMeasurementsLoading(patientId);
-    try {
-      const rows = await loadMeasurements(patientId);
-      if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurements(patientId, rows);
-    } catch (error) {
-      console.error('NUBEMO professional clinical load measurements:', error);
-      if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurementsError(patientId);
-    }
-  }
-
-  function bindEditButton() {
-    if (!isDetailsView()) return;
-    const patientId = currentPatientId();
-    const row = currentPatient();
-    if (!patientId || !patientIsActive(row)) return;
-
-    const legacy = document.getElementById('editPatientProfileTop');
-    if (!legacy || legacy.dataset.nubemoClinical === '1') return;
-
-    const button = legacy.cloneNode(true);
-    button.dataset.nubemoClinical = '1';
-    button.addEventListener('click', () => openEditor(patientId));
-    legacy.replaceWith(button);
-  }
-
-  function syncView() {
-    bindEditButton();
-    void syncAnamnesis();
-    void syncMeasurements();
-  }
-
-  async function reload(patientId = currentPatientId()) {
-    if (!patientId) return null;
-    const profile = await loadProfile(patientId, true);
-    if (isAnamnesisTab() && currentPatientId() === patientId) renderProfile(patientId, profile);
-    return profile;
-  }
-
-  async function reloadMeasurements(patientId = currentPatientId()) {
-    if (!patientId) return [];
-    const rows = await loadMeasurements(patientId, true);
-    if (isMeasuresTab() && currentPatientId() === patientId) renderMeasurements(patientId, rows);
-    return rows;
-  }
-
-  window.nubemoProfessionalClinical = Object.freeze({
-    syncView,
-    reload,
-    reloadMeasurements,
-    openEditor,
-    openMeasurementEditor
-  });
-
+  window.nubemoProfessionalClinical=Object.freeze({syncView,reload,openEditor,openMeasurementEditor,openDocumentEditor});
   syncView();
 })();
