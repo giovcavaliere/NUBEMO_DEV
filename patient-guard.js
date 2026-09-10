@@ -15,14 +15,18 @@
     document.getElementById('patientBackLogin')?.addEventListener('click', backToLogin);
   }
 
-  function loadPatientApp() {
+  function loadScript(src, errorMessage) {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'app.js?v=nubemo398recovery16';
+      script.src = src;
       script.onload = resolve;
-      script.onerror = () => reject(new Error('Impossibile caricare l’Area Paziente.'));
+      script.onerror = () => reject(new Error(errorMessage));
       document.body.appendChild(script);
     });
+  }
+
+  function loadPatientApp() {
+    return loadScript('app.js?v=nubemo398recovery17','Impossibile caricare l’Area Paziente.');
   }
 
   async function logout() {
@@ -67,6 +71,7 @@
       const context = await window.nubemoPatientServices.loadContext();
       window.nubemoPatientContext = context;
       await window.nubemoPatientLegacyAdapter.init(context);
+      await loadScript('patient-settings-supabase-bridge.js?v=nubemo398recovery17','Impossibile applicare le impostazioni dell’Area Paziente.');
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       window.patientLogout = logout;
