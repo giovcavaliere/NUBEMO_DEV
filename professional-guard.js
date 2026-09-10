@@ -75,7 +75,7 @@
         } catch (logoError) { console.error('NUBEMO professional logo load:', logoError); }
       }
 
-      await loadScript('professional-services.js?v=nubemo398recovery11','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      await loadScript('professional-services.js?v=nubemo398recovery12','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       const services = window.nubemoProfessionalServices;
       if (!services) throw new Error('Servizi Supabase Area Professionista non inizializzati.');
 
@@ -88,29 +88,26 @@
         return loadedPatients.activePatients;
       };
 
-      // Compatibilità dati: struttura sincrona 3.98 esclusivamente in memoria,
-      // con Supabase come source of truth.
-      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo398recovery11','Impossibile preparare i dati dell’Area Professionista.');
+      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo398recovery12','Impossibile preparare i dati dell’Area Professionista.');
       if (!window.nubemoProfessionalLegacyAdapter) throw new Error('Adattatore dati PRO non inizializzato.');
       await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
 
-      // Domini che la 3.98 legge sincronicamente: vengono idratati da Supabase
-      // prima del primo render, senza sostituire il DOM originale.
-      await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery11','Impossibile preparare le note del professionista.');
+      await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery12','Impossibile preparare le note del professionista.');
       await window.nubemoProfessionalNotesBridge?.ready;
-      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery11','Impossibile preparare i documenti del paziente.');
+      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery12','Impossibile preparare i documenti del paziente.');
       await window.nubemoProfessionalDocumentsBridge?.ready;
-      await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery11','Impossibile preparare i piani alimentari.');
+      await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery12','Impossibile preparare i piani alimentari.');
       await window.nubemoProfessionalPlansBridge?.ready;
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
 
       // Owner grafico/funzionale principale: motore NUBEMO 3.98 verificato.
-      await loadScript('pro.js?v=nubemo398recovery11','Impossibile caricare l’Area Professionista.');
+      await loadScript('pro.js?v=nubemo398recovery12','Impossibile caricare l’Area Professionista.');
 
-      // Unica estensione del frontend recovery: identità reale paziente e gestione
-      // percorso. Non sostituisce il layout 3.98; collega i suoi controlli ad Auth/Supabase.
-      await loadScript('professional-patient-management.js?v=nubemo398recovery11','Impossibile caricare la gestione dei pazienti.');
+      // Estensioni recovery: identità/percorso e domini che nella 3.98
+      // dipendevano da storage/credenziali locali. Non ridisegnano la shell 3.98.
+      await loadScript('professional-patient-management.js?v=nubemo398recovery12','Impossibile caricare la gestione dei pazienti.');
+      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery12','Impossibile caricare Account e Privacy del paziente.');
     } catch (error) {
       console.error('NUBEMO Professional guard:', error);
       showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');
