@@ -26,7 +26,7 @@
   function loadPatientApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'app.js?v=nubemo398recovery3';
+      script.src = 'app.js?v=nubemo398recovery7';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Impossibile caricare l’Area Paziente.'));
       document.body.appendChild(script);
@@ -65,6 +65,11 @@
       // Frontend 3.98 originale: viene avviato solo dopo autenticazione,
       // autorizzazione e caricamento della source of truth Supabase.
       await loadPatientApp();
+
+      // Dopo che la 3.98 ha dichiarato le proprie funzioni, il bridge sostituisce
+      // esclusivamente i flussi che non possono più usare storage locale:
+      // documenti/piani/privacy e controlli di import/backup dismessi.
+      window.nubemoPatientLegacyAdapter.bindLegacyApp?.();
     } catch (error) {
       console.error('NUBEMO Patient guard:', error);
       showError(error?.message);
