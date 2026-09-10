@@ -1,23 +1,24 @@
-const CACHE='nubemo-demo-v3.98-recovery7';
+const CACHE='nubemo-demo-v3.98-recovery8';
 const CORE=[
   './',
   './index.html',
   './patient.html',
   './pro.html',
-  './style.css?v=nubemo398recovery7',
-  './diary-pdf.js?v=nubemo398recovery7',
-  './app.js?v=nubemo398recovery5',
-  './pro.js?v=nubemo398recovery7',
-  './monubi-ui.js?v=nubemo398recovery7',
-  './supabase-client.js?v=nubemo398recovery7',
-  './auth.js?v=nubemo398recovery5',
-  './patient-services.js?v=nubemo398recovery5',
-  './patient-legacy-supabase-adapter.js?v=nubemo398recovery5',
-  './patient-guard.js?v=nubemo398recovery5',
-  './professional-services.js?v=nubemo398recovery7',
-  './professional-legacy-supabase-adapter.js?v=nubemo398recovery7',
-  './professional-guard.js?v=nubemo398recovery7',
-  './manifest.json?v=nubemo398recovery7',
+  './style.css?v=nubemo398recovery8',
+  './diary-pdf.js?v=nubemo398recovery8',
+  './app.js?v=nubemo398recovery8',
+  './pro.js?v=nubemo398recovery8',
+  './monubi-ui.js?v=nubemo398recovery8',
+  './supabase-client.js?v=nubemo398recovery8',
+  './auth.js?v=nubemo398recovery8',
+  './patient-services.js?v=nubemo398recovery8',
+  './patient-legacy-supabase-adapter.js?v=nubemo398recovery8',
+  './patient-guard.js?v=nubemo398recovery8',
+  './professional-services.js?v=nubemo398recovery8',
+  './professional-legacy-supabase-adapter.js?v=nubemo398recovery8',
+  './professional-patient-management.js?v=nubemo398recovery8',
+  './professional-guard.js?v=nubemo398recovery8',
+  './manifest.json?v=nubemo398recovery8',
   './assets/nubemo-brand-clean-v2.png',
   './assets/nubemo-n-icon-180.png',
   './assets/nubemo-n-icon-192.png',
@@ -39,15 +40,11 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
-
-  // Sempre rete prima: evita che la PWA installata rimanga bloccata su asset vecchi.
   event.respondWith(
     fetch(event.request,{cache:'no-store'})
       .then(response=>{
         const copy=response.clone();
-        if(response.ok){
-          caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});
-        }
+        if(response.ok)caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});
         return response;
       })
       .catch(async()=>{
