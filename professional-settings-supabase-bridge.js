@@ -1,6 +1,6 @@
 // NUBEMO recovery 3.98 — impostazioni professionista su Supabase.
 // Mantiene invariata la pagina Impostazioni 3.98 e virtualizza soltanto
-// la vecchia chiave localStorage usata per durata visite/orari/parametri report.
+// la chiave usata dal runtime recovery per durata visite/orari/parametri report.
 (() => {
   'use strict';
 
@@ -9,7 +9,7 @@
   const professionalId = context.professional?.id;
   if (!client || !professionalId) return;
 
-  const SETTINGS_KEY = 'diario-pro-settings-v1';
+  const SETTINGS_KEY = 'diario-pro-settings-recovery-v1';
   const storageProto = Object.getPrototypeOf(window.localStorage);
   const previousGetItem = storageProto.getItem;
   const previousSetItem = storageProto.setItem;
