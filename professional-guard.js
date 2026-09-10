@@ -53,6 +53,7 @@
       await loadScript('professional-legacy-supabase-adapter.js?v=nubemo398recovery19','Impossibile preparare i dati dell’Area Professionista.');
       if(!window.nubemoProfessionalLegacyAdapter)throw new Error('Adattatore dati PRO non inizializzato.');
       await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
+      await loadScript('professional-recovery-contract.js?v=nubemo398recovery20','Impossibile applicare il contratto runtime dell’Area Professionista.');
       await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;
       await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;
       await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le note del professionista.');await window.nubemoProfessionalNotesBridge?.ready;
