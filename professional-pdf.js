@@ -1,70 +1,64 @@
 // NUBEMO — Area Professionista / Cartella clinico-nutrizionale
+// Adapter Supabase -> motore PDF approvato già presente nella baseline pro.js.
 (() => {
   'use strict';
   const services = window.nubemoProfessionalServices;
   const patients = window.nubemoProfessionalPatients;
   if (!services || !patients) return;
 
-  const esc = (v='') => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
-  const fmtDate = v => { if(!v)return '—'; const p=String(v).slice(0,10).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:esc(v); };
-  const val = v => v===null||v===undefined||String(v).trim()===''?'—':esc(v);
-  const num = (v,s='') => v===null||v===undefined||v===''?'—':`${Number(v).toFixed(1).replace('.',',')}${s}`;
+  const esc=(v='')=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-  async function collect(patientId) {
-    const row = patients.getPatientById?.(patientId);
-    const [anamnesis, measures, labs, plans, docs, diary, visits, notes] = await Promise.all([
-      services.loadPatientClinicalProfile(patientId), services.loadPatientMeasurements(patientId),
-      services.loadLaboratoryReports(patientId), services.loadNutritionPlans(patientId),
-      services.loadPatientDocuments(patientId), services.loadPatientDiary(patientId),
-      services.loadPatientAppointments(patientId), services.loadProfessionalNotes(patientId)
+  async function collect(patientId){
+    const row=patients.getPatientById?.(patientId);
+    const [anamnesis,measures,labs,plans,docs,diary,visits,notes]=await Promise.all([
+      services.loadPatientClinicalProfile(patientId),services.loadPatientMeasurements(patientId),services.loadLaboratoryReports(patientId),services.loadNutritionPlans(patientId),services.loadPatientDocuments(patientId),services.loadPatientDiary(patientId),services.loadPatientAppointments(patientId),services.loadProfessionalNotes(patientId)
     ]);
-    return { row, anamnesis, measures, labs, plans, docs, diary, visits, notes };
+    return {row,anamnesis:anamnesis||{},measures:measures||[],labs:labs||[],plans:plans||[],docs:docs||[],diary:diary||[],visits:visits||[],notes:notes||[]};
   }
 
-  function table(headers, rows) {
-    return `<table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">—</td></tr>`}</tbody></table>`;
+  function legacyPatient(data){
+    const r=data.row||{},profile=r.profile||{},a=data.anamnesis||{};
+    const entries=data.diary.map(d=>({
+      date:d.entry_date,weight:d.weight_kg??'',water:d.water??'',coffee:d.coffee??0,sweetener:d.sweetener||'',breakfast:d.breakfast||'',snack1:d.morning_snack||'',lunch:d.lunch||'',snack2:d.afternoon_snack||'',dinner:d.dinner||'',notes:[d.sport,d.notes].filter(Boolean).join(' · ')
+    }));
+    const measures=data.measures.map(m=>({date:m.measured_at,professionalWeight:m.weight_kg??'',waist:m.waist_cm??'',hips:m.hips_cm??'',notes:m.notes||''}));
+    const weights=entries.filter(e=>e.weight!==''&&e.weight!=null).map(e=>[e.date,Number(e.weight)]);
+    const first=weights[0]?.[1]??null,last=weights.at(-1)?.[1]??null;
+    return {
+      id:r.id,
+      real:true,
+      name:[profile.first_name,profile.last_name].filter(Boolean).join(' ')||profile.email||'Paziente',
+      surname:profile.last_name||'',
+      email:profile.email||'',
+      birth:r.birth_date||'',sex:r.sex||'',height:r.height_cm??'',startDate:r.pathway_start_date||r.relationship?.started_at?.slice?.(0,10)||'',
+      goal:a.goal_weight_kg??'',minWeight:a.min_weight_kg??'',maxWeight:a.max_weight_kg??'',reasonableWeight:a.reasonable_weight_kg??'',theoreticalWeight:a.theoretical_weight_kg??'',
+      work:a.work||'',activity:a.activity||'',activityFactor:a.activity_factor??'',smoking:a.smoking||'',alcohol:a.alcohol||'',diagnosis:a.diagnosis||'',bowel:a.bowel||'',metabolism:a.metabolism||'',feeg:a.feeg||'',impedance:a.impedance||'',
+      familyObesity:a.family_obesity??false,familyDiabetes:a.family_diabetes??false,familyHypertension:a.family_hypertension??false,familyCardiovascular:a.family_cardiovascular??false,familyDyslipidemia:a.family_dyslipidemia??false,familyThyroid:a.family_thyroid??false,
+      previousDiets:a.previous_diets||'',allergies:a.allergies||'',medications:a.medications||'',giIssues:a.gi_issues||'',pastConditions:a.past_conditions||'',observations:a.observations||'',objectives:a.objectives||'',
+      entries,diary:entries,weights,measures,first,last,delta:first!=null&&last!=null?last-first:null,
+      labs:data.labs,plans:data.plans,documents:data.docs,appointments:data.visits,professionalNotes:data.notes
+    };
   }
 
-  function html(data) {
-    const r=data.row||{}, p=r.profile||{}, a=data.anamnesis||{};
-    const measures=(data.measures||[]).map(m=>[fmtDate(m.measured_at),num(m.weight_kg,' kg'),num(m.waist_cm,' cm'),num(m.hips_cm,' cm'),val(m.notes)]);
-    const diary=(data.diary||[]).map(d=>[fmtDate(d.entry_date),num(d.weight_kg,' kg'),val(d.breakfast),val(d.lunch),val(d.dinner),val(d.sport),val(d.notes)]);
-    const plans=(data.plans||[]).map(x=>[val(x.title),val(x.status),fmtDate(x.valid_from),fmtDate(x.valid_to),val(x.professional_note)]);
-    const visits=(data.visits||[]).map(x=>[new Date(x.starts_at).toLocaleString('it-IT'),val(x.appointment_type),val(x.status),val(x.notes)]);
-    const labs=(data.labs||[]).map(x=>[fmtDate(x.report_date),val(x.title),x.status==='confirmed'?'Confermato':'Da revisionare',String(x.values?.length||0)]);
-    const notes=(data.notes||[]).map(x=>[new Date(x.created_at).toLocaleString('it-IT'),val(x.content)]);
-    return `<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Cartella ${esc(p.first_name||'')} ${esc(p.last_name||'')}</title><style>
-      @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#183832;font-size:11px;line-height:1.35}h1{font-size:22px;margin:0}h2{font-size:14px;margin:18px 0 7px;padding-bottom:4px;border-bottom:1px solid #b9cbc6}.brand{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #064b43;padding-bottom:10px;margin-bottom:14px}.muted{color:#60746f}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.box{border:1px solid #d9e3df;border-radius:6px;padding:7px}.box span{display:block;color:#60746f;font-size:9px}.box b{font-size:11px}table{width:100%;border-collapse:collapse;margin:5px 0 12px}th,td{border:1px solid #d9e3df;padding:5px;text-align:left;vertical-align:top}th{background:#f2f6f4}section{break-inside:avoid}.patient-diary-note{font-style:italic;color:#60746f;margin:3px 0 7px}@media print{button{display:none}}</style></head><body>
-      <div class="brand"><div><h1>NUBEMO</h1><div class="muted">Cartella clinico-nutrizionale</div></div><div class="muted">Generato dal professionista · ${new Date().toLocaleString('it-IT')}</div></div>
-      <section><h2>Paziente</h2><div class="grid"><div class="box"><span>Nome</span><b>${val([p.first_name,p.last_name].filter(Boolean).join(' '))}</b></div><div class="box"><span>Data di nascita</span><b>${fmtDate(r.birth_date)}</b></div><div class="box"><span>Altezza</span><b>${r.height_cm?`${val(r.height_cm)} cm`:'—'}</b></div><div class="box"><span>Inizio percorso</span><b>${fmtDate(r.pathway_start_date||r.relationship?.started_at)}</b></div><div class="box"><span>Diagnosi / motivo</span><b>${val(a.diagnosis)}</b></div><div class="box"><span>Obiettivi</span><b>${val(a.objectives)}</b></div></div></section>
-      <section><h2>Anamnesi</h2><div class="grid"><div class="box"><span>Peso teorico</span><b>${num(a.theoretical_weight_kg,' kg')}</b></div><div class="box"><span>Attività</span><b>${val(a.activity)}</b></div><div class="box"><span>Alvo</span><b>${val(a.bowel)}</b></div><div class="box"><span>Allergie</span><b>${val(a.allergies)}</b></div><div class="box"><span>Farmaci</span><b>${val(a.medications)}</b></div><div class="box"><span>Patologie pregresse</span><b>${val(a.past_conditions)}</b></div></div></section>
-      <section><h2>Antropometria e misure</h2>${table(['Data','Peso rilevato','Vita','Fianchi','Note'],measures)}</section>
-      <section><h2>Piani alimentari</h2>${table(['Titolo','Stato','Dal','Al','Nota'],plans)}</section>
-      <section><h2>Esami</h2>${table(['Data','Titolo','Stato','Valori'],labs)}</section>
-      <section><h2>Visite</h2>${table(['Data/ora','Tipo','Stato','Note'],visits)}</section>
-      <section><h2>Diario</h2><p class="patient-diary-note">Dati registrati direttamente dal paziente e riportati in sola lettura.</p>${table(['Data','Peso paziente','Colazione','Pranzo','Cena','Sport','Note'],diary)}</section>
-      <section><h2>Note professionista</h2>${table(['Data','Nota'],notes)}</section>
-      </body></html>`;
+  function openDialog(p){
+    if(typeof window.exportClinicalPdf!=='function')return alert('Il motore della Cartella PDF approvata non è disponibile. Ricarica NUBEMO e riprova.');
+    document.getElementById('clinicalPdfOverlay')?.remove();
+    const o=document.createElement('div');o.id='clinicalPdfOverlay';o.className='clinical-overlay';
+    o.innerHTML=`<section class="clinical-modal"><button class="monubi-x" id="closeClinicalPdf" type="button">×</button><div class="eyebrow">CARTELLA PAZIENTE</div><h2>Genera PDF di ${esc(p.name)}</h2><p class="muted">La cartella raccoglie i dati clinico-nutrizionali realmente presenti nella scheda.</p><label>Diario / storico peso da allegare</label><select id="clinicalDiaryMode"><option value="none">Non includere</option><option value="weight">Diario sintetico – solo peso rilevato</option><option value="7">Diario – ultimi 7 giorni</option><option value="30">Diario – ultimi 30 giorni</option><option value="full">Diario completo</option></select><div id="clinicalWeightIntervalWrap" style="display:none"><label>Intervallo rilevazioni peso (giorni)</label><input id="clinicalWeightInterval" type="number" min="1" max="365" value="30"></div><div class="clinical-actions"><button class="secondary" id="cancelClinicalPdf">Annulla</button><button class="primary" id="createClinicalPdf">Genera cartella PDF</button></div></section>`;
+    document.body.appendChild(o);
+    const mode=o.querySelector('#clinicalDiaryMode'),wrap=o.querySelector('#clinicalWeightIntervalWrap');
+    const syncMode=()=>{wrap.style.display=mode.value==='weight'?'block':'none';};mode.addEventListener('change',syncMode);syncMode();
+    const close=()=>o.remove();o.querySelector('#closeClinicalPdf')?.addEventListener('click',close);o.querySelector('#cancelClinicalPdf')?.addEventListener('click',close);o.addEventListener('click',e=>{if(e.target===o)close();});
+    o.querySelector('#createClinicalPdf')?.addEventListener('click',async()=>{const b=o.querySelector('#createClinicalPdf'),interval=Math.max(1,Math.min(365,Number(o.querySelector('#clinicalWeightInterval')?.value)||30)),diaryMode=mode.value||'none';b.disabled=true;b.textContent='Generazione…';try{await window.exportClinicalPdf(p,{interval,diaryMode});close();}catch(e){console.error('NUBEMO approved clinical PDF',e);alert('Non riesco a generare la cartella PDF.');b.disabled=false;b.textContent='Genera cartella PDF';}});
   }
 
-  async function generate(patientId=patients.getCurrentPatientId?.()) {
+  async function generate(patientId=patients.getCurrentPatientId?.()){
     if(!patientId)return alert('Paziente non disponibile.');
-    const w=window.open('','_blank');
-    if(!w)return alert('Il browser ha bloccato la finestra di stampa. Consenti i popup e riprova.');
-    w.document.open(); w.document.write('<!doctype html><title>NUBEMO</title><p style="font-family:sans-serif;padding:24px">Preparazione Cartella PDF...</p>'); w.document.close();
-    try {
-      const data=await collect(patientId);
-      w.document.open(); w.document.write(html(data)); w.document.close();
-      setTimeout(()=>w.print(),250);
-    } catch(e) {
-      console.error('NUBEMO clinical PDF',e);
-      try { w.close(); } catch (_) {}
-      alert('Non è stato possibile preparare la Cartella PDF.');
-    }
+    try{const data=await collect(patientId);openDialog(legacyPatient(data));}
+    catch(e){console.error('NUBEMO clinical PDF data',e);alert('Non è stato possibile preparare i dati della Cartella PDF.');}
   }
 
-  function bindButton(el){if(!el||el.dataset.nubemoPdf==='1')return;const clone=el.cloneNode(true);clone.dataset.nubemoPdf='1';clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();void generate();});el.replaceWith(clone);}
+  function bindButton(el){if(!el||el.dataset.nubemoPdf==='approved')return;const clone=el.cloneNode(true);clone.dataset.nubemoPdf='approved';clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();void generate();});el.replaceWith(clone);}
   function syncView(){if(document.body.dataset.proView!=='details')return;bindButton(document.getElementById('desktopClinicalPdf'));document.querySelectorAll('[data-drawer-clinical]').forEach(bindButton);}
-
   window.nubemoProfessionalPdf=Object.freeze({syncView,generate});
 })();
