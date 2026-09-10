@@ -185,11 +185,39 @@
     document.querySelector('[data-patient-tab="labs"]')?.click();
   }
 
+  async function deletePending(item){
+    if(!item)return;
+    if(!confirm(`Eliminare le analisi "${item.filename}"?\n\nIl file verrà rimosso anche dall'attesa del paziente.`))return;
+    const reportDelete=await client.rpc('soft_delete_associated_laboratory_report',{p_report_id:item.reportId});
+    if(reportDelete.error)throw reportDelete.error;
+
+    if(item.documentId){
+      const documentResult=await client.from('documents').select('storage_bucket,storage_path').eq('id',item.documentId).maybeSingle();
+      if(documentResult.error)throw documentResult.error;
+      const documentDelete=await client.rpc('soft_delete_associated_patient_document',{p_document_id:item.documentId});
+      if(documentDelete.error)throw documentDelete.error;
+      const doc=documentResult.data;
+      if(doc?.storage_bucket&&doc?.storage_path){
+        const removal=await client.storage.from(doc.storage_bucket).remove([doc.storage_path]);
+        if(removal.error)console.error('NUBEMO PRO orphan lab document cleanup:',removal.error);
+      }
+    }
+
+    await window.nubemoProfessionalDocumentsBridge?.refresh?.();
+    await hydrate();
+    window.reviewLabKey='';
+    const labsTab=document.querySelector('[data-patient-tab="labs"]');
+    if(labsTab)labsTab.click();
+    else document.querySelector('[data-view="dashboard"]')?.click();
+  }
+
   document.addEventListener('click',event=>{
     const open=event.target?.closest?.('#openLabReviewPdf');
     if(open){event.preventDefault();event.stopImmediatePropagation();const item=pendingByKey.get(window.reviewLabKey);if(item)void openPendingPdf(item).catch(error=>{console.error('NUBEMO PRO open lab PDF:',error);alert('Non riesco ad aprire il PDF.');});return;}
-    const confirm=event.target?.closest?.('#confirmLabReview');
-    if(confirm){event.preventDefault();event.stopImmediatePropagation();const item=pendingByKey.get(window.reviewLabKey);if(!item)return;confirm.disabled=true;void confirmPending(item).catch(error=>{console.error('NUBEMO PRO confirm lab:',error);alert('Non è stato possibile confermare gli esami.');confirm.disabled=false;});}
+    const remove=event.target?.closest?.('#deleteLabReview');
+    if(remove){event.preventDefault();event.stopImmediatePropagation();const item=pendingByKey.get(window.reviewLabKey);if(item){remove.disabled=true;void deletePending(item).catch(error=>{console.error('NUBEMO PRO delete pending lab:',error);alert('Non è stato possibile eliminare le analisi.');remove.disabled=false;});}return;}
+    const confirmButton=event.target?.closest?.('#confirmLabReview');
+    if(confirmButton){event.preventDefault();event.stopImmediatePropagation();const item=pendingByKey.get(window.reviewLabKey);if(!item)return;confirmButton.disabled=true;void confirmPending(item).catch(error=>{console.error('NUBEMO PRO confirm lab:',error);alert('Non è stato possibile confermare gli esami.');confirmButton.disabled=false;});}
   },true);
 
   const ready=(async()=>{await hydrate();install();})();
