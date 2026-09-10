@@ -130,9 +130,31 @@
     } finally { patching = false; }
   }
 
+  const retiredLocalActions = new Set([
+    'savePatientAccount','deletePatientAccount','downloadPrivacyForm',
+    'uploadSignedPrivacy','signedPrivacyFile','openSignedPrivacy'
+  ]);
+
   document.addEventListener('click', event => {
     remember(event.target);
+    const retired = event.target?.closest?.('[id]');
+    if (retired && retiredLocalActions.has(retired.id)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      queueMicrotask(patch);
+      return;
+    }
     if (event.target?.closest?.('[data-patient-tab]')) queueMicrotask(patch);
+  },true);
+
+  // Impedisce anche al vecchio input file privacy 3.98 di scrivere in IndexedDB
+  // nell'istante precedente alla sostituzione del contenuto della scheda.
+  document.addEventListener('change', event => {
+    if (event.target?.id === 'signedPrivacyFile') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      queueMicrotask(patch);
+    }
   },true);
 
   const observer = new MutationObserver(() => queueMicrotask(patch));
