@@ -28,6 +28,7 @@
     try {
       await window.nubemoProfessionalNotesBridge?.flush?.();
       await window.nubemoProfessionalSettingsBridge?.flush?.();
+      await window.nubemoProfessionalLabsBridge?.flush?.();
       await window.nubemoProfessionalLegacyAdapter?.flush?.();
       await client.auth.signOut();
     } finally { redirectToLogin(); }
@@ -76,7 +77,7 @@
         } catch (logoError) { console.error('NUBEMO professional logo load:', logoError); }
       }
 
-      await loadScript('professional-services.js?v=nubemo398recovery13','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      await loadScript('professional-services.js?v=nubemo398recovery14','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       const services = window.nubemoProfessionalServices;
       if (!services) throw new Error('Servizi Supabase Area Professionista non inizializzati.');
 
@@ -89,28 +90,30 @@
         return loadedPatients.activePatients;
       };
 
-      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo398recovery13','Impossibile preparare i dati dell’Area Professionista.');
+      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo398recovery14','Impossibile preparare i dati dell’Area Professionista.');
       if (!window.nubemoProfessionalLegacyAdapter) throw new Error('Adattatore dati PRO non inizializzato.');
       await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
 
-      await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery13','Impossibile preparare le impostazioni del professionista.');
+      await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery14','Impossibile preparare le impostazioni del professionista.');
       await window.nubemoProfessionalSettingsBridge?.ready;
-      await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery13','Impossibile preparare le note del professionista.');
+      await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery14','Impossibile preparare le note del professionista.');
       await window.nubemoProfessionalNotesBridge?.ready;
-      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery13','Impossibile preparare i documenti del paziente.');
+      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery14','Impossibile preparare i documenti del paziente.');
       await window.nubemoProfessionalDocumentsBridge?.ready;
-      await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery13','Impossibile preparare i piani alimentari.');
+      await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery14','Impossibile preparare i piani alimentari.');
       await window.nubemoProfessionalPlansBridge?.ready;
+      await loadScript('professional-labs-supabase-bridge.js?v=nubemo398recovery14','Impossibile preparare gli esami del paziente.');
+      await window.nubemoProfessionalLabsBridge?.ready;
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
 
       // Owner grafico/funzionale principale: motore NUBEMO 3.98 verificato.
-      await loadScript('pro.js?v=nubemo398recovery13','Impossibile caricare l’Area Professionista.');
+      await loadScript('pro.js?v=nubemo398recovery14','Impossibile caricare l’Area Professionista.');
 
       // Estensioni recovery: identità/percorso e domini che nella 3.98
       // dipendevano da storage/credenziali locali. Non ridisegnano la shell 3.98.
-      await loadScript('professional-patient-management.js?v=nubemo398recovery13','Impossibile caricare la gestione dei pazienti.');
-      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery13','Impossibile caricare Account e Privacy del paziente.');
+      await loadScript('professional-patient-management.js?v=nubemo398recovery14','Impossibile caricare la gestione dei pazienti.');
+      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery14','Impossibile caricare Account e Privacy del paziente.');
     } catch (error) {
       console.error('NUBEMO Professional guard:', error);
       showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');
