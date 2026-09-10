@@ -18,7 +18,7 @@
   function loadPatientApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'app.js?v=nubemo398recovery8';
+      script.src = 'app.js?v=nubemo398recovery15';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Impossibile caricare l’Area Paziente.'));
       document.body.appendChild(script);
