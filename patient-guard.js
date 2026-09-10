@@ -26,7 +26,7 @@
   function loadPatientApp() {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'app.js?v=nubemo398recovery2';
+      script.src = 'app.js?v=nubemo398recovery3';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Impossibile caricare l’Area Paziente.'));
       document.body.appendChild(script);
@@ -35,6 +35,7 @@
 
   async function logout() {
     try {
+      await window.nubemoPatientLegacyAdapter?.flush?.();
       await client.auth.signOut();
     } finally {
       backToLogin();
@@ -43,7 +44,7 @@
 
   async function bootstrap() {
     try {
-      if (!client || !window.nubemoPatientServices) {
+      if (!client || !window.nubemoPatientServices || !window.nubemoPatientLegacyAdapter) {
         throw new Error('Servizi di accesso non disponibili.');
       }
 
@@ -54,11 +55,15 @@
       const context = await window.nubemoPatientServices.loadContext();
       window.nubemoPatientContext = context;
 
+      // Il frontend 3.98 usa API sincrone. Prima di avviarlo prepariamo una
+      // vista legacy esclusivamente in memoria alimentata dai dati Supabase.
+      await window.nubemoPatientLegacyAdapter.init(context);
+
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       window.patientLogout = logout;
 
-      // Frontend 3.98 originale: viene avviato solo dopo che Supabase ha
-      // autenticato e autorizzato il paziente.
+      // Frontend 3.98 originale: viene avviato solo dopo autenticazione,
+      // autorizzazione e caricamento della source of truth Supabase.
       await loadPatientApp();
     } catch (error) {
       console.error('NUBEMO Patient guard:', error);
