@@ -2,9 +2,9 @@
 (() => {
   'use strict';
 
-  const client = window.nubemoSupabase;
   const app = document.getElementById('proApp');
-  if (!client || !app) return;
+  const services = window.nubemoProfessionalServices;
+  if (!services || !app) return;
 
   let currentPatientId = '';
   let patching = false;
@@ -124,22 +124,14 @@
 
       if (button) { button.disabled = true; button.textContent = 'Salvataggio...'; }
       try {
-        const { error: profileError } = await client
-          .from('profiles')
-          .update({ first_name: firstName, last_name: lastName })
-          .eq('id', row.profile_id);
-        if (profileError) throw profileError;
-
-        const { error: patientError } = await client
-          .from('patients')
-          .update({
-            birth_date: birthDate,
-            sex,
-            height_cm: height,
-            pathway_start_date: pathwayStart
-          })
-          .eq('id', row.id);
-        if (patientError) throw patientError;
+        await services.updatePatientDemographics(row, {
+          firstName,
+          lastName,
+          birthDate,
+          sex,
+          height,
+          pathwayStart
+        });
 
         if (typeof window.nubemoReloadProfessionalPatients === 'function') {
           await window.nubemoReloadProfessionalPatients();
@@ -165,12 +157,7 @@
 
     try {
       const professionalId = context().professional?.id;
-      const { error } = await client
-        .from('professional_patients')
-        .update({ status: 'ended', ended_at: new Date().toISOString() })
-        .eq('professional_id', professionalId)
-        .eq('patient_id', row.id);
-      if (error) throw error;
+      await services.setPatientPathwayStatus(professionalId, row.id, 'ended');
 
       if (typeof window.nubemoReloadProfessionalPatients === 'function') {
         await window.nubemoReloadProfessionalPatients();
@@ -195,12 +182,7 @@
     if (button) { button.disabled = true; button.textContent = 'Riattivazione...'; }
     try {
       const professionalId = context().professional?.id;
-      const { error } = await client
-        .from('professional_patients')
-        .update({ status: 'active', ended_at: null })
-        .eq('professional_id', professionalId)
-        .eq('patient_id', row.id);
-      if (error) throw error;
+      await services.setPatientPathwayStatus(professionalId, row.id, 'active');
 
       if (typeof window.nubemoReloadProfessionalPatients === 'function') {
         await window.nubemoReloadProfessionalPatients();
