@@ -49,16 +49,21 @@
 
   async function generate(patientId=patients.getCurrentPatientId?.()) {
     if(!patientId)return alert('Paziente non disponibile.');
+    const w=window.open('','_blank');
+    if(!w)return alert('Il browser ha bloccato la finestra di stampa. Consenti i popup e riprova.');
+    w.document.open(); w.document.write('<!doctype html><title>NUBEMO</title><p style="font-family:sans-serif;padding:24px">Preparazione Cartella PDF...</p>'); w.document.close();
     try {
       const data=await collect(patientId);
-      const w=window.open('','_blank');
-      if(!w)return alert('Il browser ha bloccato la finestra di stampa. Consenti i popup e riprova.');
       w.document.open(); w.document.write(html(data)); w.document.close();
-      w.addEventListener('load',()=>setTimeout(()=>w.print(),150),{once:true});
-    } catch(e) { console.error('NUBEMO clinical PDF',e); alert('Non è stato possibile preparare la Cartella PDF.'); }
+      setTimeout(()=>w.print(),250);
+    } catch(e) {
+      console.error('NUBEMO clinical PDF',e);
+      try { w.close(); } catch (_) {}
+      alert('Non è stato possibile preparare la Cartella PDF.');
+    }
   }
 
-  function bindButton(el){if(!el||el.dataset.nubemoPdf==='1')return;el.dataset.nubemoPdf='1';const clone=el.cloneNode(true);clone.dataset.nubemoPdf='1';clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();void generate();});el.replaceWith(clone);}
+  function bindButton(el){if(!el||el.dataset.nubemoPdf==='1')return;const clone=el.cloneNode(true);clone.dataset.nubemoPdf='1';clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();void generate();});el.replaceWith(clone);}
   function syncView(){if(document.body.dataset.proView!=='details')return;bindButton(document.getElementById('desktopClinicalPdf'));document.querySelectorAll('[data-drawer-clinical]').forEach(bindButton);}
 
   window.nubemoProfessionalPdf=Object.freeze({syncView,generate});
