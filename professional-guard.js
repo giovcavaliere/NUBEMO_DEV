@@ -1,5 +1,5 @@
-// NUBEMO 4.0 DEV — Micro-step 4C.2b
-// Protegge l'Area Professionista con Supabase Auth e avvia pro.js solo dopo l'autorizzazione.
+// NUBEMO recovery 3.98 — bootstrap Area Professionista
+// Il frontend resta quello 3.98; Supabase è il livello dati/infrastruttura.
 (() => {
   'use strict';
 
@@ -16,22 +16,12 @@
     window.location.replace('index.html');
   }
 
-  function loadProfessionalApp() {
+  function loadScript(src, errorMessage) {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'pro.js?v=nubemo40pro4c2a';
+      script.src = src;
       script.onload = resolve;
-      script.onerror = () => reject(new Error('Impossibile caricare l’Area Professionista.'));
-      document.body.appendChild(script);
-    });
-  }
-
-  function loadPatientManagement() {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'professional-patient-management.js?v=nubemo40pro4c2b';
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Impossibile caricare la gestione pazienti.'));
+      script.onerror = () => reject(new Error(errorMessage));
       document.body.appendChild(script);
     });
   }
@@ -108,62 +98,45 @@
         }
       }
 
-      async function loadRemotePatients() {
-        const { data: relationships, error: relationshipsError } = await client
-          .from('professional_patients')
-          .select('patient_id,status,started_at,ended_at')
-          .eq('professional_id', professional.id);
-        if (relationshipsError) throw relationshipsError;
+      // Carica soltanto il livello servizi. Nessun modulo nuovo deve sostituire
+      // il DOM della 3.98: pro.js resta owner del frontend.
+      await loadScript(
+        'professional-services.js?v=nubemo398recovery1',
+        'Impossibile caricare i servizi Supabase dell’Area Professionista.'
+      );
+      const services = window.nubemoProfessionalServices;
+      if (!services) throw new Error('Servizi Supabase Area Professionista non inizializzati.');
 
-        const patientIds = (relationships || []).map(row => row.patient_id);
-        let remotePatients = [];
-        let endedPatients = [];
-        if (patientIds.length) {
-          const { data: patientRows, error: patientsError } = await client
-            .from('patients')
-            .select('id,profile_id,birth_date,sex,height_cm,pathway_start_date,status')
-            .in('id', patientIds);
-          if (patientsError) throw patientsError;
-
-          const profileIds = (patientRows || []).map(row => row.profile_id);
-          const { data: patientProfiles, error: patientProfilesError } = await client
-            .from('profiles')
-            .select('id,first_name,last_name,email,status')
-            .in('id', profileIds);
-          if (patientProfilesError) throw patientProfilesError;
-
-          const profilesById = new Map((patientProfiles || []).map(row => [row.id, row]));
-          const relationshipsByPatient = new Map((relationships || []).map(row => [row.patient_id, row]));
-          const combined = (patientRows || []).map(row => ({
-            ...row,
-            profile: profilesById.get(row.profile_id) || null,
-            relationship: relationshipsByPatient.get(row.id) || null
-          }));
-          remotePatients = combined.filter(row => row.relationship?.status !== 'ended');
-          endedPatients = combined.filter(row => row.relationship?.status === 'ended');
-        }
-        return { remotePatients, endedPatients };
-      }
-
-      const loaded = await loadRemotePatients();
+      const loaded = await services.loadPatients(professional.id);
       window.nubemoProfessionalContext = {
         user,
         profile,
         professional,
         logoData,
-        patients: loaded.remotePatients,
+        patients: loaded.activePatients,
         endedPatients: loaded.endedPatients
       };
+
       window.nubemoReloadProfessionalPatients = async () => {
-        const loadedPatients = await loadRemotePatients();
-        window.nubemoProfessionalContext.patients = loadedPatients.remotePatients;
+        const loadedPatients = await services.loadPatients(professional.id);
+        window.nubemoProfessionalContext.patients = loadedPatients.activePatients;
         window.nubemoProfessionalContext.endedPatients = loadedPatients.endedPatients;
-        return loadedPatients.remotePatients;
+        return loadedPatients.activePatients;
       };
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
-      await loadProfessionalApp();
-      await loadPatientManagement();
+
+      // Frontend 3.98 originale.
+      await loadScript(
+        'pro.js?v=nubemo40pro4c2a',
+        'Impossibile caricare l’Area Professionista.'
+      );
+
+      // Estensione già presente nella baseline: gestione anagrafica/percorso.
+      await loadScript(
+        'professional-patient-management.js?v=nubemo40pro4c2b',
+        'Impossibile caricare la gestione pazienti.'
+      );
     } catch (error) {
       console.error('NUBEMO Professional guard:', error);
       showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');
