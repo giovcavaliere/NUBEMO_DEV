@@ -1,6 +1,6 @@
 // NUBEMO recovery 3.98 — adattatore dati sincrono per il frontend legacy Paziente.
 // Supabase resta la source of truth. I valori legacy esistono solo in memoria:
-// nessun diario/profilo/misura viene scritto nel localStorage del dispositivo.
+// nessun diario/profilo/misura/credenziale viene scritto nel localStorage del dispositivo.
 (() => {
   'use strict';
 
@@ -9,9 +9,10 @@
   const PROFILE_KEY = 'diario-pro-profile-main-v1';
   const MEASURE_KEY = 'diario-pro-measures-main-v1';
   const EXTRA_PATIENTS_KEY = 'diario-pro-extra-patients-v1';
+  const ACCOUNT_KEY = 'diario-pro-accounts-v1';
   const ACTIVE_PATIENT_KEY = 'diario-pro-active-patient-v1';
   const PATIENT_APPT_KEY = 'diario-pro-appts-recovery-v1';
-  const MANAGED_KEYS = new Set([KEY, PROFILE_KEY, MEASURE_KEY, EXTRA_PATIENTS_KEY, ACTIVE_PATIENT_KEY, PATIENT_APPT_KEY]);
+  const MANAGED_KEYS = new Set([KEY, PROFILE_KEY, MEASURE_KEY, EXTRA_PATIENTS_KEY, ACCOUNT_KEY, ACTIVE_PATIENT_KEY, PATIENT_APPT_KEY]);
 
   const memory = new Map();
   let installed = false;
@@ -131,7 +132,9 @@
       pastConditions: c.past_conditions || '',
       observations: c.observations || '',
       objectives: c.objectives || '',
-      showEnergyValues: ctx.settings?.showEnergyValues !== false,
+      // Il motore calorie legacy è intenzionalmente sospeso nel recovery.
+      // Verrà riattivato solo dopo la revisione CREA / catalogo Supabase.
+      showEnergyValues: false,
       readOnly: !ctx.activePathway
     };
   }
@@ -201,8 +204,8 @@
       } else if (k === MEASURE_KEY) {
         measurementQueue = measurementQueue.then(() => syncMeasurements(v)).catch(error => reportSyncError('misure', error));
       }
-      // PROFILE/ACTIVE/EXTRA/APPOINTMENTS sono viste di compatibilità in memoria.
-      // Non vengono mai persistite localmente.
+      // PROFILE/ACCOUNT/ACTIVE/EXTRA/APPOINTMENTS sono viste di compatibilità
+      // esclusivamente in memoria e non vengono mai persistite localmente.
     };
 
     storageProto.removeItem = function(key) {
@@ -227,6 +230,9 @@
     memory.set(PROFILE_KEY, json(legacyProfile(ctx)));
     memory.set(MEASURE_KEY, json(measures.map(legacyMeasurement)));
     memory.set(EXTRA_PATIENTS_KEY, '[]');
+    // La 3.98 usa ancora accountMap() per decidere se renderizzare l'app.
+    // Il record virtuale non contiene password: l'autenticazione reale è Supabase.
+    memory.set(ACCOUNT_KEY, json({ main: { active: true, username: ctx.profile?.email || 'supabase' } }));
     memory.set(ACTIVE_PATIENT_KEY, 'main');
     memory.set(PATIENT_APPT_KEY, json(appointments.map(legacyAppointment)));
     installVirtualStorage();
