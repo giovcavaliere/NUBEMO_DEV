@@ -49,14 +49,31 @@
     return document.querySelector('.patient-content-card');
   }
 
+  // La testata .patient-section-head appartiene alla 3.98 e non va sostituita.
+  // Cambiamo solo il contenuto che nella 3.98 proveniva dagli store demo locali.
+  function contentSlot(host, domain, patientId) {
+    const header = host?.querySelector(':scope > .patient-section-head');
+    if (!host || !header) return null;
+    [...host.children].forEach(child => { if (child !== header) child.remove(); });
+    const slot = document.createElement('div');
+    slot.className = 'nubemo-remote-tab-content';
+    slot.dataset.domain = domain;
+    slot.dataset.patientId = patientId;
+    host.appendChild(slot);
+    return slot;
+  }
+
   function patchAccount() {
     if (document.body.dataset.proView !== 'details' || activeTab() !== 'account') return;
     const row = currentPatient();
     const host = contentHost();
-    if (!row || !host || host.dataset.supabaseAccount === row.id) return;
+    if (!row || !host) return;
+    const existing = host.querySelector(':scope > .nubemo-remote-tab-content[data-domain="account"]');
+    if (existing?.dataset.patientId === row.id) return;
+    const slot = contentSlot(host,'account',row.id);
+    if (!slot) return;
     const profile = row.profile || {};
-    host.dataset.supabaseAccount = row.id;
-    host.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">${profile.status === 'active' ? 'Attivo' : esc(profile.status || 'Attivo')}</span></div>
+    slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">${profile.status === 'active' ? 'Attivo' : esc(profile.status || 'Attivo')}</span></div>
       <p class="muted">L’accesso all’Area Paziente è gestito da NUBEMO tramite Supabase Auth. Non vengono più create o conservate password demo locali.</p>
       <div class="pro-read-grid">
         <div><span>Paziente</span><b>${esc(patientName(row))}</b></div>
@@ -71,32 +88,36 @@
     const row = currentPatient();
     const host = contentHost();
     if (!row || !host) return;
+    const existing = host.querySelector(':scope > .nubemo-remote-tab-content[data-domain="privacy"]');
+    if (existing?.dataset.patientId === row.id && existing.dataset.loaded === 'true') return;
+    const slot = contentSlot(host,'privacy',row.id);
+    if (!slot) return;
     const token = ++privacyToken;
-    host.dataset.supabasePrivacy = row.id;
-    host.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">Verifica...</span></div><p class="muted">Caricamento stato informativa.</p>`;
+    slot.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">Verifica...</span></div><p class="muted">Caricamento stato informativa.</p>`;
     try {
       const docs = await services.loadPrivacyStatus(row.profile_id);
-      if (token !== privacyToken || activeTab() !== 'privacy' || currentPatient()?.id !== row.id) return;
+      if (token !== privacyToken || activeTab() !== 'privacy' || currentPatient()?.id !== row.id || !slot.isConnected) return;
       const accepted = docs.filter(d => !!d.acceptance).length;
-      host.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">${docs.length ? `${accepted}/${docs.length} accettate` : 'Nessuna informativa'}</span></div>
+      slot.dataset.loaded = 'true';
+      slot.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">${docs.length ? `${accepted}/${docs.length} accettate` : 'Nessuna informativa'}</span></div>
         <p class="muted">Le informative ufficiali sono pubblicate centralmente da NUBEMO. Il professionista consulta lo stato di accettazione del paziente.</p>
-        ${docs.length ? `<div class="document-list">${docs.map(d => `<div class="document-row"><div><b>${esc(d.title || 'Informativa privacy')}</b><span>Versione ${esc(d.version || '—')} · ${d.acceptance ? `Accettata ${d.acceptance.accepted_at ? new Date(d.acceptance.accepted_at).toLocaleDateString('it-IT') : ''}` : 'Da accettare'}</span></div><button class="secondary compact" type="button" data-open-official-privacy="${d.id}">Apri</button></div>`).join('')}</div>` : '<p class="muted">Nessuna informativa privacy attiva è stata ancora pubblicata.</p>'}`;
-      host.querySelectorAll('[data-open-official-privacy]').forEach(button => button.addEventListener('click', async () => {
+        ${docs.length ? `<div class="document-list">${docs.map(d => `<div class="document-row"><div><b>${esc(d.title || 'Informativa privacy')}</b><span>Versione ${esc(d.version || '—')} · ${d.acceptance ? `Accettata${d.acceptance.accepted_at ? ' '+new Date(d.acceptance.accepted_at).toLocaleDateString('it-IT') : ''}` : 'Da accettare'}</span></div><button class="secondary compact" type="button" data-open-official-privacy="${d.id}">Apri</button></div>`).join('')}</div>` : '<p class="muted">Nessuna informativa privacy attiva è stata ancora pubblicata.</p>'}`;
+      slot.querySelectorAll('[data-open-official-privacy]').forEach(button => button.addEventListener('click', async () => {
         const doc = docs.find(d => d.id === button.dataset.openOfficialPrivacy);
         if (!doc) return;
         try {
-          const url = await services.openDocumentUrl(doc, 300);
+          const url = await services.openDocumentUrl(doc,300);
           if (!url) throw new Error('URL informativa non disponibile');
-          window.open(url, '_blank', 'noopener');
+          window.open(url,'_blank','noopener');
         } catch (error) {
-          console.error('NUBEMO PRO privacy open:', error);
+          console.error('NUBEMO PRO privacy open:',error);
           alert('Non riesco ad aprire l’informativa privacy.');
         }
       }));
     } catch (error) {
-      if (token !== privacyToken) return;
-      console.error('NUBEMO PRO privacy status:', error);
-      host.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">Errore</span></div><p class="muted">Non è stato possibile leggere lo stato privacy del paziente.</p>`;
+      if (token !== privacyToken || !slot.isConnected) return;
+      console.error('NUBEMO PRO privacy status:',error);
+      slot.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">Errore</span></div><p class="muted">Non è stato possibile leggere lo stato privacy del paziente.</p>`;
     }
   }
 
@@ -111,13 +132,12 @@
 
   document.addEventListener('click', event => {
     remember(event.target);
-    const tab = event.target?.closest?.('[data-patient-tab]');
-    if (tab) queueMicrotask(patch);
-  }, true);
+    if (event.target?.closest?.('[data-patient-tab]')) queueMicrotask(patch);
+  },true);
 
   const observer = new MutationObserver(() => queueMicrotask(patch));
-  observer.observe(app, {childList:true, subtree:true});
+  observer.observe(app,{childList:true,subtree:true});
   patch();
 
-  window.nubemoProfessionalAccessPrivacyBridge = Object.freeze({ patch });
+  window.nubemoProfessionalAccessPrivacyBridge = Object.freeze({patch});
 })();
