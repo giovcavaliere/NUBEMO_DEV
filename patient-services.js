@@ -39,7 +39,10 @@
     let q = existingId ? client.from('diary_entries').update(payload).eq('id', existingId) : client.from('diary_entries').insert(payload);
     const { data, error } = await q.select('*').single(); throwIf(error); return data;
   }
-  async function deleteDiaryEntry(id) { const { error } = await client.from('diary_entries').update({ deleted_at: new Date().toISOString() }).eq('id', id); throwIf(error); }
+  async function deleteDiaryEntry(id) {
+    const { error } = await client.rpc('soft_delete_own_diary_entry', { p_entry_id: id });
+    throwIf(error, 'Non è stato possibile eliminare la giornata.');
+  }
 
   async function loadSelfMeasurements(patientId) {
     const { data, error } = await client.from('patient_self_measurements').select('*').eq('patient_id', patientId).is('deleted_at', null).order('measured_at'); throwIf(error); return data || [];
