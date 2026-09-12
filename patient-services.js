@@ -27,7 +27,7 @@
     const payload={patient_id:patientId,entry_date:values.entry_date,weight_kg:values.weight_kg,water:values.water,coffee:values.coffee,sweetener:values.sweetener,breakfast:values.breakfast,morning_snack:values.morning_snack,lunch:values.lunch,afternoon_snack:values.afternoon_snack,dinner:values.dinner,sport:values.sport,notes:values.notes,created_by_user_id:userId,deleted_at:null};
     const q=existingId
       ? client.from('diary_entries').update(payload).eq('id',existingId)
-      : client.from('diary_entries').upsert(payload,{onConflict:'patient_id,entry_date'});
+      : client.from('diary_entries').insert(payload);
     const {data,error}=await q.select('*').single();
     throwIf(error);
     return data;
