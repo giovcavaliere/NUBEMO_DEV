@@ -23,7 +23,15 @@
   }
 
   async function loadDiary(patientId) { const { data, error } = await client.from('diary_entries').select('*').eq('patient_id', patientId).is('deleted_at', null).order('entry_date'); throwIf(error); return data || []; }
-  async function saveDiaryEntry(patientId, userId, values, existingId = null) { const payload={patient_id:patientId,entry_date:values.entry_date,weight_kg:values.weight_kg,water:values.water,coffee:values.coffee,sweetener:values.sweetener,breakfast:values.breakfast,morning_snack:values.morning_snack,lunch:values.lunch,afternoon_snack:values.afternoon_snack,dinner:values.dinner,sport:values.sport,notes:values.notes,created_by_user_id:userId,deleted_at:null}; const q=existingId?client.from('diary_entries').update(payload).eq('id',existingId):client.from('diary_entries').insert(payload); const {data,error}=await q.select('*').single();throwIf(error);return data; }
+  async function saveDiaryEntry(patientId, userId, values, existingId = null) {
+    const payload={patient_id:patientId,entry_date:values.entry_date,weight_kg:values.weight_kg,water:values.water,coffee:values.coffee,sweetener:values.sweetener,breakfast:values.breakfast,morning_snack:values.morning_snack,lunch:values.lunch,afternoon_snack:values.afternoon_snack,dinner:values.dinner,sport:values.sport,notes:values.notes,created_by_user_id:userId,deleted_at:null};
+    const q=existingId
+      ? client.from('diary_entries').update(payload).eq('id',existingId)
+      : client.from('diary_entries').upsert(payload,{onConflict:'patient_id,entry_date'});
+    const {data,error}=await q.select('*').single();
+    throwIf(error);
+    return data;
+  }
   async function deleteDiaryEntry(id) { const { data, error }=await client.rpc('soft_delete_own_diary_entry',{p_entry_id:id});throwIf(error,'Non è stato possibile eliminare la giornata.');if(data!==true)throw new Error('Giornata non eliminata.'); }
 
   async function loadSelfMeasurements(patientId) { const {data,error}=await client.from('patient_self_measurements').select('*').eq('patient_id',patientId).is('deleted_at',null).order('measured_at');throwIf(error);return data||[]; }
