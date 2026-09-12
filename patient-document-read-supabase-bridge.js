@@ -13,6 +13,7 @@
   const previousSetItem=storageProto.setItem;
   const previousRemoveItem=storageProto.removeItem;
   const unread=new Set();
+  const replayClicks=new WeakSet();
   let readyDone=false;
   let queue=Promise.resolve();
 
@@ -35,14 +36,20 @@
     return JSON.stringify(rows.map(row=>({...row,unreadForPatient:unread.has(row.id)})));
   }
 
+  async function markRead(documentId){
+    await ready;
+    if(!documentId||!unread.has(documentId))return;
+    const result=await client.from('document_read_status').upsert({document_id:documentId,profile_id:context.profile.id,read_at:new Date().toISOString()},{onConflict:'document_id,profile_id'});
+    if(result.error)throw result.error;
+    unread.delete(documentId);
+  }
+
   async function persistReads(value){
     if(!readyDone)return;
     const rows=parse(value,[]);if(!Array.isArray(rows))return;
     for(const row of rows){
       if(!row?.id||row.unreadForPatient!==false||!unread.has(row.id))continue;
-      const result=await client.from('document_read_status').upsert({document_id:row.id,profile_id:context.profile.id,read_at:new Date().toISOString()},{onConflict:'document_id,profile_id'});
-      if(result.error)throw result.error;
-      unread.delete(row.id);
+      await markRead(row.id);
     }
   }
 
@@ -59,6 +66,24 @@
   };
   storageProto.removeItem=function(key){return previousRemoveItem.call(this,key);};
 
+  document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('[data-open-patient-document],[data-open-patient-plan],[data-open-generic-document]');
+    if(!button)return;
+    if(replayClicks.has(button)){replayClicks.delete(button);return;}
+    const documentId=button.dataset.openPatientDocument||button.dataset.openPatientPlan||button.dataset.openGenericDocument||'';
+    if(!documentId||!unread.has(documentId))return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    queue=queue.then(()=>markRead(documentId)).then(()=>{
+      replayClicks.add(button);
+      button.click();
+    }).catch(error=>{
+      console.error('NUBEMO Patient document read status:',error);
+      replayClicks.add(button);
+      button.click();
+    });
+  },true);
+
   const ready=hydrate();
-  window.nubemoPatientDocumentReadBridge=Object.freeze({ready,flush:async()=>{await ready;await queue;}});
+  window.nubemoPatientDocumentReadBridge=Object.freeze({ready,markRead,flush:async()=>{await ready;await queue;}});
 })();
