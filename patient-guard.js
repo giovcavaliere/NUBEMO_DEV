@@ -55,6 +55,7 @@
       if (!doc) return alert('Piano alimentare non disponibile.');
       const url = await services.openDocument(doc);
       if (!url) throw new Error('URL piano non disponibile.');
+      await window.nubemoPatientDocumentReadBridge?.markRead?.(documentId);
       window.location.href = url;
     } catch (error) {
       console.error('NUBEMO patient plan open:', error);
@@ -73,7 +74,7 @@
       window.nubemoPatientContext = context;
       await window.nubemoPatientLegacyAdapter.init(context);
       await loadScript('patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile applicare le impostazioni dell’Area Paziente.');
-      await loadScript('patient-document-read-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare lo stato di lettura dei documenti.');
+      await loadScript('patient-document-read-supabase-bridge.js?v=nubemo398recovery26','Impossibile preparare lo stato di lettura dei documenti.');
       await window.nubemoPatientDocumentReadBridge?.ready;
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
