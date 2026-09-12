@@ -1702,6 +1702,12 @@ function details(){
  return `<div class="patient-global-head">
    <div class="patient-global-title">${top(esc(p.name))}</div>
    <button class="secondary patient-global-edit" id="editPatientProfileTop">Modifica scheda</button>
+   <div class="patient-more-wrap">
+     <button class="patient-more-btn" id="patientMoreBtn" aria-label="Altre azioni">⋯</button>
+     <div class="patient-more-menu" id="patientMoreMenu">
+       <button id="deletePatient" class="danger-link">Elimina paziente</button>
+     </div>
+   </div>
  </div>${nav()}
  <div class="pro3-kpis">
   <div><span>Peso iniziale</span><b>${p.first!=null?p.first.toFixed(1).replace('.',',')+' kg':'—'}</b></div>
@@ -1721,12 +1727,6 @@ function details(){
      <div><h2>${[['summary','Riepilogo'],['anamnesis','Anamnesi'],['labs',`Esami${hasUnreadProfessionalBloodTests(p.id)?'<span class="document-alert-inline">!</span>':''}`],['plan','Piano'],['documents',`Documenti${hasUnreadProfessionalDocuments(p.id)?'<span class="document-alert-inline">!</span>':''}`],['privacy','Privacy'],['account','Account'],['diary','Diario'],['trend','Andamento'],['measures','Misure'],['visits','Visite'],['notes','Note']].find(x=>x[0]===tab)?.[1]||'Riepilogo'}</h2></div>
      ${tab==='summary'?`<div class="patient-summary-actions">
        <button class="primary desktop-clinical-pdf" id="desktopClinicalPdf">↓ Cartella PDF</button>
-       <div class="patient-more-wrap">
-         <button class="patient-more-btn" id="patientMoreBtn" aria-label="Altre azioni">⋯</button>
-         <div class="patient-more-menu" id="patientMoreMenu">
-           <button id="deletePatient" class="danger-link">Elimina paziente</button>
-         </div>
-       </div>
      </div>`:''}
    </div>
    ${tabContent(p)}
