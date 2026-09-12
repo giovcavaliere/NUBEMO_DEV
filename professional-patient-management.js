@@ -144,7 +144,10 @@
     const patientId=inferCurrentPatient();if(!patientId)return;
     // Nessun secondo pulsante Modifica: quello 3.98 resta l’unico owner.
     const deleteButton=document.getElementById('deletePatient');
-    if(deleteButton){deleteButton.textContent='Termina percorso';deleteButton.dataset.endPathway=patientId;}
+    if(deleteButton){
+      if(deleteButton.textContent!=='Termina percorso')deleteButton.textContent='Termina percorso';
+      if(deleteButton.dataset.endPathway!==patientId)deleteButton.dataset.endPathway=patientId;
+    }
   }
 
   function patchEndedPatients() {
