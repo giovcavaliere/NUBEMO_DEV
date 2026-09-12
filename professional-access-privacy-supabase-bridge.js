@@ -88,17 +88,24 @@
     const row = currentPatient();
     const host = contentHost();
     if (!row || !host) return;
+
+    // Una volta creato lo slot Privacy per questo paziente, non deve essere
+    // ricreato dalle mutazioni DOM prodotte dal suo stesso caricamento asincrono.
+    // La vecchia logica attendeva dataset.loaded=true e nel frattempo generava
+    // una catena infinita contentSlot -> MutationObserver -> patchPrivacy.
     const existing = host.querySelector(':scope > .nubemo-remote-tab-content[data-domain="privacy"]');
-    if (existing?.dataset.patientId === row.id && existing.dataset.loaded === 'true') return;
+    if (existing?.dataset.patientId === row.id) return;
+
     const slot = contentSlot(host,'privacy',row.id);
     if (!slot) return;
     const token = ++privacyToken;
+    slot.dataset.state = 'loading';
     slot.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">Verifica...</span></div><p class="muted">Caricamento stato informativa.</p>`;
     try {
       const docs = await services.loadPrivacyStatus(row.profile_id);
       if (token !== privacyToken || activeTab() !== 'privacy' || currentPatient()?.id !== row.id || !slot.isConnected) return;
       const accepted = docs.filter(d => !!d.acceptance).length;
-      slot.dataset.loaded = 'true';
+      slot.dataset.state = 'loaded';
       slot.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">${docs.length ? `${accepted}/${docs.length} accettate` : 'Nessuna informativa'}</span></div>
         <p class="muted">Le informative ufficiali sono pubblicate centralmente da NUBEMO. Il professionista consulta lo stato di accettazione del paziente.</p>
         ${docs.length ? `<div class="document-list">${docs.map(d => `<div class="document-row"><div><b>${esc(d.title || 'Informativa privacy')}</b><span>Versione ${esc(d.version || '—')} · ${d.acceptance ? `Accettata${d.acceptance.accepted_at ? ' '+new Date(d.acceptance.accepted_at).toLocaleDateString('it-IT') : ''}` : 'Da accettare'}</span></div><button class="secondary compact" type="button" data-open-official-privacy="${d.id}">Apri</button></div>`).join('')}</div>` : '<p class="muted">Nessuna informativa privacy attiva è stata ancora pubblicata.</p>'}`;
@@ -116,6 +123,7 @@
       }));
     } catch (error) {
       if (token !== privacyToken || !slot.isConnected) return;
+      slot.dataset.state = 'error';
       console.error('NUBEMO PRO privacy status:',error);
       slot.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">Errore</span></div><p class="muted">Non è stato possibile leggere lo stato privacy del paziente.</p>`;
     }
