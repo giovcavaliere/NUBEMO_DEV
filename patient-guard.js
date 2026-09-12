@@ -81,6 +81,7 @@
       window.patientLogout = logout;
 
       await loadPatientApp();
+      await loadScript('patient-measures-pdf.js?v=nubemo398improvement01','Impossibile preparare il PDF delle misurazioni.');
       window.nubemoPatientLegacyAdapter.bindLegacyApp?.();
       await loadScript('patient-recovery-contract.js?v=nubemo398recovery19','Impossibile applicare il contratto dell’Area Paziente.');
 
