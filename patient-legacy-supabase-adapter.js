@@ -310,7 +310,20 @@
     window.openPatientPlan=openRemoteDocument;
     window.bindDocumentsPage=bindRemoteDocumentsPage;
     const root=document.getElementById('app');
-    if(root){const observer=new MutationObserver(()=>queueMicrotask(patchLegacyUi));observer.observe(root,{childList:true,subtree:true});}
+    if(root){
+      let scheduled=false;
+      const observer=new MutationObserver(()=>{
+        if(scheduled)return;
+        scheduled=true;
+        queueMicrotask(()=>{
+          scheduled=false;
+          observer.disconnect();
+          try{patchLegacyUi();}
+          finally{observer.observe(root,{childList:true,subtree:true});}
+        });
+      });
+      observer.observe(root,{childList:true,subtree:true});
+    }
     patchLegacyUi();
   }
 
