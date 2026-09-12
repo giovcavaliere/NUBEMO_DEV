@@ -26,7 +26,7 @@
   }
 
   function loadPatientApp() {
-    return loadScript('app.js?v=nubemo398recovery19','Impossibile caricare l’Area Paziente.');
+    return loadScript('app.js?v=nubemo398foodcatalog01','Impossibile caricare l’Area Paziente.');
   }
 
   async function logout() {
@@ -80,6 +80,8 @@
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       window.patientLogout = logout;
 
+      await loadScript('food-catalog.js?v=nubemo398foodcatalog01','Impossibile caricare il catalogo alimenti.');
+      await window.nubemoFoodCatalog.load(client);
       await loadPatientApp();
       await loadScript('patient-measures-pdf.js?v=nubemo398improvement01','Impossibile preparare il PDF delle misurazioni.');
       window.nubemoPatientLegacyAdapter.bindLegacyApp?.();

@@ -62,7 +62,9 @@
       await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare i piani alimentari.');await window.nubemoProfessionalPlansBridge?.ready;
       await loadScript('professional-labs-supabase-bridge.js?v=nubemo398improvement06','Impossibile preparare gli esami del paziente.');await window.nubemoProfessionalLabsBridge?.ready;
       if(logoutButton)logoutButton.style.display='inline-flex';
-      await loadScript('pro.js?v=nubemo398recovery19','Impossibile caricare l’Area Professionista.');
+      await loadScript('food-catalog.js?v=nubemo398foodcatalog01','Impossibile caricare il catalogo alimenti.');
+      await window.nubemoFoodCatalog.load(client);
+      await loadScript('pro.js?v=nubemo398foodcatalog01','Impossibile caricare l’Area Professionista.');
       await loadScript('professional-patient-management.js?v=nubemo398recovery21','Impossibile caricare la gestione dei pazienti.');
       await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery31','Impossibile caricare Account e Privacy del paziente.');
     } catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}

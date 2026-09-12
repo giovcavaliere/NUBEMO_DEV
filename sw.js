@@ -1,13 +1,14 @@
-const CACHE='nubemo-demo-v3.98-improvement07';
+const CACHE='nubemo-demo-v3.98-foodcatalog01';
 const CORE=[
+  './food-catalog.js?v=nubemo398foodcatalog01',
   './',
   './index.html',
   './patient.html',
   './pro.html',
   './style.css?v=nubemo398recovery19',
   './diary-pdf.js?v=nubemo398recovery19',
-  './app.js?v=nubemo398recovery19',
-  './pro.js?v=nubemo398recovery19',
+  './app.js?v=nubemo398foodcatalog01',
+  './pro.js?v=nubemo398foodcatalog01',
   './monubi-ui.js?v=nubemo398recovery19',
   './supabase-client.js?v=nubemo398recovery19',
   './password-visibility.js?v=nubemo398improvement05',
@@ -19,7 +20,7 @@ const CORE=[
   './patient-settings-supabase-bridge.js?v=nubemo398recovery19',
   './patient-document-read-supabase-bridge.js?v=nubemo398recovery26',
   './patient-recovery-contract.js?v=nubemo398recovery19',
-  './patient-guard.js?v=nubemo398improvement01',
+  './patient-guard.js?v=nubemo398foodcatalog01',
   './patient-measures-pdf.js?v=nubemo398improvement01',
   './pdf-open-recovery-bridge.js?v=nubemo398recovery28',
   './professional-services.js?v=nubemo398recovery19',
@@ -37,7 +38,7 @@ const CORE=[
   './professional-patient-actions-menu.js?v=nubemo398recovery29',
   './professional-bmi-dashboard-fix.js?v=nubemo398recovery30',
   './professional-access-privacy-supabase-bridge.js?v=nubemo398recovery31',
-  './professional-guard.js?v=nubemo398improvement06',
+  './professional-guard.js?v=nubemo398foodcatalog01',
   './manifest.json?v=nubemo398recovery19',
   './assets/nubemo-brand-clean-v2.png',
   './assets/nubemo-n-icon-180.png',
@@ -60,6 +61,8 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
+  // Il catalogo deve essere letto con la sessione corrente, mai dalla cache PWA.
+  if(new URL(event.request.url).pathname==='/rest/v1/food_catalog')return;
   event.respondWith(
     fetch(event.request,{cache:'no-store'})
       .then(response=>{
