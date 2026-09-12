@@ -41,6 +41,18 @@
     return null;
   }
 
+  function resetSupportForm(context) {
+    const area = context.role === 'professional'
+      ? document.getElementById('proSupportArea')
+      : document.getElementById('patientSupportArea');
+    const message = context.role === 'professional'
+      ? document.getElementById('proSupportMessage')
+      : document.getElementById('patientSupportMessage');
+
+    if (message) message.value = '';
+    if (area) area.selectedIndex = 0;
+  }
+
   async function send(target, context) {
     if (!context.message) {
       alert('Descrivi brevemente il problema prima di continuare.');
@@ -69,6 +81,7 @@
       if (error) throw error;
       if (!data?.ok) throw new Error(data?.error || 'Invio non riuscito');
       alert(data.message || 'Segnalazione inviata all’assistenza NUBEMO.');
+      resetSupportForm(context);
     } catch (error) {
       console.error('NUBEMO support email:', error);
       alert('Non è stato possibile inviare la segnalazione. Il testo inserito è stato mantenuto: riprova più tardi.');
