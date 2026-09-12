@@ -74,7 +74,6 @@
     if (!slot) return;
     const profile = row.profile || {};
     slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">${profile.status === 'active' ? 'Attivo' : esc(profile.status || 'Attivo')}</span></div>
-      <p class="muted">L’accesso all’Area Paziente è gestito da NUBEMO tramite Supabase Auth. Non vengono più create o conservate password demo locali.</p>
       <div class="pro-read-grid">
         <div><span>Paziente</span><b>${esc(patientName(row))}</b></div>
         <div><span>Email di accesso</span><b>${esc(profile.email || '—')}</b></div>
