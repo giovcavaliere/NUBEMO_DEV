@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v3.98-improvement06';
+const CACHE='nubemo-demo-v3.98-improvement07';
 const CORE=[
   './',
   './index.html',
@@ -33,6 +33,7 @@ const CORE=[
   './professional-plans-supabase-bridge.js?v=nubemo398recovery19',
   './professional-labs-supabase-bridge.js?v=nubemo398improvement06',
   './professional-patient-management.js?v=nubemo398recovery21',
+  './professional-patient-invite-guard.js?v=nubemo398improvement07',
   './professional-patient-actions-menu.js?v=nubemo398recovery29',
   './professional-bmi-dashboard-fix.js?v=nubemo398recovery30',
   './professional-access-privacy-supabase-bridge.js?v=nubemo398recovery31',
