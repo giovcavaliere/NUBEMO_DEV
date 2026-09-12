@@ -57,7 +57,7 @@
       await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;
       await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;
       await loadScript('professional-notes-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le note del professionista.');await window.nubemoProfessionalNotesBridge?.ready;
-      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;
+      await loadScript('professional-documents-supabase-bridge.js?v=nubemo398recovery27','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;
       await loadScript('professional-document-read-supabase-bridge.js?v=nubemo398recovery26','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;
       await loadScript('professional-plans-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare i piani alimentari.');await window.nubemoProfessionalPlansBridge?.ready;
       await loadScript('professional-labs-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare gli esami del paziente.');await window.nubemoProfessionalLabsBridge?.ready;
