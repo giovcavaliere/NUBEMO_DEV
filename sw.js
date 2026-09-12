@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v3.98-recovery25';
+const CACHE='nubemo-demo-v3.98-recovery26';
 const CORE=[
   './',
   './index.html',
@@ -15,9 +15,9 @@ const CORE=[
   './patient-labs-supabase-bridge.js?v=nubemo398recovery19',
   './patient-legacy-supabase-adapter.js?v=nubemo398recovery23',
   './patient-settings-supabase-bridge.js?v=nubemo398recovery19',
-  './patient-document-read-supabase-bridge.js?v=nubemo398recovery19',
+  './patient-document-read-supabase-bridge.js?v=nubemo398recovery26',
   './patient-recovery-contract.js?v=nubemo398recovery19',
-  './patient-guard.js?v=nubemo398recovery19',
+  './patient-guard.js?v=nubemo398recovery26',
   './professional-services.js?v=nubemo398recovery19',
   './professional-legacy-supabase-adapter.js?v=nubemo398recovery19',
   './professional-recovery-contract.js?v=nubemo398recovery21',
@@ -25,12 +25,12 @@ const CORE=[
   './professional-settings-supabase-bridge.js?v=nubemo398recovery19',
   './professional-notes-supabase-bridge.js?v=nubemo398recovery19',
   './professional-documents-supabase-bridge.js?v=nubemo398recovery19',
-  './professional-document-read-supabase-bridge.js?v=nubemo398recovery19',
+  './professional-document-read-supabase-bridge.js?v=nubemo398recovery26',
   './professional-plans-supabase-bridge.js?v=nubemo398recovery19',
   './professional-labs-supabase-bridge.js?v=nubemo398recovery19',
   './professional-patient-management.js?v=nubemo398recovery21',
   './professional-access-privacy-supabase-bridge.js?v=nubemo398recovery22',
-  './professional-guard.js?v=nubemo398recovery22',
+  './professional-guard.js?v=nubemo398recovery26',
   './manifest.json?v=nubemo398recovery19',
   './assets/nubemo-brand-clean-v2.png',
   './assets/nubemo-n-icon-180.png',
