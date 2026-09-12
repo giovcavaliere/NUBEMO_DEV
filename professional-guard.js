@@ -64,7 +64,7 @@
       if(logoutButton)logoutButton.style.display='inline-flex';
       await loadScript('pro.js?v=nubemo398recovery19','Impossibile caricare l’Area Professionista.');
       await loadScript('professional-patient-management.js?v=nubemo398recovery21','Impossibile caricare la gestione dei pazienti.');
-      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery19','Impossibile caricare Account e Privacy del paziente.');
+      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery22','Impossibile caricare Account e Privacy del paziente.');
     } catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}
   }
   authorize();
