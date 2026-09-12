@@ -3,6 +3,7 @@
   'use strict';
 
   const SUPPORT_FUNCTION = 'send-support-email';
+  const SUPPORT_BUTTON_TEXT = 'Invia email all’assistenza';
 
   function deviceInfo() {
     const ua = navigator.userAgent || '';
@@ -55,7 +56,6 @@
     if (target.dataset.nubemoSending === '1') return;
     target.dataset.nubemoSending = '1';
     target.disabled = true;
-    const previousText = target.textContent;
     target.textContent = 'Invio in corso…';
 
     try {
@@ -75,16 +75,19 @@
     } finally {
       delete target.dataset.nubemoSending;
       target.disabled = false;
-      target.textContent = previousText || 'Invia email all’assistenza';
-      normalizeButtons();
+      if (target.textContent !== SUPPORT_BUTTON_TEXT) target.textContent = SUPPORT_BUTTON_TEXT;
     }
   }
 
   function normalizeButtons() {
     const patient = document.querySelector('[onclick="sendPatientSupport()"]');
-    if (patient && patient.dataset.nubemoSending !== '1') patient.textContent = 'Invia email all’assistenza';
+    if (patient && patient.dataset.nubemoSending !== '1' && patient.textContent !== SUPPORT_BUTTON_TEXT) {
+      patient.textContent = SUPPORT_BUTTON_TEXT;
+    }
     const professional = document.getElementById('sendProSupport');
-    if (professional && professional.dataset.nubemoSending !== '1') professional.textContent = 'Invia email all’assistenza';
+    if (professional && professional.dataset.nubemoSending !== '1' && professional.textContent !== SUPPORT_BUTTON_TEXT) {
+      professional.textContent = SUPPORT_BUTTON_TEXT;
+    }
   }
 
   document.addEventListener('click', event => {
@@ -96,7 +99,7 @@
     void send(target, context);
   }, true);
 
-  const observer = new MutationObserver(normalizeButtons);
+  const observer = new MutationObserver(() => normalizeButtons());
   observer.observe(document.documentElement, { childList: true, subtree: true });
   normalizeButtons();
 
