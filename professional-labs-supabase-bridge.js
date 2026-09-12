@@ -182,7 +182,9 @@
     await services.confirmLaboratoryReport(item.reportId);
     await hydrate();
     window.reviewLabKey='';
-    document.querySelector('[data-patient-tab="labs"]')?.click();
+    const labsNavigation=document.querySelector('[data-drawer-tab="labs"]')||document.querySelector('[data-patient-tab="labs"]');
+    if(labsNavigation){labsNavigation.click();return;}
+    document.getElementById('cancelLabReview')?.click();
   }
 
   async function deletePending(item){
