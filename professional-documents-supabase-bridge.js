@@ -103,6 +103,11 @@
     try {
       const url = await services.openDocumentUrl(row, 300);
       if (!url) throw new Error('URL documento non disponibile');
+      try {
+        await window.nubemoProfessionalDocumentReadBridge?.markRead?.(id);
+      } catch (readError) {
+        console.error('NUBEMO PRO document read status:', readError);
+      }
       window.location.href = url;
     } catch (error) {
       console.error('NUBEMO PRO open document:', error);
