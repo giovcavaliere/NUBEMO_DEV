@@ -181,28 +181,49 @@
     }
   }
 
+  function askDeleteRecordedLabValues(row) {
+    const dateLabel = row.document_date
+      ? new Date(row.document_date+'T12:00:00').toLocaleDateString('it-IT')
+      : 'del referto';
+    return confirm(
+      `È presente anche la registrazione dei valori delle analisi del ${dateLabel}.\n\n` +
+      'Vuoi eliminare anche i dati registrati?\n\n' +
+      'OK = elimina PDF + dati analisi\n' +
+      'Annulla = elimina solo il PDF e mantiene i dati'
+    );
+  }
+
   async function bloodReportDeletionDecision(row) {
     const isBlood = row.category === 'health' && row.sub_category === 'blood_test';
-    if (!isBlood || !row.patient_id || !row.document_date) return { deleteReportIds: [] };
+    if (!isBlood || !row.patient_id) return { deleteReportIds: [] };
 
     const result = await client.from('laboratory_reports')
       .select('id,document_id,report_date,status')
       .eq('patient_id', row.patient_id)
-      .eq('report_date', row.document_date)
       .is('deleted_at', null);
     if (result.error) throw result.error;
 
     const reports = result.data || [];
-    const linkedPending = reports.filter(r => r.document_id === row.id && r.status === 'pending_review');
-    const confirmed = reports.filter(r => r.status === 'confirmed');
+    const linked = reports.filter(r => r.document_id === row.id);
+    const linkedPending = linked.filter(r => r.status === 'pending_review');
+    const linkedConfirmed = linked.filter(r => r.status === 'confirmed');
     const deleteReportIds = linkedPending.map(r => r.id);
 
-    if (confirmed.length === 1) {
-      if (confirm(`Vuoi eliminare anche la registrazione dei valori del ${new Date(row.document_date+'T12:00:00').toLocaleDateString('it-IT')}?`)) {
-        deleteReportIds.push(confirmed[0].id);
-      }
-    } else if (confirmed.length > 1) {
-      alert(`Per il ${new Date(row.document_date+'T12:00:00').toLocaleDateString('it-IT')} risultano presenti più registrazioni di valori. Il PDF verrà eliminato, ma i valori saranno mantenuti per evitare una cancellazione ambigua.`);
+    if (linkedConfirmed.length === 1) {
+      if (askDeleteRecordedLabValues(row)) deleteReportIds.push(linkedConfirmed[0].id);
+      return { deleteReportIds: [...new Set(deleteReportIds)] };
+    }
+    if (linkedConfirmed.length > 1) {
+      alert('A questo PDF risultano collegate più registrazioni di valori. Il PDF verrà eliminato, ma i dati saranno mantenuti per evitare una cancellazione ambigua.');
+      return { deleteReportIds: [...new Set(deleteReportIds)] };
+    }
+
+    if (!row.document_date) return { deleteReportIds: [...new Set(deleteReportIds)] };
+    const confirmedSameDate = reports.filter(r => r.status === 'confirmed' && r.report_date === row.document_date);
+    if (confirmedSameDate.length === 1) {
+      if (askDeleteRecordedLabValues(row)) deleteReportIds.push(confirmedSameDate[0].id);
+    } else if (confirmedSameDate.length > 1) {
+      alert(`Per il ${new Date(row.document_date+'T12:00:00').toLocaleDateString('it-IT')} risultano presenti più registrazioni di valori non collegate in modo univoco al PDF. Il PDF verrà eliminato, ma i dati saranno mantenuti.`);
     }
     return { deleteReportIds: [...new Set(deleteReportIds)] };
   }
@@ -211,7 +232,11 @@
     if (busy) return;
     const row = remoteDocuments.get(id);
     if (!row) return alert('Documento non disponibile.');
-    if (!confirm(`Eliminare “${esc(row.title || row.original_filename || 'Documento')}” dalla cartella del paziente?`)) return;
+    const isBlood = row.category === 'health' && row.sub_category === 'blood_test';
+    const firstConfirm = isBlood
+      ? `Eliminare il PDF delle analisi “${esc(row.title || row.original_filename || 'Referto analisi')}”?\n\nNel passaggio successivo potrai scegliere se eliminare anche i dati registrati.`
+      : `Eliminare “${esc(row.title || row.original_filename || 'Documento')}” dalla cartella del paziente?`;
+    if (!confirm(firstConfirm)) return;
     busy = true;
     try {
       const { deleteReportIds } = await bloodReportDeletionDecision(row);
