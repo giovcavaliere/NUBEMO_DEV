@@ -26,6 +26,7 @@
   let privacyState = { documents: [], acceptances: [] };
   let diaryQueue = Promise.resolve();
   let measurementQueue = Promise.resolve();
+  let explicitDiaryDelete = false;
 
   const storageProto = Object.getPrototypeOf(window.localStorage);
   const nativeGetItem = storageProto.getItem;
@@ -110,12 +111,24 @@
     window.dispatchEvent(new CustomEvent('nubemo:supabase-sync-error', { detail: { domain, message: error?.message || String(error) } }));
   }
 
-  async function syncDiary(serialized) {
+  function removedDiaryDates(previousSerialized, nextSerialized) {
+    const previous = parse(previousSerialized, []);
+    const next = parse(nextSerialized, []);
+    if (!Array.isArray(previous) || !Array.isArray(next)) return [];
+    const nextDates = new Set(next.map(row => row?.date).filter(Boolean));
+    return previous.map(row => row?.date).filter(date => date && !nextDates.has(date));
+  }
+
+  async function syncDiary(serialized, deleteDates = []) {
     const incoming = parse(serialized, []);
     if (!Array.isArray(incoming)) return;
     const byDate = new Map(diaryRows.map(row => [row.entry_date, row]));
-    const incomingDates = new Set(incoming.map(x => x?.date).filter(Boolean));
-    for (const row of diaryRows) if (!incomingDates.has(row.entry_date)) await services().deleteDiaryEntry(row.id);
+
+    for (const date of deleteDates) {
+      const row = byDate.get(date);
+      if (row) await services().deleteDiaryEntry(row.id);
+    }
+
     for (const entry of incoming) {
       if (!entry?.date) continue;
       const existing = byDate.get(entry.date);
@@ -150,9 +163,15 @@
     storageProto.setItem = function(key, value) {
       const k = String(key);
       if (this !== window.localStorage || !MANAGED_KEYS.has(k)) return nativeSetItem.call(this, key, value);
-      const v = String(value); memory.set(k, v);
-      if (k === KEY) diaryQueue = diaryQueue.then(() => syncDiary(v)).catch(error => reportSyncError('diario', error));
-      else if (k === MEASURE_KEY) measurementQueue = measurementQueue.then(() => syncMeasurements(v)).catch(error => reportSyncError('misure', error));
+      const v = String(value);
+      const previous = memory.get(k) ?? null;
+      memory.set(k, v);
+      if (k === KEY) {
+        const deleteDates = explicitDiaryDelete ? removedDiaryDates(previous, v) : [];
+        diaryQueue = diaryQueue.then(() => syncDiary(v, deleteDates)).catch(error => reportSyncError('diario', error));
+      } else if (k === MEASURE_KEY) {
+        measurementQueue = measurementQueue.then(() => syncMeasurements(v)).catch(error => reportSyncError('misure', error));
+      }
     };
     storageProto.removeItem = function(key) {
       const k = String(key);
@@ -309,6 +328,18 @@
     window.openStoredDocument=openRemoteDocument;
     window.openPatientPlan=openRemoteDocument;
     window.bindDocumentsPage=bindRemoteDocumentsPage;
+
+    const legacyDeleteDay = window.deleteDay;
+    if (typeof legacyDeleteDay === 'function' && !legacyDeleteDay.__nubemoExplicitDeleteWrapped) {
+      const wrappedDeleteDay = function(...args) {
+        explicitDiaryDelete = true;
+        try { return legacyDeleteDay.apply(this, args); }
+        finally { explicitDiaryDelete = false; }
+      };
+      wrappedDeleteDay.__nubemoExplicitDeleteWrapped = true;
+      window.deleteDay = wrappedDeleteDay;
+    }
+
     const root=document.getElementById('app');
     if(root){
       let scheduled=false;
