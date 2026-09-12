@@ -1,0 +1,67 @@
+<!--
+NUBEMO Auth · Invite user
+Subject consigliato: Benvenuto in NUBEMO — attiva il tuo account
+Template variabili Supabase: .ConfirmationURL, .Data.first_name, .Data.intended_role, .Email
+-->
+<!doctype html>
+<html lang="it">
+  <body style="margin:0;padding:0;background:#f4f7f5;font-family:Arial,Helvetica,sans-serif;color:#23322b;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f4f7f5;padding:28px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border:1px solid #dfe7e2;border-radius:18px;overflow:hidden;">
+            <tr>
+              <td style="background:#165a35;padding:24px 28px;">
+                <div style="font-size:26px;line-height:1;font-weight:800;letter-spacing:.6px;color:#ffffff;">NUBEMO</div>
+                <div style="margin-top:7px;font-size:13px;line-height:1.4;color:#dcecdf;">Il tuo percorso, ogni giorno.</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 28px 12px;">
+                <div style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6d7d74;">Benvenuto in NUBEMO</div>
+                <h1 style="margin:10px 0 16px;font-size:27px;line-height:1.22;color:#18352a;">
+                  Ciao{{ if .Data.first_name }} {{ .Data.first_name }}{{ end }},<br>
+                  il tuo account è pronto.
+                </h1>
+
+                {{ if eq .Data.intended_role "professional" }}
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:#42524a;">
+                  Sei stato invitato ad accedere a <strong>NUBEMO Professional</strong>, lo spazio dedicato alla gestione del percorso dei tuoi pazienti.
+                </p>
+                {{ else }}
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:#42524a;">
+                  Sei stato invitato ad accedere a <strong>NUBEMO</strong>, lo spazio che raccoglie e organizza ciò che accade nel tuo percorso tra un incontro e il successivo.
+                </p>
+                {{ end }}
+
+                <p style="margin:0 0 22px;font-size:15px;line-height:1.65;color:#5a6962;">
+                  Per completare l’attivazione, scegli la password che userai per i prossimi accessi.
+                </p>
+
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px;">
+                  <tr>
+                    <td bgcolor="#165a35" style="border-radius:12px;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 22px;font-size:15px;font-weight:700;line-height:1;color:#ffffff;text-decoration:none;border-radius:12px;">Attiva il tuo account</a>
+                    </td>
+                  </tr>
+                </table>
+
+                <div style="padding:14px 16px;background:#f1f6f3;border:1px solid #dce8e1;border-radius:12px;font-size:13px;line-height:1.55;color:#5a6962;">
+                  Per sicurezza, usa questo pulsante solo se riconosci l’invito a NUBEMO. Se non ti aspettavi questa email, puoi ignorarla.
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 28px 28px;">
+                <div style="border-top:1px solid #e6ece8;padding-top:18px;font-size:12px;line-height:1.55;color:#7a8881;">
+                  Email inviata a <strong style="color:#5b6862;">{{ .Email }}</strong><br>
+                  NUBEMO · Il tuo percorso, ogni giorno.
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
