@@ -12,7 +12,21 @@
     app.innerHTML = `<section class="card"><div class="eyebrow">NUBEMO PROFESSIONAL</div><h1>Accesso non consentito</h1><p>${message}</p><a href="./index.html">Torna al login</a></section>`;
   }
   function redirectToLogin() { window.location.replace('index.html'); }
+  function redirectToPrivacy() { window.location.replace('privacy.html'); }
   function loadScript(src, errorMessage) { return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=()=>reject(new Error(errorMessage));document.body.appendChild(script);}); }
+
+  async function requiresPrivacyGate(profileId) {
+    const {data:doc,error:docError}=await client.from('privacy_documents')
+      .select('id').eq('document_type','nubemo').eq('active',true)
+      .order('published_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false})
+      .limit(1).maybeSingle();
+    if(docError)throw docError;
+    if(!doc?.id)return false;
+    const {data:acceptance,error:acceptanceError}=await client.from('privacy_acceptances')
+      .select('status').eq('profile_id',profileId).eq('privacy_document_id',doc.id).maybeSingle();
+    if(acceptanceError)throw acceptanceError;
+    return acceptance?.status!=='accepted';
+  }
 
   async function logout() {
     if (logoutButton) logoutButton.disabled = true;
@@ -38,6 +52,7 @@
       const { data: profile, error: profileError } = await client.from('profiles').select('id,auth_user_id,role,status,first_name,last_name,email').eq('auth_user_id', user.id).single();
       if (profileError || !profile) { showGuardError('Profilo NUBEMO non disponibile per questo account.'); setTimeout(redirectToLogin,900); return; }
       if (profile.role !== 'professional' || profile.status !== 'active') return redirectToLogin();
+      if (await requiresPrivacyGate(profile.id)) return redirectToPrivacy();
       const { data: professional, error: professionalError } = await client.from('professionals').select('id,profile_id,status,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,logo_storage_path').eq('profile_id', profile.id).maybeSingle();
       if (professionalError || !professional) { showGuardError('Profilo professionale NUBEMO non disponibile.'); return; }
 
@@ -66,7 +81,8 @@
       await window.nubemoFoodCatalog.load(client);
       await loadScript('pro.js?v=nubemo398patientmenu01','Impossibile caricare l’Area Professionista.');
       await loadScript('professional-patient-management.js?v=nubemo398recovery21','Impossibile caricare la gestione dei pazienti.');
-      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo398recovery31','Impossibile caricare Account e Privacy del paziente.');
+      await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40privacy01','Impossibile caricare Account e Privacy del paziente.');
+      await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy01','Impossibile caricare il PDF privacy del professionista.');
     } catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}
   }
   authorize();
