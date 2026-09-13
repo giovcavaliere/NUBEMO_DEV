@@ -6,20 +6,16 @@
   const context = window.nubemoProfessionalContext || {};
   const services = window.nubemoProfessionalServices;
   const app = document.getElementById('proApp');
+  const adapter = () => window.nubemoProfessionalLegacyAdapter;
   if (!client || !context.professional?.id || !context.user?.id || !app) return;
 
-  const EXTRA_PATIENTS_KEY = 'diario-pro-extra-patients-v1';
-  const APPT_KEY = 'diario-pro-appts-recovery-v1';
   const drafts = new Map();
-  const appointmentDraft = new Map();
-  let currentEditingAppointmentId = '';
   let currentPatientId = '';
   let patching = false;
 
   const esc = (value='') => String(value)
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
-  const parse = (value, fallback) => { try { return JSON.parse(value); } catch (_) { return fallback; } };
   const phonePortrait = () => window.matchMedia('(max-width: 600px) and (orientation: portrait)').matches;
   const normaliseDate = value => {
     const raw=String(value||'').trim();
@@ -34,52 +30,12 @@
   };
   const text = id => String(document.getElementById(id)?.value||'').trim();
 
-  function legacyDraft(row){
-    return {
-      id:row.id,
-      name:[row.first_name,row.last_name].filter(Boolean).join(' ').trim(),
-      firstName:row.first_name||'', surname:row.last_name||'', phone:row.phone||'',
-      email:'', birth:'', sex:'', height:'', startDate:'', status:'draft', relationshipStatus:'draft',
-      goal:'',minWeight:'',maxWeight:'',reasonableWeight:'',theoreticalWeight:'',work:'',activity:'',activityFactor:'',smoking:'',alcohol:'',diagnosis:'',bowel:'',metabolism:'',feeg:'',impedance:'',
-      famObesity:false,famDiabetes:false,famHypertension:false,famCardiovascular:false,famDyslipidemia:false,famThyroid:false,famGestational:false,
-      previousDiets:'',allergies:'',medications:'',giIssues:'',pastConditions:'',observations:'',objectives:'',showEnergyValues:false,readOnly:true,weights:[],diary:[],entries:[],measures:[],
-      real:false,remote:true,_draft:true
-    };
-  }
-
-  function installStorageOverlay(){
-    const proto=Object.getPrototypeOf(window.localStorage);
-    if(proto.getItem?.__nubemoLifecycleOverlay)return;
-    const previousGet=proto.getItem;
-    const wrapped=function(key){
-      const raw=previousGet.call(this,key);
-      if(key===EXTRA_PATIENTS_KEY){
-        const base=parse(raw,[]);const list=Array.isArray(base)?base.filter(x=>!drafts.has(x?.id)):[];
-        return JSON.stringify([...list,...[...drafts.values()].map(legacyDraft)]);
-      }
-      if(key===APPT_KEY){
-        const base=parse(raw,[]);if(!Array.isArray(base))return raw;
-        return JSON.stringify(base.map(a=>appointmentDraft.has(a.id)?{...a,patientId:appointmentDraft.get(a.id)}:a));
-      }
-      return raw;
-    };
-    wrapped.__nubemoLifecycleOverlay=true;
-    proto.getItem=wrapped;
-  }
-
   async function refreshDraftState(){
-    const [{data:draftRows,error:draftError},{data:appointments,error:apptError}]=await Promise.all([
-      client.from('professional_patient_drafts').select('id,professional_id,first_name,last_name,phone,status,converted_patient_id,created_at').eq('professional_id',context.professional.id).eq('status','draft').order('created_at'),
-      client.from('appointments').select('id').eq('professional_id',context.professional.id).is('deleted_at',null)
-    ]);
-    if(draftError)throw draftError;if(apptError)throw apptError;
-    drafts.clear();(draftRows||[]).forEach(row=>drafts.set(row.id,row));
-    appointmentDraft.clear();
-    const ids=(appointments||[]).map(x=>x.id);
-    if(ids.length){
-      const {data:links,error}=await client.from('appointment_patients').select('appointment_id,draft_patient_id').in('appointment_id',ids).not('draft_patient_id','is',null);
-      if(error)throw error;(links||[]).forEach(x=>{if(x.draft_patient_id)appointmentDraft.set(x.appointment_id,x.draft_patient_id);});
-    }
+    const {data,error}=await client.from('professional_patient_drafts')
+      .select('id,professional_id,first_name,last_name,phone,status,converted_patient_id,created_at')
+      .eq('professional_id',context.professional.id).eq('status','draft').order('created_at');
+    if(error)throw error;
+    drafts.clear();(data||[]).forEach(row=>drafts.set(row.id,row));
   }
 
   async function invokeLifecycle(body){
@@ -110,48 +66,11 @@
     try{
       const {data,error}=await client.from('professional_patient_drafts').insert({professional_id:context.professional.id,first_name:firstName,last_name:lastName,phone,created_by_user_id:context.user.id}).select().single();
       if(error||!data)throw error||new Error('Contatto non creato.');
-      drafts.set(data.id,data);selectDraftInAgenda(data);
+      drafts.set(data.id,data);
+      await adapter()?.refreshDrafts?.();
+      selectDraftInAgenda(data);
     }catch(error){console.error('NUBEMO draft create:',error);alert('Non è stato possibile creare il contatto provvisorio.');}
     finally{button.disabled=false;button.textContent=old;}
-  }
-
-  function appointmentPayload(){
-    const date=normaliseDate(text('eDate'));const time=text('eTime');const duration=Math.max(1,Number(text('eDuration'))||30);const type=text('eType');
-    if(!date||!/^\d{2}:\d{2}$/.test(time))throw new Error('Controlla data e ora.');
-    const start=new Date(`${date}T${time}:00`);if(Number.isNaN(start.getTime()))throw new Error('Data o ora non valida.');
-    const end=new Date(start.getTime()+duration*60000);
-    return {starts_at:start.toISOString(),ends_at:end.toISOString(),appointment_type:type==='first'?'Prima visita':type==='personal'?'Impegno personale':'Controllo',status:'scheduled',notes:type==='personal'?(text('eTitle')||text('eNote')||null):(text('eNote')||null),type};
-  }
-
-  async function saveDraftAwareEvent(button){
-    const subjectId=text('ePatient');const selectedDraft=drafts.get(subjectId)||null;const existingDraftId=currentEditingAppointmentId?appointmentDraft.get(currentEditingAppointmentId)||null:null;
-    if(!selectedDraft&&!existingDraftId)return false;
-    let payload;try{payload=appointmentPayload();}catch(error){alert(error.message);return true;}
-    if(payload.type!=='personal'&&!subjectId)return alert('Seleziona un paziente.'),true;
-    button.disabled=true;const old=button.textContent;button.textContent='Salvataggio...';
-    try{
-      let appointmentId=currentEditingAppointmentId;
-      if(appointmentId){
-        const {error}=await client.from('appointments').update({starts_at:payload.starts_at,ends_at:payload.ends_at,appointment_type:payload.appointment_type,status:payload.status,notes:payload.notes}).eq('id',appointmentId);
-        if(error)throw error;
-      }else{
-        const {data,error}=await client.from('appointments').insert({professional_id:context.professional.id,created_by_user_id:context.user.id,starts_at:payload.starts_at,ends_at:payload.ends_at,appointment_type:payload.appointment_type,status:payload.status,notes:payload.notes}).select('id').single();
-        if(error||!data?.id)throw error||new Error('Appuntamento non creato.');appointmentId=data.id;
-      }
-      const {data:links,error:readError}=await client.from('appointment_patients').select('id,patient_id,draft_patient_id').eq('appointment_id',appointmentId);
-      if(readError)throw readError;const link=(links||[])[0]||null;
-      if(payload.type==='personal'){
-        if(link){const {error}=await client.from('appointment_patients').delete().eq('id',link.id);if(error)throw error;}
-        appointmentDraft.delete(appointmentId);
-      }else{
-        const next=selectedDraft?{patient_id:null,draft_patient_id:selectedDraft.id}:{patient_id:subjectId,draft_patient_id:null};
-        if(link){const {error}=await client.from('appointment_patients').update(next).eq('id',link.id);if(error)throw error;}
-        else{const {error}=await client.from('appointment_patients').insert({appointment_id:appointmentId,...next});if(error)throw error;}
-        if(selectedDraft)appointmentDraft.set(appointmentId,selectedDraft.id);else appointmentDraft.delete(appointmentId);
-      }
-      sessionStorage.setItem('nubemo-open-agenda','1');window.location.reload();
-    }catch(error){console.error('NUBEMO draft appointment:',error);alert('Non è stato possibile salvare l’appuntamento.');button.disabled=false;button.textContent=old;}
-    return true;
   }
 
   function clinicalFromForm(){
@@ -234,10 +153,9 @@
     });
   }
 
-  function patch(){if(patching)return;patching=true;try{patchNewPatientAccessChoice();patchDraftRows();patchNoAccessAccountAndPrivacy();if(sessionStorage.getItem('nubemo-open-agenda')==='1'){const button=document.querySelector('[data-view="agenda"]');if(button){sessionStorage.removeItem('nubemo-open-agenda');button.click();}}}finally{patching=false;}}
+  function patch(){if(patching)return;patching=true;try{patchNewPatientAccessChoice();patchDraftRows();patchNoAccessAccountAndPrivacy();}finally{patching=false;}}
 
   const style=document.createElement('style');style.textContent=`
-    #eTime{width:100%!important;max-width:100%!important;min-width:0!important;min-inline-size:0!important;display:block!important}
     .patient-content-card,.patient-content-card .nubemo-remote-tab-content,.patient-content-card .pro-read-grid,.patient-content-card .pro-read-grid>div{min-width:0}
     .patient-content-card b,.patient-content-card p,.patient-content-card span{overflow-wrap:anywhere;word-break:break-word}
     .nubemo-access-hidden{display:none!important}
@@ -247,30 +165,23 @@
     .nubemo-draft-patient{position:relative}.nubemo-draft-badge{font-size:11px!important;font-weight:800!important;color:#8a6420!important;background:#fff4cf!important;border-radius:999px;padding:5px 8px;justify-self:end}
     .nubemo-draft-modal-backdrop{position:fixed;inset:0;background:#16202a66;z-index:9999;display:grid;place-items:center;padding:18px;overflow:auto}
     .nubemo-draft-modal{width:min(620px,100%);max-height:calc(100vh - 36px);overflow:auto;margin:0}
-    @media(max-width:600px){#eTime{font-size:16px!important}}
   `;document.head.appendChild(style);
 
   document.addEventListener('click',event=>{
     const drawerTrigger=event.target?.closest?.('#openProDrawer');
     if(drawerTrigger&&!phonePortrait()){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();return;}
 
-    const eventButton=event.target?.closest?.('.pro3-cal-event[data-event]');if(eventButton)currentEditingAppointmentId=eventButton.dataset.event||'';
-    if(event.target?.closest?.('#newEvent'))currentEditingAppointmentId='';
     const patientTarget=event.target?.closest?.('[data-patient],[data-drawer-patient]');
     if(patientTarget){const id=patientTarget.dataset.patient||patientTarget.dataset.drawerPatient;if(drafts.has(id)){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();draftModal(drafts.get(id));return;}currentPatientId=id||currentPatientId;}
 
     const draftCreate=event.target?.closest?.('#agendaCreateQuickPatient');
     if(draftCreate){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();void createDraftFromAgenda(draftCreate);return;}
 
-    const saveEvent=event.target?.closest?.('#saveEvent');
-    if(saveEvent){const subject=text('ePatient');if(drafts.has(subject)||(currentEditingAppointmentId&&appointmentDraft.has(currentEditingAppointmentId))){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();void saveDraftAwareEvent(saveEvent);return;}}
-
     const savePatient=event.target?.closest?.('#saveNewPatient');
     if(savePatient&&document.body.dataset.proView==='newPatient'&&document.getElementById('npActivatePatientArea')){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();void createRealPatient(savePatient);return;}
   },true);
 
-  installStorageOverlay();
   const ready=(async()=>{try{await refreshDraftState();}catch(error){console.error('NUBEMO draft hydrate:',error);}})();
-  window.nubemoPatientLifecycleBridge={ready,refresh:refreshDraftState};
+  window.nubemoPatientLifecycleBridge={ready,refresh:refreshDraftState,isDraft:id=>drafts.has(id)};
   const observer=new MutationObserver(()=>queueMicrotask(patch));observer.observe(app,{childList:true,subtree:true});patch();
 })();
