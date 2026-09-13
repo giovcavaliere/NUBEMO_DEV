@@ -8,6 +8,7 @@
   const logoutButton = document.getElementById('patientLogoutBtn');
 
   function backToLogin() { window.location.replace('index.html'); }
+  function goToPrivacy() { window.location.replace('privacy.html'); }
 
   function showError(message) {
     if (!app) return;
@@ -27,6 +28,19 @@
 
   function loadPatientApp() {
     return loadScript('app.js?v=nubemo398foodcatalog01','Impossibile caricare l’Area Paziente.');
+  }
+
+  async function requiresPrivacyGate(profileId) {
+    const {data:doc,error:docError}=await client.from('privacy_documents')
+      .select('id').eq('document_type','nubemo').eq('active',true)
+      .order('published_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false})
+      .limit(1).maybeSingle();
+    if(docError)throw docError;
+    if(!doc?.id)return false;
+    const {data:acceptance,error:acceptanceError}=await client.from('privacy_acceptances')
+      .select('status').eq('profile_id',profileId).eq('privacy_document_id',doc.id).maybeSingle();
+    if(acceptanceError)throw acceptanceError;
+    return acceptance?.status!=='accepted';
   }
 
   async function logout() {
@@ -71,6 +85,7 @@
       if (!session) return backToLogin();
 
       const context = await window.nubemoPatientServices.loadContext();
+      if (await requiresPrivacyGate(context.profile.id)) return goToPrivacy();
       window.nubemoPatientContext = context;
       await window.nubemoPatientLegacyAdapter.init(context);
       await loadScript('patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile applicare le impostazioni dell’Area Paziente.');
@@ -87,8 +102,6 @@
       window.nubemoPatientLegacyAdapter.bindLegacyApp?.();
       await loadScript('patient-recovery-contract.js?v=nubemo398recovery19','Impossibile applicare il contratto dell’Area Paziente.');
 
-      // La dashboard 3.98 apre il piano corrente senza passare un id.
-      // Questo resolver mantiene quel contratto ma recupera file e relazione da Supabase.
       window.openPatientPlan = openCurrentPlan;
     } catch (error) {
       console.error('NUBEMO Patient guard:', error);
