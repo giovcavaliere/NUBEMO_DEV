@@ -35,7 +35,31 @@
     return data;
   }
 
-  function routeProfile(profile) {
+  async function requiresPrivacyGate(profile) {
+    if (!['professional','patient'].includes(profile.role)) return false;
+    const { data: documentRow, error: documentError } = await client
+      .from('privacy_documents')
+      .select('id')
+      .eq('document_type','nubemo')
+      .eq('active', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (documentError) throw documentError;
+    if (!documentRow?.id) return false;
+
+    const { data: acceptance, error: acceptanceError } = await client
+      .from('privacy_acceptances')
+      .select('status')
+      .eq('profile_id', profile.id)
+      .eq('privacy_document_id', documentRow.id)
+      .maybeSingle();
+    if (acceptanceError) throw acceptanceError;
+    return acceptance?.status !== 'accepted';
+  }
+
+  async function routeProfile(profile) {
     if (profile.status !== 'active') {
       setMessage(`Account ${statusLabel[profile.status] || profile.status}. Accesso a NUBEMO non consentito.`, true);
       return false;
@@ -45,12 +69,12 @@
       window.location.replace('admin.html');
       return true;
     }
-    if (profile.role === 'professional') {
-      window.location.replace('pro.html');
-      return true;
-    }
-    if (profile.role === 'patient') {
-      window.location.replace('patient.html');
+    if (profile.role === 'professional' || profile.role === 'patient') {
+      if (await requiresPrivacyGate(profile)) {
+        window.location.replace('privacy.html');
+        return true;
+      }
+      window.location.replace(profile.role === 'professional' ? 'pro.html' : 'patient.html');
       return true;
     }
 
@@ -66,7 +90,7 @@
     }
     if (!session) return;
     try {
-      routeProfile(await loadOwnProfile());
+      await routeProfile(await loadOwnProfile());
     } catch (error) {
       await client.auth.signOut();
       setMessage(error.message, true);
@@ -83,7 +107,7 @@
         password: password.value
       });
       if (error) throw error;
-      const routed = routeProfile(await loadOwnProfile());
+      const routed = await routeProfile(await loadOwnProfile());
       if (routed && password) password.value = '';
     } catch (error) {
       setMessage(error.message === 'Invalid login credentials' ? 'Email o password non corretti.' : error.message, true);
