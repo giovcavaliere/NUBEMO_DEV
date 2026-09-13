@@ -206,7 +206,7 @@ const bmi=(w,h)=>w&&h?Number(w)/Math.pow(Number(h)/100,2):null;
 
 
 const SETTINGS_DEFAULT={
- name:'Dott.ssa Demo',
+ name:'',
  firstName:'',surname:'',qualification:'',
  address:'',zip:'',city:'',province:'',
  vat:'',cf:'',email:'',phone:'',
@@ -214,23 +214,9 @@ const SETTINGS_DEFAULT={
  reportWeightInterval:30,
  first:60,control:30,dayStart:'08:00',dayEnd:'19:00',workDays:5
 };
-const DEMOS=[
- {id:'laura',name:'Laura Bianchi',height:168,goal:62,weights:[['2026-07-10',74.2],['2026-08-10',70.8]],
-  diary:[{date:'2026-08-10',breakfast:'Yogurt greco + frutta',lunch:'Farro con tonno e verdure',dinner:'Pollo + verdure'}],
-  measures:[{date:'2026-08-07',waist:82,hips:101}]},
- {id:'marco',name:'Marco Russo',height:178,goal:88,weights:[['2026-06-30',111.5],['2026-08-10',105.2]],
-  diary:[{date:'2026-08-10',breakfast:'Cappuccino + pane tostato',lunch:'Riso + pollo',dinner:'Bresaola + rucola'}],
-  measures:[{date:'2026-08-04',waist:108,hips:110}]}
-];
+const DEMOS=[];
 
-const APPT_DEFAULT=[
- {id:'h1',patientId:'main',date:'2026-06-10',time:'09:30',type:'first',duration:60,note:'Prima visita'},
- {id:'h2',patientId:'main',date:'2026-07-15',time:'09:30',type:'control',duration:30,note:'Controllo'},
- {id:'a1',patientId:'main',date:'2026-09-03',time:'09:00',type:'control',duration:30,note:'Controllo periodico'},
- {id:'a2',patientId:'laura',date:'2026-08-12',time:'10:30',type:'first',duration:60,note:''},
- {id:'a3',patientId:'marco',date:'2026-08-13',time:'15:00',type:'control',duration:30,note:''},
- {id:'p1',patientId:null,date:'2026-08-14',time:'12:30',type:'personal',duration:90,title:'Impegno personale',note:'Non disponibile'}
-];
+const APPT_DEFAULT=[];
 
 let proDiarySearch='';
 let proDiaryDate='';
@@ -386,17 +372,6 @@ function saveExtraPatients(v){
  save(EXTRA_PATIENTS_KEY,v);
 }
 
-function ensureImportedFriendPatient(){
- const id='patient-gianluca-real';
- const deleted=new Set(load(DELETED_PATIENTS_KEY,[]));
- if(deleted.has(id))return;
- const arr=extraPatients();
- if(arr.some(x=>x.id===id))return;
- arr.push({"id":"patient-gianluca-real","name":"Gianluca","firstName":"Gianluca","surname":"","birth":"1984-07-23","height":180,"sex":"M","goal":95,"minWeight":"","maxWeight":"","reasonableWeight":"","work":"","activity":"","smoking":"No","alcohol":"Raramente","weights":[["2026-01-22",124.5],["2026-02-26",120],["2026-04-16",114.5],["2026-06-18",110],["2026-08-10",110.5]],"diary":[{"date":"2026-01-22","weight":124.5,"coffee":0,"sweetener":"","breakfast":"","snack1":"","lunch":"","snack2":"","dinner":"","notes":""},{"date":"2026-02-26","weight":120,"coffee":0,"sweetener":"","breakfast":"","snack1":"","lunch":"","snack2":"","dinner":"","notes":""},{"date":"2026-04-16","weight":114.5,"coffee":0,"sweetener":"","breakfast":"","snack1":"","lunch":"","snack2":"","dinner":"","notes":""},{"date":"2026-06-18","weight":110,"coffee":0,"sweetener":"","breakfast":"","snack1":"","lunch":"","snack2":"","dinner":"","notes":""},{"date":"2026-08-10","weight":110.5,"coffee":0,"sweetener":"","breakfast":"Cereali 50\nZymil 225","snack1":"Barretta cereali","lunch":"Pasta 100 gr\nPasta pomodoro\nCirca 10 gr olio\n149 gr piselli","snack2":"Pezzo di crostata ciccolato","dinner":"3 fette di melone\n70 gr di prosciutto\n80 gr di pane","notes":""},{"date":"2026-08-11","weight":"","coffee":3,"sweetener":"","breakfast":"50 gr cereali\n225 gr zymil","snack1":"1 barretta","lunch":"1 barretta","snack2":"1 banana\n1 succo di frutta bricco","dinner":"","notes":""}],"measures":[],"real":true,"importedBackup":true});
- saveExtraPatients(arr);
-}
-
-
 function mainPatient(){
   const profile=load(PROFILE_KEY,{});
   const entries=load(KEY,[]).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
@@ -405,8 +380,8 @@ function mainPatient(){
   const first=weights[0]?.[1]??null,last=weights.at(-1)?.[1]??null;
   return {
    id:'main',
-   name:[profile.name||'Giovanni',profile.surname||''].filter(Boolean).join(' '),
-   firstName:profile.name||'Giovanni',
+   name:[profile.name||'Paziente',profile.surname||''].filter(Boolean).join(' '),
+   firstName:profile.name||'Paziente',
    surname:profile.surname||'',
    birth:profile.birth||'',
    sex:profile.sex||'',
@@ -3133,7 +3108,6 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
  });
 }
 
-ensureImportedFriendPatient();
 
 function syncResponsiveLayout(){
  syncPhoneLandscapeClass();
