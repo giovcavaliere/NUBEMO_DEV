@@ -142,30 +142,6 @@
     });
   }
 
-  function identifyCurrentPatient(){
-    if(currentPatientId){const row=(context.patients||[]).find(x=>x.id===currentPatientId);if(row)return row;}
-    const title=document.querySelector('.patient-global-title')?.textContent||'';
-    return (context.patients||[]).find(row=>title.includes([row.profile?.first_name,row.profile?.last_name].filter(Boolean).join(' ')))||null;
-  }
-
-  function patchNoAccessAccountAndPrivacy(){
-    if(document.body.dataset.proView!=='details')return;
-    const row=identifyCurrentPatient();if(!row||row.profile?.email)return;
-    const active=document.querySelector('[data-patient-tab].active')?.dataset?.patientTab||'';
-    if(active==='account'){
-      const slot=document.querySelector('.patient-content-card .nubemo-remote-tab-content[data-domain="account"]');
-      if(slot&&!slot.dataset.noAccessOwner){slot.dataset.noAccessOwner='1';slot.innerHTML=`<div class="section-head"><h2>Account paziente</h2><span class="pill">Area Paziente non attiva</span></div><p class="muted">Il paziente è gestito in NUBEMO dal professionista, ma non dispone di un account personale.</p><label>Email per attivazione</label><input type="email" data-enable-patient-email inputmode="email" placeholder="es. nome@email.it"><button class="secondary" type="button" data-enable-patient-area style="margin-top:12px">Attiva Area Paziente</button><p class="muted" data-enable-patient-message></p>`;
-        const button=slot.querySelector('[data-enable-patient-area]'),input=slot.querySelector('[data-enable-patient-email]'),message=slot.querySelector('[data-enable-patient-message]');
-        button.addEventListener('click',async()=>{const email=String(input.value||'').trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return message.textContent='Inserisci un indirizzo email valido.';button.disabled=true;button.textContent='Invio...';try{await invokeLifecycle({action:'activate-patient-area',patient_id:row.id,email});row.profile.email=email;window.location.reload();}catch(error){message.textContent=error.message||'Attivazione non completata.';button.disabled=false;button.textContent='Attiva Area Paziente';}});
-      }
-    }
-    if(active==='privacy'){
-      const slot=document.querySelector('.patient-content-card .nubemo-remote-tab-content[data-domain="privacy"]');if(!slot)return;
-      const card=[...slot.querySelectorAll('.card')].find(c=>c.querySelector('h2')?.textContent?.trim()==='Privacy NUBEMO');
-      if(card&&!card.dataset.noAccessOwner){card.dataset.noAccessOwner='1';card.innerHTML='<div class="section-head"><h2>Privacy NUBEMO</h2><span class="pill">Area Paziente non attiva</span></div><p class="muted">L’informativa NUBEMO per l’accesso personale non è richiesta finché l’Area Paziente non viene attivata.</p>';}
-    }
-  }
-
   function patchDraftRows(){
     document.querySelectorAll('[data-patient],[data-drawer-patient]').forEach(node=>{
       const id=node.dataset.patient||node.dataset.drawerPatient;if(!drafts.has(id)||node.dataset.draftMarked)return;node.dataset.draftMarked='1';node.classList.add('nubemo-draft-patient');
@@ -177,7 +153,7 @@
     });
   }
 
-  function patch(){if(patching)return;patching=true;try{patchNewPatientAccessChoice();patchDraftRows();patchNoAccessAccountAndPrivacy();}finally{patching=false;}}
+  function patch(){if(patching)return;patching=true;try{patchNewPatientAccessChoice();patchDraftRows();}finally{patching=false;}}
 
   const style=document.createElement('style');style.textContent=`
     .patient-content-card,.patient-content-card .nubemo-remote-tab-content,.patient-content-card .pro-read-grid,.patient-content-card .pro-read-grid>div{min-width:0}
