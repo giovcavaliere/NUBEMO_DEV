@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#064b43">
+  <link rel="icon" href="assets/nubemo-n-icon-192.png?v=nubemo40privacy01">
+  <link rel="stylesheet" href="style.css?v=nubemo40privacy01">
+  <title>NUBEMO · Privacy</title>
+</head>
+<body class="landing-body" data-asset-prefix="">
+  <main class="monubi-landing">
+    <section class="landing-visual"><img src="assets/nubemo-brand-clean-v2.png" alt="NUBEMO"></section>
+    <section class="landing-panel">
+      <div class="landing-mini-brand"><img src="assets/nubemo-brand-clean-v2.png" alt=""><span>NUBEMO</span></div>
+
+      <section id="privacy-loading">
+        <div class="eyebrow">NUBEMO · PRIVACY</div>
+        <h1>Verifica<br><em>informativa.</em></h1>
+        <p class="landing-lead">Controllo della versione privacy in corso.</p>
+      </section>
+
+      <section id="privacy-view" hidden>
+        <div class="eyebrow">NUBEMO · PRIVACY</div>
+        <h1>Prima di<br><em>continuare.</em></h1>
+        <p class="landing-lead">Per utilizzare NUBEMO devi leggere e accettare l’informativa privacy attualmente in vigore.</p>
+
+        <div class="card" style="margin-top:24px">
+          <div class="section-head"><h2 id="privacy-title">Informativa privacy NUBEMO</h2><span id="privacy-version" class="pill"></span></div>
+          <p id="privacy-status-note" class="muted"></p>
+          <button id="privacy-open" class="secondary" type="button">Apri informativa</button>
+        </div>
+
+        <label style="display:flex;gap:10px;align-items:flex-start;margin:22px 0;font-size:14px;line-height:1.45">
+          <input id="privacy-read" type="checkbox" style="margin-top:3px">
+          <span>Dichiaro di aver letto l’informativa privacy NUBEMO.</span>
+        </label>
+
+        <p id="privacy-message" class="nubemo-login-message" aria-live="polite"></p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button id="privacy-accept" type="button">Accetta e continua</button>
+          <button id="privacy-refuse" class="secondary" type="button">Rifiuta</button>
+        </div>
+      </section>
+
+      <section id="privacy-refused" hidden>
+        <div class="eyebrow">NUBEMO · PRIVACY</div>
+        <h1>Accesso<br><em>non disponibile.</em></h1>
+        <p class="landing-lead">Hai scelto di non accettare l’informativa privacy NUBEMO. L’accesso resta bloccato finché non verrà accettata.</p>
+        <button id="privacy-back-login" class="secondary" type="button" style="margin-top:22px">Torna al login</button>
+      </section>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=nubemo398recovery19"></script>
+  <script src="privacy.js?v=nubemo40privacy01"></script>
+</body>
+</html>
