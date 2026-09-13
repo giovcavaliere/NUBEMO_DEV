@@ -1,8 +1,9 @@
-const CACHE='nubemo-demo-v3.98-patientmenu01';
+const CACHE='nubemo-demo-v4.0-privacy01';
 const CORE=[
   './food-catalog.js?v=nubemo398foodcatalog01',
   './',
   './index.html',
+  './privacy.html',
   './patient.html',
   './pro.html',
   './style.css?v=nubemo398recovery19',
@@ -13,14 +14,15 @@ const CORE=[
   './supabase-client.js?v=nubemo398recovery19',
   './password-visibility.js?v=nubemo398improvement05',
   './support-email-supabase-bridge.js?v=nubemo398improvement04',
-  './auth.js?v=nubemo398recovery19',
+  './auth.js?v=nubemo40privacy01',
+  './privacy.js?v=nubemo40privacy01',
   './patient-services.js?v=nubemo398recovery25',
   './patient-labs-supabase-bridge.js?v=nubemo398recovery19',
   './patient-legacy-supabase-adapter.js?v=nubemo398recovery23',
   './patient-settings-supabase-bridge.js?v=nubemo398recovery19',
   './patient-document-read-supabase-bridge.js?v=nubemo398recovery26',
   './patient-recovery-contract.js?v=nubemo398recovery19',
-  './patient-guard.js?v=nubemo398foodcatalog01',
+  './patient-guard.js?v=nubemo40privacy01',
   './patient-measures-pdf.js?v=nubemo398improvement01',
   './pdf-open-recovery-bridge.js?v=nubemo398recovery28',
   './professional-services.js?v=nubemo398recovery19',
@@ -37,8 +39,9 @@ const CORE=[
   './professional-patient-invite-guard.js?v=nubemo398improvement07',
   './professional-patient-actions-menu.js?v=nubemo398recovery29',
   './professional-bmi-dashboard-fix.js?v=nubemo398recovery30',
-  './professional-access-privacy-supabase-bridge.js?v=nubemo398recovery31',
-  './professional-guard.js?v=nubemo398patientmenu01',
+  './professional-access-privacy-supabase-bridge.js?v=nubemo40privacy01',
+  './professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy01',
+  './professional-guard.js?v=nubemo40privacy01',
   './manifest.json?v=nubemo398recovery19',
   './assets/nubemo-brand-clean-v2.png',
   './assets/nubemo-n-icon-180.png',
@@ -61,7 +64,6 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
-  // Il catalogo deve essere letto con la sessione corrente, mai dalla cache PWA.
   if(new URL(event.request.url).pathname==='/rest/v1/food_catalog')return;
   event.respondWith(
     fetch(event.request,{cache:'no-store'})
