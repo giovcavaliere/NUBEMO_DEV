@@ -81,7 +81,7 @@
       if(logoutButton)logoutButton.style.display='inline-flex';
       await loadScript('food-catalog.js?v=nubemo398foodcatalog01','Impossibile caricare il catalogo alimenti.');
       await window.nubemoFoodCatalog.load(client);
-      await loadScript('pro.js?v=nubemo40clean01','Impossibile caricare l’Area Professionista.');
+      await loadScript('pro.js?v=nubemo40light01','Impossibile caricare l’Area Professionista.');
       await loadScript('professional-patient-management.js?v=nubemo40phone01','Impossibile caricare la gestione dei pazienti.');
       await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40patientaccess02','Impossibile caricare Account e Privacy del paziente.');
       await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');
