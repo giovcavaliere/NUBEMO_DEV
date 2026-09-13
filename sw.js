@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-account01';
+const CACHE='nubemo-demo-v4.0-patientlife01';
 const CORE=[
   './food-catalog.js?v=nubemo398foodcatalog01',
   './',
@@ -27,6 +27,7 @@ const CORE=[
   './pdf-open-recovery-bridge.js?v=nubemo398recovery28',
   './professional-services.js?v=nubemo398recovery19',
   './professional-legacy-supabase-adapter.js?v=nubemo398recovery19',
+  './professional-patient-lifecycle-bridge.js?v=nubemo40patientlife01',
   './professional-recovery-contract.js?v=nubemo398recovery21',
   './professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19',
   './professional-settings-supabase-bridge.js?v=nubemo398recovery19',
@@ -41,7 +42,7 @@ const CORE=[
   './professional-bmi-dashboard-fix.js?v=nubemo398recovery30',
   './professional-access-privacy-supabase-bridge.js?v=nubemo40account01',
   './professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02',
-  './professional-guard.js?v=nubemo40account01',
+  './professional-guard.js?v=nubemo40patientlife01',
   './manifest.json?v=nubemo398recovery19',
   './assets/nubemo-brand-clean-v2.png',
   './assets/nubemo-n-icon-180.png',
