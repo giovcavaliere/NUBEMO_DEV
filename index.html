@@ -26,7 +26,9 @@
           <label for="login-password">Password</label>
           <input id="login-password" name="password" type="password" autocomplete="current-password" required>
           <button id="login-submit" type="submit">Accedi</button>
+          <button id="login-reset-password" class="secondary" type="button">Reimposta password</button>
           <p id="login-message" class="nubemo-login-message" aria-live="polite"></p>
+          <p class="muted">Non riesci ad accedere? Se non hai mai impostato una password, il tuo account potrebbe non essere ancora stato attivato: chiedi un nuovo invito. Se invece avevi già impostato una password e non la ricordi, usa <b>Reimposta password</b>.</p>
         </form>
       </div>
 
@@ -41,6 +43,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js?v=nubemo398recovery19"></script>
   <script src="password-visibility.js?v=nubemo398improvement05"></script>
-  <script src="auth.js?v=nubemo40privacy01"></script>
+  <script src="auth.js?v=nubemo40account01"></script>
 </body>
 </html>
