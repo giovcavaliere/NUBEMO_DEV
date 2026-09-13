@@ -104,11 +104,19 @@
     toggle.addEventListener('change',sync);sync();
   }
 
+  function formatDraftBirthInput(input){
+    const digits=String(input.value||'').replace(/\D/g,'').slice(0,8);
+    input.value=digits.length<=2?digits:digits.length<=4?`${digits.slice(0,2)}/${digits.slice(2)}`:`${digits.slice(0,2)}/${digits.slice(2,4)}/${digits.slice(4)}`;
+  }
+
   function draftModal(row){
     document.getElementById('nubemoDraftModal')?.remove();
     const modal=document.createElement('div');modal.id='nubemoDraftModal';modal.className='nubemo-draft-modal-backdrop';
-    modal.innerHTML=`<section class="card nubemo-draft-modal" role="dialog" aria-modal="true"><div class="section-head"><h2>Completa anagrafica</h2><button type="button" class="mini" data-close-draft-modal>✕</button></div><p><b>${esc(row.first_name)} ${esc(row.last_name)}</b>${row.phone?` · ${esc(row.phone)}`:''}</p><label>Data di nascita</label><input id="draftBirth" placeholder="gg/mm/aaaa" inputmode="numeric"><label>Sesso</label><select id="draftSex"><option value="">Non specificato</option><option value="M">Maschile</option><option value="F">Femminile</option><option value="X">Altro / preferisco non specificare</option></select><label>Altezza (cm)</label><input id="draftHeight" type="number" min="80" max="250" step="1"><div class="nubemo-patient-area-choice"><label><input id="draftActivateArea" type="checkbox"> Attiva Area Paziente NUBEMO</label><p class="muted">Attivandola verrà richiesto l’indirizzo email e sarà inviato l’invito.</p></div><div id="draftEmailBox" hidden><label>Email</label><input id="draftEmail" type="email" inputmode="email"></div><div class="pro3-actions"><button type="button" class="secondary" data-close-draft-modal>Annulla</button><button type="button" class="primary" id="convertDraftPatient">Crea paziente</button></div></section>`;
+    modal.innerHTML=`<section class="card nubemo-draft-modal" role="dialog" aria-modal="true"><div class="section-head"><h2>Completa anagrafica</h2><button type="button" class="mini" data-close-draft-modal>✕</button></div><p><b>${esc(row.first_name)} ${esc(row.last_name)}</b>${row.phone?` · ${esc(row.phone)}`:''}</p><label>Data di nascita</label><div class="date-entry nubemo-draft-date"><input id="draftBirth" placeholder="gg/mm/aaaa" inputmode="numeric" autocomplete="bday" maxlength="10"><label class="date-picker-btn" aria-label="Apri calendario"><span aria-hidden="true">📅</span><input id="draftBirthPicker" type="date" tabindex="-1" aria-hidden="true"></label></div><label>Sesso</label><select id="draftSex"><option value="">Non specificato</option><option value="M">Maschile</option><option value="F">Femminile</option><option value="X">Altro / preferisco non specificare</option></select><label>Altezza (cm)</label><input id="draftHeight" type="number" min="80" max="250" step="1"><div class="nubemo-patient-area-choice"><label><input id="draftActivateArea" type="checkbox"> Attiva Area Paziente NUBEMO</label><p class="muted">Attivandola verrà richiesto l’indirizzo email e sarà inviato l’invito.</p></div><div id="draftEmailBox" hidden><label>Email</label><input id="draftEmail" type="email" inputmode="email"></div><div class="pro3-actions"><button type="button" class="secondary" data-close-draft-modal>Annulla</button><button type="button" class="primary" id="convertDraftPatient">Crea paziente</button></div></section>`;
     document.body.appendChild(modal);
+    const birthInput=modal.querySelector('#draftBirth'),birthPicker=modal.querySelector('#draftBirthPicker');
+    birthInput?.addEventListener('input',()=>formatDraftBirthInput(birthInput));
+    birthPicker?.addEventListener('change',()=>{const value=String(birthPicker.value||'');const m=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)birthInput.value=`${m[3]}/${m[2]}/${m[1]}`;});
     const toggle=modal.querySelector('#draftActivateArea'),emailBox=modal.querySelector('#draftEmailBox');toggle.addEventListener('change',()=>emailBox.hidden=!toggle.checked);
     modal.querySelectorAll('[data-close-draft-modal]').forEach(b=>b.addEventListener('click',()=>modal.remove()));
     modal.querySelector('#convertDraftPatient').addEventListener('click',async event=>{
@@ -149,7 +157,11 @@
   function patchDraftRows(){
     document.querySelectorAll('[data-patient],[data-drawer-patient]').forEach(node=>{
       const id=node.dataset.patient||node.dataset.drawerPatient;if(!drafts.has(id)||node.dataset.draftMarked)return;node.dataset.draftMarked='1';node.classList.add('nubemo-draft-patient');
-      if(node.matches('[data-patient]')){const marker=document.createElement('span');marker.className='nubemo-draft-badge';marker.textContent='Anagrafica parziale';node.appendChild(marker);}
+      if(node.matches('[data-patient]')){
+        const info=node.querySelector('.patient-main')||node.children?.[1]||node;
+        const marker=document.createElement('span');marker.className='nubemo-draft-badge';marker.textContent='Anagrafica parziale';
+        info.appendChild(marker);
+      }
     });
   }
 
@@ -162,9 +174,10 @@
     .nubemo-patient-area-choice{margin:18px 0 8px;padding:14px;border:1px solid #dce7e8;border-radius:14px;background:#f8fbfb}
     .nubemo-patient-area-choice label{display:flex;align-items:center;gap:9px;margin:0}.nubemo-patient-area-choice input[type="checkbox"]{width:auto;margin:0}
     .nubemo-patient-area-choice p{margin:7px 0 0}
-    .nubemo-draft-patient{position:relative}.nubemo-draft-badge{font-size:11px!important;font-weight:800!important;color:#8a6420!important;background:#fff4cf!important;border-radius:999px;padding:5px 8px;justify-self:end}
+    .nubemo-draft-patient{position:relative}.nubemo-draft-badge{display:inline-block!important;width:max-content;margin-top:7px;font-size:11px!important;font-weight:800!important;color:#8a6420!important;background:#fff4cf!important;border-radius:999px;padding:5px 8px;line-height:1.15}
     .nubemo-draft-modal-backdrop{position:fixed;inset:0;background:#16202a66;z-index:9999;display:grid;place-items:center;padding:18px;overflow:auto}
     .nubemo-draft-modal{width:min(620px,100%);max-height:calc(100vh - 36px);overflow:auto;margin:0}
+    .nubemo-draft-date{margin-top:7px}.nubemo-draft-date .date-picker-btn{margin:0}.nubemo-draft-date .date-picker-btn span{pointer-events:none}
   `;document.head.appendChild(style);
 
   document.addEventListener('click',event=>{
