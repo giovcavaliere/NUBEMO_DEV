@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-patientlife01';
+const CACHE='nubemo-demo-v4.0-responsive01';
 const CORE=[
   './food-catalog.js?v=nubemo398foodcatalog01',
   './',
@@ -7,6 +7,7 @@ const CORE=[
   './patient.html',
   './pro.html',
   './style.css?v=nubemo398recovery19',
+  './professional-responsive-fix.css?v=nubemo40responsive01',
   './diary-pdf.js?v=nubemo398recovery19',
   './app.js?v=nubemo398foodcatalog01',
   './pro.js?v=nubemo398patientmenu01',
