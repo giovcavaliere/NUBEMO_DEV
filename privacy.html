@@ -6,6 +6,49 @@
   <meta name="theme-color" content="#064b43">
   <link rel="icon" href="assets/nubemo-n-icon-192.png?v=nubemo40privacy01">
   <link rel="stylesheet" href="style.css?v=nubemo40privacy01">
+  <style>
+    .privacy-consent-row{
+      display:grid;
+      grid-template-columns:24px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+      width:100%;
+      margin:22px 0;
+      font-size:14px;
+      line-height:1.45;
+    }
+    .privacy-consent-row input[type="checkbox"]{
+      width:22px!important;
+      height:22px!important;
+      min-width:22px;
+      margin:1px 0 0;
+      padding:0;
+      flex:none;
+    }
+    .privacy-consent-row span{
+      min-width:0;
+      overflow-wrap:anywhere;
+    }
+    .privacy-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    @media(max-width:700px){
+      .privacy-consent-row{
+        grid-template-columns:22px minmax(0,1fr);
+        gap:10px;
+        margin:20px 0;
+      }
+      .privacy-actions{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+      .privacy-actions button{
+        width:100%;
+      }
+    }
+  </style>
   <title>NUBEMO · Privacy</title>
 </head>
 <body class="landing-body" data-asset-prefix="">
@@ -31,13 +74,13 @@
           <button id="privacy-open" class="secondary" type="button">Apri informativa</button>
         </div>
 
-        <label style="display:flex;gap:10px;align-items:flex-start;margin:22px 0;font-size:14px;line-height:1.45">
-          <input id="privacy-read" type="checkbox" style="margin-top:3px">
+        <label class="privacy-consent-row">
+          <input id="privacy-read" type="checkbox">
           <span>Dichiaro di aver letto l’informativa privacy NUBEMO.</span>
         </label>
 
         <p id="privacy-message" class="nubemo-login-message" aria-live="polite"></p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="privacy-actions">
           <button id="privacy-accept" type="button">Accetta e continua</button>
           <button id="privacy-refuse" class="secondary" type="button">Rifiuta</button>
         </div>
