@@ -1,6 +1,6 @@
 // NUBEMO recovery 3.98 — identità paziente e stato percorso su Supabase.
 // Il flusso "Modifica scheda" resta integralmente quello 3.98: il legacy
-// adapter persiste le modifiche. Qui gestiamo solo creazione Auth e fine percorso.
+// adapter persiste le modifiche. Qui gestiamo identità, recapiti e stato percorso.
 (() => {
   'use strict';
 
@@ -9,6 +9,7 @@
   const client = window.nubemoSupabase;
   if (!services || !client || !app) return;
 
+  const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
   let currentPatientId = '';
   let patching = false;
   let creatingPatient = false;
@@ -38,6 +39,15 @@
     if(document.body.dataset.proView!=='details')return '';
     const title=document.querySelector('.patient-global-title')?.textContent?.trim()||'';
     const row=activePatients().find(p=>title.includes(patientName(p)));
+    if(row)currentPatientId=row.id;
+    return currentPatientId;
+  }
+
+  function editPatientId(){
+    if(currentPatientId&&patientById(currentPatientId))return currentPatientId;
+    const first=String(document.getElementById('epName')?.value||'').trim();
+    const last=String(document.getElementById('epSurname')?.value||'').trim();
+    const row=activePatients().find(x=>String(x.profile?.first_name||'').trim()===first&&String(x.profile?.last_name||'').trim()===last);
     if(row)currentPatientId=row.id;
     return currentPatientId;
   }
@@ -80,6 +90,26 @@
     surname.insertAdjacentElement('afterend',note);
     surname.insertAdjacentElement('afterend',input);
     surname.insertAdjacentElement('afterend',label);
+  }
+
+  function patchEditPatientPhone(){
+    if(document.body.dataset.proView!=='editProfile'||document.getElementById('epPhone'))return;
+    const surname=document.getElementById('epSurname');if(!surname)return;
+    const row=patientById(editPatientId());
+    const label=document.createElement('label');label.htmlFor='epPhone';label.textContent='Telefono';
+    const input=document.createElement('input');input.id='epPhone';input.type='tel';input.inputMode='tel';input.autocomplete='tel';input.value=row?.profile?.phone||'';
+    surname.insertAdjacentElement('afterend',input);surname.insertAdjacentElement('afterend',label);
+  }
+
+  function stageEditedPatientPhone(){
+    const id=editPatientId(),input=document.getElementById('epPhone');if(!id||!input)return;
+    try{
+      const rows=JSON.parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]');
+      if(!Array.isArray(rows))return;
+      const row=rows.find(x=>x?.id===id);if(!row)return;
+      row.phone=String(input.value||'').trim();
+      localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(rows));
+    }catch(error){console.error('NUBEMO patient phone stage:',error);}
   }
 
   async function createRealPatient() {
@@ -142,7 +172,6 @@
   function patchDetails() {
     if(document.body.dataset.proView!=='details')return;
     const patientId=inferCurrentPatient();if(!patientId)return;
-    // Nessun secondo pulsante Modifica: quello 3.98 resta l’unico owner.
     const deleteButton=document.getElementById('deletePatient');
     if(deleteButton){
       if(deleteButton.textContent!=='Termina percorso')deleteButton.textContent='Termina percorso';
@@ -165,10 +194,11 @@
     card.querySelectorAll('[data-reactivate-patient]').forEach(button=>button.addEventListener('click',()=>reactivatePathway(button.dataset.reactivatePatient,button)));
   }
 
-  function patch(){if(patching)return;patching=true;try{patchNewPatientForm();patchDetails();patchEndedPatients();}finally{patching=false;}}
+  function patch(){if(patching)return;patching=true;try{patchNewPatientForm();patchEditPatientPhone();patchDetails();patchEndedPatients();}finally{patching=false;}}
 
   document.addEventListener('click',event=>{
     rememberPatient(event.target);
+    if(event.target?.closest?.('#saveEditProfile')&&document.body.dataset.proView==='editProfile')stageEditedPatientPhone();
     if(event.target?.closest?.('#saveNewPatient')&&document.body.dataset.proView==='newPatient'){
       event.preventDefault();event.stopImmediatePropagation();void createRealPatient();return;
     }
