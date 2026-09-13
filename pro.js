@@ -1403,7 +1403,12 @@ function clinicalDiaryEntries(p,mode){
  return [];
 }
 
+async function ensureProfessionalLogoData(){
+ const loader=window.nubemoEnsureProfessionalLogoLoaded;
+ if(typeof loader==='function')await loader();
+}
 async function exportClinicalPdf(p,opts={}){
+ await ensureProfessionalLogoData();
  const s=settings(),weights=clinicalWeightSeries(p),interval=opts.interval||30;
  const diaryMode=opts.diaryMode||'none';
  const nubemo=await clinicalJpegAsset(NUBEMO_PDF_BRAND,1200).catch(()=>null);
@@ -2620,8 +2625,10 @@ function bindProDrawer(){
    if(typeof window.nubemoProfessionalLogout==='function')window.nubemoProfessionalLogout();
  });
 
- document.querySelectorAll('[data-drawer-view]').forEach(b=>b.addEventListener('click',()=>{
-   view=b.dataset.drawerView;
+ document.querySelectorAll('[data-drawer-view]').forEach(b=>b.addEventListener('click',async()=>{
+   const targetView=b.dataset.drawerView;
+   if(targetView==='settings')await ensureProfessionalLogoData();
+   view=targetView;
    if(view!=='details')selected=selected;
    if(!isPhoneLandscape())closeProDrawer();
    else proDrawerOpen=true;
@@ -2754,7 +2761,12 @@ function bind(){
  }));
 
  el('desktopClinicalPdf')?.addEventListener('click',clinicalDialog);
- document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render()});
+ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=async()=>{
+   const targetView=b.dataset.view;
+   if(targetView==='settings')await ensureProfessionalLogoData();
+   view=targetView;
+   render();
+ });
  document.querySelectorAll('[data-patient]').forEach(b=>b.onclick=()=>{void openPatientDetails(b.dataset.patient,'summary')});
  document.querySelectorAll('[data-bmi-category]').forEach(b=>b.addEventListener('click',()=>{
    selectedBmiCategory=b.dataset.bmiCategory;

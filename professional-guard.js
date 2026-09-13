@@ -14,6 +14,27 @@
   function perfStart(label){return{label,startedAt:performance.now()};}
   function perfEnd(timer){const ms=Math.round(performance.now()-timer.startedAt);console.log(`[NUBEMO PERF] ${timer.label}: ${ms} ms`);return ms;}
 
+  let professionalLogoPromise=null;
+  async function ensureProfessionalLogoLoaded(){
+    const ctx=window.nubemoProfessionalContext;
+    const path=ctx?.professional?.logo_storage_path;
+    if(!path)return '';
+    if(ctx?.logoData)return ctx.logoData;
+    if(professionalLogoPromise)return professionalLogoPromise;
+    professionalLogoPromise=(async()=>{
+      const timer=perfStart('Logo professionista lazy');
+      try{
+        const{data:logoBlob,error:logoError}=await client.storage.from('professional-assets').download(path);
+        if(logoError)throw logoError;
+        const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error||new Error('Logo non leggibile'));reader.readAsDataURL(logoBlob);});
+        if(window.nubemoProfessionalContext)window.nubemoProfessionalContext.logoData=dataUrl;
+        return dataUrl;
+      }finally{perfEnd(timer);}
+    })().catch(error=>{professionalLogoPromise=null;console.error('NUBEMO professional logo load:',error);return '';});
+    return professionalLogoPromise;
+  }
+  window.nubemoEnsureProfessionalLogoLoaded=ensureProfessionalLogoLoaded;
+
   async function requiresPrivacyGate(profileId){const{data:doc,error:docError}=await client.from('privacy_documents').select('id').eq('document_type','nubemo').eq('active',true).order('published_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false}).limit(1).maybeSingle();if(docError)throw docError;if(!doc?.id)return false;const{data:acceptance,error:acceptanceError}=await client.from('privacy_acceptances').select('status').eq('profile_id',profileId).eq('privacy_document_id',doc.id).maybeSingle();if(acceptanceError)throw acceptanceError;return acceptance?.status!=='accepted';}
 
   async function logout(){if(logoutButton)logoutButton.disabled=true;try{await window.nubemoProfessionalNotesBridge?.flush?.();await window.nubemoProfessionalSettingsBridge?.flush?.();await window.nubemoProfessionalPatientSettingsBridge?.flush?.();await window.nubemoProfessionalDocumentReadBridge?.flush?.();await window.nubemoProfessionalLabsBridge?.flush?.();await window.nubemoProfessionalLegacyAdapter?.flush?.();await client.auth.signOut();}finally{redirectToLogin();}}
@@ -28,18 +49,7 @@
       timer=perfStart('Privacy gate');const privacyRequired=await requiresPrivacyGate(profile.id);perfEnd(timer);if(privacyRequired)return redirectToPrivacy();
       timer=perfStart('Profilo professionista');const{data:professional,error:professionalError}=await client.from('professionals').select('id,profile_id,status,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,logo_storage_path').eq('profile_id',profile.id).maybeSingle();perfEnd(timer);if(professionalError||!professional){showGuardError('Profilo professionale NUBEMO non disponibile.');return;}
 
-      let logoData='';
-      const logoPromise=(async()=>{
-        const logoTimer=perfStart('Logo professionista background');
-        if(professional.logo_storage_path){
-          try{
-            const{data:logoBlob,error:logoError}=await client.storage.from('professional-assets').download(professional.logo_storage_path);if(logoError)throw logoError;
-            logoData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error||new Error('Logo non leggibile'));reader.readAsDataURL(logoBlob);});
-            if(window.nubemoProfessionalContext)window.nubemoProfessionalContext.logoData=logoData;
-          }catch(logoError){console.error('NUBEMO professional logo load:',logoError);}
-        }
-        perfEnd(logoTimer);
-      })();
+      const logoData='';
 
       timer=perfStart('Services + elenco pazienti');
       await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
@@ -69,7 +79,6 @@
       timer=perfStart('Privacy professionista');await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');perfEnd(timer);
 
       perfEnd(totalTimer);
-      void logoPromise;
     }catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}
   }
   authorize();
