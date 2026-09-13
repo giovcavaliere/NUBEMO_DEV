@@ -1,22 +1,29 @@
 /* NUBEMO 4.0 — fix responsive mirato Area Professionista */
 #eTime {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
-  box-sizing: border-box;
+  overflow: hidden;
 }
 
-@media (max-width: 600px) {
+@supports (-webkit-touch-callout: none) {
   #eTime {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
     inline-size: 100% !important;
     max-inline-size: 100% !important;
     min-inline-size: 0 !important;
+  }
+  #eTime::-webkit-date-and-time-value {
+    text-align: left;
+    min-width: 0;
   }
 }
