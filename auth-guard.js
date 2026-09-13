@@ -56,7 +56,7 @@
   }
 
   function accountStatusLabel(value) {
-    return value === 'active' ? 'Attivo' : 'Invito inviato';
+    return value === 'active' ? 'Attivo' : 'Invito da completare';
   }
 
   function nubemoStatusLabel(value) {
@@ -111,16 +111,28 @@
         privacyStatus.title = `Accettata il ${new Date(row.privacy_accepted_at).toLocaleDateString('it-IT')}${row.privacy_version ? ` · versione ${row.privacy_version}` : ''}`;
       }
 
+      const actions = document.createElement('div');
+      actions.className = 'admin-professional-actions';
+
+      if (row.account_status === 'invited') {
+        const resend = document.createElement('button');
+        resend.type = 'button';
+        resend.className = 'secondary admin-professional-resend';
+        resend.dataset.professionalId = row.professional_id;
+        resend.textContent = 'Reinvia invito';
+        actions.append(resend);
+      }
+
       const action = document.createElement('button');
       action.type = 'button';
       action.className = 'secondary admin-professional-action';
       action.dataset.professionalId = row.professional_id;
       action.dataset.action = row.nubemo_status === 'suspended' ? 'activate-professional' : 'suspend-professional';
       action.textContent = row.nubemo_status === 'suspended' ? 'Riattiva' : 'Sospendi';
-      if (row.nubemo_status === 'disabled') action.hidden = true;
+      if (row.nubemo_status !== 'disabled') actions.append(action);
 
       copy.append(name, email, accountStatus, nubemoStatus, privacyStatus);
-      card.append(copy, action);
+      card.append(copy, actions);
       professionalsList.append(card);
     });
   }
@@ -200,6 +212,22 @@
     }
   }
 
+  async function resendProfessionalInvite(button) {
+    const professionalId = button.dataset.professionalId;
+    if (!professionalId) return;
+
+    button.disabled = true;
+    setProfessionalsMessage('Reinvio invito in corso…');
+    try {
+      await invokeAdminAction({ action:'resend-professional-invite', professional_id:professionalId });
+      setProfessionalsMessage('Invito reinviato.');
+      await loadProfessionals();
+    } catch (error) {
+      setProfessionalsMessage(error?.message || 'Impossibile reinviare l’invito.', true);
+      button.disabled = false;
+    }
+  }
+
   function setInviteOpen(open) {
     invitePanel.hidden = !open;
     inviteToggle.setAttribute('aria-expanded', String(open));
@@ -273,6 +301,11 @@
   });
   inviteForm.addEventListener('submit', inviteProfessional);
   professionalsList.addEventListener('click', (event) => {
+    const resendButton = event.target.closest('.admin-professional-resend');
+    if (resendButton) {
+      resendProfessionalInvite(resendButton);
+      return;
+    }
     const button = event.target.closest('.admin-professional-action');
     if (button) changeProfessionalStatus(button);
   });
