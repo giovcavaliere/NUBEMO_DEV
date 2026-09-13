@@ -51,6 +51,9 @@ button:focus-visible,input:focus-visible{outline:3px solid #86b955;outline-offse
 .admin-invite-actions{display:flex;gap:10px;margin-top:14px}
 #admin-loading{padding-top:64px}
 @media(max-width:1150px){.admin-panel{padding-left:28px;padding-right:28px}.admin-list-head,.admin-professional-row{gap:12px;padding-left:18px;padding-right:18px;grid-template-columns:minmax(120px,1fr) minmax(155px,1.3fr) 105px 105px 118px minmax(135px,.9fr)}}
+@media(min-width:801px) and (max-width:950px) and (orientation:portrait){
+.admin-list-head{display:none}.admin-directory{background:transparent;border:0;box-shadow:none;overflow:visible}.admin-professionals-list{display:grid;gap:14px}.admin-professional-row{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:20px;border:1px solid #dce6df;border-radius:16px;background:#fff}.admin-professional-row+.admin-professional-row{border-top:1px solid #dce6df}.admin-professional-copy strong,.admin-professional-copy>span:first-of-type{grid-column:1/-1}.admin-professional-copy strong{font-size:16px}.admin-professional-status-line{grid-column:1}.admin-professional-actions{grid-column:2;grid-row:3/6;align-self:center;flex-direction:column;align-items:stretch}.admin-professional-actions button{width:100%}
+}
 @media(max-width:800px){
 .admin-panel{padding:0 20px 40px}.landing-mini-brand{height:84px;font-size:15px}.landing-mini-brand img{width:40px;height:40px}
 .admin-content{padding-top:24px}.admin-account{position:static;max-width:none;justify-content:space-between;margin-bottom:36px;gap:16px}
