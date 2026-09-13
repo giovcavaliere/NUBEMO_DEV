@@ -26,6 +26,9 @@
 
   const memory = new Map();
   const legacyAppointmentIds = new Map();
+  const hydratedPatients = new Set();
+  const hydrationPromises = new Map();
+  const legacyPatients = new Map();
   let installed = false;
   let context = null;
   let remotePatients = new Map();
@@ -136,8 +139,22 @@
       entries,
       measures: (measurements || []).map(legacyMeasurement),
       real: true,
-      remote: true
+      remote: true,
+      _hydrated: true
     };
+  }
+
+  function legacyPatientShell(row, weightRows) {
+    const patient = legacyPatient(row, null, [], []);
+    patient.weights = (weightRows || [])
+      .filter(x => x?.entry_date && x.weight_kg !== null && x.weight_kg !== undefined && Number.isFinite(Number(x.weight_kg)))
+      .sort((a,b) => String(a.entry_date).localeCompare(String(b.entry_date)))
+      .map(x => [x.entry_date, Number(x.weight_kg)]);
+    patient.diary = [];
+    patient.entries = [];
+    patient.measures = [];
+    patient._hydrated = false;
+    return patient;
   }
 
   function legacyDraft(row) {
@@ -154,7 +171,7 @@
       famObesity: false, famDiabetes: false, famHypertension: false, famCardiovascular: false, famDyslipidemia: false, famThyroid: false, famGestational: false,
       previousDiets: '', allergies: '', medications: '', giIssues: '', pastConditions: '', observations: '', objectives: '',
       showEnergyValues: false, readOnly: true, weights: [], diary: [], entries: [], measures: [],
-      real: false, remote: true, _draft: true
+      real: false, remote: true, _draft: true, _hydrated: false
     };
   }
 
@@ -234,12 +251,15 @@
     for (const p of incoming) {
       if (!p?.id || !known.has(p.id)) continue;
       const row = remotePatients.get(p.id);
+      legacyPatients.set(p.id,{...legacyPatients.get(p.id),...p,_hydrated:hydratedPatients.has(p.id)});
       await services().updatePatientDemographics(row, {
         firstName:p.firstName || String(p.name || '').trim().split(/\s+/)[0] || '', lastName:p.surname || '', phone:p.phone || null,
         birthDate:p.birth || null, sex:p.sex || null, height:numberOrNull(p.height), pathwayStart:p.startDate || null
       });
-      await services().savePatientAnamnesis(p.id, clinicalValues(p));
-      await syncPatientMeasurements(p.id, p.measures);
+      if (hydratedPatients.has(p.id)) {
+        await services().savePatientAnamnesis(p.id, clinicalValues(p));
+        await syncPatientMeasurements(p.id, p.measures);
+      }
     }
 
     const incomingIds = new Set(incoming.map(p => p?.id).filter(id => known.has(id)));
@@ -352,21 +372,60 @@
     memory.set(APPT_KEY,json(remoteAppointments.map(row => legacyAppointment(row,subjectByAppointment.get(row.id)||null))));
   }
 
-  async function hydratePatients() {
+  function publishPatientsMemory() {
     const rows = Array.isArray(context.patients) ? context.patients : [];
-    remotePatients.clear();
-    const resolved = await Promise.all(rows.map(async row => {
-      const [clinical, diary, measurements] = await Promise.all([
-        services().loadPatientClinicalProfile(row.id), services().loadPatientDiary(row.id), services().loadPatientMeasurements(row.id)
-      ]);
-      remotePatients.set(row.id,row); remoteMeasurements.set(row.id,measurements || []);
-      return legacyPatient(row,clinical,diary,measurements);
-    }));
+    const resolved = rows.map(row => legacyPatients.get(row.id)).filter(Boolean);
     const draftRows = [...remoteDrafts.values()].map(legacyDraft);
     memory.set(DELETED_PATIENTS_KEY,json(['main','laura','marco']));
     memory.set(EXTRA_PATIENTS_KEY,json([...resolved,...draftRows]));
     memory.set(DEMO_MEASURES_KEY,'{}'); memory.set(KEY,'[]'); memory.set(PROFILE_KEY,'{}'); memory.set(MEASURE_KEY,'[]'); memory.set(ACCOUNT_KEY,'{}');
     memory.set(PATIENT_START_DATE_KEY,json(Object.fromEntries(resolved.map(p => [p.id,p.startDate || '']))));
+  }
+
+  async function hydratePatientShells() {
+    const rows = Array.isArray(context.patients) ? context.patients : [];
+    remotePatients.clear();
+    const weightRows = await services().loadPatientsWeightHistory(rows.map(row => row.id));
+    const weightsByPatient = new Map();
+    for (const item of weightRows || []) {
+      const list = weightsByPatient.get(item.patient_id) || [];
+      list.push(item);
+      weightsByPatient.set(item.patient_id,list);
+    }
+    for (const row of rows) {
+      remotePatients.set(row.id,row);
+      if (!hydratedPatients.has(row.id) || !legacyPatients.has(row.id)) {
+        legacyPatients.set(row.id,legacyPatientShell(row,weightsByPatient.get(row.id)||[]));
+      }
+    }
+    for (const id of [...legacyPatients.keys()]) if (!remotePatients.has(id)) {
+      legacyPatients.delete(id); hydratedPatients.delete(id); remoteMeasurements.delete(id);
+    }
+    publishPatientsMemory();
+  }
+
+  async function ensurePatientHydrated(patientId) {
+    if (!patientId || remoteDrafts.has(patientId)) return null;
+    if (hydratedPatients.has(patientId)) return legacyPatients.get(patientId) || null;
+    if (hydrationPromises.has(patientId)) return hydrationPromises.get(patientId);
+    const row = remotePatients.get(patientId);
+    if (!row) throw new Error('Paziente non disponibile.');
+    const promise = (async() => {
+      const [clinical, diary, measurements] = await Promise.all([
+        services().loadPatientClinicalProfile(patientId),
+        services().loadPatientDiary(patientId),
+        services().loadPatientMeasurements(patientId)
+      ]);
+      const full = legacyPatient(row,clinical,diary,measurements);
+      remoteMeasurements.set(patientId,measurements || []);
+      legacyPatients.set(patientId,full);
+      hydratedPatients.add(patientId);
+      publishPatientsMemory();
+      return full;
+    })();
+    hydrationPromises.set(patientId,promise);
+    try { return await promise; }
+    finally { hydrationPromises.delete(patientId); }
   }
 
   function installVirtualStorage() {
@@ -390,7 +449,7 @@
 
   async function refreshDrafts() {
     await hydrateDrafts();
-    await hydratePatients();
+    publishPatientsMemory();
     await hydrateAppointments();
   }
 
@@ -398,10 +457,11 @@
     if (!client || !services()) throw new Error('Servizi Supabase PRO non disponibili.');
     if (!ctx?.professional?.id || !ctx?.user?.id) throw new Error('Contesto professionista incompleto.');
     context=ctx;
+    hydratedPatients.clear(); hydrationPromises.clear(); legacyPatients.clear(); remoteMeasurements.clear();
     await hydrateDrafts();
-    await Promise.all([hydratePatients(),hydrateAppointments()]);
+    await Promise.all([hydratePatientShells(),hydrateAppointments()]);
     installVirtualStorage();
   }
   async function flush(){await Promise.all([patientQueue,appointmentQueue]);}
-  window.nubemoProfessionalLegacyAdapter=Object.freeze({init,flush,refreshDrafts,isDraft:id=>remoteDrafts.has(id)});
+  window.nubemoProfessionalLegacyAdapter=Object.freeze({init,flush,refreshDrafts,ensurePatientHydrated,isHydrated:id=>hydratedPatients.has(id),isDraft:id=>remoteDrafts.has(id)});
 })();

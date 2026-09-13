@@ -2550,6 +2550,26 @@ function conflict(obj){
 }
 
 
+async function ensureProPatientHydrated(patientId){
+ const adapter=window.nubemoProfessionalLegacyAdapter;
+ if(!patientId||!adapter?.ensurePatientHydrated)return;
+ await adapter.ensurePatientHydrated(patientId);
+}
+async function openPatientDetails(patientId,targetTab='summary'){
+ if(!patientId)return;
+ try{
+   await ensureProPatientHydrated(patientId);
+   selected=patientId;
+   tab=targetTab||'summary';
+   view='details';
+   render();
+   scrollTo(0,0);
+ }catch(error){
+   console.error('NUBEMO patient lazy load:',error);
+   alert('Non riesco a caricare i dati del paziente. Riprova.');
+ }
+}
+
 function closeProDrawer(){
  if(isPhoneLandscape()){
    proDrawerOpen=true;
@@ -2610,18 +2630,17 @@ function bindProDrawer(){
  }));
 
  document.querySelectorAll('[data-drawer-tab]').forEach(b=>b.addEventListener('click',()=>{
-   tab=b.dataset.drawerTab;
-   view='details';
+   const targetTab=b.dataset.drawerTab;
    if(!isPhoneLandscape())closeProDrawer();
    else proDrawerOpen=true;
-   render();
-   scrollTo(0,0);
+   void openPatientDetails(selected,targetTab);
  }));
 
- document.querySelector('[data-drawer-clinical]')?.addEventListener('click',()=>{
+ document.querySelector('[data-drawer-clinical]')?.addEventListener('click',async()=>{
    if(!isPhoneLandscape())closeProDrawer();
    else proDrawerOpen=true;
-   setTimeout(clinicalDialog,0);
+   try{await ensureProPatientHydrated(selected);setTimeout(clinicalDialog,0)}
+   catch(error){console.error('NUBEMO patient lazy load:',error);alert('Non riesco a caricare i dati del paziente. Riprova.')}
  });
 
  document.querySelector('[data-drawer-patient]')?.addEventListener('click',e=>{
@@ -2636,9 +2655,8 @@ function bindProDrawer(){
      if(isPhoneLandscape())proDrawerOpen=true;
      return;
    }
-   view='details';
    closeProDrawer();
-   render();
+   void openPatientDetails(selected,tab||'summary');
  });
 }
 
@@ -2737,7 +2755,7 @@ function bind(){
 
  el('desktopClinicalPdf')?.addEventListener('click',clinicalDialog);
  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render()});
- document.querySelectorAll('[data-patient]').forEach(b=>b.onclick=()=>{selected=b.dataset.patient;tab='summary';view='details';render()});
+ document.querySelectorAll('[data-patient]').forEach(b=>b.onclick=()=>{void openPatientDetails(b.dataset.patient,'summary')});
  document.querySelectorAll('[data-bmi-category]').forEach(b=>b.addEventListener('click',()=>{
    selectedBmiCategory=b.dataset.bmiCategory;
    render();
@@ -2790,7 +2808,7 @@ function bind(){
  view='dashboard';
  render();
 });
- el('confirmLabReview')?.addEventListener('click',()=>{const item=pendingLabs()[window.reviewLabKey];if(!item)return;markBloodTestDocumentRead(item.documentId);const ids=['glucose','cholesterol','hdl','ldl','triglycerides','got','gpt','uricAcid','creatinine','ggt'],obj={id:'lab-'+Date.now(),date:readProDate('revDate')||today()};ids.forEach(k=>obj[k]=(el('rev'+k)?.value||'').trim());const rows=labsFor(item.patientId);rows.push(obj);saveLabsFor(item.patientId,rows);const m=pendingLabs();m[window.reviewLabKey]={...item,status:'Confermato'};savePendingLabs(m);selected=item.patientId;tab='labs';view='details';render()});
+ el('confirmLabReview')?.addEventListener('click',()=>{const item=pendingLabs()[window.reviewLabKey];if(!item)return;markBloodTestDocumentRead(item.documentId);const ids=['glucose','cholesterol','hdl','ldl','triglycerides','got','gpt','uricAcid','creatinine','ggt'],obj={id:'lab-'+Date.now(),date:readProDate('revDate')||today()};ids.forEach(k=>obj[k]=(el('rev'+k)?.value||'').trim());const rows=labsFor(item.patientId);rows.push(obj);saveLabsFor(item.patientId,rows);const m=pendingLabs();m[window.reviewLabKey]={...item,status:'Confermato'};savePendingLabs(m);void openPatientDetails(item.patientId,'labs')});
 el('newLab')?.addEventListener('click',()=>{window.editLabId='';view='labForm';render()});document.querySelectorAll('[data-edit-lab]').forEach(b=>b.addEventListener('click',()=>{window.editLabId=b.dataset.editLab;view='labForm';render()}));el('cancelLab')?.addEventListener('click',()=>{view='details';tab='labs';render()});el('saveLab')?.addEventListener('click',saveLab);el('deleteLab')?.addEventListener('click',deleteLab);let pendingPlanFile=null;
 el('uploadPlan')?.addEventListener('click',()=>el('planFile')?.click());
 el('planFile')?.addEventListener('change',e=>{
