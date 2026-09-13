@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#064b43">
-  <link rel="manifest" href="manifest.json?v=nubemo40admin3d">
-  <link rel="apple-touch-icon" href="assets/nubemo-n-icon-180.png?v=nubemo40admin3d">
-  <link rel="icon" href="assets/nubemo-n-icon-192.png?v=nubemo40admin3d">
+  <link rel="manifest" href="manifest.json?v=nubemo40privacy01">
+  <link rel="apple-touch-icon" href="assets/nubemo-n-icon-180.png?v=nubemo40privacy01">
+  <link rel="icon" href="assets/nubemo-n-icon-192.png?v=nubemo40privacy01">
 <style>
 :root{font-family:Arial,Helvetica,sans-serif;color:#123b33;background:#f5f8f5;font-synthesis:none}
 *{box-sizing:border-box}body{margin:0} [hidden]{display:none!important}
@@ -29,7 +29,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #86b955;outline-offse
 #admin-invite-toggle{background:#12604c;color:#fff;white-space:nowrap;box-shadow:0 4px 12px #12513a12}
 .admin-logout{padding:10px 18px}
 .admin-directory{border:1px solid #dce6df;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 8px 30px #173b2b04}
-.admin-list-head,.admin-professional-row{display:grid;grid-template-columns:minmax(160px,1.2fr) minmax(200px,1.6fr) minmax(120px,.8fr) minmax(120px,.8fr) 110px;align-items:center;gap:24px;padding:22px 28px}
+.admin-list-head,.admin-professional-row{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(190px,1.5fr) minmax(115px,.8fr) minmax(115px,.8fr) minmax(125px,.9fr) 105px;align-items:center;gap:18px;padding:22px 28px}
 .admin-list-head{background:#ecf2ed;color:#688071;text-transform:uppercase;font-size:10px;font-weight:800;letter-spacing:1px;padding-top:17px;padding-bottom:17px}
 .admin-list-head span:last-child{text-align:right}
 .admin-professional-row+.admin-professional-row{border-top:1px solid #e8eee9}
@@ -49,7 +49,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #86b955;outline-offse
 .nubemo-login-form input{width:100%;min-width:0;border:1px solid #ccdacf;border-radius:10px;padding:13px;font:inherit;color:#123b33;background:#fff}
 .admin-invite-actions{display:flex;gap:10px;margin-top:14px}
 #admin-loading{padding-top:64px}
-@media(max-width:1050px){.admin-panel{padding-left:28px;padding-right:28px}.admin-list-head,.admin-professional-row{gap:14px;padding-left:20px;padding-right:20px;grid-template-columns:minmax(130px,1fr) minmax(160px,1.4fr) 115px 115px 100px}}
+@media(max-width:1150px){.admin-panel{padding-left:28px;padding-right:28px}.admin-list-head,.admin-professional-row{gap:12px;padding-left:18px;padding-right:18px;grid-template-columns:minmax(120px,1fr) minmax(155px,1.3fr) 105px 105px 118px 90px}}
 @media(max-width:800px){
 .admin-panel{padding:0 20px 40px}.landing-mini-brand{height:84px;font-size:15px}.landing-mini-brand img{width:40px;height:40px}
 .admin-content{padding-top:24px}.admin-account{position:static;max-width:none;justify-content:space-between;margin-bottom:36px;gap:16px}
@@ -59,7 +59,7 @@ h1{letter-spacing:-1px}.admin-list-head{display:none}.admin-directory{background
 .admin-professional-row+.admin-professional-row{border-top:1px solid #dce6df}
 .admin-professional-copy strong,.admin-professional-copy>span:first-of-type{grid-column:1/-1}
 .admin-professional-copy strong{font-size:16px}.admin-professional-status-line{grid-column:1}
-.admin-professional-action{grid-column:2;grid-row:3/5;align-self:center}
+.admin-professional-action{grid-column:2;grid-row:3/6;align-self:center}
 .admin-invite-panel{padding:20px}.admin-invite-actions{flex-wrap:wrap}
 }
 </style>
@@ -94,7 +94,7 @@ h1{letter-spacing:-1px}.admin-list-head{display:none}.admin-directory{background
 
           <p id="admin-professionals-message" class="nubemo-login-message" aria-live="polite"></p>
           <div class="admin-directory">
-            <div class="admin-list-head" aria-hidden="true"><span>Nome</span><span>Email</span><span>Stato account</span><span>Stato NUBEMO</span><span>Azioni</span></div>
+            <div class="admin-list-head" aria-hidden="true"><span>Nome</span><span>Email</span><span>Stato account</span><span>Stato NUBEMO</span><span>Privacy NUBEMO</span><span>Azioni</span></div>
             <div id="admin-professionals-list" class="admin-professionals-list"></div>
           </div>
 
@@ -123,7 +123,7 @@ h1{letter-spacing:-1px}.admin-list-head{display:none}.admin-directory{background
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=nubemo40admin3d"></script>
-  <script src="auth-guard.js?v=nubemo40admin3d"></script>
+  <script src="supabase-client.js?v=nubemo40privacy01"></script>
+  <script src="auth-guard.js?v=nubemo40privacy01"></script>
 </body>
 </html>
