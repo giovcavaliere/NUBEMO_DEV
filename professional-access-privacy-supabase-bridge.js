@@ -11,6 +11,7 @@
 
   let currentPatientId = '';
   let patching = false;
+  let accountToken = 0;
   let privacyToken = 0;
 
   const esc = (value='') => String(value)
@@ -61,23 +62,68 @@
     return slot;
   }
 
-  function patchAccount() {
+  async function invokePatientInviteAction(action, patientId) {
+    const { data: { session }, error: sessionError } = await client.auth.getSession();
+    if (sessionError || !session?.access_token) throw new Error('Sessione professionista non disponibile.');
+    const { data, error } = await client.functions.invoke('patient-invite-status', {
+      body:{ action, patient_id:patientId },
+      headers:{ Authorization:`Bearer ${session.access_token}` }
+    });
+    if (error || !data?.ok) throw new Error(data?.error || 'Operazione non completata.');
+    return data;
+  }
+
+  async function patchAccount() {
     if (document.body.dataset.proView !== 'details' || activeTab() !== 'account') return;
     const row = currentPatient();
     const host = contentHost();
     if (!row || !host) return;
     const existing = host.querySelector(':scope > .nubemo-remote-tab-content[data-domain="account"]');
-    if (existing?.dataset.patientId === row.id) return;
-    const slot = contentSlot(host,'account',row.id);
+    if (existing?.dataset.patientId === row.id && existing.dataset.state === 'loaded') return;
+    const slot = existing?.dataset.patientId === row.id ? existing : contentSlot(host,'account',row.id);
     if (!slot) return;
+    const token = ++accountToken;
     const profile = row.profile || {};
-    slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">${profile.status === 'active' ? 'Attivo' : esc(profile.status || 'Attivo')}</span></div>
-      <div class="pro-read-grid">
-        <div><span>Paziente</span><b>${esc(patientName(row))}</b></div>
-        <div><span>Email di accesso</span><b>${esc(profile.email || '—')}</b></div>
-        <div><span>Stato profilo</span><b>${esc(profile.status || 'active')}</b></div>
-        <div><span>Gestione credenziali</span><b>Supabase Auth</b></div>
-      </div>`;
+    slot.dataset.state = 'loading';
+    slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">Verifica...</span></div><p class="muted">Controllo stato account NUBEMO.</p>`;
+
+    try {
+      const account = await invokePatientInviteAction('check',row.id);
+      if (token !== accountToken || activeTab() !== 'account' || currentPatient()?.id !== row.id || !slot.isConnected) return;
+      const active = account.account_status === 'active';
+      slot.dataset.state = 'loaded';
+      slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">${active ? 'Attivo' : 'Invito da completare'}</span></div>
+        <div class="pro-read-grid">
+          <div><span>Paziente</span><b>${esc(patientName(row))}</b></div>
+          <div><span>Email di accesso</span><b>${esc(account.email || profile.email || '—')}</b></div>
+          <div><span>Stato account</span><b>${active ? 'Attivo' : 'Invito da completare'}</b></div>
+          <div><span>Stato profilo NUBEMO</span><b>${esc(profile.status || 'active')}</b></div>
+        </div>
+        ${active ? '' : '<button class="secondary" type="button" data-resend-patient-invite style="margin-top:16px">Reinvia invito</button><p class="muted" data-account-message style="margin-top:10px"></p>'}`;
+
+      const resend = slot.querySelector('[data-resend-patient-invite]');
+      const accountMessage = slot.querySelector('[data-account-message]');
+      resend?.addEventListener('click',async()=>{
+        resend.disabled = true;
+        resend.textContent = 'Invio…';
+        if (accountMessage) accountMessage.textContent = '';
+        try {
+          await invokePatientInviteAction('resend',row.id);
+          resend.textContent = 'Invito reinviato';
+          if (accountMessage) accountMessage.textContent = 'Invito reinviato correttamente.';
+        } catch (error) {
+          console.error('NUBEMO patient invite resend:',error);
+          resend.disabled = false;
+          resend.textContent = 'Reinvia invito';
+          if (accountMessage) accountMessage.textContent = error?.message || 'Impossibile reinviare l’invito.';
+        }
+      });
+    } catch (error) {
+      if (token !== accountToken || !slot.isConnected) return;
+      slot.dataset.state = 'error';
+      console.error('NUBEMO patient account status:',error);
+      slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">Errore</span></div><p class="muted">Non è stato possibile leggere lo stato dell’account.</p>`;
+    }
   }
 
   async function loadNubemoPrivacy(profileId) {
@@ -258,7 +304,7 @@
     if (patching) return;
     patching = true;
     try {
-      patchAccount();
+      if (activeTab() === 'account') void patchAccount();
       if (activeTab() === 'privacy') void patchPrivacy();
     } finally { patching = false; }
   }
