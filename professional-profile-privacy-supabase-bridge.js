@@ -39,7 +39,15 @@
     }
   }
 
-  async function replaceDocument(file, currentRow, button) {
+  function setUploadBusy(label, busy, hasCurrent) {
+    if (!label) return;
+    label.style.pointerEvents = busy ? 'none' : '';
+    label.style.opacity = busy ? '.55' : '';
+    const textNode = [...label.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
+    if (textNode) textNode.nodeValue = busy ? 'Caricamento…' : (hasCurrent ? 'Sostituisci PDF' : 'Carica PDF');
+  }
+
+  async function replaceDocument(file, currentRow, label) {
     if (!file) return;
     if (file.type !== 'application/pdf') return alert('Carica un file PDF.');
     if (file.size > 10 * 1024 * 1024) return alert('Il PDF supera il limite di 10 MB.');
@@ -47,8 +55,7 @@
     const now = new Date();
     const version = now.toISOString();
     const path = `professionals/${professionalId}/templates/${crypto.randomUUID()}.pdf`;
-    button.disabled = true;
-    button.textContent = 'Caricamento…';
+    setUploadBusy(label,true,!!currentRow);
     let uploaded = false;
     try {
       const { error: uploadError } = await client.storage.from('privacy-documents')
@@ -89,8 +96,7 @@
       console.error('NUBEMO professional privacy upload:',error);
       if (uploaded) await client.storage.from('privacy-documents').remove([path]).catch(()=>{});
       alert('Non è stato possibile salvare il PDF privacy.');
-      button.disabled = false;
-      button.textContent = currentRow ? 'Sostituisci PDF' : 'Carica PDF';
+      setUploadBusy(label,false,!!currentRow);
     }
   }
 
@@ -100,7 +106,7 @@
     try {
       const row = await activeDocument();
       if (document.body.dataset.proView !== 'settings' || document.getElementById('professionalPrivacyCard')) return;
-      const cards = [...app.querySelectorAll(':scope section.card, section.card')];
+      const cards = [...app.querySelectorAll('section.card')];
       const logoCard = cards.find(card => card.querySelector('h2')?.textContent?.trim() === 'Logo professionale');
       if (!logoCard) return;
 
