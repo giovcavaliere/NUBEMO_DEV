@@ -92,6 +92,7 @@
       name: [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim() || profile.email || 'Paziente',
       firstName: profile.first_name || '',
       surname: profile.last_name || '',
+      phone: profile.phone || '',
       email: profile.email || '',
       birth: row.birth_date || '',
       sex: row.sex || '',
@@ -234,7 +235,7 @@
       if (!p?.id || !known.has(p.id)) continue;
       const row = remotePatients.get(p.id);
       await services().updatePatientDemographics(row, {
-        firstName:p.firstName || String(p.name || '').trim().split(/\s+/)[0] || '', lastName:p.surname || '',
+        firstName:p.firstName || String(p.name || '').trim().split(/\s+/)[0] || '', lastName:p.surname || '', phone:p.phone || null,
         birthDate:p.birth || null, sex:p.sex || null, height:numberOrNull(p.height), pathwayStart:p.startDate || null
       });
       await services().savePatientAnamnesis(p.id, clinicalValues(p));
