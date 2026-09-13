@@ -28,6 +28,7 @@ const CORE=[
   './professional-services.js?v=nubemo398recovery19',
   './professional-legacy-supabase-adapter.js?v=nubemo398recovery19',
   './professional-patient-lifecycle-bridge.js?v=nubemo40patientlife01',
+  './professional-draft-storage-sanitizer.js?v=nubemo40patientlife01',
   './professional-recovery-contract.js?v=nubemo398recovery21',
   './professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19',
   './professional-settings-supabase-bridge.js?v=nubemo398recovery19',
