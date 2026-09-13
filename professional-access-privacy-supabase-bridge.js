@@ -73,6 +73,63 @@
     return data;
   }
 
+  async function invokeLifecycle(body) {
+    const {data,error}=await client.functions.invoke('patient-lifecycle',{body});
+    if(error){
+      let detail='';
+      try{
+        if(error.context instanceof Response){
+          const payload=await error.context.clone().json();
+          detail=String(payload?.error||payload?.message||'').trim();
+        }
+      }catch(_){
+        try{detail=String(await error.context?.clone?.().text?.()||'').trim();}catch(__){}
+      }
+      throw new Error(detail||error.message||'Operazione non completata.');
+    }
+    if(!data?.ok)throw new Error(data?.error||data?.message||'Operazione non completata.');
+    return data;
+  }
+
+  function renderPatientAreaNotActive(slot,row) {
+    slot.dataset.state = 'loaded';
+    slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">Area Paziente non attiva</span></div>
+      <p class="muted">Il paziente è gestito dal professionista in NUBEMO, ma non dispone ancora di un accesso personale.</p>
+      <div class="pro-read-grid" style="margin-top:14px">
+        <div><span>Paziente</span><b>${esc(patientName(row))}</b></div>
+        <div><span>Stato Area Paziente</span><b>Non attiva</b></div>
+      </div>
+      <label style="margin-top:16px">Email per attivazione</label>
+      <input type="email" data-enable-patient-email inputmode="email" autocomplete="email" placeholder="es. nome@email.it">
+      <button class="secondary" type="button" data-enable-patient-area style="margin-top:12px">Attiva Area Paziente</button>
+      <p class="muted" data-enable-patient-message style="margin-top:10px"></p>`;
+
+    const button=slot.querySelector('[data-enable-patient-area]');
+    const input=slot.querySelector('[data-enable-patient-email]');
+    const message=slot.querySelector('[data-enable-patient-message]');
+    button?.addEventListener('click',async()=>{
+      const email=String(input?.value||'').trim().toLowerCase();
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        if(message)message.textContent='Inserisci un indirizzo email valido.';
+        return;
+      }
+      button.disabled=true;button.textContent='Attivazione…';if(message)message.textContent='';
+      try{
+        await invokeLifecycle({action:'activate-patient-area',patient_id:row.id,email});
+        const loaded=await window.nubemoReloadProfessionalPatients?.();
+        if(Array.isArray(loaded)){
+          const refreshed=loaded.find(p=>p.id===row.id);
+          if(refreshed)Object.assign(row,refreshed);
+        }
+        window.location.reload();
+      }catch(error){
+        console.error('NUBEMO patient area activation:',error);
+        if(message)message.textContent=error?.message||'Attivazione non completata.';
+        button.disabled=false;button.textContent='Attiva Area Paziente';
+      }
+    });
+  }
+
   async function patchAccount() {
     if (document.body.dataset.proView !== 'details' || activeTab() !== 'account') return;
     const row = currentPatient();
@@ -84,6 +141,12 @@
     if (!slot) return;
     const token = ++accountToken;
     const profile = row.profile || {};
+
+    if (!profile.auth_user_id) {
+      renderPatientAreaNotActive(slot,row);
+      return;
+    }
+
     slot.dataset.state = 'loading';
     slot.innerHTML = `<div class="section-head"><h2>Account paziente</h2><span class="pill">Verifica...</span></div><p class="muted">Controllo stato account NUBEMO.</p>`;
 
@@ -226,12 +289,13 @@
     const slot = contentSlot(host,'privacy',row.id);
     if (!slot) return;
     const token = ++privacyToken;
+    const patientAreaActive=!!row.profile?.auth_user_id;
     slot.dataset.state = 'loading';
     slot.innerHTML = `<div class="section-head"><h2>Privacy</h2><span class="pill">Verifica...</span></div><p class="muted">Caricamento stato privacy.</p>`;
 
     try {
       const [nubemoDocs, professionalPrivacy] = await Promise.all([
-        loadNubemoPrivacy(row.profile_id),
+        patientAreaActive ? loadNubemoPrivacy(row.profile_id) : Promise.resolve([]),
         loadProfessionalPrivacy(row.id)
       ]);
       if (token !== privacyToken || activeTab() !== 'privacy' || currentPatient()?.id !== row.id || !slot.isConnected) return;
@@ -240,23 +304,27 @@
       const nubemoAcceptance = nubemo?.acceptance || null;
       const template = professionalPrivacy.template;
       const signed = professionalPrivacy.signed;
-      const overall = nubemo && nubemoAcceptance?.status === 'accepted' && signed ? 'Completa' : 'Da completare';
+      const nubemoComplete=!patientAreaActive || (nubemo && nubemoAcceptance?.status === 'accepted');
+      const overall = nubemoComplete && signed ? 'Completa' : 'Da completare';
 
       slot.dataset.state = 'loaded';
       slot.innerHTML = `
         <div class="section-head"><h2>Privacy</h2><span class="pill">${overall}</span></div>
 
         <div class="card" style="margin-top:16px">
-          <div class="section-head"><h2>Privacy NUBEMO</h2><span class="pill">${nubemo ? nubemoState(nubemoAcceptance) : 'Nessuna informativa'}</span></div>
-          ${nubemo ? `
-            <div class="pro-read-grid">
-              <div><span>Informativa</span><b>${esc(nubemo.title || 'Informativa privacy NUBEMO')}</b></div>
-              <div><span>Versione</span><b>${esc(nubemo.version || '—')}</b></div>
-              <div><span>Stato</span><b>${nubemoState(nubemoAcceptance)}</b></div>
-              <div><span>Data accettazione</span><b>${nubemoAcceptance?.accepted_at ? new Date(nubemoAcceptance.accepted_at).toLocaleDateString('it-IT') : '—'}</b></div>
-            </div>
-            <button class="secondary compact" type="button" data-open-nubemo-privacy style="margin-top:16px">Apri informativa</button>`
-          : '<p class="muted">Nessuna informativa privacy NUBEMO attiva è stata ancora pubblicata.</p>'}
+          ${patientAreaActive ? `
+            <div class="section-head"><h2>Privacy NUBEMO</h2><span class="pill">${nubemo ? nubemoState(nubemoAcceptance) : 'Nessuna informativa'}</span></div>
+            ${nubemo ? `
+              <div class="pro-read-grid">
+                <div><span>Informativa</span><b>${esc(nubemo.title || 'Informativa privacy NUBEMO')}</b></div>
+                <div><span>Versione</span><b>${esc(nubemo.version || '—')}</b></div>
+                <div><span>Stato</span><b>${nubemoState(nubemoAcceptance)}</b></div>
+                <div><span>Data accettazione</span><b>${nubemoAcceptance?.accepted_at ? new Date(nubemoAcceptance.accepted_at).toLocaleDateString('it-IT') : '—'}</b></div>
+              </div>
+              <button class="secondary compact" type="button" data-open-nubemo-privacy style="margin-top:16px">Apri informativa</button>`
+            : '<p class="muted">Nessuna informativa privacy NUBEMO attiva è stata ancora pubblicata.</p>'}` : `
+            <div class="section-head"><h2>Privacy NUBEMO</h2><span class="pill">Area Paziente non attiva</span></div>
+            <p class="muted">L’informativa NUBEMO per l’accesso personale non è richiesta finché l’Area Paziente non viene attivata.</p>`}
         </div>
 
         <div class="card" style="margin-top:16px">
