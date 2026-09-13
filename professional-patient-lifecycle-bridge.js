@@ -40,7 +40,19 @@
 
   async function invokeLifecycle(body){
     const {data,error}=await client.functions.invoke('patient-lifecycle',{body});
-    if(error||!data?.ok)throw new Error(data?.error||'Operazione non completata.');
+    if(error){
+      let detail='';
+      try{
+        if(error.context instanceof Response){
+          const payload=await error.context.clone().json();
+          detail=String(payload?.error||payload?.message||'').trim();
+        }
+      }catch(_){
+        try{detail=String(await error.context?.clone?.().text?.()||'').trim();}catch(__){}
+      }
+      throw new Error(detail||error.message||'Operazione non completata.');
+    }
+    if(!data?.ok)throw new Error(data?.error||data?.message||'Operazione non completata.');
     return data;
   }
 
