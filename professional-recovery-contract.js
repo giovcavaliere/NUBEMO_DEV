@@ -32,8 +32,9 @@
     let rows = [];
     try { rows = JSON.parse(value || '[]'); } catch (_) { rows = []; }
     if (!Array.isArray(rows)) rows = [];
-    const allowed = new Set((window.nubemoProfessionalContext?.patients || []).map(row => row.id));
-    return JSON.stringify(rows.filter(row => row?.id && allowed.has(row.id)));
+    const allowedPatients = new Set((window.nubemoProfessionalContext?.patients || []).map(row => row.id));
+    const adapter = window.nubemoProfessionalLegacyAdapter;
+    return JSON.stringify(rows.filter(row => row?.id && (allowedPatients.has(row.id) || adapter?.isDraft?.(row.id))));
   }
 
   storageProto.getItem = function(key) {
@@ -42,7 +43,7 @@
       return filterSupabasePatients(previousGetItem.call(this, key));
     }
     if (this === window.localStorage && RETIRED_LOCAL_KEYS.has(k)) return memory.get(k) ?? null;
-    return previousGetItem.call(this, key);
+    return previousGetItem.call(this,key);
   };
 
   storageProto.setItem = function(key, value) {
@@ -54,7 +55,7 @@
       memory.set(k, String(value));
       return;
     }
-    return previousSetItem.call(this, key, value);
+    return previousSetItem.call(this,key,value);
   };
 
   storageProto.removeItem = function(key) {
@@ -66,7 +67,7 @@
       memory.delete(k);
       return;
     }
-    return previousRemoveItem.call(this, key);
+    return previousRemoveItem.call(this,key);
   };
 
   // La 3.98 richiede il numero per un documento contabile. Il bridge Supabase
