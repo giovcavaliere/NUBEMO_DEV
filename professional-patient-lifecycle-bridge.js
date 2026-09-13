@@ -91,17 +91,25 @@
   }
 
   async function createRealPatient(button){
-    const firstName=text('npName'),lastName=text('npSurname'),activate=!!document.getElementById('npActivatePatientArea')?.checked,email=activate?text('npEmail').toLowerCase():'';
+    const firstName=text('npName'),lastName=text('npSurname'),phone=text('npPhone')||null,activate=!!document.getElementById('npActivatePatientArea')?.checked,email=activate?text('npEmail').toLowerCase():'';
     if(!firstName||!lastName)return alert('Inserisci nome e cognome.');
     if(activate&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert('Inserisci un indirizzo email valido.');
     const birthDate=normaliseDate(text('npBirth'))||null,sex=text('npSex')||null,height=optionalNumber('npHeight');
     if(height!==null&&(!Number.isFinite(height)||height<80||height>250))return alert('Controlla l’altezza inserita.');
     button.disabled=true;const old=button.textContent;button.textContent='Creazione...';
     try{
-      const data=await invokeLifecycle({action:'create-patient',first_name:firstName,last_name:lastName,email:activate?email:null,activate_patient_area:activate,birth_date:birthDate,sex,height_cm:height,pathway_start_date:null});
+      const data=await invokeLifecycle({action:'create-patient',first_name:firstName,last_name:lastName,phone,email:activate?email:null,activate_patient_area:activate,birth_date:birthDate,sex,height_cm:height,pathway_start_date:null});
       try{await services?.savePatientAnamnesis?.(data.patient_id,clinicalFromForm());}catch(error){console.error('NUBEMO anamnesis after create:',error);}
       window.location.reload();
     }catch(error){console.error('NUBEMO lifecycle patient create:',error);alert(error.message||'Non è stato possibile creare il paziente.');button.disabled=false;button.textContent=old;}
+  }
+
+  function patchNewPatientPhone(){
+    if(document.body.dataset.proView!=='newPatient'||document.getElementById('npPhone'))return;
+    const surname=document.getElementById('npSurname');if(!surname)return;
+    const label=document.createElement('label');label.htmlFor='npPhone';label.textContent='Telefono';
+    const input=document.createElement('input');input.id='npPhone';input.type='tel';input.inputMode='tel';input.autocomplete='tel';input.placeholder='es. 333 1234567';
+    surname.insertAdjacentElement('afterend',input);surname.insertAdjacentElement('afterend',label);
   }
 
   function patchNewPatientAccessChoice(){
@@ -153,7 +161,7 @@
     });
   }
 
-  function patch(){if(patching)return;patching=true;try{patchNewPatientAccessChoice();patchDraftRows();}finally{patching=false;}}
+  function patch(){if(patching)return;patching=true;try{patchNewPatientPhone();patchNewPatientAccessChoice();patchDraftRows();}finally{patching=false;}}
 
   const style=document.createElement('style');style.textContent=`
     .patient-content-card,.patient-content-card .nubemo-remote-tab-content,.patient-content-card .pro-read-grid,.patient-content-card .pro-read-grid>div{min-width:0}
