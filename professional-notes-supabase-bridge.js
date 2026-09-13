@@ -1,5 +1,5 @@
 // NUBEMO recovery 3.98 — bridge Note professionista -> Supabase.
-// Nessun DOM viene modificato: pro.js continua a possedere integralmente la UI 3.98.
+// Step 3B: hydration lazy per paziente; pro.js resta owner della UI.
 (() => {
   'use strict';
 
@@ -11,7 +11,9 @@
   const storageProto = Object.getPrototypeOf(window.localStorage);
   const previousSetItem = storageProto.setItem;
   const remoteByPatient = new Map();
-  let hydrated = false;
+  const hydratedPatients = new Set();
+  const hydrationPromises = new Map();
+  const replayClicks = new WeakSet();
   let queue = Promise.resolve();
 
   const parse = value => {
@@ -26,28 +28,43 @@
     }));
   }
 
-  async function hydrate() {
-    const map = {};
-    await Promise.all(context.patients.map(async patient => {
-      const rows = await services.loadProfessionalNotes(patient.id);
-      const latest = Array.isArray(rows) && rows.length ? rows[0] : null;
-      if (latest) {
-        remoteByPatient.set(patient.id, latest);
-        map[patient.id] = latest.content || '';
-      }
-    }));
+  function patientName(row) {
+    const p=row?.profile||{};
+    return [p.first_name,p.last_name].filter(Boolean).join(' ').trim()||p.email||'Paziente';
+  }
 
-    // Il base adapter intercetta questa chiave e la conserva solo nella memoria
-    // della sessione. Nessun dato clinico viene scritto nello storage del device.
+  function inferPatientId() {
+    const title=document.querySelector('.patient-global-title')?.textContent||'';
+    const match=context.patients.find(p=>title.includes(patientName(p)));
+    return match?.id||'';
+  }
+
+  function publishPatientNote(patientId, content) {
+    const map=parse(window.localStorage.getItem(NOTES_KEY));
+    if(content) map[patientId]=content;
+    else delete map[patientId];
     previousSetItem.call(window.localStorage, NOTES_KEY, JSON.stringify(map));
-    hydrated = true;
+  }
+
+  async function ensurePatient(patientId, force=false) {
+    if(!patientId) return;
+    if(!force && hydratedPatients.has(patientId)) return;
+    if(!force && hydrationPromises.has(patientId)) return hydrationPromises.get(patientId);
+    const promise=(async()=>{
+      const rows=await services.loadProfessionalNotes(patientId);
+      const latest=Array.isArray(rows)&&rows.length?rows[0]:null;
+      if(latest) remoteByPatient.set(patientId,latest); else remoteByPatient.delete(patientId);
+      publishPatientNote(patientId,latest?.content||'');
+      hydratedPatients.add(patientId);
+    })().finally(()=>hydrationPromises.delete(patientId));
+    hydrationPromises.set(patientId,promise);
+    return promise;
   }
 
   async function sync(serialized) {
     const incoming = parse(serialized);
-    for (const patient of context.patients) {
-      const patientId = patient.id;
-      if (!Object.prototype.hasOwnProperty.call(incoming, patientId)) continue;
+    for (const patientId of Object.keys(incoming)) {
+      if(!hydratedPatients.has(patientId)) continue;
       const content = String(incoming[patientId] ?? '');
       const existing = remoteByPatient.get(patientId);
       if (existing) {
@@ -63,13 +80,27 @@
 
   storageProto.setItem = function(key, value) {
     previousSetItem.call(this, key, value);
-    if (this !== window.localStorage || String(key) !== NOTES_KEY || !hydrated) return;
+    if (this !== window.localStorage || String(key) !== NOTES_KEY) return;
     const serialized = String(value);
     queue = queue.then(() => sync(serialized)).catch(report);
   };
 
+  // Inizializza la chiave virtuale senza interrogare Supabase.
+  previousSetItem.call(window.localStorage, NOTES_KEY, '{}');
+
+  document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('[data-patient-tab="notes"],[data-drawer-tab="notes"]');
+    if(!button||replayClicks.has(button)){if(button)replayClicks.delete(button);return;}
+    const patientId=inferPatientId();
+    if(!patientId||hydratedPatients.has(patientId))return;
+    event.preventDefault();event.stopImmediatePropagation();
+    void ensurePatient(patientId).then(()=>{replayClicks.add(button);button.click();}).catch(error=>{report(error);replayClicks.add(button);button.click();});
+  },true);
+
   window.nubemoProfessionalNotesBridge = Object.freeze({
-    ready: hydrate(),
-    flush: () => queue
+    ready: Promise.resolve(),
+    ensurePatient,
+    refresh: patientId=>ensurePatient(patientId,true),
+    flush: async()=>{await Promise.all([...hydrationPromises.values()]);await queue;}
   });
 })();
