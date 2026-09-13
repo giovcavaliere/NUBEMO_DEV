@@ -68,7 +68,7 @@
       await loadScript('professional-legacy-supabase-adapter.js?v=nubemo40patientlife02','Impossibile preparare i dati dell’Area Professionista.');
       if(!window.nubemoProfessionalLegacyAdapter)throw new Error('Adattatore dati PRO non inizializzato.');
       await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
-      await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40patientlife04','Impossibile preparare i contatti e l’accesso paziente.');
+      await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40patientlife05','Impossibile preparare i contatti e l’accesso paziente.');
       await window.nubemoPatientLifecycleBridge?.ready;
       await loadScript('professional-recovery-contract.js?v=nubemo40patientlife03','Impossibile applicare il contratto runtime dell’Area Professionista.');
       await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;
