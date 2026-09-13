@@ -65,6 +65,13 @@
     return 'Attivo';
   }
 
+  function privacyStatusLabel(value) {
+    if (value === 'accepted') return 'Accettata';
+    if (value === 'refused') return 'Rifiutata';
+    if (value === 'not_published') return 'Nessuna informativa';
+    return 'Da accettare';
+  }
+
   function renderProfessionals(rows) {
     professionalsList.innerHTML = '';
 
@@ -97,6 +104,13 @@
       nubemoStatus.className = 'admin-professional-status-line';
       nubemoStatus.textContent = `NUBEMO: ${nubemoStatusLabel(row.nubemo_status)}`;
 
+      const privacyStatus = document.createElement('span');
+      privacyStatus.className = 'admin-professional-status-line';
+      privacyStatus.textContent = `Privacy: ${privacyStatusLabel(row.privacy_status)}`;
+      if (row.privacy_status === 'accepted' && row.privacy_accepted_at) {
+        privacyStatus.title = `Accettata il ${new Date(row.privacy_accepted_at).toLocaleDateString('it-IT')}${row.privacy_version ? ` · versione ${row.privacy_version}` : ''}`;
+      }
+
       const action = document.createElement('button');
       action.type = 'button';
       action.className = 'secondary admin-professional-action';
@@ -105,7 +119,7 @@
       action.textContent = row.nubemo_status === 'suspended' ? 'Riattiva' : 'Sospendi';
       if (row.nubemo_status === 'disabled') action.hidden = true;
 
-      copy.append(name, email, accountStatus, nubemoStatus);
+      copy.append(name, email, accountStatus, nubemoStatus, privacyStatus);
       card.append(copy, action);
       professionalsList.append(card);
     });
@@ -124,12 +138,45 @@
     return data;
   }
 
+  async function enrichPrivacy(rows) {
+    if (!rows.length) return rows;
+    const { data: documentRow, error: documentError } = await client.from('privacy_documents')
+      .select('id,version')
+      .eq('document_type','nubemo')
+      .eq('active',true)
+      .order('published_at',{ascending:false,nullsFirst:false})
+      .order('created_at',{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if (documentError) throw documentError;
+    if (!documentRow?.id) return rows.map(row => ({...row,privacy_status:'not_published',privacy_version:null,privacy_accepted_at:null}));
+
+    const profileIds = rows.map(row => row.profile_id).filter(Boolean);
+    if (!profileIds.length) return rows;
+    const { data: acceptances, error: acceptanceError } = await client.from('privacy_acceptances')
+      .select('profile_id,status,accepted_at,refused_at')
+      .eq('privacy_document_id',documentRow.id)
+      .in('profile_id',profileIds);
+    if (acceptanceError) throw acceptanceError;
+    const map = new Map((acceptances || []).map(row => [row.profile_id,row]));
+    return rows.map(row => {
+      const acceptance = map.get(row.profile_id);
+      return {
+        ...row,
+        privacy_status: acceptance?.status || 'pending',
+        privacy_version: documentRow.version || null,
+        privacy_accepted_at: acceptance?.accepted_at || null
+      };
+    });
+  }
+
   async function loadProfessionals() {
     setProfessionalsMessage('Caricamento professionisti…');
 
     try {
       const data = await invokeAdminAction({ action: 'list-professionals' });
-      renderProfessionals(Array.isArray(data.professionals) ? data.professionals : []);
+      const baseRows = Array.isArray(data.professionals) ? data.professionals : [];
+      renderProfessionals(await enrichPrivacy(baseRows));
       setProfessionalsMessage('');
     } catch (error) {
       setProfessionalsMessage(error?.message || 'Impossibile caricare i professionisti.', true);
