@@ -70,6 +70,8 @@
       await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
       await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40patientlife01','Impossibile preparare i contatti e l’accesso paziente.');
       await window.nubemoPatientLifecycleBridge?.ready;
+      await loadScript('professional-draft-storage-sanitizer.js?v=nubemo40patientlife01','Impossibile proteggere gli appuntamenti dei contatti provvisori.');
+      await window.nubemoDraftStorageSanitizer?.ready;
       await loadScript('professional-recovery-contract.js?v=nubemo398recovery21','Impossibile applicare il contratto runtime dell’Area Professionista.');
       await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;
       await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;
