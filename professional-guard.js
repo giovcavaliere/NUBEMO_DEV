@@ -59,13 +59,13 @@
       let logoData='';
       if(professional.logo_storage_path){try{const {data:logoBlob,error:logoError}=await client.storage.from('professional-assets').download(professional.logo_storage_path);if(logoError)throw logoError;logoData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error||new Error('Logo non leggibile'));reader.readAsDataURL(logoBlob);});}catch(logoError){console.error('NUBEMO professional logo load:',logoError);}}
 
-      await loadScript('professional-services.js?v=nubemo40phone01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       const services=window.nubemoProfessionalServices;if(!services)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       const loaded=await services.loadPatients(professional.id);
       window.nubemoProfessionalContext={user,profile,professional,logoData,patients:loaded.activePatients,endedPatients:loaded.endedPatients};
       window.nubemoReloadProfessionalPatients=async()=>{const loadedPatients=await services.loadPatients(professional.id);window.nubemoProfessionalContext.patients=loadedPatients.activePatients;window.nubemoProfessionalContext.endedPatients=loadedPatients.endedPatients;return loadedPatients.activePatients;};
 
-      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo40phone01','Impossibile preparare i dati dell’Area Professionista.');
+      await loadScript('professional-legacy-supabase-adapter.js?v=nubemo40lazy3a01','Impossibile preparare i dati dell’Area Professionista.');
       if(!window.nubemoProfessionalLegacyAdapter)throw new Error('Adattatore dati PRO non inizializzato.');
       await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);
       await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40phone01','Impossibile preparare i contatti e l’accesso paziente.');
@@ -81,7 +81,7 @@
       if(logoutButton)logoutButton.style.display='inline-flex';
       await loadScript('food-catalog.js?v=nubemo398foodcatalog01','Impossibile caricare il catalogo alimenti.');
       await window.nubemoFoodCatalog.load(client);
-      await loadScript('pro.js?v=nubemo40light01','Impossibile caricare l’Area Professionista.');
+      await loadScript('pro.js?v=nubemo40lazy3a01','Impossibile caricare l’Area Professionista.');
       await loadScript('professional-patient-management.js?v=nubemo40phone01','Impossibile caricare la gestione dei pazienti.');
       await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40patientaccess02','Impossibile caricare Account e Privacy del paziente.');
       await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');
