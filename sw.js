@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-patientlife03';
+const CACHE='nubemo-demo-v4.0-patientlife04';
 const CORE=[
   './food-catalog.js?v=nubemo398foodcatalog01',
   './',
@@ -28,7 +28,7 @@ const CORE=[
   './pdf-open-recovery-bridge.js?v=nubemo398recovery28',
   './professional-services.js?v=nubemo398recovery19',
   './professional-legacy-supabase-adapter.js?v=nubemo40patientlife02',
-  './professional-patient-lifecycle-bridge.js?v=nubemo40patientlife02',
+  './professional-patient-lifecycle-bridge.js?v=nubemo40patientlife04',
   './professional-recovery-contract.js?v=nubemo40patientlife03',
   './professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19',
   './professional-settings-supabase-bridge.js?v=nubemo398recovery19',
