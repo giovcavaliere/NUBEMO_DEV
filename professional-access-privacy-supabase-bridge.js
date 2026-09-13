@@ -79,8 +79,8 @@
     const host = contentHost();
     if (!row || !host) return;
     const existing = host.querySelector(':scope > .nubemo-remote-tab-content[data-domain="account"]');
-    if (existing?.dataset.patientId === row.id && existing.dataset.state === 'loaded') return;
-    const slot = existing?.dataset.patientId === row.id ? existing : contentSlot(host,'account',row.id);
+    if (existing?.dataset.patientId === row.id) return;
+    const slot = contentSlot(host,'account',row.id);
     if (!slot) return;
     const token = ++accountToken;
     const profile = row.profile || {};
