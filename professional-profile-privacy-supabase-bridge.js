@@ -1,11 +1,12 @@
-// NUBEMO 4.0 — PDF privacy del professionista nel Profilo professionista.
+// NUBEMO 4.0 — privacy NUBEMO + PDF privacy professionista nel Profilo professionista.
 (() => {
   'use strict';
   const client = window.nubemoSupabase;
   const app = document.getElementById('proApp');
   const context = window.nubemoProfessionalContext || {};
   const professionalId = context.professional?.id;
-  if (!client || !app || !professionalId) return;
+  const profileId = context.profile?.id;
+  if (!client || !app || !professionalId || !profileId) return;
 
   let patching = false;
   let loading = false;
@@ -14,7 +15,7 @@
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-  async function activeDocument() {
+  async function activeProfessionalDocument() {
     const { data, error } = await client.from('professional_privacy_documents')
       .select('id,professional_id,version,original_filename,storage_bucket,storage_path,active,replaced_at,created_at')
       .eq('professional_id', professionalId)
@@ -24,6 +25,27 @@
       .maybeSingle();
     if (error) throw error;
     return data || null;
+  }
+
+  async function nubemoPrivacyStatus() {
+    const { data: documentRow, error: documentError } = await client.from('privacy_documents')
+      .select('id,document_type,version,title,storage_bucket,storage_path,published_at,active,created_at')
+      .eq('document_type','nubemo')
+      .eq('active',true)
+      .order('published_at',{ascending:false,nullsFirst:false})
+      .order('created_at',{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if (documentError) throw documentError;
+    if (!documentRow) return { document:null, acceptance:null };
+
+    const { data: acceptance, error: acceptanceError } = await client.from('privacy_acceptances')
+      .select('id,status,accepted_at,refused_at,created_at')
+      .eq('profile_id',profileId)
+      .eq('privacy_document_id',documentRow.id)
+      .maybeSingle();
+    if (acceptanceError) throw acceptanceError;
+    return { document:documentRow, acceptance:acceptance || null };
   }
 
   async function openDocument(row) {
@@ -100,36 +122,62 @@
     }
   }
 
-  async function mountCard() {
-    if (loading || document.body.dataset.proView !== 'settings' || document.getElementById('professionalPrivacyCard')) return;
+  async function mountCards() {
+    if (loading || document.body.dataset.proView !== 'settings') return;
+    if (document.getElementById('professionalPrivacyCard') && document.getElementById('nubemoProfessionalPrivacyCard')) return;
     loading = true;
     try {
-      const row = await activeDocument();
-      if (document.body.dataset.proView !== 'settings' || document.getElementById('professionalPrivacyCard')) return;
+      const [row, nubemoPrivacy] = await Promise.all([activeProfessionalDocument(), nubemoPrivacyStatus()]);
+      if (document.body.dataset.proView !== 'settings') return;
+
       const cards = [...app.querySelectorAll('section.card')];
       const logoCard = cards.find(card => card.querySelector('h2')?.textContent?.trim() === 'Logo professionale');
       if (!logoCard) return;
 
-      const card = document.createElement('section');
-      card.className = 'card';
-      card.id = 'professionalPrivacyCard';
-      card.innerHTML = `
-        <div class="section-head"><h2>Privacy pazienti</h2><span class="pill">${row?'PDF attivo':'Da configurare'}</span></div>
-        <p class="muted">Carica il modulo privacy che utilizzi con i tuoi pazienti. Dalla scheda del paziente potrai aprirlo direttamente con “Stampa privacy”.</p>
-        ${row ? `<div class="pro-read-grid" style="margin-top:18px"><div><span>File</span><b>${esc(row.original_filename)}</b></div><div><span>Caricato</span><b>${new Date(row.created_at).toLocaleDateString('it-IT')}</b></div></div>` : '<p class="muted" style="margin-top:16px">Nessun PDF privacy caricato.</p>'}
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
-          ${row?'<button class="secondary" id="openProfessionalPrivacy" type="button">Apri PDF</button>':''}
-          <label class="secondary file-button" id="professionalPrivacyUploadLabel">${row?'Sostituisci PDF':'Carica PDF'}<input id="professionalPrivacyFile" type="file" accept="application/pdf" hidden></label>
-        </div>`;
-      logoCard.insertAdjacentElement('afterend',card);
+      let nubemoCard = document.getElementById('nubemoProfessionalPrivacyCard');
+      if (!nubemoCard) {
+        const doc = nubemoPrivacy.document;
+        const acceptance = nubemoPrivacy.acceptance;
+        const accepted = acceptance?.status === 'accepted';
+        nubemoCard = document.createElement('section');
+        nubemoCard.className = 'card';
+        nubemoCard.id = 'nubemoProfessionalPrivacyCard';
+        nubemoCard.innerHTML = `
+          <div class="section-head"><h2>Privacy NUBEMO</h2><span class="pill">${accepted?'Accettata':doc?'Da accettare':'Non disponibile'}</span></div>
+          <p class="muted">Informativa privacy della piattaforma NUBEMO associata al tuo account professionista.</p>
+          ${doc ? `<div class="pro-read-grid" style="margin-top:18px">
+            <div><span>Versione</span><b>${esc(doc.version || '—')}</b></div>
+            <div><span>Stato</span><b>${accepted ? `Accettata${acceptance.accepted_at ? ' · '+new Date(acceptance.accepted_at).toLocaleDateString('it-IT') : ''}` : 'Da accettare'}</b></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+            <button class="secondary" id="openNubemoProfessionalPrivacy" type="button">Apri informativa</button>
+          </div>` : '<p class="muted" style="margin-top:16px">Nessuna informativa NUBEMO attiva.</p>'}`;
+        logoCard.insertAdjacentElement('afterend',nubemoCard);
+        nubemoCard.querySelector('#openNubemoProfessionalPrivacy')?.addEventListener('click',()=>openDocument(doc));
+      }
 
-      card.querySelector('#openProfessionalPrivacy')?.addEventListener('click',()=>openDocument(row));
-      const input = card.querySelector('#professionalPrivacyFile');
-      input?.addEventListener('change',()=>{
-        const file=input.files?.[0];
-        const label=card.querySelector('#professionalPrivacyUploadLabel');
-        if (file && label) void replaceDocument(file,row,label);
-      });
+      if (!document.getElementById('professionalPrivacyCard')) {
+        const card = document.createElement('section');
+        card.className = 'card';
+        card.id = 'professionalPrivacyCard';
+        card.innerHTML = `
+          <div class="section-head"><h2>Privacy pazienti</h2><span class="pill">${row?'PDF attivo':'Da configurare'}</span></div>
+          <p class="muted">Carica il modulo privacy che utilizzi con i tuoi pazienti. Dalla scheda del paziente potrai aprirlo direttamente con “Stampa privacy”.</p>
+          ${row ? `<div class="pro-read-grid" style="margin-top:18px"><div><span>File</span><b>${esc(row.original_filename)}</b></div><div><span>Caricato</span><b>${new Date(row.created_at).toLocaleDateString('it-IT')}</b></div></div>` : '<p class="muted" style="margin-top:16px">Nessun PDF privacy caricato.</p>'}
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+            ${row?'<button class="secondary" id="openProfessionalPrivacy" type="button">Apri PDF</button>':''}
+            <label class="secondary file-button" id="professionalPrivacyUploadLabel">${row?'Sostituisci PDF':'Carica PDF'}<input id="professionalPrivacyFile" type="file" accept="application/pdf" hidden></label>
+          </div>`;
+        nubemoCard.insertAdjacentElement('afterend',card);
+
+        card.querySelector('#openProfessionalPrivacy')?.addEventListener('click',()=>openDocument(row));
+        const input = card.querySelector('#professionalPrivacyFile');
+        input?.addEventListener('change',()=>{
+          const file=input.files?.[0];
+          const label=card.querySelector('#professionalPrivacyUploadLabel');
+          if (file && label) void replaceDocument(file,row,label);
+        });
+      }
     } catch (error) {
       console.error('NUBEMO professional privacy profile:',error);
     } finally {
@@ -140,7 +188,7 @@
   function patch() {
     if (patching) return;
     patching = true;
-    try { void mountCard(); } finally { patching = false; }
+    try { void mountCards(); } finally { patching = false; }
   }
 
   const observer = new MutationObserver(()=>queueMicrotask(patch));
