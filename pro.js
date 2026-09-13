@@ -1844,6 +1844,7 @@ function proSummary2(p){
  return `<div class="section-head"><h2>Riepilogo clinico-nutrizionale</h2>${(p.id==='main'||p.id.startsWith('patient-'))?'<button class="mini" id="editPatientProfileLegacy">Modifica scheda</button>':''}</div>
  <div class="patient-summary-grid">
   <div class="summary-hero"><span>Paziente</span><b>${esc(p.name||'—')}</b><small>${p.birth?fmt(p.birth)+' · '+ageFromBirth(p.birth)+' anni':'Età non disponibile'}</small></div>
+  <div><span>Telefono</span><b>${esc(p.phone||'—')}</b></div>
   <div><span>Diagnosi / motivo</span><b>${esc(p.diagnosis||'—')}</b></div>
   <div><span>Data inizio percorso</span><b>${p.startDate?fmt(p.startDate):'—'}</b><small>${p.startDate?'Inizio reale del percorso con il professionista':'Non ancora indicata'}</small></div>
   <div><span>Calorie e valori energetici</span><b>${p.showEnergyValues===false?'Nascosti al paziente':'Visibili al paziente'}</b><small>${p.showEnergyValues===false?'Il professionista mantiene le stime':'Visualizzazione paziente attiva'}</small></div><div><span>Accesso NUBEMO</span><b>${p.readOnly?'Sola consultazione':'Completo'}</b><small>${p.readOnly?'Inserimento e modifica dati disabilitati':'Tutte le funzionalità paziente attive'}</small></div>
