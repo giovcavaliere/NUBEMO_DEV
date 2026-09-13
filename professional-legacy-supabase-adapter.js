@@ -29,6 +29,7 @@
   let installed = false;
   let context = null;
   let remotePatients = new Map();
+  let remoteDrafts = new Map();
   let remoteMeasurements = new Map();
   let remoteAppointments = [];
   let patientQueue = Promise.resolve();
@@ -138,7 +139,25 @@
     };
   }
 
-  function legacyAppointment(row, patientId) {
+  function legacyDraft(row) {
+    return {
+      id: row.id,
+      name: [row.first_name, row.last_name].filter(Boolean).join(' ').trim() || 'Contatto',
+      firstName: row.first_name || '',
+      surname: row.last_name || '',
+      phone: row.phone || '',
+      email: '', birth: '', sex: '', height: '', startDate: '',
+      status: 'draft', relationshipStatus: 'draft',
+      goal: '', minWeight: '', maxWeight: '', reasonableWeight: '', theoreticalWeight: '',
+      work: '', activity: '', activityFactor: '', smoking: '', alcohol: '', diagnosis: '', bowel: '', metabolism: '', feeg: '', impedance: '',
+      famObesity: false, famDiabetes: false, famHypertension: false, famCardiovascular: false, famDyslipidemia: false, famThyroid: false, famGestational: false,
+      previousDiets: '', allergies: '', medications: '', giIssues: '', pastConditions: '', observations: '', objectives: '',
+      showEnergyValues: false, readOnly: true, weights: [], diary: [], entries: [], measures: [],
+      real: false, remote: true, _draft: true
+    };
+  }
+
+  function legacyAppointment(row, subjectId) {
     const start = new Date(row.starts_at);
     const end = new Date(row.ends_at || row.starts_at);
     const local = new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString();
@@ -149,7 +168,7 @@
       : 'control';
     return {
       id: legacyAppointmentIds.get(row.id) || row.id,
-      patientId: type === 'personal' ? null : (patientId || null),
+      patientId: type === 'personal' ? null : (subjectId || null),
       date: local.slice(0, 10),
       time: local.slice(11, 16),
       type,
@@ -239,6 +258,13 @@
     };
   }
 
+  function subjectLink(subjectId) {
+    if (!subjectId) return { patient_id:null, draft_patient_id:null };
+    return remoteDrafts.has(subjectId)
+      ? { patient_id:null, draft_patient_id:subjectId }
+      : { patient_id:subjectId, draft_patient_id:null };
+  }
+
   async function createAppointment(a) {
     const { data, error } = await client.from('appointments').insert({
       professional_id:context.professional.id, created_by_user_id:context.user.id, ...appointmentPayload(a)
@@ -246,7 +272,7 @@
     if (error) throw error;
     legacyAppointmentIds.set(data.id, a.id);
     if (a.type !== 'personal' && a.patientId) {
-      const { error: linkError } = await client.from('appointment_patients').insert({appointment_id:data.id, patient_id:a.patientId});
+      const { error: linkError } = await client.from('appointment_patients').insert({appointment_id:data.id, ...subjectLink(a.patientId)});
       if (linkError) { await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:data.id}); throw linkError; }
     }
     return data;
@@ -255,16 +281,25 @@
   async function updateAppointment(remote, a) {
     const { error } = await client.from('appointments').update(appointmentPayload(a)).eq('id', remote.id);
     if (error) throw error;
-    const { data:links, error:linkReadError } = await client.from('appointment_patients').select('patient_id').eq('appointment_id', remote.id);
+    const { data:links, error:linkReadError } = await client.from('appointment_patients').select('id,patient_id,draft_patient_id').eq('appointment_id', remote.id);
     if (linkReadError) throw linkReadError;
-    const oldPatientId = links?.[0]?.patient_id || null;
-    const newPatientId = a.type === 'personal' ? null : (a.patientId || null);
-    if (oldPatientId && oldPatientId !== newPatientId) {
-      const { error:delError } = await client.from('appointment_patients').delete().eq('appointment_id',remote.id).eq('patient_id',oldPatientId);
-      if (delError) throw delError;
+    const oldLink = links?.[0] || null;
+    const oldSubjectId = oldLink?.patient_id || oldLink?.draft_patient_id || null;
+    const newSubjectId = a.type === 'personal' ? null : (a.patientId || null);
+    if (!newSubjectId) {
+      if (oldLink) {
+        const { error:delError } = await client.from('appointment_patients').delete().eq('id', oldLink.id);
+        if (delError) throw delError;
+      }
+      return;
     }
-    if (newPatientId && oldPatientId !== newPatientId) {
-      const { error:addError } = await client.from('appointment_patients').insert({appointment_id:remote.id,patient_id:newPatientId});
+    if (oldSubjectId === newSubjectId) return;
+    const next = subjectLink(newSubjectId);
+    if (oldLink) {
+      const { error:updateLinkError } = await client.from('appointment_patients').update(next).eq('id', oldLink.id);
+      if (updateLinkError) throw updateLinkError;
+    } else {
+      const { error:addError } = await client.from('appointment_patients').insert({appointment_id:remote.id, ...next});
       if (addError) throw addError;
     }
   }
@@ -291,6 +326,14 @@
     await hydrateAppointments();
   }
 
+  async function hydrateDrafts() {
+    const { data, error } = await client.from('professional_patient_drafts')
+      .select('id,professional_id,first_name,last_name,phone,status,converted_patient_id,created_at,updated_at')
+      .eq('professional_id',context.professional.id).eq('status','draft').order('created_at');
+    if (error) throw error;
+    remoteDrafts = new Map((data || []).map(row => [row.id,row]));
+  }
+
   async function hydrateAppointments() {
     const { data:rows, error } = await client.from('appointments')
       .select('id,professional_id,starts_at,ends_at,appointment_type,status,notes,created_by_user_id,created_at,updated_at')
@@ -300,16 +343,17 @@
     const ids = remoteAppointments.map(x => x.id);
     let links = [];
     if (ids.length) {
-      const result = await client.from('appointment_patients').select('appointment_id,patient_id').in('appointment_id',ids);
+      const result = await client.from('appointment_patients').select('appointment_id,patient_id,draft_patient_id').in('appointment_id',ids);
       if (result.error) throw result.error;
       links = result.data || [];
     }
-    const patientByAppointment = new Map(links.map(x => [x.appointment_id,x.patient_id]));
-    memory.set(APPT_KEY,json(remoteAppointments.map(row => legacyAppointment(row,patientByAppointment.get(row.id)||null))));
+    const subjectByAppointment = new Map(links.map(x => [x.appointment_id, x.patient_id || x.draft_patient_id || null]));
+    memory.set(APPT_KEY,json(remoteAppointments.map(row => legacyAppointment(row,subjectByAppointment.get(row.id)||null))));
   }
 
   async function hydratePatients() {
     const rows = Array.isArray(context.patients) ? context.patients : [];
+    remotePatients.clear();
     const resolved = await Promise.all(rows.map(async row => {
       const [clinical, diary, measurements] = await Promise.all([
         services().loadPatientClinicalProfile(row.id), services().loadPatientDiary(row.id), services().loadPatientMeasurements(row.id)
@@ -317,8 +361,9 @@
       remotePatients.set(row.id,row); remoteMeasurements.set(row.id,measurements || []);
       return legacyPatient(row,clinical,diary,measurements);
     }));
+    const draftRows = [...remoteDrafts.values()].map(legacyDraft);
     memory.set(DELETED_PATIENTS_KEY,json(['main','laura','marco']));
-    memory.set(EXTRA_PATIENTS_KEY,json(resolved));
+    memory.set(EXTRA_PATIENTS_KEY,json([...resolved,...draftRows]));
     memory.set(DEMO_MEASURES_KEY,'{}'); memory.set(KEY,'[]'); memory.set(PROFILE_KEY,'{}'); memory.set(MEASURE_KEY,'[]'); memory.set(ACCOUNT_KEY,'{}');
     memory.set(PATIENT_START_DATE_KEY,json(Object.fromEntries(resolved.map(p => [p.id,p.startDate || '']))));
   }
@@ -342,13 +387,20 @@
     };
   }
 
+  async function refreshDrafts() {
+    await hydrateDrafts();
+    await hydratePatients();
+    await hydrateAppointments();
+  }
+
   async function init(ctx) {
     if (!client || !services()) throw new Error('Servizi Supabase PRO non disponibili.');
     if (!ctx?.professional?.id || !ctx?.user?.id) throw new Error('Contesto professionista incompleto.');
     context=ctx;
+    await hydrateDrafts();
     await Promise.all([hydratePatients(),hydrateAppointments()]);
     installVirtualStorage();
   }
   async function flush(){await Promise.all([patientQueue,appointmentQueue]);}
-  window.nubemoProfessionalLegacyAdapter=Object.freeze({init,flush});
+  window.nubemoProfessionalLegacyAdapter=Object.freeze({init,flush,refreshDrafts,isDraft:id=>remoteDrafts.has(id)});
 })();
