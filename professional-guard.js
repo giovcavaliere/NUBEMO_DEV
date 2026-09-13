@@ -82,7 +82,7 @@
       await loadScript('pro.js?v=nubemo398patientmenu01','Impossibile caricare l’Area Professionista.');
       await loadScript('professional-patient-management.js?v=nubemo398recovery21','Impossibile caricare la gestione dei pazienti.');
       await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40privacy01','Impossibile caricare Account e Privacy del paziente.');
-      await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy01','Impossibile caricare il PDF privacy del professionista.');
+      await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');
     } catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}
   }
   authorize();
