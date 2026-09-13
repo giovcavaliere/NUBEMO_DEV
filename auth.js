@@ -5,6 +5,7 @@
   const email = document.getElementById('login-email');
   const password = document.getElementById('login-password');
   const submit = document.getElementById('login-submit');
+  const resetPassword = document.getElementById('login-reset-password');
   const message = document.getElementById('login-message');
 
   const statusLabel = { active: 'Attivo', suspended: 'Sospeso', disabled: 'Disabilitato' };
@@ -19,6 +20,12 @@
     if (!submit) return;
     submit.disabled = busy;
     submit.textContent = busy ? 'Accesso…' : 'Accedi';
+  }
+
+  function setResetBusy(busy) {
+    if (!resetPassword) return;
+    resetPassword.disabled = busy;
+    resetPassword.textContent = busy ? 'Invio…' : 'Reimposta password';
   }
 
   async function loadOwnProfile() {
@@ -113,6 +120,28 @@
       setMessage(error.message === 'Invalid login credentials' ? 'Email o password non corretti.' : error.message, true);
     } finally {
       setBusy(false);
+    }
+  });
+
+  resetPassword?.addEventListener('click', async () => {
+    const emailValue = email?.value.trim().toLowerCase() || '';
+    if (!emailValue || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+      setMessage('Inserisci un indirizzo email valido.', true);
+      email?.focus();
+      return;
+    }
+
+    setMessage('');
+    setResetBusy(true);
+    try {
+      const redirectTo = new URL('set-password.html', window.location.href).href;
+      const { error } = await client.auth.resetPasswordForEmail(emailValue, { redirectTo });
+      if (error) throw error;
+      setMessage('Se l’indirizzo è associato a un account utilizzabile, riceverai le istruzioni via email.');
+    } catch (_) {
+      setMessage('Non è stato possibile inviare le istruzioni. Riprova più tardi.', true);
+    } finally {
+      setResetBusy(false);
     }
   });
 
