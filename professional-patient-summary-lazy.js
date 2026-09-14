@@ -55,6 +55,7 @@
 
   function qualityLabel(value){return value==='good'?'buona':value==='partial'?'parziale':'non disponibile';}
   function formatDate(iso){const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:String(iso||'');}
+  function setTextIfChanged(node,value){if(node&&node.textContent!==value)node.textContent=value;}
 
   function patchSummary(){
     patchQueued=false;
@@ -67,18 +68,15 @@
       const kcal=meta.latest_calorie?.total_kcal;
       const available=kcal!==null&&kcal!==undefined&&Number.isFinite(Number(kcal));
       const b=calorieBox.querySelector('b'),small=calorieBox.querySelector('small');
-      if(b)b.textContent=available?`${Number(kcal)} kcal`:'—';
-      if(small)small.textContent=available?`${formatDate(meta.latest_calorie.date)} · stima ${qualityLabel(meta.latest_calorie.quality)}`:'Nessun pasto interpretabile';
+      setTextIfChanged(b,available?`${Number(kcal)} kcal`:'—');
+      setTextIfChanged(small,available?`${formatDate(meta.latest_calorie.date)} · stima ${qualityLabel(meta.latest_calorie.quality)}`:'Nessun pasto interpretabile');
     }
     const planBox=boxes.find(node=>node.querySelector(':scope > span')?.textContent?.trim()==='Piano alimentare');
     const planB=planBox?.querySelector('b');
-    if(planB)planB.textContent=meta.has_plan?'Disponibile':'Non caricato';
+    setTextIfChanged(planB,meta.has_plan?'Disponibile':'Non caricato');
 
-    // Il comportamento resta quello della scheda completa: l'azione distruttiva
-    // viene presentata come chiusura percorso. Il click viene intercettato dal guard
-    // e solo allora viene caricato il runtime necessario alla modifica.
     const endButton=document.getElementById('deletePatient');
-    if(endButton&&endButton.textContent!=='Termina percorso')endButton.textContent='Termina percorso';
+    setTextIfChanged(endButton,'Termina percorso');
   }
 
   function queuePatch(){if(patchQueued)return;patchQueued=true;queueMicrotask(patchSummary);}
