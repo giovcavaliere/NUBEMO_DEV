@@ -18,6 +18,15 @@
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
+  function patientRows(){
+    const rows=window.nubemoProfessionalContext?.patients;
+    return Array.isArray(rows)?rows:(Array.isArray(context.patients)?context.patients:[]);
+  }
+
+  function setCurrentPatient(patientId){
+    currentPatientId=String(patientId||'');
+  }
+
   function patientName(row) {
     const p = row?.profile || {};
     return [p.first_name,p.last_name].filter(Boolean).join(' ').trim() || p.email || 'Paziente';
@@ -31,13 +40,14 @@
   }
 
   function currentPatient() {
+    const rows=patientRows();
     if (currentPatientId) {
-      const row = context.patients.find(p => p.id === currentPatientId);
+      const row = rows.find(p => p.id === currentPatientId);
       if (row) return row;
     }
     if (document.body.dataset.proView !== 'details') return null;
     const title = document.querySelector('.patient-global-title')?.textContent || '';
-    const row = context.patients.find(p => title.includes(patientName(p))) || null;
+    const row = rows.find(p => title.includes(patientName(p))) || null;
     if (row) currentPatientId = row.id;
     return row;
   }
@@ -206,7 +216,7 @@
   }
 
   async function loadProfessionalPrivacy(patientId) {
-    const professionalId = context.professional?.id;
+    const professionalId = window.nubemoProfessionalContext?.professional?.id || context.professional?.id;
     const [{data:templates,error:templateError},{data:signed,error:signedError}] = await Promise.all([
       client.from('professional_privacy_documents')
         .select('id,professional_id,version,original_filename,storage_bucket,storage_path,active,created_at')
@@ -247,7 +257,7 @@
     if (file.type !== 'application/pdf') return alert('Carica un file PDF.');
     if (file.size > 10 * 1024 * 1024) return alert('Il PDF supera il limite di 10 MB.');
 
-    const professionalId = context.professional?.id;
+    const professionalId = window.nubemoProfessionalContext?.professional?.id || context.professional?.id;
     const { data: { user }, error: userError } = await client.auth.getUser();
     if (userError || !user) return alert('Sessione professionista non disponibile.');
     const path = `professionals/${professionalId}/patients/${row.id}/${crypto.randomUUID()}.pdf`;
@@ -406,5 +416,5 @@
   observer.observe(app,{childList:true,subtree:true});
   patch();
 
-  window.nubemoProfessionalAccessPrivacyBridge = Object.freeze({patch});
+  window.nubemoProfessionalAccessPrivacyBridge = Object.freeze({patch,setCurrentPatient});
 })();
