@@ -1,5 +1,5 @@
 // NUBEMO 4.0 — persistenza calorie Diario Paziente.
-// Nessuna modifica UI/calcolo: intercetta il salvataggio legacy e persiste il risultato già calcolabile dal frontend.
+// Nessuna modifica UI/calcolo: ad ogni salvataggio persiste il risultato già calcolabile dal frontend.
 (() => {
   'use strict';
 
@@ -8,32 +8,34 @@
   const originalAdapter=window.nubemoPatientLegacyAdapter;
   if(!client||!originalServices||!originalAdapter)return;
 
-  const KEY='diario-pro-patient-main-v1';
-  const pendingByDate=new Map();
   let installed=false;
 
-  const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
-  const signature=entry=>JSON.stringify({
-    date:entry?.date||'',weight:entry?.weight??'',water:entry?.water??'',coffee:entry?.coffee??0,
-    sweetener:entry?.sweetener||'',breakfast:entry?.breakfast||'',snack1:entry?.snack1||'',
-    lunch:entry?.lunch||'',snack2:entry?.snack2||'',dinner:entry?.dinner||'',notes:entry?.notes||''
-  });
-
-  function calculate(entry){
+  function calculateFromValues(values){
     if(typeof window.calorieEstimateText!=='function'||typeof window.calorieEstimateDay!=='function')return null;
+
+    const entry={
+      breakfast:values?.breakfast||'',
+      snack1:values?.morning_snack||'',
+      lunch:values?.lunch||'',
+      snack2:values?.afternoon_snack||'',
+      dinner:values?.dinner||''
+    };
+
     const meal=text=>{
       const r=window.calorieEstimateText(text||'');
       const usable=Number(r?.calculated||0)+Number(r?.genericQuantity||0);
       return usable>0?Number(r.calories||0):null;
     };
-    const day=window.calorieEstimateDay(entry||{});
+
+    const day=window.calorieEstimateDay(entry);
     const usable=Number(day?.calculated||0)+Number(day?.genericQuantity||0);
+
     return {
-      breakfast_kcal:meal(entry?.breakfast),
-      morning_snack_kcal:meal(entry?.snack1),
-      lunch_kcal:meal(entry?.lunch),
-      afternoon_snack_kcal:meal(entry?.snack2),
-      dinner_kcal:meal(entry?.dinner),
+      breakfast_kcal:meal(entry.breakfast),
+      morning_snack_kcal:meal(entry.snack1),
+      lunch_kcal:meal(entry.lunch),
+      afternoon_snack_kcal:meal(entry.snack2),
+      dinner_kcal:meal(entry.dinner),
       total_kcal:usable>0?Number(day.calories||0):null,
       calorie_quality:usable>0?(day.quality||'partial'):'none',
       calorie_calculated_at:new Date().toISOString()
@@ -44,33 +46,11 @@
     if(installed)return;
     installed=true;
 
-    // A questo punto l'adapter legacy ha già installato la propria virtualizzazione:
-    // ci agganciamo sopra, senza cambiare il comportamento dell'Area Paziente.
-    const storageProto=Object.getPrototypeOf(window.localStorage);
-    const previousGetItem=storageProto.getItem;
-    const previousSetItem=storageProto.setItem;
-
-    storageProto.setItem=function(key,value){
-      if(this===window.localStorage&&String(key)===KEY){
-        const previous=parse(previousGetItem.call(this,key)||'[]',[]);
-        const next=parse(String(value),[]);
-        if(Array.isArray(next)){
-          const oldByDate=new Map((Array.isArray(previous)?previous:[]).filter(x=>x?.date).map(x=>[x.date,x]));
-          for(const entry of next){
-            if(!entry?.date)continue;
-            const old=oldByDate.get(entry.date);
-            if(!old||signature(old)!==signature(entry)){
-              const values=calculate(entry);
-              if(values)pendingByDate.set(entry.date,values);
-            }
-          }
-        }
-      }
-      return previousSetItem.call(this,key,value);
-    };
-
     async function saveDiaryEntry(patientId,userId,values,existingId=null){
-      const calories=pendingByDate.get(values.entry_date)||null;
+      // Il calcolo avviene SEMPRE sul payload effettivamente salvato.
+      // Quindi anche "Aggiorna giornata" senza modifiche aggiorna i campi kcal.
+      const calories=calculateFromValues(values);
+
       const payload={
         patient_id:patientId,
         entry_date:values.entry_date,
@@ -89,12 +69,12 @@
         deleted_at:null,
         ...(calories||{})
       };
+
       const q=existingId
         ? client.from('diary_entries').update(payload).eq('id',existingId)
         : client.from('diary_entries').insert(payload);
       const {data,error}=await q.select('*').single();
       if(error)throw new Error(error.message||'Salvataggio diario non riuscito.');
-      if(calories)pendingByDate.delete(values.entry_date);
       return data;
     }
 
@@ -109,6 +89,7 @@
       return result;
     }
   });
+
   window.nubemoPatientLegacyAdapter=wrappedAdapter;
-  window.nubemoPatientDiaryCaloriePersistence=Object.freeze({pendingByDate});
+  window.nubemoPatientDiaryCaloriePersistence=Object.freeze({calculateFromValues});
 })();
