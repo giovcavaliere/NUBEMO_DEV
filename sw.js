@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-diary02';
+const CACHE='nubemo-demo-v4.0-diaryfilters02';
 const CORE=[
   './food-catalog.js?v=nubemo398foodcatalog01',
   './',
@@ -31,7 +31,7 @@ const CORE=[
   './professional-patient-summary-lazy.js?v=nubemo40summary02',
   './professional-services.js?v=nubemo40lazy3a01',
   './professional-diary-calorie-supabase-bridge.js?v=nubemo40diary01',
-  './professional-patient-diary-lazy.js?v=nubemo40diary01',
+  './professional-patient-diary-lazy.js?v=nubemo40diaryfilters02',
   './professional-legacy-supabase-adapter.js?v=nubemo40lazy3a01',
   './professional-patient-lifecycle-bridge.js?v=nubemo40stabilize01',
   './professional-recovery-contract.js?v=nubemo40patientlife03',
