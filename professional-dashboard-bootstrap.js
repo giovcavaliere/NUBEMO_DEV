@@ -21,6 +21,7 @@
   let installed=false;
   let dashboardPayload=null;
   let patientListPayload=null;
+  let domPatchQueued=false;
 
   const asInt=value=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.trunc(n)):0;};
   const today=()=>new Date().toISOString().slice(0,10);
@@ -173,6 +174,35 @@
     };
   }
 
+  function draftIds(){
+    try{
+      const rows=JSON.parse(memory.get(EXTRA_PATIENTS_KEY)||'[]');
+      return new Set((Array.isArray(rows)?rows:[]).filter(row=>row?._draft===true||row?.relationshipStatus==='draft').map(row=>String(row.id)));
+    }catch(_){return new Set();}
+  }
+
+  function patchDraftStatusLabels(){
+    domPatchQueued=false;
+    if(document.body.dataset.proView!=='patients')return;
+    const ids=draftIds();
+    if(!ids.size)return;
+    document.querySelectorAll('[data-patient]').forEach(button=>{
+      if(!ids.has(String(button.dataset.patient||'')))return;
+      const info=button.children?.[1];
+      const lines=info?.querySelectorAll?.(':scope > span');
+      if(lines?.[1]&&lines[1].textContent!=='Paziente non attivo')lines[1].textContent='Paziente non attivo';
+    });
+  }
+
+  function scheduleDomPatch(){
+    if(domPatchQueued)return;
+    domPatchQueued=true;
+    queueMicrotask(patchDraftStatusLabels);
+  }
+
+  const proApp=document.getElementById('proApp');
+  if(proApp)new MutationObserver(scheduleDomPatch).observe(proApp,{childList:true,subtree:true});
+
   function publishDashboard(payload){
     const {rows:patients,subjectMap}=buildPatients(payload);
     memory.set(DELETED_PATIENTS_KEY,JSON.stringify(['main','laura','marco']));
@@ -192,10 +222,23 @@
     memory.set(DOCUMENT_META_KEY,JSON.stringify(buildPatientListDocuments(real)));
     enabled=true;
     installStorage();
+    scheduleDomPatch();
   }
 
   function bmiKey(category){
     return ({'Sottopeso':'underweight','Normopeso':'normal','Sovrappeso':'overweight','Obesità I':'obesity1','Obesità II':'obesity2','Obesità III':'obesity3'})[String(category||'')]||'';
+  }
+
+  function dashboardShellBmiKey(patient){
+    if(!patient?._dashboardShell)return '';
+    const w=Number(patient.weights?.[0]?.[1]);
+    if(!Number.isFinite(w))return '';
+    if(w<18.5)return 'underweight';
+    if(w<25)return 'normal';
+    if(w<30)return 'overweight';
+    if(w<35)return 'obesity1';
+    if(w<40)return 'obesity2';
+    return 'obesity3';
   }
 
   function bmiPatient(row,index){
@@ -209,6 +252,23 @@
     };
   }
 
+  function restoreAgendaSubjects(rows,payload){
+    const existing=new Set(rows.map(row=>String(row.id)));
+    const free=rows.filter(row=>row?._dashboardShell===true);
+    let cursor=0;
+    for(const appt of Array.isArray(payload?.today_appointments)?payload.today_appointments:[]){
+      const id=String(appt?.subject_id||'');
+      if(appt?.type==='personal'||!id||existing.has(id))continue;
+      while(cursor<free.length&&free[cursor]?._dashboardShell!==true)cursor++;
+      const row=free[cursor++];
+      if(!row)break;
+      row.id=id;
+      row.name=String(appt.subject_name||'Paziente');
+      row.firstName=row.name;
+      existing.add(id);
+    }
+  }
+
   async function loadBmiCategory(category){
     if(!dashboardPayload)throw new Error('Payload Dashboard non disponibile.');
     const key=bmiKey(category);
@@ -218,8 +278,9 @@
     const rows=Array.isArray(data)?data:[];
     const baseline=buildPatients(dashboardPayload).rows;
     const slots=[];
-    baseline.forEach((p,i)=>{if(String(p.id).startsWith(`__dash_${key}_`))slots.push(i);});
+    baseline.forEach((p,i)=>{if(dashboardShellBmiKey(p)===key)slots.push(i);});
     rows.forEach((row,i)=>{if(i<slots.length)baseline[slots[i]]=bmiPatient(row,slots[i]);});
+    restoreAgendaSubjects(baseline,dashboardPayload);
     memory.set(EXTRA_PATIENTS_KEY,JSON.stringify(baseline));
     memory.set(DOCUMENT_META_KEY,JSON.stringify(buildDashboardDocuments(dashboardPayload,baseline)));
     enabled=true;
