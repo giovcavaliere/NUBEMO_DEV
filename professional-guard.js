@@ -70,27 +70,27 @@
       perfEnd(timer);
 
       timer=perfStart('Services + elenco pazienti lazy');
-      await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       const services=window.nubemoProfessionalServices;if(!services)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       const loaded=await services.loadPatients(ctx.professional.id);
       window.nubemoProfessionalContext={...window.nubemoProfessionalContext,patients:loaded.activePatients,endedPatients:loaded.endedPatients};
       window.nubemoReloadProfessionalPatients=async()=>{const loadedPatients=await services.loadPatients(window.nubemoProfessionalContext.professional.id);window.nubemoProfessionalContext.patients=loadedPatients.activePatients;window.nubemoProfessionalContext.endedPatients=loadedPatients.endedPatients;return loadedPatients.activePatients;};
       perfEnd(timer);
 
-      timer=perfStart('Diario calorie persistite lazy');await loadScript('professional-diary-calorie-supabase-bridge.js?v=nubemo40calpersist01','Impossibile preparare le calorie persistite del Diario.');perfEnd(timer);
-      timer=perfStart('Adapter 3A lazy');await loadScript('professional-legacy-supabase-adapter.js?v=nubemo40lazy3a01','Impossibile preparare i dati dell’Area Professionista.');if(!window.nubemoProfessionalLegacyAdapter)throw new Error('Adattatore dati PRO non inizializzato.');await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);window.nubemoProfessionalDiaryCaloriesBridge?.installStorageOverlay?.();perfEnd(timer);
-      timer=perfStart('Lifecycle lazy');await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40querycleanup01','Impossibile preparare i contatti e l’accesso paziente.');await window.nubemoPatientLifecycleBridge?.ready;perfEnd(timer);
-      timer=perfStart('Recovery contract lazy');await loadScript('professional-recovery-contract.js?v=nubemo40patientlife03','Impossibile applicare il contratto runtime dell’Area Professionista.');perfEnd(timer);
-      timer=perfStart('Patient settings lazy');await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;perfEnd(timer);
-      timer=perfStart('Professional settings lazy');await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;perfEnd(timer);
-      timer=perfStart('Note bridge lazy');await loadScript('professional-notes-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare le note del professionista.');perfEnd(timer);
-      timer=perfStart('Documenti metadata lazy');await loadScript('professional-documents-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;perfEnd(timer);
-      timer=perfStart('Stato lettura documenti lazy');await loadScript('professional-document-read-supabase-bridge.js?v=nubemo40querycleanup01','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;perfEnd(timer);
-      timer=perfStart('Piani bridge lazy');await loadScript('professional-plans-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i piani alimentari.');perfEnd(timer);
-      timer=perfStart('Esami bridge lazy');await loadScript('professional-labs-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare gli esami del paziente.');perfEnd(timer);
-      timer=perfStart('Gestione pazienti lazy');await loadScript('professional-patient-management.js?v=nubemo40phone01','Impossibile caricare la gestione dei pazienti.');perfEnd(timer);
-      timer=perfStart('Account e Privacy paziente lazy');await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40patientaccess02','Impossibile caricare Account e Privacy del paziente.');perfEnd(timer);
-      timer=perfStart('Privacy professionista lazy');await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');perfEnd(timer);
+      timer=perfStart('Diario calorie persistite lazy');if(!hasScript('professional-diary-calorie-supabase-bridge.js'))await loadScript('professional-diary-calorie-supabase-bridge.js?v=nubemo40calpersist01','Impossibile preparare le calorie persistite del Diario.');perfEnd(timer);
+      timer=perfStart('Adapter 3A lazy');if(!hasScript('professional-legacy-supabase-adapter.js'))await loadScript('professional-legacy-supabase-adapter.js?v=nubemo40lazy3a01','Impossibile preparare i dati dell’Area Professionista.');if(!window.nubemoProfessionalLegacyAdapter)throw new Error('Adattatore dati PRO non inizializzato.');await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);window.nubemoProfessionalDiaryCaloriesBridge?.installStorageOverlay?.();perfEnd(timer);
+      timer=perfStart('Lifecycle lazy');if(!hasScript('professional-patient-lifecycle-bridge.js'))await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40stabilize01','Impossibile preparare i contatti e l’accesso paziente.');await window.nubemoPatientLifecycleBridge?.ready;perfEnd(timer);
+      timer=perfStart('Recovery contract lazy');if(!hasScript('professional-recovery-contract.js'))await loadScript('professional-recovery-contract.js?v=nubemo40patientlife03','Impossibile applicare il contratto runtime dell’Area Professionista.');perfEnd(timer);
+      timer=perfStart('Patient settings lazy');if(!hasScript('professional-patient-settings-supabase-bridge.js'))await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;perfEnd(timer);
+      timer=perfStart('Professional settings lazy');if(!hasScript('professional-settings-supabase-bridge.js'))await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;perfEnd(timer);
+      timer=perfStart('Note bridge lazy');if(!hasScript('professional-notes-supabase-bridge.js'))await loadScript('professional-notes-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare le note del professionista.');perfEnd(timer);
+      timer=perfStart('Documenti metadata lazy');if(!hasScript('professional-documents-supabase-bridge.js'))await loadScript('professional-documents-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;perfEnd(timer);
+      timer=perfStart('Stato lettura documenti lazy');if(!hasScript('professional-document-read-supabase-bridge.js'))await loadScript('professional-document-read-supabase-bridge.js?v=nubemo40querycleanup01','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;perfEnd(timer);
+      timer=perfStart('Piani bridge lazy');if(!hasScript('professional-plans-supabase-bridge.js'))await loadScript('professional-plans-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i piani alimentari.');perfEnd(timer);
+      timer=perfStart('Esami bridge lazy');if(!hasScript('professional-labs-supabase-bridge.js'))await loadScript('professional-labs-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare gli esami del paziente.');perfEnd(timer);
+      timer=perfStart('Gestione pazienti lazy');if(!hasScript('professional-patient-management.js'))await loadScript('professional-patient-management.js?v=nubemo40phone01','Impossibile caricare la gestione dei pazienti.');perfEnd(timer);
+      timer=perfStart('Account e Privacy paziente lazy');if(!hasScript('professional-access-privacy-supabase-bridge.js'))await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40patientaccess02','Impossibile caricare Account e Privacy del paziente.');perfEnd(timer);
+      timer=perfStart('Privacy professionista lazy');if(!hasScript('professional-profile-privacy-supabase-bridge.js'))await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');perfEnd(timer);
 
       window.nubemoProfessionalDashboardBootstrap?.disable?.();
       window.nubemoProfessionalDiaryCaloriesBridge?.installRuntimeHelpers?.();
@@ -162,8 +162,6 @@
     if(viewButton&&['agenda','settings'].includes(viewButton.dataset.view))return true;
     const drawerView=target?.closest?.('[data-drawer-view]');
     if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
-    const tabButton=target?.closest?.('[data-tab]');
-    if(tabButton&&tabButton.dataset.tab!=='summary')return true;
     return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
@@ -171,7 +169,7 @@
     document.addEventListener('click',event=>{
       const target=event.target;
       if(!target)return;
-      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],[data-tab],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
+      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
       if(!anyAction)return;
       if(replayClicks.has(anyAction)){replayClicks.delete(anyAction);return;}
 
@@ -227,7 +225,7 @@
       timer=perfStart('Dashboard payload');await window.nubemoProfessionalDashboardBootstrap?.init?.(window.nubemoProfessionalContext);perfEnd(timer);
 
       if(logoutButton)logoutButton.style.display='inline-flex';
-      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo40structure01','Impossibile caricare l’Area Professionista.');perfEnd(timer);
+      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo40stabilize01','Impossibile caricare l’Area Professionista.');perfEnd(timer);
       installLazyRuntimeGate();
 
       perfEnd(totalTimer);
