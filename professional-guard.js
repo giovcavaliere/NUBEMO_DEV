@@ -169,6 +169,21 @@
     return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
+  function currentPatientId(){
+    return document.querySelector('[data-drawer-patient]')?.dataset.drawerPatient||'';
+  }
+
+  async function prepareRuntimeAction(action){
+    await ensureFullRuntime();
+    if(!action?.matches?.('[data-patient-tab],[data-drawer-tab]'))return;
+    const patientId=currentPatientId();
+    const adapter=window.nubemoProfessionalLegacyAdapter;
+    if(patientId&&adapter?.ensurePatientHydrated){
+      const timer=perfStart('Paziente completo lazy');
+      try{await adapter.ensurePatientHydrated(patientId);}finally{perfEnd(timer);}
+    }
+  }
+
   function installLazyRuntimeGate(){
     document.addEventListener('click',event=>{
       const target=event.target;
@@ -203,7 +218,7 @@
       const action=anyAction;
       const wasDisabled='disabled' in action?action.disabled:false;
       if('disabled' in action)action.disabled=true;
-      void ensureFullRuntime().then(()=>{
+      void prepareRuntimeAction(action).then(()=>{
         if('disabled' in action)action.disabled=wasDisabled;
         replayAction(action);
       }).catch(error=>{
