@@ -60,14 +60,14 @@
       perfEnd(timer);
 
       timer=perfStart('Adapter 3A');await loadScript('professional-legacy-supabase-adapter.js?v=nubemo40lazy3a01','Impossibile preparare i dati dell’Area Professionista.');if(!window.nubemoProfessionalLegacyAdapter)throw new Error('Adattatore dati PRO non inizializzato.');await window.nubemoProfessionalLegacyAdapter.init(window.nubemoProfessionalContext);perfEnd(timer);
-      timer=perfStart('Lifecycle');await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40phone01','Impossibile preparare i contatti e l’accesso paziente.');await window.nubemoPatientLifecycleBridge?.ready;perfEnd(timer);
+      timer=perfStart('Lifecycle');await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40querycleanup01','Impossibile preparare i contatti e l’accesso paziente.');await window.nubemoPatientLifecycleBridge?.ready;perfEnd(timer);
       timer=perfStart('Recovery contract');await loadScript('professional-recovery-contract.js?v=nubemo40patientlife03','Impossibile applicare il contratto runtime dell’Area Professionista.');perfEnd(timer);
       timer=perfStart('Patient settings');await loadScript('professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Area Paziente.');await window.nubemoProfessionalPatientSettingsBridge?.ready;perfEnd(timer);
       timer=perfStart('Professional settings');await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni del professionista.');await window.nubemoProfessionalSettingsBridge?.ready;perfEnd(timer);
 
       timer=perfStart('Note bridge lazy');await loadScript('professional-notes-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare le note del professionista.');perfEnd(timer);
       timer=perfStart('Documenti metadata');await loadScript('professional-documents-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;perfEnd(timer);
-      timer=perfStart('Stato lettura documenti');await loadScript('professional-document-read-supabase-bridge.js?v=nubemo398recovery26','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;perfEnd(timer);
+      timer=perfStart('Stato lettura documenti');await loadScript('professional-document-read-supabase-bridge.js?v=nubemo40querycleanup01','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;perfEnd(timer);
       timer=perfStart('Piani bridge lazy');await loadScript('professional-plans-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i piani alimentari.');perfEnd(timer);
       timer=perfStart('Esami bridge lazy');await loadScript('professional-labs-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare gli esami del paziente.');perfEnd(timer);
 
