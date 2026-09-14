@@ -10,6 +10,7 @@
   if (!client || !context.professional?.id || !context.user?.id || !app) return;
 
   const drafts = new Map();
+  const EXTRA_PATIENTS_KEY = 'diario-pro-extra-patients-v1';
   let currentPatientId = '';
   let patching = false;
 
@@ -29,6 +30,17 @@
     const n=Number(raw);return Number.isFinite(n)?n:NaN;
   };
   const text = id => String(document.getElementById(id)?.value||'').trim();
+
+  function hydrateDraftStateFromAdapter(){
+    let rows=[];
+    try{rows=JSON.parse(window.localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]');}catch(_){rows=[];}
+    drafts.clear();
+    (Array.isArray(rows)?rows:[]).filter(row=>row?._draft===true||row?.relationshipStatus==='draft').forEach(row=>{
+      drafts.set(row.id,{
+        id:row.id,professional_id:context.professional.id,first_name:row.firstName||'',last_name:row.surname||'',phone:row.phone||'',status:'draft',converted_patient_id:null,created_at:row.createdAt||null
+      });
+    });
+  }
 
   async function refreshDraftState(){
     const {data,error}=await client.from('professional_patient_drafts')
@@ -190,7 +202,7 @@
     if(savePatient&&document.body.dataset.proView==='newPatient'&&document.getElementById('npActivatePatientArea')){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();void createRealPatient(savePatient);return;}
   },true);
 
-  const ready=(async()=>{try{await refreshDraftState();}catch(error){console.error('NUBEMO draft hydrate:',error);}})();
+  const ready=(async()=>{try{hydrateDraftStateFromAdapter();}catch(error){console.error('NUBEMO draft hydrate:',error);}})();
   window.nubemoPatientLifecycleBridge={ready,refresh:refreshDraftState,isDraft:id=>drafts.has(id)};
   const observer=new MutationObserver(()=>queueMicrotask(patch));observer.observe(app,{childList:true,subtree:true});patch();
 })();

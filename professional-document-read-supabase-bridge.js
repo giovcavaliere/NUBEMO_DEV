@@ -22,14 +22,13 @@
   async function hydrate(){
     const ids=(context.patients||[]).map(p=>p.id);
     if(!ids.length){readyDone=true;return;}
-    const [docs,statuses]=await Promise.all([
-      client.from('documents').select('id,uploaded_by_user_id').in('patient_id',ids).is('deleted_at',null),
-      client.from('document_read_status').select('document_id,read_at').eq('profile_id',context.profile.id)
-    ]);
-    if(docs.error)throw docs.error;if(statuses.error)throw statuses.error;
+    await window.nubemoProfessionalDocumentsBridge?.ready;
+    const docs=parse(previousGetItem.call(window.localStorage,KEY)||'[]',[]);
+    const statuses=await client.from('document_read_status').select('document_id,read_at').eq('profile_id',context.profile.id);
+    if(statuses.error)throw statuses.error;
     const readIds=new Set((statuses.data||[]).filter(x=>x.read_at).map(x=>x.document_id));
     unread.clear();
-    for(const doc of docs.data||[]) if(doc.uploaded_by_user_id!==context.user.id&&!readIds.has(doc.id))unread.add(doc.id);
+    for(const doc of Array.isArray(docs)?docs:[]) if(doc.uploadedBy!=='professional'&&!readIds.has(doc.id))unread.add(doc.id);
     readyDone=true;
   }
 
