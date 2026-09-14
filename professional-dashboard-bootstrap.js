@@ -1,5 +1,5 @@
 // NUBEMO 4.0 — bootstrap Dashboard Professionista.
-// Carica un payload minimo e virtualizza solo i dati necessari alla Dashboard.
+// Carica un payload minimo e prepara query puntuali per BMI e lista Pazienti.
 (() => {
   'use strict';
 
@@ -19,6 +19,8 @@
   const memory=new Map();
   let enabled=false;
   let installed=false;
+  let dashboardPayload=null;
+  let patientListPayload=null;
 
   const asInt=value=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.trunc(n)):0;};
   const today=()=>new Date().toISOString().slice(0,10);
@@ -61,20 +63,16 @@
     while(rows.length<activeCount)rows.push(shell(`__dash_extra_${++seq}`,seq,null));
     if(rows.length>activeCount)rows.length=activeCount;
 
-    // I nomi servono solo per l'Agenda di oggi. Li assegniamo a shell già
-    // presenti, senza ampliare il payload pazienti della Dashboard.
     const subjectMap=new Map();
     let cursor=0;
     for(const appt of Array.isArray(payload?.today_appointments)?payload.today_appointments:[]){
       if(appt?.type==='personal'||!appt?.subject_id||subjectMap.has(appt.subject_id))continue;
       if(cursor>=rows.length)break;
       const row=rows[cursor++];
-      const oldId=row.id;
       row.id=String(appt.subject_id);
       row.name=String(appt.subject_name||'Paziente');
       row.firstName=row.name;
       subjectMap.set(String(appt.subject_id),row.id);
-      if(oldId!==row.id)subjectMap.set(oldId,row.id);
     }
     return {rows,subjectMap};
   }
@@ -102,11 +100,50 @@
     return [...actual,...synthetic];
   }
 
-  function buildDocuments(payload,patients){
+  function buildDashboardDocuments(payload,patients){
     const patientId=patients[0]?.id||'__dash_none';
     const docs=[];
     if(payload?.has_unread_documents)docs.push({id:'__dash_unread_document',patientId,category:'health',subCategory:'other',title:'Documento',uploadedBy:'patient',unreadForProfessional:true});
     if(payload?.has_unread_labs)docs.push({id:'__dash_unread_lab',patientId,category:'health',subCategory:'blood_test',title:'Analisi',uploadedBy:'patient',unreadForProfessional:true});
+    return docs;
+  }
+
+  function listPatient(row){
+    const first=row?.first_weight==null?null:Number(row.first_weight);
+    const last=row?.last_weight==null?null:Number(row.last_weight);
+    const weights=[];
+    if(Number.isFinite(first))weights.push([String(row.pathway_start_date||'1900-01-01'),first]);
+    if(Number.isFinite(last)&&(weights.length===0||last!==first))weights.push([today(),last]);
+    return {
+      id:String(row.id),profileId:row.profile_id||null,
+      name:String(row.name||'Paziente'),firstName:String(row.first_name||''),surname:String(row.last_name||''),
+      phone:String(row.phone||''),email:String(row.email||''),birth:row.birth_date||'',sex:row.sex||'',height:row.height_cm??'',
+      startDate:row.pathway_start_date||String(row.started_at||'').slice(0,10),status:row.patient_status||'active',relationshipStatus:'active',
+      goal:'',minWeight:'',maxWeight:'',reasonableWeight:'',theoreticalWeight:'',work:'',activity:'',activityFactor:'',smoking:'',alcohol:'',diagnosis:'',bowel:'',metabolism:'',feeg:'',impedance:'',
+      famObesity:false,famDiabetes:false,famHypertension:false,famCardiovascular:false,famDyslipidemia:false,famThyroid:false,famGestational:false,
+      previousDiets:'',allergies:'',medications:'',giIssues:'',pastConditions:'',observations:'',objectives:'',showEnergyValues:false,readOnly:false,
+      weights,diary:[],entries:[],measures:[],real:true,remote:true,_patientListShell:true,_hydrated:false,
+      _unreadDocuments:!!row.unread_documents,_unreadLabs:!!row.unread_labs
+    };
+  }
+
+  function listDraft(row){
+    return {
+      id:String(row.id),name:String(row.name||'Contatto'),firstName:String(row.first_name||''),surname:String(row.last_name||''),phone:String(row.phone||''),
+      email:'',birth:'',sex:'',height:'',startDate:'',status:'draft',relationshipStatus:'draft',
+      goal:'',minWeight:'',maxWeight:'',reasonableWeight:'',theoreticalWeight:'',work:'',activity:'',activityFactor:'',smoking:'',alcohol:'',diagnosis:'',bowel:'',metabolism:'',feeg:'',impedance:'',
+      famObesity:false,famDiabetes:false,famHypertension:false,famCardiovascular:false,famDyslipidemia:false,famThyroid:false,famGestational:false,
+      previousDiets:'',allergies:'',medications:'',giIssues:'',pastConditions:'',observations:'',objectives:'',showEnergyValues:false,readOnly:true,
+      weights:[],diary:[],entries:[],measures:[],real:false,remote:true,_draft:true,_patientListShell:true,_hydrated:false
+    };
+  }
+
+  function buildPatientListDocuments(rows){
+    const docs=[];
+    for(const p of rows){
+      if(p._unreadDocuments)docs.push({id:`__list_doc_${p.id}`,patientId:p.id,category:'health',subCategory:'other',title:'Documento',uploadedBy:'patient',unreadForProfessional:true});
+      if(p._unreadLabs)docs.push({id:`__list_lab_${p.id}`,patientId:p.id,category:'health',subCategory:'blood_test',title:'Analisi',uploadedBy:'patient',unreadForProfessional:true});
+    }
     return docs;
   }
 
@@ -136,25 +173,77 @@
     };
   }
 
-  function publish(payload){
+  function publishDashboard(payload){
     const {rows:patients,subjectMap}=buildPatients(payload);
     memory.set(DELETED_PATIENTS_KEY,JSON.stringify(['main','laura','marco']));
     memory.set(EXTRA_PATIENTS_KEY,JSON.stringify(patients));
     memory.set(APPT_KEY,JSON.stringify(buildAppointments(payload,subjectMap)));
     memory.set(SETTINGS_KEY,JSON.stringify({workDays:asInt(payload?.work_days_count)===6?6:5}));
-    memory.set(DOCUMENT_META_KEY,JSON.stringify(buildDocuments(payload,patients)));
+    memory.set(DOCUMENT_META_KEY,JSON.stringify(buildDashboardDocuments(payload,patients)));
     enabled=true;
     installStorage();
   }
 
+  function publishPatientList(payload){
+    const real=(Array.isArray(payload?.patients)?payload.patients:[]).map(listPatient);
+    const drafts=(Array.isArray(payload?.drafts)?payload.drafts:[]).map(listDraft);
+    memory.set(DELETED_PATIENTS_KEY,JSON.stringify(['main','laura','marco']));
+    memory.set(EXTRA_PATIENTS_KEY,JSON.stringify([...real,...drafts]));
+    memory.set(DOCUMENT_META_KEY,JSON.stringify(buildPatientListDocuments(real)));
+    enabled=true;
+    installStorage();
+  }
+
+  function bmiKey(category){
+    return ({'Sottopeso':'underweight','Normopeso':'normal','Sovrappeso':'overweight','Obesità I':'obesity1','Obesità II':'obesity2','Obesità III':'obesity3'})[String(category||'')]||'';
+  }
+
+  function bmiPatient(row,index){
+    const weight=row?.weight==null?null:Number(row.weight);
+    const height=row?.height==null?null:Number(row.height);
+    return {
+      ...shell(String(row.id),index,null,String(row.name||'Paziente')),
+      height:Number.isFinite(height)?height:'',
+      weights:Number.isFinite(weight)?[[today(),weight]]:[],
+      _dashboardShell:false,_bmiPointShell:true
+    };
+  }
+
+  async function loadBmiCategory(category){
+    if(!dashboardPayload)throw new Error('Payload Dashboard non disponibile.');
+    const key=bmiKey(category);
+    if(!key)return [];
+    const {data,error}=await client.rpc('get_professional_bmi_patients',{p_category:String(category)});
+    if(error)throw error;
+    const rows=Array.isArray(data)?data:[];
+    const baseline=buildPatients(dashboardPayload).rows;
+    const slots=[];
+    baseline.forEach((p,i)=>{if(String(p.id).startsWith(`__dash_${key}_`))slots.push(i);});
+    rows.forEach((row,i)=>{if(i<slots.length)baseline[slots[i]]=bmiPatient(row,slots[i]);});
+    memory.set(EXTRA_PATIENTS_KEY,JSON.stringify(baseline));
+    memory.set(DOCUMENT_META_KEY,JSON.stringify(buildDashboardDocuments(dashboardPayload,baseline)));
+    enabled=true;
+    return rows;
+  }
+
+  async function loadPatientsList(force=false){
+    if(patientListPayload&&!force){publishPatientList(patientListPayload);return patientListPayload;}
+    const {data,error}=await client.rpc('get_professional_patient_list');
+    if(error)throw error;
+    patientListPayload=data&&typeof data==='object'?data:{patients:[],drafts:[]};
+    publishPatientList(patientListPayload);
+    return patientListPayload;
+  }
+
+  function restoreDashboard(){if(dashboardPayload)publishDashboard(dashboardPayload);}
+
   async function init(context){
     const {data,error}=await client.rpc('get_professional_dashboard');
     if(error)throw error;
-    const payload=data&&typeof data==='object'?data:{};
-    publish(payload);
-    if(context)context.dashboard=payload;
+    dashboardPayload=data&&typeof data==='object'?data:{};
+    publishDashboard(dashboardPayload);
+    if(context)context.dashboard=dashboardPayload;
 
-    // Compatibilità con pro.js: il catalogo alimenti non fa parte del bootstrap.
     if(!window.nubemoFoodCatalog){
       window.nubemoFoodCatalog=Object.freeze({
         nubemoFoods:Object.freeze([]),
@@ -162,10 +251,12 @@
         canUseCrea:()=>false
       });
     }
-    return payload;
+    return dashboardPayload;
   }
 
   function disable(){enabled=false;}
 
-  window.nubemoProfessionalDashboardBootstrap=Object.freeze({init,disable,memory});
+  window.nubemoProfessionalDashboardBootstrap=Object.freeze({
+    init,disable,memory,restoreDashboard,loadBmiCategory,loadPatientsList
+  });
 })();
