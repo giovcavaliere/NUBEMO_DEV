@@ -1,6 +1,6 @@
 // NUBEMO 4.0 — bootstrap Area Professionista Dashboard-only.
 // Al login carica solo autenticazione, privacy, identità minima e payload Dashboard.
-// Il runtime completo viene caricato al primo click che lo richiede.
+// Le sezioni vengono preparate con query puntuali quando possibile.
 (() => {
   'use strict';
 
@@ -100,28 +100,76 @@
   }
   window.nubemoEnsureProfessionalRuntime=ensureFullRuntime;
 
+  function replayAction(action){
+    replayClicks.add(action);
+    action.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+  }
+
+  function isDashboardAction(action){
+    return action?.matches?.('[data-view="dashboard"],[data-drawer-view="dashboard"]');
+  }
+
+  function pointAction(target){
+    return target?.closest?.('[data-bmi-category],[data-view="patients"],[data-drawer-view="patients"],#openUnreadLabPatients,#openUnreadPatients')||null;
+  }
+
+  async function preparePointAction(action){
+    const bridge=window.nubemoProfessionalDashboardBootstrap;
+    if(!bridge)return;
+    if(action.matches('[data-bmi-category]')){
+      const timer=perfStart('BMI categoria lazy');
+      try{await bridge.loadBmiCategory(action.dataset.bmiCategory);}finally{perfEnd(timer);}
+      return;
+    }
+    const timer=perfStart('Elenco pazienti + draft lazy');
+    try{await bridge.loadPatientsList();}finally{perfEnd(timer);}
+  }
+
   function needsFullRuntime(target){
     const viewButton=target?.closest?.('[data-view]');
-    if(viewButton&&['patients','agenda','settings'].includes(viewButton.dataset.view))return true;
+    if(viewButton&&['agenda','settings'].includes(viewButton.dataset.view))return true;
     const drawerView=target?.closest?.('[data-drawer-view]');
-    if(drawerView&&['patients','agenda','settings'].includes(drawerView.dataset.drawerView))return true;
-    return !!target?.closest?.('#goAgenda,[data-event],[data-bmi-category],#openUnreadLabPatients,#openUnreadPatients');
+    if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
+    return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient');
   }
 
   function installLazyRuntimeGate(){
     document.addEventListener('click',event=>{
       const target=event.target;
-      if(!target||!needsFullRuntime(target))return;
-      const action=target.closest?.('[data-view],[data-drawer-view],#goAgenda,[data-event],[data-bmi-category],#openUnreadLabPatients,#openUnreadPatients');
-      if(!action)return;
-      if(replayClicks.has(action)){replayClicks.delete(action);return;}
+      if(!target)return;
+      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient');
+      if(!anyAction)return;
+      if(replayClicks.has(anyAction)){replayClicks.delete(anyAction);return;}
+
+      if(isDashboardAction(anyAction)){
+        window.nubemoProfessionalDashboardBootstrap?.restoreDashboard?.();
+        return;
+      }
+
+      const point=pointAction(target);
+      if(point){
+        event.preventDefault();event.stopImmediatePropagation();
+        const wasDisabled='disabled' in point?point.disabled:false;
+        if('disabled' in point)point.disabled=true;
+        void preparePointAction(point).then(()=>{
+          if('disabled' in point)point.disabled=wasDisabled;
+          replayAction(point);
+        }).catch(error=>{
+          if('disabled' in point)point.disabled=wasDisabled;
+          console.error('NUBEMO query puntuale:',error);
+          alert('Non riesco a caricare questa sezione. Riprova.');
+        });
+        return;
+      }
+
+      if(!needsFullRuntime(target))return;
       event.preventDefault();event.stopImmediatePropagation();
+      const action=anyAction;
       const wasDisabled='disabled' in action?action.disabled:false;
       if('disabled' in action)action.disabled=true;
       void ensureFullRuntime().then(()=>{
         if('disabled' in action)action.disabled=wasDisabled;
-        replayClicks.add(action);
-        action.click();
+        replayAction(action);
       }).catch(error=>{
         if('disabled' in action)action.disabled=wasDisabled;
         console.error('NUBEMO runtime lazy:',error);
@@ -141,7 +189,7 @@
 
       window.nubemoProfessionalContext={user,profile,professional,logoData:'',patients:[],endedPatients:[]};
 
-      timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo40dashboard01','Impossibile preparare la Dashboard.');perfEnd(timer);
+      timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo40dashboard02','Impossibile preparare la Dashboard.');perfEnd(timer);
       timer=perfStart('Dashboard payload');await window.nubemoProfessionalDashboardBootstrap?.init?.(window.nubemoProfessionalContext);perfEnd(timer);
 
       if(logoutButton)logoutButton.style.display='inline-flex';
