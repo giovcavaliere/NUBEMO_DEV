@@ -2,181 +2,40 @@ name: NUBEMO structural cleanup
 
 on:
   push:
-    branches: ['8ead6f85']
+    branches:
+      - 8ead6f85
 
 permissions:
   contents: write
 
 jobs:
   cleanup:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: 8ead6f85
-          fetch-depth: 0
-
-      - name: Apply structural cleanup
-        shell: bash
+      - name: Checkout repository
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+          cd repo
+          git checkout 8ead6f85
 
-          def replace_once(text, old, new, label):
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected exactly 1 match, found {count}')
-              return text.replace(old, new, 1)
-
-          # -------------------------------------------------------
-          # pro.js: il renderer è owner delle etichette e del menu.
-          # Niente correzioni DOM successive al render.
-          # -------------------------------------------------------
-          p = Path('pro.js')
-          s = p.read_text(encoding='utf-8')
-
-          old = """       <span style=\"display:block;margin-top:3px;font-size:12px;color:#7b898f\">${p.last!=null?'Ultimo peso '+p.last.toFixed(1).replace('.',',')+' kg':'Dati non disponibili'}</span>"""
-          new = """       <span style=\"display:block;margin-top:3px;font-size:12px;color:#7b898f\">${p._draft===true||p.relationshipStatus==='draft'?'Paziente non ancora attivo':p.last!=null?'Ultimo peso '+p.last.toFixed(1).replace('.',',')+' kg':'Dati non disponibili'}</span>"""
-          s = replace_once(s, old, new, 'draft label in patientsPage')
-
-          old = """function proSummary2(p){
- const m=latestMeasure(p),wh=m&&+m.waist&&+m.hips?+m.waist/+m.hips:null,bmrVal=bmrMifflin(p),daily=energyEstimate(p),food=latestDiaryCalories(p);"""
-          new = """function proSummary2(p){
- const m=latestMeasure(p),wh=m&&+m.waist&&+m.hips?+m.waist/+m.hips:null,bmrVal=bmrMifflin(p),daily=energyEstimate(p);
- const lazyMeta=window.nubemoProfessionalPatientSummaryLazy?.summaryMeta?.get?.(p.id)||null;
- const persistedCalories=lazyMeta?.latest_calorie||null;
- const food=persistedCalories?.total_kcal!=null?{
-   date:persistedCalories.date,
-   calories:Number(persistedCalories.total_kcal),
-   qualityLabel:persistedCalories.quality==='good'?'Buona':persistedCalories.quality==='partial'?'Parziale':'Non disponibile'
- }:latestDiaryCalories(p);
- const hasPlan=lazyMeta?!!lazyMeta.has_plan:!!currentProfessionalPlan(p.id);"""
-          s = replace_once(s, old, new, 'summary lazy data owner')
-
-          old = """  <div><span>Piano alimentare</span><b>${currentProfessionalPlan(p.id)?'Disponibile':'Non caricato'}</b></div>"""
-          new = """  <div><span>Piano alimentare</span><b>${hasPlan?'Disponibile':'Non caricato'}</b></div>"""
-          s = replace_once(s, old, new, 'summary plan state')
-
-          old = """   <button class=\"secondary patient-global-edit\" id=\"editPatientProfileTop\">Modifica scheda</button>
-   <div class=\"patient-more-wrap\">
-     <button class=\"patient-more-btn\" id=\"patientMoreBtn\" aria-label=\"Altre azioni\">⋯</button>
-     <div class=\"patient-more-menu\" id=\"patientMoreMenu\">
-       <button id=\"deletePatient\" class=\"danger-link\">Elimina paziente</button>
-     </div>
-   </div>"""
-          new = """   <div class=\"patient-more-wrap\">
-     <button class=\"patient-more-btn\" id=\"patientMoreBtn\" aria-label=\"Altre azioni\">⋯</button>
-     <div class=\"patient-more-menu\" id=\"patientMoreMenu\">
-       <button id=\"patientMenuEditProfile\">Modifica scheda</button>
-       <button id=\"deletePatient\" class=\"danger-link\">Termina percorso</button>
-     </div>
-   </div>"""
-          s = replace_once(s, old, new, 'patient actions menu render')
-
-          old = """ el('editPatientProfileTop')?.addEventListener('click',()=>{
-   view='editProfile';render();scrollTo(0,0);
- });
- el('patientMoreBtn')?.addEventListener('click',e=>{"""
-          new = """ el('patientMenuEditProfile')?.addEventListener('click',()=>{
-   view='editProfile';render();scrollTo(0,0);
- });
- el('patientMoreBtn')?.addEventListener('click',e=>{"""
-          s = replace_once(s, old, new, 'patient edit menu binding')
-
-          p.write_text(s, encoding='utf-8')
-
-          # -------------------------------------------------------
-          # Dashboard bootstrap: rimuove il MutationObserver usato
-          # soltanto per correggere dopo il render l'etichetta draft.
-          # -------------------------------------------------------
-          p = Path('professional-dashboard-bootstrap.js')
-          s = p.read_text(encoding='utf-8')
-          s = replace_once(s, "  let patientListPayload=null;\n  let domPatchQueued=false;", "  let patientListPayload=null;", 'dashboard patch state')
-          pattern = re.compile(r"\n  function draftIds\(\)\{.*?\n  if\(proApp\)new MutationObserver\(scheduleDomPatch\)\.observe\(proApp,\{childList:true,subtree:true\}\);\n", re.S)
-          s, n = pattern.subn('\n', s, count=1)
-          if n != 1:
-              raise SystemExit(f'dashboard DOM patch block: expected 1 match, found {n}')
-          s = replace_once(s, "    installStorage();\n    scheduleDomPatch();\n  }", "    installStorage();\n  }", 'dashboard schedule patch call')
-          p.write_text(s, encoding='utf-8')
-
-          # -------------------------------------------------------
-          # Summary lazy: solo query + stato. Il renderer pro.js
-          # legge direttamente summaryMeta; nessun observer/patch DOM.
-          # -------------------------------------------------------
-          p = Path('professional-patient-summary-lazy.js')
-          s = p.read_text(encoding='utf-8')
-          s = s.replace("  let currentPatientId='';\n  let patchQueued=false;\n", '')
-          pattern = re.compile(r"\n  function qualityLabel\(value\).*?\n  if\(app\)new MutationObserver\(queuePatch\)\.observe\(app,\{childList:true,subtree:true\}\);\n", re.S)
-          s, n = pattern.subn('\n', s, count=1)
-          if n != 1:
-              raise SystemExit(f'summary DOM patch block: expected 1 match, found {n}')
-          s = replace_once(s, "    currentPatientId=id;\n    const {data,error}=await client.rpc", "    const {data,error}=await client.rpc", 'summary current patient state')
-          s = replace_once(s, "    publishPatient(summaryPatient(data));\n    queuePatch();\n    return data;", "    publishPatient(summaryPatient(data));\n    return data;", 'summary queue patch call')
-          p.write_text(s, encoding='utf-8')
-
-          # -------------------------------------------------------
-          # Guard: il menu è ora renderizzato/bindato da pro.js.
-          # -------------------------------------------------------
-          p = Path('professional-guard.js')
-          s = p.read_text(encoding='utf-8')
-          old = """      if(!hasScript('professional-patient-actions-menu.js')){
-        await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');
-      }
-      return window.nubemoProfessionalPatientSummaryLazy;"""
-          new = """      return window.nubemoProfessionalPatientSummaryLazy;"""
-          s = replace_once(s, old, new, 'summary actions bridge load')
-          old = """      if(!hasScript('professional-patient-actions-menu.js')){timer=perfStart('Azioni scheda paziente lazy');await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');perfEnd(timer);}
-"""
-          s = replace_once(s, old, '', 'full runtime actions bridge load')
-          s = s.replace("#editPatientProfileTop,#editPatientProfileLegacy,#patientMenuEditProfile", "#editPatientProfileLegacy,#patientMenuEditProfile")
-          s = s.replace("professional-patient-summary-lazy.js?v=nubemo40summary01", "professional-patient-summary-lazy.js?v=nubemo40summary02")
-          s = s.replace("professional-dashboard-bootstrap.js?v=nubemo40dashboard02", "professional-dashboard-bootstrap.js?v=nubemo40dashboard03")
-          s = s.replace("pro.js?v=nubemo40dashboard01", "pro.js?v=nubemo40structure01")
-          p.write_text(s, encoding='utf-8')
-
-          # -------------------------------------------------------
-          # Cache/deploy.
-          # -------------------------------------------------------
-          p = Path('pro.html')
-          s = p.read_text(encoding='utf-8')
-          s = replace_once(s, 'professional-guard.js?v=nubemo40dashboard03', 'professional-guard.js?v=nubemo40structure01', 'pro outer guard cache')
-          p.write_text(s, encoding='utf-8')
-
-          p = Path('sw.js')
-          s = p.read_text(encoding='utf-8')
-          s = re.sub(r"const CACHE='[^']+';", "const CACHE='nubemo-demo-v4.0-structure01';", s, count=1)
-          s = s.replace('./pro.js?v=nubemo40dashboard01', './pro.js?v=nubemo40structure01')
-          s = s.replace('./professional-dashboard-bootstrap.js?v=nubemo40dashboard02', './professional-dashboard-bootstrap.js?v=nubemo40dashboard03')
-          s = s.replace('./professional-guard.js?v=nubemo40dashboard02', './professional-guard.js?v=nubemo40structure01')
-          s = s.replace("  './professional-patient-actions-menu.js?v=nubemo398recovery29',\n", '')
-          if './professional-patient-summary-lazy.js?v=nubemo40summary02' not in s:
-              anchor="  './professional-dashboard-bootstrap.js?v=nubemo40dashboard03',\n"
-              if anchor not in s:
-                  raise SystemExit('sw summary anchor not found')
-              s=s.replace(anchor,anchor+"  './professional-patient-summary-lazy.js?v=nubemo40summary02',\n",1)
-          p.write_text(s, encoding='utf-8')
-
-          # Il workflow è monouso: non deve restare nella baseline.
-          Path('.github/workflows/nubemo-structural-cleanup.yml').unlink()
-          PY
-
-      - name: Validate cleanup
-        shell: bash
+      - name: Apply and validate cleanup
         run: |
+          cd repo
+          python scripts/nubemo_structural_cleanup.py
           node --check pro.js
           node --check professional-dashboard-bootstrap.js
           node --check professional-patient-summary-lazy.js
           node --check professional-guard.js
           grep -q "Paziente non ancora attivo" pro.js
-          ! grep -q "patchDraftStatusLabels" professional-dashboard-bootstrap.js
-          ! grep -q "new MutationObserver" professional-patient-summary-lazy.js
-          ! grep -q "professional-patient-actions-menu.js" professional-guard.js
+          if grep -q "patchDraftStatusLabels" professional-dashboard-bootstrap.js; then exit 1; fi
+          if grep -q "new MutationObserver" professional-patient-summary-lazy.js; then exit 1; fi
+          if grep -q "professional-patient-actions-menu.js" professional-guard.js; then exit 1; fi
 
-      - name: Commit structural cleanup
-        shell: bash
+      - name: Commit cleanup
         run: |
+          cd repo
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
