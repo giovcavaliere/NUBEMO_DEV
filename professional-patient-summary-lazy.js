@@ -12,7 +12,6 @@
   let patchQueued=false;
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
-  const today=()=>new Date().toISOString().slice(0,10);
 
   function summaryPatient(payload){
     const row=payload?.patient||{};
@@ -74,6 +73,12 @@
     const planBox=boxes.find(node=>node.querySelector(':scope > span')?.textContent?.trim()==='Piano alimentare');
     const planB=planBox?.querySelector('b');
     if(planB)planB.textContent=meta.has_plan?'Disponibile':'Non caricato';
+
+    // Il comportamento resta quello della scheda completa: l'azione distruttiva
+    // viene presentata come chiusura percorso. Il click viene intercettato dal guard
+    // e solo allora viene caricato il runtime necessario alla modifica.
+    const endButton=document.getElementById('deletePatient');
+    if(endButton&&endButton.textContent!=='Termina percorso')endButton.textContent='Termina percorso';
   }
 
   function queuePatch(){if(patchQueued)return;patchQueued=true;queueMicrotask(patchSummary);}
