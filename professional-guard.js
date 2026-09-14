@@ -36,7 +36,7 @@
       try{
         const{data:logoBlob,error:logoError}=await client.storage.from('professional-assets').download(path);
         if(logoError)throw logoError;
-        const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'');reader.onerror=()=>reject(reader.error||new Error('Logo non leggibile'));reader.readAsDataURL(logoBlob);});
+        const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error||new Error('Logo non leggibile'));reader.readAsDataURL(logoBlob);});
         if(window.nubemoProfessionalContext)window.nubemoProfessionalContext.logoData=dataUrl;
         return dataUrl;
       }finally{perfEnd(timer);}
