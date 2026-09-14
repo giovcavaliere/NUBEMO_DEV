@@ -47,6 +47,13 @@
     };
   }
 
+  function dashboardDraftShell(index){
+    return {
+      ...shell(`__dash_draft_${index}`,index,null,'Contatto'),
+      status:'draft',relationshipStatus:'draft',readOnly:true,real:false,_draft:true
+    };
+  }
+
   function buildPatients(payload){
     const counts=payload?.bmi_counts||{};
     const buckets=[
@@ -63,6 +70,9 @@
     const activeCount=asInt(payload?.active_patient_count);
     while(rows.length<activeCount)rows.push(shell(`__dash_extra_${++seq}`,seq,null));
     if(rows.length>activeCount)rows.length=activeCount;
+
+    const draftCount=asInt(payload?.draft_patient_count);
+    for(let i=0;i<draftCount;i++)rows.push(dashboardDraftShell(++seq));
 
     const subjectMap=new Map();
     let cursor=0;
@@ -184,7 +194,6 @@
       return previousRemoveItem.call(this,key);
     };
   }
-
 
   function publishDashboard(payload){
     const {rows:patients,subjectMap}=buildPatients(payload);
