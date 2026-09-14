@@ -162,18 +162,7 @@
     });
   }
 
-  function patchDraftRows(){
-    document.querySelectorAll('[data-patient],[data-drawer-patient]').forEach(node=>{
-      const id=node.dataset.patient||node.dataset.drawerPatient;if(!drafts.has(id)||node.dataset.draftMarked)return;node.dataset.draftMarked='1';node.classList.add('nubemo-draft-patient');
-      if(node.matches('[data-patient]')){
-        const info=node.querySelector('.patient-main')||node.children?.[1]||node;
-        const marker=document.createElement('span');marker.className='nubemo-draft-badge';marker.textContent='Anagrafica parziale';
-        info.appendChild(marker);
-      }
-    });
-  }
-
-  function patch(){if(patching)return;patching=true;try{patchNewPatientPhone();patchNewPatientAccessChoice();patchDraftRows();}finally{patching=false;}}
+  function patch(){if(patching)return;patching=true;try{patchNewPatientPhone();patchNewPatientAccessChoice();}finally{patching=false;}}
 
   const style=document.createElement('style');style.textContent=`
     .patient-content-card,.patient-content-card .nubemo-remote-tab-content,.patient-content-card .pro-read-grid,.patient-content-card .pro-read-grid>div{min-width:0}
@@ -182,7 +171,6 @@
     .nubemo-patient-area-choice{margin:18px 0 8px;padding:14px;border:1px solid #dce7e8;border-radius:14px;background:#f8fbfb}
     .nubemo-patient-area-choice label{display:flex;align-items:center;gap:9px;margin:0}.nubemo-patient-area-choice input[type="checkbox"]{width:auto;margin:0}
     .nubemo-patient-area-choice p{margin:7px 0 0}
-    .nubemo-draft-patient{position:relative}.nubemo-draft-badge{display:inline-block!important;width:max-content;margin-top:7px;font-size:11px!important;font-weight:800!important;color:#8a6420!important;background:#fff4cf!important;border-radius:999px;padding:5px 8px;line-height:1.15}
     .nubemo-draft-modal-backdrop{position:fixed;inset:0;background:#16202a66;z-index:9999;display:grid;place-items:center;padding:18px;overflow:auto}
     .nubemo-draft-modal{width:min(620px,100%);max-height:calc(100vh - 36px);overflow:auto;margin:0}
     .nubemo-draft-date{margin-top:7px}.nubemo-draft-date .date-picker-btn{margin:0}.nubemo-draft-date .date-picker-btn span{pointer-events:none}
