@@ -23,6 +23,8 @@
   let planTabPromise=null;
   let documentsTabPromise=null;
   let privacyTabPromise=null;
+  let accountTabPromise=null;
+  const patientAccessContextPromises=new Map();
   const replayClicks=new WeakSet();
 
   async function ensureProfessionalLogoLoaded(){
@@ -166,13 +168,34 @@
   }
 
   function ensureSelectedPatientContext(patientId){
-    if(!patientId)return;
+    if(!patientId)return null;
     const ctx=window.nubemoProfessionalContext||{};
     const existing=Array.isArray(ctx.patients)?ctx.patients:[];
-    if(existing.some(row=>String(row?.id||'')===String(patientId)))return;
+    let row=existing.find(item=>String(item?.id||'')===String(patientId))||null;
+    if(row)return row;
     const patient=virtualPatient(patientId)||{};
-    const minimal={id:String(patientId),profile_id:patient.profileId||null,profile:{first_name:patient.firstName||patient.name||'',last_name:patient.surname||'',email:patient.email||'',auth_user_id:patient.authUserId||null,status:patient.profileStatus||'active'}};
-    window.nubemoProfessionalContext={...ctx,patients:[...existing,minimal]};
+    row={id:String(patientId),profile_id:patient.profileId||null,profile:{first_name:patient.firstName||patient.name||'',last_name:patient.surname||'',email:patient.email||'',auth_user_id:patient.authUserId||null,status:patient.profileStatus||'active'}};
+    window.nubemoProfessionalContext={...ctx,patients:[...existing,row]};
+    return row;
+  }
+
+  async function ensurePatientAccessContext(patientId){
+    if(!patientId)throw new Error('Paziente non disponibile.');
+    const row=ensureSelectedPatientContext(patientId);
+    if(row?.profile_id&&row?.profile&&Object.prototype.hasOwnProperty.call(row.profile,'auth_user_id')&&row.profile.id)return row;
+    if(patientAccessContextPromises.has(patientId))return patientAccessContextPromises.get(patientId);
+    const promise=(async()=>{
+      const {data:patientRow,error:patientError}=await client.from('patients').select('id,profile_id').eq('id',patientId).single();
+      if(patientError)throw patientError;
+      const {data:profile,error:profileError}=await client.from('profiles').select('id,auth_user_id,first_name,last_name,email,status').eq('id',patientRow.profile_id).single();
+      if(profileError)throw profileError;
+      const current=ensureSelectedPatientContext(patientId);
+      current.profile_id=patientRow.profile_id;
+      current.profile={...(current.profile||{}),...profile};
+      return current;
+    })().finally(()=>patientAccessContextPromises.delete(patientId));
+    patientAccessContextPromises.set(patientId,promise);
+    return promise;
   }
 
   async function ensureLabsTab(patientId){
@@ -239,19 +262,36 @@
 
   async function ensurePrivacyTab(patientId){
     if(!patientId)throw new Error('Paziente non disponibile.');
-    if(privacyTabPromise)return privacyTabPromise.then(()=>{window.nubemoProfessionalAccessPrivacyBridge?.setCurrentPatient?.(patientId);});
+    if(privacyTabPromise)return privacyTabPromise.then(async()=>{await ensurePatientAccessContext(patientId);window.nubemoProfessionalAccessPrivacyBridge?.setCurrentPatient?.(patientId);});
     privacyTabPromise=(async()=>{
       const timer=perfStart('Privacy tab lazy');
       try{
-        ensureSelectedPatientContext(patientId);
         if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
         if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+        await ensurePatientAccessContext(patientId);
         if(!hasScript('professional-access-privacy-supabase-bridge.js'))await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40privacytab01','Impossibile preparare la privacy del paziente.');
         if(!window.nubemoProfessionalAccessPrivacyBridge)throw new Error('Bridge Privacy non inizializzato.');
         window.nubemoProfessionalAccessPrivacyBridge.setCurrentPatient?.(patientId);
       }finally{perfEnd(timer);}
     })().catch(error=>{privacyTabPromise=null;throw error;});
     return privacyTabPromise;
+  }
+
+  async function ensureAccountTab(patientId){
+    if(!patientId)throw new Error('Paziente non disponibile.');
+    if(accountTabPromise)return accountTabPromise.then(async()=>{await ensurePatientAccessContext(patientId);window.nubemoProfessionalAccessPrivacyBridge?.setCurrentPatient?.(patientId);});
+    accountTabPromise=(async()=>{
+      const timer=perfStart('Account tab lazy');
+      try{
+        if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+        if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+        await ensurePatientAccessContext(patientId);
+        if(!hasScript('professional-access-privacy-supabase-bridge.js'))await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40privacytab01','Impossibile preparare l’account del paziente.');
+        if(!window.nubemoProfessionalAccessPrivacyBridge)throw new Error('Bridge Account non inizializzato.');
+        window.nubemoProfessionalAccessPrivacyBridge.setCurrentPatient?.(patientId);
+      }finally{perfEnd(timer);}
+    })().catch(error=>{accountTabPromise=null;throw error;});
+    return accountTabPromise;
   }
 
   function patientTabName(action){if(action?.matches?.('[data-patient-tab]'))return action.dataset.patientTab||'';if(action?.matches?.('[data-drawer-tab]'))return action.dataset.drawerTab||'';return '';}
@@ -263,6 +303,7 @@
     if(name==='plan'){await ensurePlanTab(patientId);return true;}
     if(name==='documents'){await ensureDocumentsTab(patientId);return true;}
     if(name==='privacy'){await ensurePrivacyTab(patientId);return true;}
+    if(name==='account'){await ensureAccountTab(patientId);return true;}
     return false;
   }
 
@@ -272,9 +313,9 @@
     const drawerView=target?.closest?.('[data-drawer-view]');
     if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
     const patientTab=target?.closest?.('[data-patient-tab]');
-    if(patientTab)return !['summary','anamnesis','labs','plan','documents','privacy'].includes(patientTab.dataset.patientTab);
+    if(patientTab)return !['summary','anamnesis','labs','plan','documents','privacy','account'].includes(patientTab.dataset.patientTab);
     const drawerTab=target?.closest?.('[data-drawer-tab]');
-    if(drawerTab)return !['summary','anamnesis','labs','plan','documents','privacy'].includes(drawerTab.dataset.drawerTab);
+    if(drawerTab)return !['summary','anamnesis','labs','plan','documents','privacy','account'].includes(drawerTab.dataset.drawerTab);
     return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
@@ -302,10 +343,10 @@
         return;
       }
 
-      if(anyAction.matches('[data-patient-tab],[data-drawer-tab]')&&['labs','plan','documents','privacy'].includes(patientTabName(anyAction))){
+      if(anyAction.matches('[data-patient-tab],[data-drawer-tab]')&&['labs','plan','documents','privacy','account'].includes(patientTabName(anyAction))){
         event.preventDefault();event.stopImmediatePropagation();
         const action=anyAction;const tabName=patientTabName(action);const wasDisabled='disabled' in action?action.disabled:false;if('disabled' in action)action.disabled=true;
-        void prepareSpecificPatientTab(action).then(()=>{if('disabled' in action)action.disabled=wasDisabled;replayAction(action);}).catch(error=>{if('disabled' in action)action.disabled=wasDisabled;console.error(`NUBEMO ${tabName} lazy:`,error);const message=tabName==='plan'?'Non riesco a caricare il piano. Riprova.':tabName==='documents'?'Non riesco a caricare i documenti. Riprova.':tabName==='privacy'?'Non riesco a caricare la privacy. Riprova.':'Non riesco a caricare gli esami. Riprova.';alert(message);});
+        void prepareSpecificPatientTab(action).then(()=>{if('disabled' in action)action.disabled=wasDisabled;replayAction(action);}).catch(error=>{if('disabled' in action)action.disabled=wasDisabled;console.error(`NUBEMO ${tabName} lazy:`,error);const message=tabName==='plan'?'Non riesco a caricare il piano. Riprova.':tabName==='documents'?'Non riesco a caricare i documenti. Riprova.':tabName==='privacy'?'Non riesco a caricare la privacy. Riprova.':tabName==='account'?'Non riesco a caricare l’account. Riprova.':'Non riesco a caricare gli esami. Riprova.';alert(message);});
         return;
       }
 
@@ -326,7 +367,7 @@
       timer=perfStart('Profilo professionista minimo');const{data:professional,error:professionalError}=await client.from('professionals').select('id,profile_id,status,logo_storage_path').eq('profile_id',profile.id).maybeSingle();perfEnd(timer);if(professionalError||!professional){showGuardError('Profilo professionale NUBEMO non disponibile.');return;}
 
       window.nubemoProfessionalContext={user,profile,professional,logoData:'',patients:[],endedPatients:[]};
-      timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo40dashboard03','Impossibile preparare la Dashboard.');perfEnd(timer);
+      timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo40dashboard04','Impossibile preparare la Dashboard.');perfEnd(timer);
       timer=perfStart('Dashboard payload');await window.nubemoProfessionalDashboardBootstrap?.init?.(window.nubemoProfessionalContext);perfEnd(timer);
       if(logoutButton)logoutButton.style.display='inline-flex';
       timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo40stabilize01','Impossibile caricare l’Area Professionista.');perfEnd(timer);
