@@ -26,6 +26,7 @@
   let accountTabPromise=null;
   let diaryTabPromise=null;
   let trendTabPromise=null;
+  let measuresTabPromise=null;
   const patientAccessContextPromises=new Map();
   const replayClicks=new WeakSet();
 
@@ -243,6 +244,21 @@
     return trendTabPromise;
   }
 
+  async function ensureMeasuresTab(patientId){
+    if(!patientId)throw new Error('Paziente non disponibile.');
+    if(measuresTabPromise)return measuresTabPromise.then(async()=>{await window.nubemoProfessionalMeasuresBridge?.ensurePatient?.(patientId);});
+    measuresTabPromise=(async()=>{const timer=perfStart('Misure tab lazy');try{
+      ensureSelectedPatientContext(patientId);
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+      if(!hasScript('professional-measures-supabase-bridge.js'))await loadScript('professional-measures-supabase-bridge.js?v=nubemo40measures01','Impossibile preparare le misure del paziente.');
+      await window.nubemoProfessionalMeasuresBridge?.ready;
+      if(!window.nubemoProfessionalMeasuresBridge)throw new Error('Bridge Misure non inizializzato.');
+      await window.nubemoProfessionalMeasuresBridge.ensurePatient(patientId);
+    }finally{perfEnd(timer);}})().catch(error=>{measuresTabPromise=null;throw error;});
+    return measuresTabPromise;
+  }
+
   function patientTabName(action){if(action?.matches?.('[data-patient-tab]'))return action.dataset.patientTab||'';if(action?.matches?.('[data-drawer-tab]'))return action.dataset.drawerTab||'';return '';}
 
   async function prepareSpecificPatientTab(action){
@@ -254,14 +270,15 @@
     if(name==='account'){await ensureAccountTab(patientId);return true;}
     if(name==='diary'){await ensureDiaryTab(patientId);return true;}
     if(name==='trend'){await ensureTrendTab(patientId);return true;}
+    if(name==='measures'){await ensureMeasuresTab(patientId);return true;}
     return false;
   }
 
   function needsFullRuntime(target){
     const viewButton=target?.closest?.('[data-view]');if(viewButton&&['agenda','settings'].includes(viewButton.dataset.view))return true;
     const drawerView=target?.closest?.('[data-drawer-view]');if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
-    const patientTab=target?.closest?.('[data-patient-tab]');if(patientTab)return !['summary','anamnesis','labs','plan','documents','privacy','account','diary','trend'].includes(patientTab.dataset.patientTab);
-    const drawerTab=target?.closest?.('[data-drawer-tab]');if(drawerTab)return !['summary','anamnesis','labs','plan','documents','privacy','account','diary','trend'].includes(drawerTab.dataset.drawerTab);
+    const patientTab=target?.closest?.('[data-patient-tab]');if(patientTab)return !['summary','anamnesis','labs','plan','documents','privacy','account','diary','trend','measures'].includes(patientTab.dataset.patientTab);
+    const drawerTab=target?.closest?.('[data-drawer-tab]');if(drawerTab)return !['summary','anamnesis','labs','plan','documents','privacy','account','diary','trend','measures'].includes(drawerTab.dataset.drawerTab);
     return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
@@ -281,13 +298,13 @@
       const point=pointAction(target);
       if(point){event.preventDefault();event.stopImmediatePropagation();const wasDisabled='disabled' in point?point.disabled:false;if('disabled' in point)point.disabled=true;void preparePointAction(point).then(()=>{if('disabled' in point)point.disabled=wasDisabled;replayAction(point);}).catch(error=>{if('disabled' in point)point.disabled=wasDisabled;console.error('NUBEMO query puntuale:',error);alert('Non riesco a caricare questa sezione. Riprova.');});return;}
 
-      const specificTabs=['labs','plan','documents','privacy','account','diary','trend'];
+      const specificTabs=['labs','plan','documents','privacy','account','diary','trend','measures'];
       if(anyAction.matches('[data-patient-tab],[data-drawer-tab]')&&specificTabs.includes(patientTabName(anyAction))){
         event.preventDefault();event.stopImmediatePropagation();
         const action=anyAction;const tabName=patientTabName(action);const wasDisabled='disabled' in action?action.disabled:false;if('disabled' in action)action.disabled=true;
         void prepareSpecificPatientTab(action).then(()=>{if('disabled' in action)action.disabled=wasDisabled;replayAction(action);}).catch(error=>{
           if('disabled' in action)action.disabled=wasDisabled;console.error(`NUBEMO ${tabName} lazy:`,error);
-          const messages={plan:'Non riesco a caricare il piano. Riprova.',documents:'Non riesco a caricare i documenti. Riprova.',privacy:'Non riesco a caricare la privacy. Riprova.',account:'Non riesco a caricare l’account. Riprova.',diary:'Non riesco a caricare il diario. Riprova.',trend:'Non riesco a caricare l’andamento. Riprova.',labs:'Non riesco a caricare gli esami. Riprova.'};
+          const messages={plan:'Non riesco a caricare il piano. Riprova.',documents:'Non riesco a caricare i documenti. Riprova.',privacy:'Non riesco a caricare la privacy. Riprova.',account:'Non riesco a caricare l’account. Riprova.',diary:'Non riesco a caricare il diario. Riprova.',trend:'Non riesco a caricare l’andamento. Riprova.',measures:'Non riesco a caricare le misure. Riprova.',labs:'Non riesco a caricare gli esami. Riprova.'};
           alert(messages[tabName]||'Non riesco a caricare questa sezione. Riprova.');
         });return;
       }
