@@ -22,8 +22,12 @@
     return [p.first_name, p.last_name].filter(Boolean).join(' ').trim() || p.email || 'Paziente';
   }
 
+  function setCurrentPatient(patientId) {
+    currentPatientId = String(patientId || '');
+  }
+
   function inferPatientId() {
-    if (currentPatientId && context.patients.some(p => p.id === currentPatientId)) return currentPatientId;
+    if (currentPatientId) return currentPatientId;
     const title = document.querySelector('.patient-global-title')?.textContent || '';
     const match = context.patients.find(p => title.includes(patientName(p)));
     if (match) currentPatientId = match.id;
@@ -44,7 +48,7 @@
 
   async function ensurePatient(patientId,force=false) {
     if(!patientId)return;
-    currentPatientId=patientId;
+    setCurrentPatient(patientId);
     if(!force&&hydratedPatients.has(patientId))return;
     if(!force&&hydrationPromises.has(patientId))return hydrationPromises.get(patientId);
     const promise=(async()=>{
@@ -156,8 +160,8 @@
   }
 
   document.addEventListener('click', event => {
-    const patientButton=event.target?.closest?.('[data-patient]');if(patientButton?.dataset?.patient)currentPatientId=patientButton.dataset.patient;
-    const drawerPatient=event.target?.closest?.('[data-drawer-patient]');if(drawerPatient?.dataset?.drawerPatient)currentPatientId=drawerPatient.dataset.drawerPatient;
+    const patientButton=event.target?.closest?.('[data-patient]');if(patientButton?.dataset?.patient)setCurrentPatient(patientButton.dataset.patient);
+    const drawerPatient=event.target?.closest?.('[data-drawer-patient]');if(drawerPatient?.dataset?.drawerPatient)setCurrentPatient(drawerPatient.dataset.drawerPatient);
 
     const lazyTab=event.target?.closest?.('[data-patient-tab="plan"],[data-drawer-tab="plan"]');
     if(lazyTab&&!replayClicks.has(lazyTab)){
@@ -175,5 +179,5 @@
     if(event.target?.closest?.('#saveNewPlan')){event.preventDefault();event.stopImmediatePropagation();void publishPlan();}
   }, true);
 
-  window.nubemoProfessionalPlansBridge = Object.freeze({ready:Promise.resolve(),ensurePatient,refresh:patientId=>ensurePatient(patientId||inferPatientId(),true)});
+  window.nubemoProfessionalPlansBridge = Object.freeze({ready:Promise.resolve(),setCurrentPatient,ensurePatient,refresh:patientId=>ensurePatient(patientId||inferPatientId(),true)});
 })();
