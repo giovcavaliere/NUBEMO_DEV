@@ -162,6 +162,10 @@
     if(viewButton&&['agenda','settings'].includes(viewButton.dataset.view))return true;
     const drawerView=target?.closest?.('[data-drawer-view]');
     if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
+    const patientTab=target?.closest?.('[data-patient-tab]');
+    if(patientTab)return patientTab.dataset.patientTab!=='summary';
+    const drawerTab=target?.closest?.('[data-drawer-tab]');
+    if(drawerTab)return drawerTab.dataset.drawerTab!=='summary';
     return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
@@ -169,7 +173,7 @@
     document.addEventListener('click',event=>{
       const target=event.target;
       if(!target)return;
-      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
+      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],[data-patient-tab],[data-drawer-tab],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
       if(!anyAction)return;
       if(replayClicks.has(anyAction)){replayClicks.delete(anyAction);return;}
 
