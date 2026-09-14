@@ -5,13 +5,12 @@
 
   const client=window.nubemoSupabase;
   const originalServices=window.nubemoPatientServices;
-  if(!client||!originalServices)return;
+  const originalAdapter=window.nubemoPatientLegacyAdapter;
+  if(!client||!originalServices||!originalAdapter)return;
 
   const KEY='diario-pro-patient-main-v1';
-  const storageProto=Object.getPrototypeOf(window.localStorage);
-  const previousGetItem=storageProto.getItem;
-  const previousSetItem=storageProto.setItem;
   const pendingByDate=new Map();
+  let installed=false;
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
   const signature=entry=>JSON.stringify({
@@ -41,54 +40,75 @@
     };
   }
 
-  storageProto.setItem=function(key,value){
-    if(this===window.localStorage&&String(key)===KEY){
-      const previous=parse(previousGetItem.call(this,key)||'[]',[]);
-      const next=parse(String(value),[]);
-      if(Array.isArray(next)){
-        const oldByDate=new Map((Array.isArray(previous)?previous:[]).filter(x=>x?.date).map(x=>[x.date,x]));
-        for(const entry of next){
-          if(!entry?.date)continue;
-          const old=oldByDate.get(entry.date);
-          if(!old||signature(old)!==signature(entry)){
-            const values=calculate(entry);
-            if(values)pendingByDate.set(entry.date,values);
+  function install(){
+    if(installed)return;
+    installed=true;
+
+    // A questo punto l'adapter legacy ha già installato la propria virtualizzazione:
+    // ci agganciamo sopra, senza cambiare il comportamento dell'Area Paziente.
+    const storageProto=Object.getPrototypeOf(window.localStorage);
+    const previousGetItem=storageProto.getItem;
+    const previousSetItem=storageProto.setItem;
+
+    storageProto.setItem=function(key,value){
+      if(this===window.localStorage&&String(key)===KEY){
+        const previous=parse(previousGetItem.call(this,key)||'[]',[]);
+        const next=parse(String(value),[]);
+        if(Array.isArray(next)){
+          const oldByDate=new Map((Array.isArray(previous)?previous:[]).filter(x=>x?.date).map(x=>[x.date,x]));
+          for(const entry of next){
+            if(!entry?.date)continue;
+            const old=oldByDate.get(entry.date);
+            if(!old||signature(old)!==signature(entry)){
+              const values=calculate(entry);
+              if(values)pendingByDate.set(entry.date,values);
+            }
           }
         }
       }
-    }
-    return previousSetItem.call(this,key,value);
-  };
-
-  async function saveDiaryEntry(patientId,userId,values,existingId=null){
-    const calories=pendingByDate.get(values.entry_date)||null;
-    const payload={
-      patient_id:patientId,
-      entry_date:values.entry_date,
-      weight_kg:values.weight_kg,
-      water:values.water,
-      coffee:values.coffee,
-      sweetener:values.sweetener,
-      breakfast:values.breakfast,
-      morning_snack:values.morning_snack,
-      lunch:values.lunch,
-      afternoon_snack:values.afternoon_snack,
-      dinner:values.dinner,
-      sport:values.sport,
-      notes:values.notes,
-      created_by_user_id:userId,
-      deleted_at:null,
-      ...(calories||{})
+      return previousSetItem.call(this,key,value);
     };
-    const q=existingId
-      ? client.from('diary_entries').update(payload).eq('id',existingId)
-      : client.from('diary_entries').insert(payload);
-    const {data,error}=await q.select('*').single();
-    if(error)throw new Error(error.message||'Salvataggio diario non riuscito.');
-    if(calories)pendingByDate.delete(values.entry_date);
-    return data;
+
+    async function saveDiaryEntry(patientId,userId,values,existingId=null){
+      const calories=pendingByDate.get(values.entry_date)||null;
+      const payload={
+        patient_id:patientId,
+        entry_date:values.entry_date,
+        weight_kg:values.weight_kg,
+        water:values.water,
+        coffee:values.coffee,
+        sweetener:values.sweetener,
+        breakfast:values.breakfast,
+        morning_snack:values.morning_snack,
+        lunch:values.lunch,
+        afternoon_snack:values.afternoon_snack,
+        dinner:values.dinner,
+        sport:values.sport,
+        notes:values.notes,
+        created_by_user_id:userId,
+        deleted_at:null,
+        ...(calories||{})
+      };
+      const q=existingId
+        ? client.from('diary_entries').update(payload).eq('id',existingId)
+        : client.from('diary_entries').insert(payload);
+      const {data,error}=await q.select('*').single();
+      if(error)throw new Error(error.message||'Salvataggio diario non riuscito.');
+      if(calories)pendingByDate.delete(values.entry_date);
+      return data;
+    }
+
+    window.nubemoPatientServices=Object.freeze({...window.nubemoPatientServices,saveDiaryEntry});
   }
 
-  window.nubemoPatientServices=Object.freeze({...originalServices,saveDiaryEntry});
+  const wrappedAdapter=Object.freeze({
+    ...originalAdapter,
+    init:async context=>{
+      const result=await originalAdapter.init(context);
+      install();
+      return result;
+    }
+  });
+  window.nubemoPatientLegacyAdapter=wrappedAdapter;
   window.nubemoPatientDiaryCaloriePersistence=Object.freeze({pendingByDate});
 })();
