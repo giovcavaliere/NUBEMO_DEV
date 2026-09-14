@@ -12,11 +12,13 @@
   function redirectToLogin(){window.location.replace('index.html');}
   function redirectToPrivacy(){window.location.replace('privacy.html');}
   function loadScript(src,errorMessage){return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=()=>reject(new Error(errorMessage));document.body.appendChild(script);});}
+  function hasScript(fragment){return [...document.scripts].some(script=>String(script.src||'').includes(fragment));}
   function perfStart(label){return{label,startedAt:performance.now()};}
   function perfEnd(timer){const ms=Math.round(performance.now()-timer.startedAt);console.log(`[NUBEMO PERF] ${timer.label}: ${ms} ms`);return ms;}
 
   let professionalLogoPromise=null;
   let fullRuntimePromise=null;
+  let patientSummaryLoaderPromise=null;
   const replayClicks=new WeakSet();
 
   async function ensureProfessionalLogoLoaded(){
@@ -87,7 +89,7 @@
       timer=perfStart('Piani bridge lazy');await loadScript('professional-plans-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i piani alimentari.');perfEnd(timer);
       timer=perfStart('Esami bridge lazy');await loadScript('professional-labs-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare gli esami del paziente.');perfEnd(timer);
       timer=perfStart('Gestione pazienti lazy');await loadScript('professional-patient-management.js?v=nubemo40phone01','Impossibile caricare la gestione dei pazienti.');perfEnd(timer);
-      timer=perfStart('Azioni scheda paziente lazy');await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');perfEnd(timer);
+      if(!hasScript('professional-patient-actions-menu.js')){timer=perfStart('Azioni scheda paziente lazy');await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');perfEnd(timer);}
       timer=perfStart('Account e Privacy paziente lazy');await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40patientaccess02','Impossibile caricare Account e Privacy del paziente.');perfEnd(timer);
       timer=perfStart('Privacy professionista lazy');await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');perfEnd(timer);
 
@@ -100,6 +102,20 @@
   }
   window.nubemoEnsureProfessionalRuntime=ensureFullRuntime;
 
+  async function ensurePatientSummaryLoader(){
+    if(patientSummaryLoaderPromise)return patientSummaryLoaderPromise;
+    patientSummaryLoaderPromise=(async()=>{
+      if(!window.nubemoProfessionalPatientSummaryLazy){
+        await loadScript('professional-patient-summary-lazy.js?v=nubemo40summary01','Impossibile preparare il riepilogo paziente.');
+      }
+      if(!hasScript('professional-patient-actions-menu.js')){
+        await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');
+      }
+      return window.nubemoProfessionalPatientSummaryLazy;
+    })().catch(error=>{patientSummaryLoaderPromise=null;throw error;});
+    return patientSummaryLoaderPromise;
+  }
+
   function replayAction(action){
     replayClicks.add(action);
     action.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
@@ -109,13 +125,33 @@
     return action?.matches?.('[data-view="dashboard"],[data-drawer-view="dashboard"]');
   }
 
+  function virtualPatient(patientId){
+    try{
+      const rows=JSON.parse(localStorage.getItem('diario-pro-extra-patients-v1')||'[]');
+      return Array.isArray(rows)?rows.find(row=>String(row?.id||'')===String(patientId||''))||null:null;
+    }catch(_){return null;}
+  }
+
   function pointAction(target){
+    const patient=target?.closest?.('[data-patient]');
+    if(patient){
+      const row=virtualPatient(patient.dataset.patient);
+      if(row&&!row._draft&&row.relationshipStatus!=='draft')return patient;
+    }
     return target?.closest?.('[data-bmi-category],[data-view="patients"],[data-drawer-view="patients"],#openUnreadLabPatients,#openUnreadPatients')||null;
   }
 
   async function preparePointAction(action){
     const bridge=window.nubemoProfessionalDashboardBootstrap;
     if(!bridge)return;
+    if(action.matches('[data-patient]')){
+      const timer=perfStart('Riepilogo paziente lazy');
+      try{
+        const loader=await ensurePatientSummaryLoader();
+        await loader?.load?.(action.dataset.patient);
+      }finally{perfEnd(timer);}
+      return;
+    }
     if(action.matches('[data-bmi-category]')){
       const timer=perfStart('BMI categoria lazy');
       try{await bridge.loadBmiCategory(action.dataset.bmiCategory);}finally{perfEnd(timer);}
@@ -130,14 +166,16 @@
     if(viewButton&&['agenda','settings'].includes(viewButton.dataset.view))return true;
     const drawerView=target?.closest?.('[data-drawer-view]');
     if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
-    return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient');
+    const tabButton=target?.closest?.('[data-tab]');
+    if(tabButton&&tabButton.dataset.tab!=='summary')return true;
+    return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileTop,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
   function installLazyRuntimeGate(){
     document.addEventListener('click',event=>{
       const target=event.target;
       if(!target)return;
-      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient');
+      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],[data-tab],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileTop,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
       if(!anyAction)return;
       if(replayClicks.has(anyAction)){replayClicks.delete(anyAction);return;}
 
