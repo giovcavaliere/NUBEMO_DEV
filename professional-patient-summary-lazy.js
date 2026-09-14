@@ -8,8 +8,6 @@
 
   const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
   const summaryMeta=new Map();
-  let currentPatientId='';
-  let patchQueued=false;
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
 
@@ -53,46 +51,15 @@
     localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(rows));
   }
 
-  function qualityLabel(value){return value==='good'?'buona':value==='partial'?'parziale':'non disponibile';}
-  function formatDate(iso){const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:String(iso||'');}
-  function setTextIfChanged(node,value){if(node&&node.textContent!==value)node.textContent=value;}
-
-  function patchSummary(){
-    patchQueued=false;
-    if(document.body.dataset.proView!=='details'||!currentPatientId)return;
-    const meta=summaryMeta.get(currentPatientId);
-    if(!meta)return;
-    const boxes=[...document.querySelectorAll('.patient-summary-grid > div')];
-    const calorieBox=boxes.find(node=>node.querySelector(':scope > span')?.textContent?.trim()==='Calorie stimate dal diario');
-    if(calorieBox){
-      const kcal=meta.latest_calorie?.total_kcal;
-      const available=kcal!==null&&kcal!==undefined&&Number.isFinite(Number(kcal));
-      const b=calorieBox.querySelector('b'),small=calorieBox.querySelector('small');
-      setTextIfChanged(b,available?`${Number(kcal)} kcal`:'—');
-      setTextIfChanged(small,available?`${formatDate(meta.latest_calorie.date)} · stima ${qualityLabel(meta.latest_calorie.quality)}`:'Nessun pasto interpretabile');
-    }
-    const planBox=boxes.find(node=>node.querySelector(':scope > span')?.textContent?.trim()==='Piano alimentare');
-    const planB=planBox?.querySelector('b');
-    setTextIfChanged(planB,meta.has_plan?'Disponibile':'Non caricato');
-
-    const endButton=document.getElementById('deletePatient');
-    setTextIfChanged(endButton,'Termina percorso');
-  }
-
-  function queuePatch(){if(patchQueued)return;patchQueued=true;queueMicrotask(patchSummary);}
-  const app=document.getElementById('proApp');
-  if(app)new MutationObserver(queuePatch).observe(app,{childList:true,subtree:true});
 
   async function load(patientId){
     const id=String(patientId||'');
     if(!id)throw new Error('Paziente non valido.');
-    currentPatientId=id;
     const {data,error}=await client.rpc('get_professional_patient_summary',{p_patient_id:id});
     if(error)throw error;
     if(!data?.patient)throw new Error('Riepilogo paziente non disponibile.');
     summaryMeta.set(id,data);
     publishPatient(summaryPatient(data));
-    queuePatch();
     return data;
   }
 

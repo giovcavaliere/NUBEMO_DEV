@@ -685,7 +685,7 @@ function patientsPage(){
      <div class="patient-avatar">${p.name.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
      <div>
        <span style="display:block;font-size:15px;font-weight:700;color:#34484f">${esc(p.name)}${hasUnreadProfessionalActivity(p.id)?'<span class="document-alert-inline">!</span>':''}</span>
-       <span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">${p.last!=null?'Ultimo peso '+p.last.toFixed(1).replace('.',',')+' kg':'Dati non disponibili'}</span>
+       <span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">${p._draft===true||p.relationshipStatus==='draft'?'Paziente non ancora attivo':p.last!=null?'Ultimo peso '+p.last.toFixed(1).replace('.',',')+' kg':'Dati non disponibili'}</span>
      </div>
      <span style="font-size:12px;font-weight:600;color:${p.delta<0?'#3d8b69':p.delta>0?'#a66a45':'#7b898f'}">${delta}</span>
    </button>`;
@@ -1681,11 +1681,11 @@ function details(){
  const b=p.last&&p.height?bmi(p.last,p.height):null;
  return `<div class="patient-global-head">
    <div class="patient-global-title">${top(esc(p.name))}</div>
-   <button class="secondary patient-global-edit" id="editPatientProfileTop">Modifica scheda</button>
    <div class="patient-more-wrap">
      <button class="patient-more-btn" id="patientMoreBtn" aria-label="Altre azioni">⋯</button>
      <div class="patient-more-menu" id="patientMoreMenu">
-       <button id="deletePatient" class="danger-link">Elimina paziente</button>
+       <button id="patientMenuEditProfile">Modifica scheda</button>
+       <button id="deletePatient" class="danger-link">Termina percorso</button>
      </div>
    </div>
  </div>${nav()}
@@ -1820,7 +1820,15 @@ function latestDiaryCalories(p){
  return null;
 }
 function proSummary2(p){
- const m=latestMeasure(p),wh=m&&+m.waist&&+m.hips?+m.waist/+m.hips:null,bmrVal=bmrMifflin(p),daily=energyEstimate(p),food=latestDiaryCalories(p);
+ const m=latestMeasure(p),wh=m&&+m.waist&&+m.hips?+m.waist/+m.hips:null,bmrVal=bmrMifflin(p),daily=energyEstimate(p);
+ const lazyMeta=window.nubemoProfessionalPatientSummaryLazy?.summaryMeta?.get?.(p.id)||null;
+ const persistedCalories=lazyMeta?.latest_calorie||null;
+ const food=persistedCalories?.total_kcal!=null?{
+   date:persistedCalories.date,
+   calories:Number(persistedCalories.total_kcal),
+   qualityLabel:persistedCalories.quality==='good'?'Buona':persistedCalories.quality==='partial'?'Parziale':'Non disponibile'
+ }:latestDiaryCalories(p);
+ const hasPlan=lazyMeta?!!lazyMeta.has_plan:!!currentProfessionalPlan(p.id);
  return `<div class="section-head"><h2>Riepilogo clinico-nutrizionale</h2>${(p.id==='main'||p.id.startsWith('patient-'))?'<button class="mini" id="editPatientProfileLegacy">Modifica scheda</button>':''}</div>
  <div class="patient-summary-grid">
   <div class="summary-hero"><span>Paziente</span><b>${esc(p.name||'—')}</b><small>${p.birth?fmt(p.birth)+' · '+ageFromBirth(p.birth)+' anni':'Età non disponibile'}</small></div>
@@ -1835,7 +1843,7 @@ function proSummary2(p){
   <div><span>BMR stimato</span><b>${bmrVal?Math.round(bmrVal)+' kcal/giorno':'—'}</b><small>${bmrVal?'Metabolismo basale, senza attività':'Servono peso, altezza, nascita e sesso'}</small></div>
   <div><span>Dispendio giornaliero indicativo</span><b>${daily?Math.round(daily)+' kcal/giorno':'—'}</b><small>${daily?'BMR × livello di attività':p.activityFactor?'Completa i dati necessari al BMR':'Imposta il livello di attività'}</small></div>
   <div><span>Calorie stimate dal diario</span><b>${food?food.calories+' kcal':'—'}</b><small>${food?fmt(food.date)+' · stima '+food.qualityLabel.toLowerCase():'Nessun pasto interpretabile'}</small></div>
-  <div><span>Piano alimentare</span><b>${currentProfessionalPlan(p.id)?'Disponibile':'Non caricato'}</b></div>
+  <div><span>Piano alimentare</span><b>${hasPlan?'Disponibile':'Non caricato'}</b></div>
  </div>`;
 }
 function proAnamnesis(p){return `<div class="section-head"><h2>Anamnesi</h2></div><details class="pro-accordion" open><summary>Dati e stile di vita</summary><div class="pro-read-grid"><div><span>Diagnosi / motivo</span><b>${esc(p.diagnosis||'—')}</b></div><div><span>Peso teorico</span><b>${p.theoreticalWeight?p.theoreticalWeight+' kg':'—'}</b></div><div><span>Lavoro</span><b>${esc(p.work||'—')}</b></div><div><span>Attività fisica</span><b>${esc(p.activity||'—')}</b></div><div><span>Alvo</span><b>${esc(p.bowel||'—')}</b></div><div><span>Fumo</span><b>${esc(p.smoking||'—')}</b></div><div><span>Alcol</span><b>${esc(p.alcohol||'—')}</b></div><div><span>Metabolismo basale</span><b>${esc(p.metabolism||'—')}</b></div><div><span>FEEG</span><b>${esc(p.feeg||'—')}</b></div><div><span>Impedenziometria</span><b>${esc(p.impedance||'—')}</b></div></div></details><details class="pro-accordion"><summary>Familiarità</summary><div class="pro-read-grid"><div><span>Obesità</span><b>${p.famObesity?'Sì':'No'}</b></div><div><span>Diabete</span><b>${p.famDiabetes?'Sì':'No'}</b></div><div><span>Ipertensione</span><b>${p.famHypertension?'Sì':'No'}</b></div><div><span>Cardiovascolare</span><b>${p.famCardiovascular?'Sì':'No'}</b></div><div><span>Dislipidemie</span><b>${p.famDyslipidemia?'Sì':'No'}</b></div><div><span>Tiroide</span><b>${p.famThyroid?'Sì':'No'}</b></div></div></details><details class="pro-accordion"><summary>Anamnesi patologica</summary><div class="pro-read-grid"><div><span>Diete pregresse</span><b>${esc(p.previousDiets||'—')}</b></div><div><span>Allergie</span><b>${esc(p.allergies||'—')}</b></div><div><span>Farmaci</span><b>${esc(p.medications||'—')}</b></div><div><span>Disturbi GI</span><b>${esc(p.giIssues||'—')}</b></div><div><span>Patologie / interventi</span><b>${esc(p.pastConditions||'—')}</b></div><div><span>Osservazioni</span><b>${esc(p.observations||'—')}</b></div><div><span>Obiettivi</span><b>${esc(p.objectives||'—')}</b></div></div></details>`}function proLabs(p){const r=labsFor(p.id),f=[['glucose','Glicemia'],['cholesterol','Colesterolo'],['hdl','HDL'],['ldl','LDL'],['triglycerides','Trigliceridi'],['got','GOT'],['gpt','GPT'],['uricAcid','Acido urico'],['creatinine','Creatinina'],['ggt','γGT']]; const bloodDocs=professionalBloodTestDocuments(p.id);
@@ -2744,7 +2752,7 @@ function bind(){
    scrollTo(0,0);
  });
  if(view==='details'&&tab==='documents')bindProDocuments();
- el('editPatientProfileTop')?.addEventListener('click',()=>{
+ el('patientMenuEditProfile')?.addEventListener('click',()=>{
    view='editProfile';render();scrollTo(0,0);
  });
  el('patientMoreBtn')?.addEventListener('click',e=>{

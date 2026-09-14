@@ -89,7 +89,6 @@
       timer=perfStart('Piani bridge lazy');await loadScript('professional-plans-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i piani alimentari.');perfEnd(timer);
       timer=perfStart('Esami bridge lazy');await loadScript('professional-labs-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare gli esami del paziente.');perfEnd(timer);
       timer=perfStart('Gestione pazienti lazy');await loadScript('professional-patient-management.js?v=nubemo40phone01','Impossibile caricare la gestione dei pazienti.');perfEnd(timer);
-      if(!hasScript('professional-patient-actions-menu.js')){timer=perfStart('Azioni scheda paziente lazy');await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');perfEnd(timer);}
       timer=perfStart('Account e Privacy paziente lazy');await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40patientaccess02','Impossibile caricare Account e Privacy del paziente.');perfEnd(timer);
       timer=perfStart('Privacy professionista lazy');await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');perfEnd(timer);
 
@@ -106,10 +105,7 @@
     if(patientSummaryLoaderPromise)return patientSummaryLoaderPromise;
     patientSummaryLoaderPromise=(async()=>{
       if(!window.nubemoProfessionalPatientSummaryLazy){
-        await loadScript('professional-patient-summary-lazy.js?v=nubemo40summary01','Impossibile preparare il riepilogo paziente.');
-      }
-      if(!hasScript('professional-patient-actions-menu.js')){
-        await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');
+        await loadScript('professional-patient-summary-lazy.js?v=nubemo40summary02','Impossibile preparare il riepilogo paziente.');
       }
       return window.nubemoProfessionalPatientSummaryLazy;
     })().catch(error=>{patientSummaryLoaderPromise=null;throw error;});
@@ -168,14 +164,14 @@
     if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
     const tabButton=target?.closest?.('[data-tab]');
     if(tabButton&&tabButton.dataset.tab!=='summary')return true;
-    return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileTop,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
+    return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
   function installLazyRuntimeGate(){
     document.addEventListener('click',event=>{
       const target=event.target;
       if(!target)return;
-      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],[data-tab],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileTop,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
+      const anyAction=target.closest?.('[data-view],[data-drawer-view],[data-bmi-category],[data-tab],#openUnreadLabPatients,#openUnreadPatients,#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
       if(!anyAction)return;
       if(replayClicks.has(anyAction)){replayClicks.delete(anyAction);return;}
 
@@ -227,11 +223,11 @@
 
       window.nubemoProfessionalContext={user,profile,professional,logoData:'',patients:[],endedPatients:[]};
 
-      timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo40dashboard02','Impossibile preparare la Dashboard.');perfEnd(timer);
+      timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo40dashboard03','Impossibile preparare la Dashboard.');perfEnd(timer);
       timer=perfStart('Dashboard payload');await window.nubemoProfessionalDashboardBootstrap?.init?.(window.nubemoProfessionalContext);perfEnd(timer);
 
       if(logoutButton)logoutButton.style.display='inline-flex';
-      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo40dashboard01','Impossibile caricare l’Area Professionista.');perfEnd(timer);
+      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo40structure01','Impossibile caricare l’Area Professionista.');perfEnd(timer);
       installLazyRuntimeGate();
 
       perfEnd(totalTimer);

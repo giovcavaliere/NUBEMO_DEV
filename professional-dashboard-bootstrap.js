@@ -21,7 +21,6 @@
   let installed=false;
   let dashboardPayload=null;
   let patientListPayload=null;
-  let domPatchQueued=false;
 
   const asInt=value=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.trunc(n)):0;};
   const today=()=>new Date().toISOString().slice(0,10);
@@ -174,44 +173,6 @@
     };
   }
 
-  function draftIds(){
-    try{
-      const rows=JSON.parse(memory.get(EXTRA_PATIENTS_KEY)||'[]');
-      return new Set((Array.isArray(rows)?rows:[]).filter(row=>row?._draft===true||row?.relationshipStatus==='draft').map(row=>String(row.id)));
-    }catch(_){return new Set();}
-  }
-
-  function patchDraftStatusLabels(){
-    domPatchQueued=false;
-    if(document.body.dataset.proView!=='patients')return;
-    const ids=draftIds();
-    if(!ids.size)return;
-    document.querySelectorAll('[data-patient]').forEach(button=>{
-      if(!ids.has(String(button.dataset.patient||'')))return;
-      const info=button.children?.[1];
-      if(!info)return;
-      const lines=info.querySelectorAll(':scope > span');
-      let status=lines?.[1]||null;
-      if(!status){
-        status=document.createElement('span');
-        status.style.display='block';
-        status.style.marginTop='3px';
-        status.style.fontSize='12px';
-        status.style.color='#7b898f';
-        info.appendChild(status);
-      }
-      if(status.textContent!=='Paziente non ancora attivo')status.textContent='Paziente non ancora attivo';
-    });
-  }
-
-  function scheduleDomPatch(){
-    if(domPatchQueued)return;
-    domPatchQueued=true;
-    queueMicrotask(patchDraftStatusLabels);
-  }
-
-  const proApp=document.getElementById('proApp');
-  if(proApp)new MutationObserver(scheduleDomPatch).observe(proApp,{childList:true,subtree:true});
 
   function publishDashboard(payload){
     const {rows:patients,subjectMap}=buildPatients(payload);
@@ -232,7 +193,6 @@
     memory.set(DOCUMENT_META_KEY,JSON.stringify(buildPatientListDocuments(real)));
     enabled=true;
     installStorage();
-    scheduleDomPatch();
   }
 
   function bmiKey(category){
