@@ -19,6 +19,7 @@
   let professionalLogoPromise=null;
   let fullRuntimePromise=null;
   let patientSummaryLoaderPromise=null;
+  let labsTabPromise=null;
   const replayClicks=new WeakSet();
 
   async function ensureProfessionalLogoLoaded(){
@@ -157,20 +158,77 @@
     try{await bridge.loadPatientsList();}finally{perfEnd(timer);}
   }
 
+  function currentPatientId(){
+    return document.querySelector('[data-drawer-patient]')?.dataset.drawerPatient||'';
+  }
+
+  function ensureSelectedPatientContext(patientId){
+    if(!patientId)return;
+    const ctx=window.nubemoProfessionalContext||{};
+    const existing=Array.isArray(ctx.patients)?ctx.patients:[];
+    if(existing.some(row=>String(row?.id||'')===String(patientId)))return;
+    const patient=virtualPatient(patientId)||{};
+    const minimal={
+      id:String(patientId),
+      profile_id:patient.profileId||null,
+      profile:{
+        first_name:patient.firstName||patient.name||'',
+        last_name:patient.surname||'',
+        email:patient.email||''
+      }
+    };
+    window.nubemoProfessionalContext={...ctx,patients:[...existing,minimal]};
+  }
+
+  async function ensureLabsTab(patientId){
+    if(!patientId)throw new Error('Paziente non disponibile.');
+    if(labsTabPromise)return labsTabPromise.then(async()=>{
+      await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);
+      await window.nubemoProfessionalLabsBridge?.ensurePatient?.(patientId);
+    });
+    labsTabPromise=(async()=>{
+      const timer=perfStart('Esami tab lazy');
+      try{
+        ensureSelectedPatientContext(patientId);
+        if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+        if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+        if(!hasScript('professional-documents-supabase-bridge.js'))await loadScript('professional-documents-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i referti del paziente.');
+        await window.nubemoProfessionalDocumentsBridge?.ready;
+        await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);
+        if(!hasScript('professional-document-read-supabase-bridge.js'))await loadScript('professional-document-read-supabase-bridge.js?v=nubemo40querycleanup01','Impossibile preparare lo stato di lettura dei referti.');
+        await window.nubemoProfessionalDocumentReadBridge?.ready;
+        if(!hasScript('professional-labs-supabase-bridge.js'))await loadScript('professional-labs-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare gli esami del paziente.');
+        await window.nubemoProfessionalLabsBridge?.ready;
+        await window.nubemoProfessionalLabsBridge?.ensurePatient?.(patientId);
+      }finally{perfEnd(timer);}
+    })().catch(error=>{labsTabPromise=null;throw error;});
+    return labsTabPromise;
+  }
+
+  function patientTabName(action){
+    if(action?.matches?.('[data-patient-tab]'))return action.dataset.patientTab||'';
+    if(action?.matches?.('[data-drawer-tab]'))return action.dataset.drawerTab||'';
+    return '';
+  }
+
+  async function prepareSpecificPatientTab(action){
+    const name=patientTabName(action);
+    if(name!=='labs')return false;
+    const patientId=currentPatientId();
+    await ensureLabsTab(patientId);
+    return true;
+  }
+
   function needsFullRuntime(target){
     const viewButton=target?.closest?.('[data-view]');
     if(viewButton&&['agenda','settings'].includes(viewButton.dataset.view))return true;
     const drawerView=target?.closest?.('[data-drawer-view]');
     if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
     const patientTab=target?.closest?.('[data-patient-tab]');
-    if(patientTab)return !['summary','anamnesis'].includes(patientTab.dataset.patientTab);
+    if(patientTab)return !['summary','anamnesis','labs'].includes(patientTab.dataset.patientTab);
     const drawerTab=target?.closest?.('[data-drawer-tab]');
-    if(drawerTab)return !['summary','anamnesis'].includes(drawerTab.dataset.drawerTab);
+    if(drawerTab)return !['summary','anamnesis','labs'].includes(drawerTab.dataset.drawerTab);
     return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
-  }
-
-  function currentPatientId(){
-    return document.querySelector('[data-drawer-patient]')?.dataset.drawerPatient||'';
   }
 
   async function prepareRuntimeAction(action){
@@ -209,6 +267,22 @@
           if('disabled' in point)point.disabled=wasDisabled;
           console.error('NUBEMO query puntuale:',error);
           alert('Non riesco a caricare questa sezione. Riprova.');
+        });
+        return;
+      }
+
+      if(anyAction.matches('[data-patient-tab],[data-drawer-tab]')&&patientTabName(anyAction)==='labs'){
+        event.preventDefault();event.stopImmediatePropagation();
+        const action=anyAction;
+        const wasDisabled='disabled' in action?action.disabled:false;
+        if('disabled' in action)action.disabled=true;
+        void prepareSpecificPatientTab(action).then(()=>{
+          if('disabled' in action)action.disabled=wasDisabled;
+          replayAction(action);
+        }).catch(error=>{
+          if('disabled' in action)action.disabled=wasDisabled;
+          console.error('NUBEMO Esami lazy:',error);
+          alert('Non riesco a caricare gli esami. Riprova.');
         });
         return;
       }
