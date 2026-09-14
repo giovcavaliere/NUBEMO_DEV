@@ -189,8 +189,18 @@
     document.querySelectorAll('[data-patient]').forEach(button=>{
       if(!ids.has(String(button.dataset.patient||'')))return;
       const info=button.children?.[1];
-      const lines=info?.querySelectorAll?.(':scope > span');
-      if(lines?.[1]&&lines[1].textContent!=='Paziente non attivo')lines[1].textContent='Paziente non attivo';
+      if(!info)return;
+      const lines=info.querySelectorAll(':scope > span');
+      let status=lines?.[1]||null;
+      if(!status){
+        status=document.createElement('span');
+        status.style.display='block';
+        status.style.marginTop='3px';
+        status.style.fontSize='12px';
+        status.style.color='#7b898f';
+        info.appendChild(status);
+      }
+      if(status.textContent!=='Paziente non ancora attivo')status.textContent='Paziente non ancora attivo';
     });
   }
 
