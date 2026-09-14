@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-diary01';
+const CACHE='nubemo-demo-v4.0-diary02';
 const CORE=[
   './food-catalog.js?v=nubemo398foodcatalog01',
   './',
