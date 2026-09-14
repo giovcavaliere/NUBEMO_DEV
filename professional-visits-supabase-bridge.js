@@ -54,6 +54,12 @@
     const id=String(patientId||'');
     if(!id)throw new Error('Paziente non valido.');
     currentPatientId=id;
+
+    if(window.nubemoProfessionalLegacyAdapter?.ensurePatientHydrated){
+      await window.nubemoProfessionalLegacyAdapter.ensurePatientHydrated(id);
+      return services().loadPatientAppointments(id);
+    }
+
     if(!force&&rowsByPatient.has(id)){
       publish(id,rowsByPatient.get(id));
       return rowsByPatient.get(id);
@@ -207,6 +213,8 @@
   }
 
   document.addEventListener('click',event=>{
+    if(window.nubemoProfessionalLegacyAdapter)return;
+
     const edit=event.target?.closest?.('[data-edit-visit]');
     if(edit){editingVisitId=String(edit.dataset.editVisit||'');return;}
 
