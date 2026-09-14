@@ -10,7 +10,6 @@
   const cache=new Map();
   const exportReplay=new WeakSet();
   const activeRangeByPatient=new Map();
-  let requestedRange=null;
   let rangePatchQueued=false;
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
@@ -69,9 +68,7 @@
   async function load(patientId,days=30){
     const id=String(patientId||'');
     if(!id)throw new Error('Paziente non valido.');
-    const pending=requestedRange;
-    requestedRange=null;
-    const range=normalizeRange(pending===null?days:pending);
+    const range=normalizeRange(days);
     const key=`${id}:${range===0?'all':range}`;
     if(cache.has(key)){
       const rows=cache.get(key);
@@ -102,48 +99,94 @@
     return document.querySelector('[data-patient-tab="diary"].active,[data-drawer-tab="diary"].active');
   }
 
+  function rangeLabel(range){return range===0?'Tutto':`${range} gg`;}
+
   function patchRangeControls(){
     rangePatchQueued=false;
     if(!activeDiaryTab())return;
     const host=document.querySelector('.patient-content-card');
     const search=host?.querySelector('.search-wrap');
     if(!host||!search)return;
+
     let controls=host.querySelector('[data-diary-range-controls]');
     if(!controls){
       controls=document.createElement('div');
       controls.dataset.diaryRangeControls='';
-      controls.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 14px';
-      controls.innerHTML='<span class="muted" style="font-size:13px;font-weight:700;margin-right:2px">Periodo</span>'+
-        '<button type="button" class="secondary compact" data-diary-range="30" aria-label="Ultimi 30 giorni">30</button>'+
-        '<button type="button" class="secondary compact" data-diary-range="60" aria-label="Ultimi 60 giorni">60</button>'+
-        '<button type="button" class="secondary compact" data-diary-range="90" aria-label="Ultimi 90 giorni">90</button>'+
-        '<button type="button" class="secondary compact" data-diary-range="all" aria-label="Tutto lo storico">Tutto</button>';
+      controls.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:2px 0 16px;padding:10px 12px;border:1px solid #dfe8e4;border-radius:12px;background:#f8fbf9';
+      controls.innerHTML='<span style="font-size:12px;font-weight:800;letter-spacing:.02em;color:#5f716b;text-transform:uppercase">Periodo visualizzato</span>'+
+        '<div data-diary-range-segment style="display:inline-flex;align-items:stretch;border:1px solid #cfdad5;border-radius:9px;overflow:hidden;background:#fff">'+
+          '<button type="button" data-diary-range="30" aria-label="Ultimi 30 giorni">30 gg</button>'+
+          '<button type="button" data-diary-range="60" aria-label="Ultimi 60 giorni">60 gg</button>'+
+          '<button type="button" data-diary-range="90" aria-label="Ultimi 90 giorni">90 gg</button>'+
+          '<button type="button" data-diary-range="all" aria-label="Tutto lo storico">Tutto</button>'+
+        '</div>';
       host.insertBefore(controls,search);
     }
+
     const patientId=currentPatientId();
     const active=activeRangeByPatient.get(patientId)??30;
-    controls.querySelectorAll('[data-diary-range]').forEach(button=>{
+    const buttons=[...controls.querySelectorAll('[data-diary-range]')];
+    buttons.forEach((button,index)=>{
       const value=button.dataset.diaryRange==='all'?0:Number(button.dataset.diaryRange);
       const selected=value===active;
-      button.className=`${selected?'primary':'secondary'} compact`;
       button.setAttribute('aria-pressed',selected?'true':'false');
+      button.title=selected?`${rangeLabel(value)} selezionato`:`Visualizza ${rangeLabel(value)}`;
+      button.style.cssText=[
+        'appearance:none',
+        'border:0',
+        index<buttons.length-1?'border-right:1px solid #d8e1dd':'',
+        'padding:7px 12px',
+        'min-width:62px',
+        'font:inherit',
+        'font-size:13px',
+        'font-weight:750',
+        'cursor:pointer',
+        `background:${selected?'#064b43':'#ffffff'}`,
+        `color:${selected?'#ffffff':'#435650'}`,
+        'transition:background .15s ease,color .15s ease'
+      ].filter(Boolean).join(';');
     });
   }
 
   function queueRangePatch(){
     if(rangePatchQueued)return;
     rangePatchQueued=true;
-    queueMicrotask(patchRangeControls);
+    requestAnimationFrame(()=>requestAnimationFrame(patchRangeControls));
+  }
+
+  function replayDiaryTab(scrollTop){
+    const tabButton=activeDiaryTab();
+    if(!tabButton){queueRangePatch();return;}
+    tabButton.click();
+    requestAnimationFrame(()=>{
+      window.scrollTo(0,scrollTop);
+      queueRangePatch();
+    });
   }
 
   document.addEventListener('click',event=>{
     const rangeButton=event.target?.closest?.('[data-diary-range]');
     if(rangeButton){
       event.preventDefault();
+      event.stopImmediatePropagation();
+      const patientId=currentPatientId();
+      if(!patientId)return;
       const raw=String(rangeButton.dataset.diaryRange||'30');
-      requestedRange=raw==='all'?0:(Number(raw)||30);
-      const tabButton=activeDiaryTab();
-      if(tabButton)tabButton.click();
+      const requested=raw==='all'?0:(Number(raw)||30);
+      const current=activeRangeByPatient.get(patientId)??30;
+      if(requested===current)return;
+
+      const controls=rangeButton.closest('[data-diary-range-controls]');
+      controls?.querySelectorAll('[data-diary-range]').forEach(button=>button.disabled=true);
+      const scrollTop=document.scrollingElement?.scrollTop||0;
+
+      void load(patientId,requested).then(()=>{
+        replayDiaryTab(scrollTop);
+      }).catch(error=>{
+        console.error('NUBEMO Diario filtro periodo:',error);
+        controls?.querySelectorAll('[data-diary-range]').forEach(button=>button.disabled=false);
+        alert('Non riesco a caricare il periodo richiesto del diario. Riprova.');
+      });
       return;
     }
 
