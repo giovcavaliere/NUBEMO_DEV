@@ -1,5 +1,5 @@
 // NUBEMO 4.0 — calorie Diario Professionista da valori persistiti.
-// Il professionista non carica il catalogo alimenti e non ricalcola le calorie.
+// Il professionista non carica il catalogo alimenti: i valori visualizzati arrivano da diary_entries.
 (() => {
   'use strict';
 
@@ -12,9 +12,12 @@
   const caloriesByPatient=new Map();
   let storageInstalled=false;
   let runtimeInstalled=false;
+  let currentPatientId='';
+  let currentDiaryDate='';
+  let patchQueued=false;
 
-  // Compatibilità di caricamento di pro.js: il vecchio parser resta nel file,
-  // ma a runtime viene sostituito dalle letture persistite qui sotto.
+  // Compatibilità con il codice legacy di pro.js: nessun alimento viene caricato.
+  // La UI calorica viene poi alimentata esclusivamente dai valori persistiti.
   if(!window.nubemoFoodCatalog){
     window.nubemoFoodCatalog=Object.freeze({
       nubemoFoods:Object.freeze([]),
@@ -84,40 +87,113 @@
     };
   }
 
-  function storedEstimate(entry){
-    const raw=entry?.totalKcal;
-    if(raw===null||raw===undefined||raw===''){
-      return {calories:0,calculated:0,genericQuantity:0,genericQuantityNoEstimate:0,missingQuantity:0,unknown:0,total:0,items:[],quality:'none',qualityLabel:'Non disponibile'};
-    }
-    const calories=Number(raw);
-    if(!Number.isFinite(calories)){
-      return {calories:0,calculated:0,genericQuantity:0,genericQuantityNoEstimate:0,missingQuantity:0,unknown:0,total:0,items:[],quality:'none',qualityLabel:'Non disponibile'};
-    }
-    const quality=entry?.calorieQuality==='good'?'good':entry?.calorieQuality==='partial'?'partial':'none';
-    const qualityLabel=quality==='good'?'Buona':quality==='partial'?'Parziale':'Non disponibile';
-    return {calories,calculated:1,genericQuantity:0,genericQuantityNoEstimate:0,missingQuantity:0,unknown:0,total:1,items:[],quality,qualityLabel};
+  function patientName(row){
+    const p=row?.profile||{};
+    return [p.first_name,p.last_name].filter(Boolean).join(' ').trim()||p.email||'Paziente';
   }
+
+  function inferPatientId(){
+    if(currentPatientId&&context.patients?.some(p=>p.id===currentPatientId))return currentPatientId;
+    const title=document.querySelector('.patient-global-title')?.textContent||'';
+    const row=(context.patients||[]).find(p=>title.includes(patientName(p)));
+    if(row)currentPatientId=row.id;
+    return currentPatientId;
+  }
+
+  function formatDate(iso){
+    const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m?`${m[3]}-${m[2]}-${m[1]}`:String(iso||'');
+  }
+
+  function qualityLabel(row){
+    return row?.calorie_quality==='good'?'buona':row?.calorie_quality==='partial'?'parziale':'non disponibile';
+  }
+
+  function latestStored(patientId){
+    const map=caloriesByPatient.get(patientId);
+    if(!map)return null;
+    const rows=[...map.values()].filter(row=>row.total_kcal!==null&&row.total_kcal!==undefined&&Number.isFinite(Number(row.total_kcal)));
+    rows.sort((a,b)=>String(a.entry_date).localeCompare(String(b.entry_date)));
+    return rows.at(-1)||null;
+  }
+
+  function setText(node,value){if(node&&node.textContent!==value)node.textContent=value;}
+
+  function patchSummary(patientId){
+    const box=[...document.querySelectorAll('.patient-summary-grid > div')]
+      .find(node=>node.querySelector(':scope > span')?.textContent?.trim()==='Calorie stimate dal diario');
+    if(!box)return;
+    const row=latestStored(patientId);
+    setText(box.querySelector('b'),row?`${Number(row.total_kcal)} kcal`:'—');
+    setText(box.querySelector('small'),row?`${formatDate(row.entry_date)} · stima ${qualityLabel(row)}`:'Nessun pasto interpretabile');
+  }
+
+  function patchHistory(patientId){
+    document.querySelectorAll('[data-pro-diary-day]').forEach(button=>{
+      const row=calorieFields(patientId,button.dataset.proDiaryDay);
+      const right=button.querySelector('.history-right');
+      if(!right)return;
+      let line=right.querySelector('.nubemo-stored-kcal');
+      const available=row&&row.total_kcal!==null&&row.total_kcal!==undefined&&Number.isFinite(Number(row.total_kcal));
+      if(!available){line?.remove();return;}
+      if(!line){line=document.createElement('small');line.className='nubemo-stored-kcal';right.appendChild(line);}
+      setText(line,`${Number(row.total_kcal)} kcal · stima ${qualityLabel(row)}`);
+    });
+  }
+
+  function detailDate(){
+    if(currentDiaryDate)return currentDiaryDate;
+    for(const h2 of document.querySelectorAll('section.card h2')){
+      const m=String(h2.textContent||'').trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
+      if(m)return `${m[3]}-${m[2]}-${m[1]}`;
+    }
+    return '';
+  }
+
+  function patchDay(patientId){
+    const date=detailDate();
+    if(!date)return;
+    const row=calorieFields(patientId,date);
+    const box=[...document.querySelectorAll('.pro3-detail > div')]
+      .find(node=>node.querySelector(':scope > span')?.textContent?.trim()==='Calorie stimate');
+    if(!box)return;
+    const available=row&&row.total_kcal!==null&&row.total_kcal!==undefined&&Number.isFinite(Number(row.total_kcal));
+    setText(box.querySelector('b'),available?`${Number(row.total_kcal)} kcal`:'—');
+    setText(box.querySelector('small'),available?`Stima ${qualityLabel(row)}`:'');
+  }
+
+  function patchPersistedCalories(){
+    patchQueued=false;
+    const patientId=inferPatientId();
+    if(!patientId)return;
+    patchSummary(patientId);
+    patchHistory(patientId);
+    patchDay(patientId);
+  }
+
+  function queuePatch(){
+    if(patchQueued)return;
+    patchQueued=true;
+    queueMicrotask(patchPersistedCalories);
+  }
+
+  document.addEventListener('click',event=>{
+    const patient=event.target?.closest?.('[data-patient]');
+    if(patient?.dataset?.patient)currentPatientId=patient.dataset.patient;
+    const drawer=event.target?.closest?.('[data-drawer-patient]');
+    if(drawer?.dataset?.drawerPatient)currentPatientId=drawer.dataset.drawerPatient;
+    const day=event.target?.closest?.('[data-pro-diary-day]');
+    if(day?.dataset?.proDiaryDay)currentDiaryDate=day.dataset.proDiaryDay;
+    const back=event.target?.closest?.('#backDiary');
+    if(back)currentDiaryDate='';
+  },true);
 
   function installRuntimeHelpers(){
     if(runtimeInstalled)return;
     runtimeInstalled=true;
-    window.calorieEstimateDay=storedEstimate;
-    window.estimateDiaryCalories=entry=>{
-      const r=storedEstimate(entry);
-      return r.calculated?r.calories:null;
-    };
-    window.dayEstimatedCalories=entry=>{
-      const r=storedEstimate(entry);
-      return r.calculated?r.calories:null;
-    };
-    window.latestDiaryCalories=p=>{
-      const rows=(p?.entries||p?.diary||[]).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-      for(let i=rows.length-1;i>=0;i--){
-        const r=storedEstimate(rows[i]);
-        if(r.calculated)return {date:rows[i].date,calories:r.calories,quality:r.quality,qualityLabel:r.qualityLabel};
-      }
-      return null;
-    };
+    const app=document.getElementById('proApp');
+    if(app)new MutationObserver(queuePatch).observe(app,{childList:true,subtree:true});
+    queuePatch();
   }
 
   window.nubemoProfessionalDiaryCaloriesBridge=Object.freeze({
