@@ -87,6 +87,7 @@
       timer=perfStart('Piani bridge lazy');await loadScript('professional-plans-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare i piani alimentari.');perfEnd(timer);
       timer=perfStart('Esami bridge lazy');await loadScript('professional-labs-supabase-bridge.js?v=nubemo40lazy3b01','Impossibile preparare gli esami del paziente.');perfEnd(timer);
       timer=perfStart('Gestione pazienti lazy');await loadScript('professional-patient-management.js?v=nubemo40phone01','Impossibile caricare la gestione dei pazienti.');perfEnd(timer);
+      timer=perfStart('Azioni scheda paziente lazy');await loadScript('professional-patient-actions-menu.js?v=nubemo398recovery29','Impossibile preparare le azioni della scheda paziente.');perfEnd(timer);
       timer=perfStart('Account e Privacy paziente lazy');await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40patientaccess02','Impossibile caricare Account e Privacy del paziente.');perfEnd(timer);
       timer=perfStart('Privacy professionista lazy');await loadScript('professional-profile-privacy-supabase-bridge.js?v=nubemo40privacy02','Impossibile caricare il PDF privacy del professionista.');perfEnd(timer);
 
@@ -114,11 +115,7 @@
       const action=target.closest?.('[data-view],[data-drawer-view],#goAgenda,[data-event],[data-bmi-category],#openUnreadLabPatients,#openUnreadPatients');
       if(!action)return;
       if(replayClicks.has(action)){replayClicks.delete(action);return;}
-      if(fullRuntimePromise){
-        event.preventDefault();event.stopImmediatePropagation();
-      }else{
-        event.preventDefault();event.stopImmediatePropagation();
-      }
+      event.preventDefault();event.stopImmediatePropagation();
       const wasDisabled='disabled' in action?action.disabled:false;
       if('disabled' in action)action.disabled=true;
       void ensureFullRuntime().then(()=>{
