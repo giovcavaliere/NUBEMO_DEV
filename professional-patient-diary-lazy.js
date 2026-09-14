@@ -154,10 +154,10 @@
     requestAnimationFrame(()=>requestAnimationFrame(patchRangeControls));
   }
 
-  function replayDiaryTab(scrollTop){
-    const tabButton=activeDiaryTab();
-    if(!tabButton){queueRangePatch();return;}
-    tabButton.click();
+  function refreshDiaryView(scrollTop){
+    const search=document.getElementById('proDiarySearch');
+    if(!search){queueRangePatch();return;}
+    search.dispatchEvent(new Event('input',{bubbles:true}));
     requestAnimationFrame(()=>{
       window.scrollTo(0,scrollTop);
       queueRangePatch();
@@ -181,7 +181,7 @@
       const scrollTop=document.scrollingElement?.scrollTop||0;
 
       void load(patientId,requested).then(()=>{
-        replayDiaryTab(scrollTop);
+        refreshDiaryView(scrollTop);
       }).catch(error=>{
         console.error('NUBEMO Diario filtro periodo:',error);
         controls?.querySelectorAll('[data-diary-range]').forEach(button=>button.disabled=false);
