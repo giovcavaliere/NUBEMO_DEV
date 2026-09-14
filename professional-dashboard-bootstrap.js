@@ -11,6 +11,7 @@
   const APPT_KEY='diario-pro-appts-recovery-v1';
   const SETTINGS_KEY='diario-pro-settings-recovery-v1';
   const DOCUMENT_META_KEY='nubemo-documents-meta-v1';
+  const DRAFT_STYLE_ID='nubemo-professional-draft-list-state';
 
   const storageProto=Object.getPrototypeOf(window.localStorage);
   const previousGetItem=storageProto.getItem;
@@ -147,6 +148,17 @@
     return docs;
   }
 
+  function cssAttributeValue(value){
+    return String(value??'').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+  }
+
+  function syncDraftPresentation(drafts){
+    let style=document.getElementById(DRAFT_STYLE_ID);
+    if(!style){style=document.createElement('style');style.id=DRAFT_STYLE_ID;document.head.appendChild(style);}
+    const selectors=(Array.isArray(drafts)?drafts:[]).map(row=>`button.pro3-patient[data-patient="${cssAttributeValue(row.id)}"] > div:nth-child(2)::after`);
+    style.textContent=selectors.length?`${selectors.join(',')} {content:'Anagrafica parziale';display:block;width:max-content;margin-top:7px;font-size:11px;font-weight:800;color:#8a6420;background:#fff4cf;border-radius:999px;padding:5px 8px;line-height:1.15;}`:'';
+  }
+
   function installStorage(){
     if(installed)return;
     installed=true;
@@ -181,6 +193,7 @@
     memory.set(APPT_KEY,JSON.stringify(buildAppointments(payload,subjectMap)));
     memory.set(SETTINGS_KEY,JSON.stringify({workDays:asInt(payload?.work_days_count)===6?6:5}));
     memory.set(DOCUMENT_META_KEY,JSON.stringify(buildDashboardDocuments(payload,patients)));
+    syncDraftPresentation([]);
     enabled=true;
     installStorage();
   }
@@ -191,6 +204,7 @@
     memory.set(DELETED_PATIENTS_KEY,JSON.stringify(['main','laura','marco']));
     memory.set(EXTRA_PATIENTS_KEY,JSON.stringify([...real,...drafts]));
     memory.set(DOCUMENT_META_KEY,JSON.stringify(buildPatientListDocuments(real)));
+    syncDraftPresentation(drafts);
     enabled=true;
     installStorage();
   }
@@ -253,6 +267,7 @@
     restoreAgendaSubjects(baseline,dashboardPayload);
     memory.set(EXTRA_PATIENTS_KEY,JSON.stringify(baseline));
     memory.set(DOCUMENT_META_KEY,JSON.stringify(buildDashboardDocuments(dashboardPayload,baseline)));
+    syncDraftPresentation([]);
     enabled=true;
     return rows;
   }
@@ -285,7 +300,7 @@
     return dashboardPayload;
   }
 
-  function disable(){enabled=false;}
+  function disable(){enabled=false;syncDraftPresentation([]);}
 
   window.nubemoProfessionalDashboardBootstrap=Object.freeze({
     init,disable,memory,restoreDashboard,loadBmiCategory,loadPatientsList
