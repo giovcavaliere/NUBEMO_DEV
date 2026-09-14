@@ -12,13 +12,13 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repository branch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
           cd repo
-          git checkout 8ead6f85
+          git checkout -B nubemo-work origin/8ead6f85
 
       - name: Apply and validate cleanup
         run: |
