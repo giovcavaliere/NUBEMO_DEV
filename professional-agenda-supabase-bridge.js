@@ -17,12 +17,18 @@
   let linkByAppointment=new Map();
   let queue=Promise.resolve();
   let hydrated=false;
+  let latestAppointmentsSerialized='[]';
+  let agendaPatientsSerialized=previousGetItem.call(window.localStorage,EXTRA_PATIENTS_KEY)||'[]';
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
 
   function localPatients(){
-    const rows=parse(previousGetItem.call(window.localStorage,EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(agendaPatientsSerialized||'[]',[]);
     return Array.isArray(rows)?rows:[];
+  }
+
+  function restoreAgendaPatients(){
+    if(agendaPatientsSerialized)previousSetItem.call(window.localStorage,EXTRA_PATIENTS_KEY,agendaPatientsSerialized);
   }
 
   function isDraft(subjectId){
@@ -60,10 +66,13 @@
 
   function publish(){
     const rows=remoteAppointments.map(row=>legacyAppointment(row,linkByAppointment.get(row.id)||null));
-    previousSetItem.call(window.localStorage,APPT_KEY,JSON.stringify(rows));
+    latestAppointmentsSerialized=JSON.stringify(rows);
+    restoreAgendaPatients();
+    previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
   }
 
   async function hydrate(){
+    restoreAgendaPatients();
     const {data:rows,error}=await client.from('appointments')
       .select('id,professional_id,starts_at,ends_at,appointment_type,status,notes,created_by_user_id,created_at,updated_at')
       .eq('professional_id',professionalId)
@@ -185,17 +194,29 @@
     if(this!==window.localStorage||String(key)!==APPT_KEY)return;
     if(window.nubemoProfessionalLegacyAdapter)return;
     const serialized=String(value);
+    latestAppointmentsSerialized=serialized;
     queue=queue.then(()=>sync(serialized)).catch(error=>{
       console.error('NUBEMO Agenda sync:',error);
       window.dispatchEvent(new CustomEvent('nubemo:supabase-sync-error',{detail:{domain:'agenda',message:error?.message||String(error)}}));
     });
   };
 
+  // Il bootstrap Dashboard ripubblica volutamente un payload minimo. Dopo quel
+  // ripristino rimettiamo in memoria i pazienti già caricati dall'Agenda e
+  // l'ultima versione degli appuntamenti, così il cambio vista non richiede refresh.
+  document.addEventListener('click',event=>{
+    const dashboardAction=event.target?.closest?.('[data-view="dashboard"],[data-drawer-view="dashboard"]');
+    if(!dashboardAction)return;
+    restoreAgendaPatients();
+    if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
+  },true);
+
   const ready=hydrate();
 
   window.nubemoProfessionalAgendaBridge=Object.freeze({
     ready,
     refresh:hydrate,
-    flush:async()=>{await ready;await queue;}
+    flush:async()=>{await ready;await queue;},
+    restoreContext:()=>{restoreAgendaPatients();if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);}
   });
 })();
