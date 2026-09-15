@@ -290,7 +290,10 @@
     return patientListPayload;
   }
 
-  function restoreDashboard(){if(dashboardPayload)publishDashboard(dashboardPayload);}
+  function restoreDashboard(){
+    if(dashboardPayload)publishDashboard(dashboardPayload);
+    if(patientListPayload)publishPatientList(patientListPayload);
+  }
 
   async function init(context){
     const {data,error}=await client.rpc('get_professional_dashboard');
