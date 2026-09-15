@@ -18,17 +18,18 @@
   let queue=Promise.resolve();
   let hydrated=false;
   let latestAppointmentsSerialized='[]';
-  let agendaPatientsSerialized=previousGetItem.call(window.localStorage,EXTRA_PATIENTS_KEY)||'[]';
+  let agendaPatientsSerialized='[]';
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
+
+  function syncAgendaPatientsFromCanonical(){
+    agendaPatientsSerialized=window.localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]';
+    return agendaPatientsSerialized;
+  }
 
   function localPatients(){
     const rows=parse(agendaPatientsSerialized||'[]',[]);
     return Array.isArray(rows)?rows:[];
-  }
-
-  function restoreAgendaPatients(){
-    if(agendaPatientsSerialized)previousSetItem.call(window.localStorage,EXTRA_PATIENTS_KEY,agendaPatientsSerialized);
   }
 
   function isDraft(subjectId){
@@ -67,12 +68,14 @@
   function publish(){
     const rows=remoteAppointments.map(row=>legacyAppointment(row,linkByAppointment.get(row.id)||null));
     latestAppointmentsSerialized=JSON.stringify(rows);
-    restoreAgendaPatients();
     previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
   }
 
   async function hydrate(){
-    restoreAgendaPatients();
+    const dashboard=window.nubemoProfessionalDashboardBootstrap;
+    if(dashboard?.loadPatientsList)await dashboard.loadPatientsList(true);
+    syncAgendaPatientsFromCanonical();
+
     const {data:rows,error}=await client.from('appointments')
       .select('id,professional_id,starts_at,ends_at,appointment_type,status,notes,created_by_user_id,created_at,updated_at')
       .eq('professional_id',professionalId)
@@ -201,13 +204,9 @@
     });
   };
 
-  // Il bootstrap Dashboard ripubblica volutamente un payload minimo. Dopo quel
-  // ripristino rimettiamo in memoria i pazienti già caricati dall'Agenda e
-  // l'ultima versione degli appuntamenti, così il cambio vista non richiede refresh.
   document.addEventListener('click',event=>{
     const dashboardAction=event.target?.closest?.('[data-view="dashboard"],[data-drawer-view="dashboard"]');
     if(!dashboardAction)return;
-    restoreAgendaPatients();
     if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
   },true);
 
@@ -216,7 +215,8 @@
   window.nubemoProfessionalAgendaBridge=Object.freeze({
     ready,
     refresh:hydrate,
+    syncPatients:syncAgendaPatientsFromCanonical,
     flush:async()=>{await ready;await queue;},
-    restoreContext:()=>{restoreAgendaPatients();if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);}
+    restoreContext:()=>{syncAgendaPatientsFromCanonical();if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);}
   });
 })();
