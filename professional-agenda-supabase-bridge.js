@@ -16,6 +16,7 @@
   let remoteAppointments=[];
   let linkByAppointment=new Map();
   let queue=Promise.resolve();
+  let syncVersion=0;
   let hydrated=false;
   let latestAppointmentsSerialized='[]';
   let agendaPatientsSerialized='[]';
@@ -50,13 +51,17 @@
       :{patient_id:subjectId,draft_patient_id:null};
   }
 
+  function remoteType(row){
+    const label=String(row?.appointment_type||'').toLowerCase();
+    return label.includes('prima')||label==='first'?'first':label.includes('personal')||label.includes('impegno')||label==='personal'?'personal':'control';
+  }
+
   function legacyAppointment(row,subjectId){
     const start=new Date(row.starts_at);
     const end=new Date(row.ends_at||row.starts_at);
     const local=new Date(start.getTime()-start.getTimezoneOffset()*60000).toISOString();
     const duration=Math.max(1,Math.round((end-start)/60000)||30);
-    const label=String(row.appointment_type||'').toLowerCase();
-    const type=label.includes('prima')||label==='first'?'first':label.includes('personal')||label.includes('impegno')||label==='personal'?'personal':'control';
+    const type=remoteType(row);
     return {
       id:String(row.id),
       patientId:type==='personal'?null:(subjectId||null),
@@ -75,7 +80,7 @@
     previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
   }
 
-  async function hydrate(){
+  async function hydrate(expectedVersion=null){
     const dashboard=window.nubemoProfessionalDashboardBootstrap;
     if(dashboard?.loadPatientsList)await dashboard.loadPatientsList(true);
     syncAgendaPatientsFromCanonical();
@@ -96,8 +101,21 @@
       if(result.error)throw result.error;
       (result.data||[]).forEach(link=>linkByAppointment.set(link.appointment_id,link.patient_id||link.draft_patient_id||null));
     }
+
+    // Prima visita/controllo senza paziente non è un evento valido in NUBEMO.
+    // Rimuove anche gli eventuali record fantasma creati dal vecchio payload Dashboard.
+    const invalid=remoteAppointments.filter(row=>remoteType(row)!=='personal'&&!linkByAppointment.get(row.id));
+    if(invalid.length){
+      for(const row of invalid){
+        const result=await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:row.id});
+        if(result.error)throw result.error;
+      }
+      const invalidIds=new Set(invalid.map(row=>String(row.id)));
+      remoteAppointments=remoteAppointments.filter(row=>!invalidIds.has(String(row.id)));
+    }
+
     hydrated=true;
-    publish();
+    if(expectedVersion===null||expectedVersion===syncVersion)publish();
     return remoteAppointments;
   }
 
@@ -165,17 +183,27 @@
     if(a.type==='first'&&a.patientId)await setStartDateIfEmpty(a.patientId,a.date);
   }
 
-  async function sync(serialized){
+  async function sync(serialized,version){
     if(window.nubemoProfessionalLegacyAdapter)return;
-    const incoming=parse(serialized,[]);
-    if(!Array.isArray(incoming))return;
-    if(!hydrated)await hydrate();
+    if(version!==syncVersion)return;
+    const parsed=parse(serialized,[]);
+    if(!Array.isArray(parsed))return;
+    if(!hydrated)await hydrate(version);
+    if(version!==syncVersion)return;
+
+    // Le righe __dash_* sono solo aggregati grafici della Dashboard e non sono appuntamenti.
+    const incoming=parsed.filter(a=>{
+      if(!a?.date)return false;
+      if(String(a.id||'').startsWith('__dash_'))return false;
+      if(a.type!=='personal'&&!a.patientId)return false;
+      return true;
+    });
 
     const remoteById=new Map(remoteAppointments.map(row=>[String(row.id),row]));
     const retained=new Set();
 
     for(const a of incoming){
-      if(!a?.date)continue;
+      if(version!==syncVersion)return;
       const remote=remoteById.get(String(a.id));
       if(remote){
         retained.add(String(remote.id));
@@ -186,6 +214,7 @@
       }
     }
 
+    if(version!==syncVersion)return;
     for(const remote of remoteAppointments){
       if(!retained.has(String(remote.id))){
         const result=await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:remote.id});
@@ -193,7 +222,16 @@
       }
     }
 
-    await hydrate();
+    if(version===syncVersion)await hydrate(version);
+  }
+
+  async function flush(){
+    await ready;
+    let observed;
+    do{
+      observed=queue;
+      await observed;
+    }while(observed!==queue);
   }
 
   storageProto.setItem=function(key,value){
@@ -202,7 +240,8 @@
     if(window.nubemoProfessionalLegacyAdapter)return;
     const serialized=String(value);
     latestAppointmentsSerialized=serialized;
-    queue=queue.then(()=>sync(serialized)).catch(error=>{
+    const version=++syncVersion;
+    queue=queue.then(()=>sync(serialized,version)).catch(error=>{
       console.error('NUBEMO Agenda sync:',error);
       window.dispatchEvent(new CustomEvent('nubemo:supabase-sync-error',{detail:{domain:'agenda',message:error?.message||String(error)}}));
     });
@@ -219,9 +258,9 @@
 
   window.nubemoProfessionalAgendaBridge=Object.freeze({
     ready,
-    refresh:hydrate,
+    refresh:async()=>{await flush();return hydrate();},
     syncPatients:syncAgendaPatientsFromCanonical,
-    flush:async()=>{await ready;await queue;},
+    flush,
     restoreContext:()=>{restoreAgendaPatients();if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);}
   });
 })();
