@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-patientsync01';
+const CACHE='nubemo-demo-v4.0-patientlife04';
 const CORE=[
   './food-catalog.js?v=nubemo398foodcatalog01',
   './',
@@ -35,13 +35,13 @@ const CORE=[
   './professional-patient-trend-lazy.js?v=nubemo40trend01',
   './professional-measures-supabase-bridge.js?v=nubemo40measures01',
   './professional-visits-supabase-bridge.js?v=nubemo40visits01',
-  './professional-agenda-supabase-bridge.js?v=nubemo40agenda01',
+  './professional-agenda-supabase-bridge.js?v=nubemo40agenda02',
   './professional-patient-edit-lazy.js?v=nubemo40patientedit01',
   './professional-pathway-lazy.js?v=nubemo40pathway01',
   './professional-new-patient-lazy.js?v=nubemo40newpatient01',
   './professional-patient-list-freshness.js?v=nubemo40patientsync01',
   './professional-legacy-supabase-adapter.js?v=nubemo40lazy3a01',
-  './professional-patient-lifecycle-bridge.js?v=nubemo40stabilize01',
+  './professional-patient-lifecycle-bridge.js?v=nubemo40patientlife04',
   './professional-recovery-contract.js?v=nubemo40patientlife03',
   './professional-patient-settings-supabase-bridge.js?v=nubemo398recovery19',
   './professional-settings-supabase-bridge.js?v=nubemo40profile01',
