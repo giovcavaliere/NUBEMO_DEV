@@ -10,6 +10,7 @@
   if (!client || !professionalId) return;
 
   const SETTINGS_KEY = 'diario-pro-settings-recovery-v1';
+  const SETTINGS_COLUMNS = 'professional_id,first_visit_duration_min,control_visit_duration_min,day_start,day_end,report_weight_interval,settings_json';
   const storageProto = Object.getPrototypeOf(window.localStorage);
   const previousGetItem = storageProto.getItem;
   const previousSetItem = storageProto.setItem;
@@ -54,7 +55,7 @@
       report_weight_interval: intOr(legacy.reportWeightInterval, 30),
       settings_json: settingsJson
     };
-    const result = await client.from('professional_settings').upsert(payload,{onConflict:'professional_id'}).select('*').single();
+    const result = await client.from('professional_settings').upsert(payload,{onConflict:'professional_id'}).select(SETTINGS_COLUMNS).single();
     if (result.error) throw result.error;
     serialized = JSON.stringify(legacySettings(result.data));
   }
@@ -81,7 +82,7 @@
   }
 
   const ready = (async() => {
-    const result = await client.from('professional_settings').select('*').eq('professional_id',professionalId).maybeSingle();
+    const result = await client.from('professional_settings').select(SETTINGS_COLUMNS).eq('professional_id',professionalId).maybeSingle();
     if (result.error) throw result.error;
     serialized = JSON.stringify(legacySettings(result.data));
     install();
