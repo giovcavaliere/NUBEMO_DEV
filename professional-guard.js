@@ -29,6 +29,7 @@
   let measuresTabPromise=null;
   let visitsTabPromise=null;
   let notesTabPromise=null;
+  let agendaPromise=null;
   const patientAccessContextPromises=new Map();
   const replayClicks=new WeakSet();
 
@@ -54,7 +55,7 @@
 
   async function requiresPrivacyGate(profileId){const{data:doc,error:docError}=await client.from('privacy_documents').select('id').eq('document_type','nubemo').eq('active',true).order('published_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false}).limit(1).maybeSingle();if(docError)throw docError;if(!doc?.id)return false;const{data:acceptance,error:acceptanceError}=await client.from('privacy_acceptances').select('status').eq('profile_id',profileId).eq('privacy_document_id',doc.id).maybeSingle();if(acceptanceError)throw acceptanceError;return acceptance?.status!=='accepted';}
 
-  async function logout(){if(logoutButton)logoutButton.disabled=true;try{await window.nubemoProfessionalNotesBridge?.flush?.();await window.nubemoProfessionalSettingsBridge?.flush?.();await window.nubemoProfessionalPatientSettingsBridge?.flush?.();await window.nubemoProfessionalDocumentReadBridge?.flush?.();await window.nubemoProfessionalLabsBridge?.flush?.();await window.nubemoProfessionalLegacyAdapter?.flush?.();await client.auth.signOut();}finally{redirectToLogin();}}
+  async function logout(){if(logoutButton)logoutButton.disabled=true;try{await window.nubemoProfessionalAgendaBridge?.flush?.();await window.nubemoProfessionalNotesBridge?.flush?.();await window.nubemoProfessionalSettingsBridge?.flush?.();await window.nubemoProfessionalPatientSettingsBridge?.flush?.();await window.nubemoProfessionalDocumentReadBridge?.flush?.();await window.nubemoProfessionalLabsBridge?.flush?.();await window.nubemoProfessionalLegacyAdapter?.flush?.();await client.auth.signOut();}finally{redirectToLogin();}}
   window.nubemoProfessionalLogout=logout;logoutButton?.addEventListener('click',logout);
 
   async function refreshFullIdentity(){
@@ -123,6 +124,7 @@
 
   function replayAction(action){replayClicks.add(action);action.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));}
   function isDashboardAction(action){return action?.matches?.('[data-view="dashboard"],[data-drawer-view="dashboard"]');}
+  function isAgendaAction(action){return action?.matches?.('[data-view="agenda"],[data-drawer-view="agenda"],#goAgenda');}
 
   function virtualPatient(patientId){try{const rows=JSON.parse(localStorage.getItem('diario-pro-extra-patients-v1')||'[]');return Array.isArray(rows)?rows.find(row=>String(row?.id||'')===String(patientId||''))||null:null;}catch(_){return null;}}
 
@@ -291,6 +293,25 @@
     return notesTabPromise;
   }
 
+  async function ensureAgenda(){
+    if(agendaPromise)return agendaPromise.then(async()=>{await window.nubemoProfessionalAgendaBridge?.refresh?.();});
+    agendaPromise=(async()=>{const timer=perfStart('Agenda lazy');try{
+      const dashboard=window.nubemoProfessionalDashboardBootstrap;
+      if(!dashboard)throw new Error('Dashboard bridge non disponibile.');
+      await dashboard.loadPatientsList();
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40lazy3a01','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+      if(!hasScript('professional-settings-supabase-bridge.js'))await loadScript('professional-settings-supabase-bridge.js?v=nubemo398recovery19','Impossibile preparare le impostazioni dell’Agenda.');
+      await window.nubemoProfessionalSettingsBridge?.ready;
+      if(!hasScript('professional-patient-lifecycle-bridge.js'))await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40stabilize01','Impossibile preparare i contatti dell’Agenda.');
+      await window.nubemoPatientLifecycleBridge?.ready;
+      if(!hasScript('professional-agenda-supabase-bridge.js'))await loadScript('professional-agenda-supabase-bridge.js?v=nubemo40agenda01','Impossibile preparare l’Agenda.');
+      if(!window.nubemoProfessionalAgendaBridge)throw new Error('Bridge Agenda non inizializzato.');
+      await window.nubemoProfessionalAgendaBridge.ready;
+    }finally{perfEnd(timer);}})().catch(error=>{agendaPromise=null;throw error;});
+    return agendaPromise;
+  }
+
   function patientTabName(action){if(action?.matches?.('[data-patient-tab]'))return action.dataset.patientTab||'';if(action?.matches?.('[data-drawer-tab]'))return action.dataset.drawerTab||'';return '';}
 
   async function prepareSpecificPatientTab(action){
@@ -309,11 +330,11 @@
   }
 
   function needsFullRuntime(target){
-    const viewButton=target?.closest?.('[data-view]');if(viewButton&&['agenda','settings'].includes(viewButton.dataset.view))return true;
-    const drawerView=target?.closest?.('[data-drawer-view]');if(drawerView&&['agenda','settings'].includes(drawerView.dataset.drawerView))return true;
+    const viewButton=target?.closest?.('[data-view]');if(viewButton&&viewButton.dataset.view==='settings')return true;
+    const drawerView=target?.closest?.('[data-drawer-view]');if(drawerView&&drawerView.dataset.drawerView==='settings')return true;
     const patientTab=target?.closest?.('[data-patient-tab]');if(patientTab)return !['summary','anamnesis','labs','plan','documents','privacy','account','diary','trend','measures','visits','notes'].includes(patientTab.dataset.patientTab);
     const drawerTab=target?.closest?.('[data-drawer-tab]');if(drawerTab)return !['summary','anamnesis','labs','plan','documents','privacy','account','diary','trend','measures','visits','notes'].includes(drawerTab.dataset.drawerTab);
-    return !!target?.closest?.('#goAgenda,[data-event],[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
+    return !!target?.closest?.('[data-patient],#newPatient,#editPatientProfileLegacy,#patientMenuEditProfile,#deletePatient');
   }
 
   async function prepareRuntimeAction(action){
@@ -329,6 +350,10 @@
       if(!anyAction)return;
       if(replayClicks.has(anyAction)){replayClicks.delete(anyAction);return;}
       if(isDashboardAction(anyAction)){window.nubemoProfessionalDashboardBootstrap?.restoreDashboard?.();return;}
+      if(isAgendaAction(anyAction)){
+        event.preventDefault();event.stopImmediatePropagation();const action=anyAction;const wasDisabled='disabled' in action?action.disabled:false;if('disabled' in action)action.disabled=true;
+        void ensureAgenda().then(()=>{if('disabled' in action)action.disabled=wasDisabled;replayAction(action);}).catch(error=>{if('disabled' in action)action.disabled=wasDisabled;console.error('NUBEMO Agenda lazy:',error);alert('Non riesco a caricare l’Agenda. Riprova.');});return;
+      }
       const point=pointAction(target);
       if(point){event.preventDefault();event.stopImmediatePropagation();const wasDisabled='disabled' in point?point.disabled:false;if('disabled' in point)point.disabled=true;void preparePointAction(point).then(()=>{if('disabled' in point)point.disabled=wasDisabled;replayAction(point);}).catch(error=>{if('disabled' in point)point.disabled=wasDisabled;console.error('NUBEMO query puntuale:',error);alert('Non riesco a caricare questa sezione. Riprova.');});return;}
 
