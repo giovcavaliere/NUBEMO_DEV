@@ -6,7 +6,6 @@
   const context = window.nubemoProfessionalContext || {};
   const services = window.nubemoProfessionalServices;
   const app = document.getElementById('proApp');
-  const adapter = () => window.nubemoProfessionalLegacyAdapter;
   if (!client || !context.professional?.id || !context.user?.id || !app) return;
 
   const drafts = new Map();
@@ -31,7 +30,7 @@
   };
   const text = id => String(document.getElementById(id)?.value||'').trim();
 
-  function hydrateDraftStateFromAdapter(){
+  function hydrateDraftStateFromStorage(){
     let rows=[];
     try{rows=JSON.parse(window.localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]');}catch(_){rows=[];}
     drafts.clear();
@@ -48,6 +47,12 @@
       .eq('professional_id',context.professional.id).eq('status','draft').order('created_at');
     if(error)throw error;
     drafts.clear();(data||[]).forEach(row=>drafts.set(row.id,row));
+  }
+
+  async function refreshCanonicalPatients(){
+    const dashboard=window.nubemoProfessionalDashboardBootstrap;
+    if(dashboard?.loadPatientsList)await dashboard.loadPatientsList(true);
+    await refreshDraftState();
   }
 
   async function invokeLifecycle(body){
@@ -91,7 +96,7 @@
       const {data,error}=await client.from('professional_patient_drafts').insert({professional_id:context.professional.id,first_name:firstName,last_name:lastName,phone,created_by_user_id:context.user.id}).select().single();
       if(error||!data)throw error||new Error('Contatto non creato.');
       drafts.set(data.id,data);
-      await adapter()?.refreshDrafts?.();
+      await refreshCanonicalPatients();
       selectDraftInAgenda(data);
     }catch(error){console.error('NUBEMO draft create:',error);alert('Non è stato possibile creare il contatto provvisorio.');}
     finally{button.disabled=false;button.textContent=old;}
@@ -112,6 +117,7 @@
     try{
       const data=await invokeLifecycle({action:'create-patient',first_name:firstName,last_name:lastName,phone,email:activate?email:null,activate_patient_area:activate,birth_date:birthDate,sex,height_cm:height,pathway_start_date:null});
       try{await services?.savePatientAnamnesis?.(data.patient_id,clinicalFromForm());}catch(error){console.error('NUBEMO anamnesis after create:',error);}
+      await refreshCanonicalPatients();
       window.location.reload();
     }catch(error){console.error('NUBEMO lifecycle patient create:',error);alert(error.message||'Non è stato possibile creare il paziente.');button.disabled=false;button.textContent=old;}
   }
@@ -126,13 +132,19 @@
 
   function patchNewPatientAccessChoice(){
     if(document.body.dataset.proView!=='newPatient'||document.getElementById('npActivatePatientArea'))return;
-    const email=document.getElementById('npEmail');if(!email)return;
-    const emailLabel=document.querySelector('label[for="npEmail"]');
+    const phone=document.getElementById('npPhone');if(!phone)return;
+    let email=document.getElementById('npEmail');
+    let emailLabel=document.querySelector('label[for="npEmail"]');
+    if(!email){
+      emailLabel=document.createElement('label');emailLabel.htmlFor='npEmail';emailLabel.textContent='Email';
+      email=document.createElement('input');email.id='npEmail';email.type='email';email.inputMode='email';email.autocomplete='email';email.placeholder='es. mario.rossi@email.it';
+      phone.insertAdjacentElement('afterend',email);phone.insertAdjacentElement('afterend',emailLabel);
+    }
     const wrap=document.createElement('div');wrap.className='nubemo-patient-area-choice';
     wrap.innerHTML='<label><input id="npActivatePatientArea" type="checkbox" checked> Attiva Area Paziente NUBEMO</label><p class="muted">Se disattivata, il paziente sarà gestito solo dal professionista e non riceverà alcun invito.</p>';
-    emailLabel?.insertAdjacentElement('beforebegin',wrap);
+    emailLabel.insertAdjacentElement('beforebegin',wrap);
     const toggle=wrap.querySelector('#npActivatePatientArea');
-    const sync=()=>{const enabled=toggle.checked;emailLabel?.classList.toggle('nubemo-access-hidden',!enabled);email.classList.toggle('nubemo-access-hidden',!enabled);const note=email.nextElementSibling;if(note?.tagName==='SMALL')note.classList.toggle('nubemo-access-hidden',!enabled);email.required=enabled;if(!enabled)email.value='';};
+    const sync=()=>{const enabled=toggle.checked;emailLabel.classList.toggle('nubemo-access-hidden',!enabled);email.classList.toggle('nubemo-access-hidden',!enabled);email.required=enabled;if(!enabled)email.value='';};
     toggle.addEventListener('change',sync);sync();
   }
 
@@ -144,7 +156,7 @@
   function draftModal(row){
     document.getElementById('nubemoDraftModal')?.remove();
     const modal=document.createElement('div');modal.id='nubemoDraftModal';modal.className='nubemo-draft-modal-backdrop';
-    modal.innerHTML=`<section class="card nubemo-draft-modal" role="dialog" aria-modal="true"><div class="section-head"><h2>Completa anagrafica</h2><button type="button" class="mini" data-close-draft-modal>✕</button></div><p><b>${esc(row.first_name)} ${esc(row.last_name)}</b>${row.phone?` · ${esc(row.phone)}`:''}</p><label>Data di nascita</label><div class="date-entry nubemo-draft-date"><input id="draftBirth" placeholder="gg/mm/aaaa" inputmode="numeric" autocomplete="bday" maxlength="10"><label class="date-picker-btn" aria-label="Apri calendario"><span aria-hidden="true">📅</span><input id="draftBirthPicker" type="date" tabindex="-1" aria-hidden="true"></label></div><label>Sesso</label><select id="draftSex"><option value="">Non specificato</option><option value="M">Maschile</option><option value="F">Femminile</option><option value="X">Altro / preferisco non specificare</option></select><label>Altezza (cm)</label><input id="draftHeight" type="number" min="80" max="250" step="1"><div class="nubemo-patient-area-choice"><label><input id="draftActivateArea" type="checkbox"> Attiva Area Paziente NUBEMO</label><p class="muted">Attivandola verrà richiesto l’indirizzo email e sarà inviato l’invito.</p></div><div id="draftEmailBox" hidden><label>Email</label><input id="draftEmail" type="email" inputmode="email"></div><div class="pro3-actions"><button type="button" class="secondary" data-close-draft-modal>Annulla</button><button type="button" class="primary" id="convertDraftPatient">Crea paziente</button></div></section>`;
+    modal.innerHTML=`<section class="card nubemo-draft-modal" role="dialog" aria-modal="true"><div class="section-head"><h2>Completa anagrafica</h2><button type="button" class="mini" data-close-draft-modal>✕</button></div><p><b>${esc(row.first_name)} ${esc(row.last_name)}</b>${row.phone?` · ${esc(row.phone)}</small>`:''}</p><label>Data di nascita</label><div class="date-entry nubemo-draft-date"><input id="draftBirth" placeholder="gg/mm/aaaa" inputmode="numeric" autocomplete="bday" maxlength="10"><label class="date-picker-btn" aria-label="Apri calendario"><span aria-hidden="true">📅</span><input id="draftBirthPicker" type="date" tabindex="-1" aria-hidden="true"></label></div><label>Sesso</label><select id="draftSex"><option value="">Non specificato</option><option value="M">Maschile</option><option value="F">Femminile</option><option value="X">Altro / preferisco non specificare</option></select><label>Altezza (cm)</label><input id="draftHeight" type="number" min="80" max="250" step="1"><div class="nubemo-patient-area-choice"><label><input id="draftActivateArea" type="checkbox"> Attiva Area Paziente NUBEMO</label><p class="muted">Attivandola verrà richiesto l’indirizzo email e sarà inviato l’invito.</p></div><div id="draftEmailBox" hidden><label>Email</label><input id="draftEmail" type="email" inputmode="email"></div><div class="pro3-actions"><button type="button" class="secondary" data-close-draft-modal>Annulla</button><button type="button" class="primary" id="convertDraftPatient">Crea paziente</button></div></section>`;
     document.body.appendChild(modal);
     const birthInput=modal.querySelector('#draftBirth'),birthPicker=modal.querySelector('#draftBirthPicker');
     birthInput?.addEventListener('input',()=>formatDraftBirthInput(birthInput));
@@ -157,7 +169,7 @@
       const birth=normaliseDate(modal.querySelector('#draftBirth').value)||null,sex=modal.querySelector('#draftSex').value||null,heightRaw=String(modal.querySelector('#draftHeight').value||'').trim(),height=heightRaw?Number(heightRaw):null;
       if(height!==null&&(!Number.isFinite(height)||height<80||height>250))return alert('Controlla l’altezza inserita.');
       button.disabled=true;button.textContent='Conversione...';
-      try{await invokeLifecycle({action:'convert-draft',draft_id:row.id,activate_patient_area:activate,email:activate?email:null,birth_date:birth,sex,height_cm:height,pathway_start_date:null});window.location.reload();}
+      try{await invokeLifecycle({action:'convert-draft',draft_id:row.id,activate_patient_area:activate,email:activate?email:null,birth_date:birth,sex,height_cm:height,pathway_start_date:null});await refreshCanonicalPatients();window.location.reload();}
       catch(error){console.error('NUBEMO draft convert:',error);alert(error.message||'Conversione non completata.');button.disabled=false;button.textContent='Crea paziente';}
     });
   }
@@ -187,10 +199,12 @@
     if(draftCreate){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();void createDraftFromAgenda(draftCreate);return;}
 
     const savePatient=event.target?.closest?.('#saveNewPatient');
-    if(savePatient&&document.body.dataset.proView==='newPatient'&&document.getElementById('npActivatePatientArea')){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();void createRealPatient(savePatient);return;}
+    if(savePatient&&document.body.dataset.proView==='newPatient'){
+      event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();void createRealPatient(savePatient);return;
+    }
   },true);
 
-  const ready=(async()=>{try{hydrateDraftStateFromAdapter();}catch(error){console.error('NUBEMO draft hydrate:',error);}})();
-  window.nubemoPatientLifecycleBridge={ready,refresh:refreshDraftState,isDraft:id=>drafts.has(id)};
+  const ready=(async()=>{try{hydrateDraftStateFromStorage();await refreshDraftState();}catch(error){console.error('NUBEMO draft hydrate:',error);}})();
+  window.nubemoPatientLifecycleBridge={ready,refresh:refreshCanonicalPatients,isDraft:id=>drafts.has(id)};
   const observer=new MutationObserver(()=>queueMicrotask(patch));observer.observe(app,{childList:true,subtree:true});patch();
 })();
