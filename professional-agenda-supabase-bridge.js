@@ -27,6 +27,10 @@
     return agendaPatientsSerialized;
   }
 
+  function restoreAgendaPatients(){
+    if(agendaPatientsSerialized)previousSetItem.call(window.localStorage,EXTRA_PATIENTS_KEY,agendaPatientsSerialized);
+  }
+
   function localPatients(){
     const rows=parse(agendaPatientsSerialized||'[]',[]);
     return Array.isArray(rows)?rows:[];
@@ -207,6 +211,7 @@
   document.addEventListener('click',event=>{
     const dashboardAction=event.target?.closest?.('[data-view="dashboard"],[data-drawer-view="dashboard"]');
     if(!dashboardAction)return;
+    restoreAgendaPatients();
     if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
   },true);
 
@@ -217,6 +222,6 @@
     refresh:hydrate,
     syncPatients:syncAgendaPatientsFromCanonical,
     flush:async()=>{await ready;await queue;},
-    restoreContext:()=>{syncAgendaPatientsFromCanonical();if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);}
+    restoreContext:()=>{restoreAgendaPatients();if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);}
   });
 })();
