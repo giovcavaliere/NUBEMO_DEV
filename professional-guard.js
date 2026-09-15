@@ -134,7 +134,7 @@
   async function preparePointAction(action){
     const bridge=window.nubemoProfessionalDashboardBootstrap;if(!bridge)return;
     if(action.matches('[data-patient]')){const timer=perfStart('Riepilogo paziente lazy');try{const loader=await ensurePatientSummaryLoader();await loader?.load?.(action.dataset.patient);}finally{perfEnd(timer);}return;}
-    if(action.matches('[data-bmi-category]')){const timer=perfStart('BMI categoria lazy');try{await bridge.loadBmiCategory(action.dataset.bmiCategory);}finally{perfEnd(timer);}
+    if(action.matches('[data-bmi-category]')){const timer=perfStart('BMI categoria lazy');try{await bridge.loadBmiCategory(action.dataset.bmiCategory);}finally{perfEnd(timer);}return;}
     const timer=perfStart('Elenco pazienti + draft lazy');try{await bridge.loadPatientsList();}finally{perfEnd(timer);}
   }
 
