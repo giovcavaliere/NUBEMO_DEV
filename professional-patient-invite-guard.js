@@ -1,10 +1,11 @@
-// NUBEMO improvement — verifica account paziente esistente prima della creazione.
+// NUBEMO improvement — verifica account paziente gia' associato prima della creazione.
 (() => {
   'use strict';
 
   const client = window.nubemoSupabase;
   if (!client) return;
 
+  const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
   let bypassOnce = false;
   let busy = false;
 
@@ -27,6 +28,15 @@
     button.click();
   }
 
+  function existingPatientByEmail(email){
+    let rows=[];
+    try{rows=JSON.parse(window.localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]');}catch(_){rows=[];}
+    return (Array.isArray(rows)?rows:[]).find(row=>
+      row?._draft!==true && row?.relationshipStatus!=='draft' &&
+      String(row?.email||'').trim().toLowerCase()===email
+    )||null;
+  }
+
   document.addEventListener('click', event => {
     const button = event.target?.closest?.('#saveNewPatient');
     if (!button || document.body.dataset.proView !== 'newPatient') return;
@@ -36,15 +46,22 @@
       return;
     }
 
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (busy) return;
-
+    const activate=!!document.getElementById('npActivatePatientArea')?.checked;
     const email = String(document.getElementById('npEmail')?.value || '').trim().toLowerCase();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!activate || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       continueNormalCreation(button);
       return;
     }
+
+    const existing=existingPatientByEmail(email);
+    if(!existing?.id){
+      continueNormalCreation(button);
+      return;
+    }
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (busy) return;
 
     busy = true;
     button.disabled = true;
@@ -53,25 +70,20 @@
     void (async () => {
       try {
         const { data, error } = await client.functions.invoke('patient-invite-status', {
-          body: { action: 'check', email }
+          body: { action: 'check', patient_id: existing.id }
         });
         if (error) throw error;
         if (!data?.ok) throw new Error(data?.error || 'Verifica account non riuscita.');
 
-        if (!data.exists) {
-          continueNormalCreation(button);
-          return;
-        }
-
         if (data.account_status === 'active') {
-          alert('Il paziente è già presente in NUBEMO e l’account risulta attivo.');
+          alert('Il paziente e gia presente in NUBEMO e l’account risulta attivo.');
           closeCreation();
           return;
         }
 
-        if (data.account_status === 'invited' && data.associated) {
+        if (data.account_status === 'invited') {
           const resend = window.confirm(
-            'Esiste già un paziente NUBEMO con questo indirizzo email.\n\nVuoi reinviare l’invito?'
+            'Esiste gia un paziente NUBEMO con questo indirizzo email.\n\nVuoi reinviare l’invito?'
           );
           if (!resend) {
             closeCreation();
@@ -80,7 +92,7 @@
 
           button.textContent = 'Invio invito...';
           const { data: resendData, error: resendError } = await client.functions.invoke('patient-invite-status', {
-            body: { action: 'resend', email }
+            body: { action: 'resend', patient_id: existing.id }
           });
           if (resendError) throw resendError;
           if (!resendData?.ok) throw new Error(resendData?.error || 'Reinvio invito non riuscito.');
@@ -90,11 +102,11 @@
           return;
         }
 
-        alert('Esiste già un account NUBEMO con questo indirizzo email.');
+        alert('Il paziente e gia presente in NUBEMO. Puoi attivare l’Area Paziente dalla sua scheda.');
         closeCreation();
       } catch (error) {
         console.error('NUBEMO patient invite precheck:', error);
-        alert('Non è stato possibile verificare lo stato dell’invito. Riprova.');
+        alert('Non e stato possibile verificare lo stato dell’invito. Riprova.');
         busy = false;
         restoreButton(button);
       }
