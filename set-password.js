@@ -1,4 +1,4 @@
-// NUBEMO 4.0 DEV — Micro-step 3B.2: impostazione password da invito Supabase.
+// NUBEMO 4.0 DEV — impostazione password da link Supabase (invito o recupero).
 (() => {
   const client = window.nubemoSupabase;
   const loading = document.getElementById('set-password-loading');
@@ -50,23 +50,21 @@
     submit.textContent = busy ? 'Impostazione…' : 'Imposta password';
   }
 
-  async function resolveInviteSession() {
+  async function resolveAccessSession() {
     if (!hasAuthRedirectMarker()) {
-      showInvalid('Apri questa pagina dal link ricevuto nell’email di invito NUBEMO.');
+      showInvalid('Apri questa pagina dal link ricevuto nell’email NUBEMO.');
       return;
     }
 
     const redirectError = redirectErrorMessage();
     if (redirectError) {
-      showInvalid('Il link di invito non è più utilizzabile. Richiedi un nuovo invito.');
+      showInvalid('Il link non è valido o è scaduto. Dal login puoi richiedere un nuovo invito oppure reimpostare la password.');
       return;
     }
 
-    // Il client Supabase è configurato con detectSessionInUrl:true e completa
-    // automaticamente il redirect Auth. Attendiamo brevemente l'inizializzazione.
     const session = await waitForSession();
     if (!session) {
-      showInvalid('Il link non è valido o è scaduto. Richiedi un nuovo invito.');
+      showInvalid('Il link non è valido o è scaduto. Dal login puoi richiedere un nuovo invito oppure reimpostare la password.');
       return;
     }
 
@@ -114,7 +112,7 @@
     setBusy(true);
     try {
       const { data: { user }, error: userError } = await client.auth.getUser();
-      if (userError || !user) throw new Error('Sessione di invito non valida.');
+      if (userError || !user) throw new Error('Sessione NUBEMO non valida.');
 
       const { error } = await client.auth.updateUser({ password: password.value });
       if (error) throw error;
@@ -133,7 +131,7 @@
   backLogin.addEventListener('click', () => window.location.replace('index.html'));
   successLogin.addEventListener('click', () => window.location.replace('index.html'));
 
-  resolveInviteSession().catch(() => {
-    showInvalid('Il link non è valido o è scaduto. Richiedi un nuovo invito.');
+  resolveAccessSession().catch(() => {
+    showInvalid('Il link non è valido o è scaduto. Dal login puoi richiedere un nuovo invito oppure reimpostare la password.');
   });
 })();

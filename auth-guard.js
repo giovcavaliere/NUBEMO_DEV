@@ -56,13 +56,20 @@
   }
 
   function accountStatusLabel(value) {
-    return value === 'active' ? 'Attivo' : 'Invito inviato';
+    return value === 'active' ? 'Attivo' : 'Invito da completare';
   }
 
   function nubemoStatusLabel(value) {
     if (value === 'suspended') return 'Sospeso';
     if (value === 'disabled') return 'Disabilitato';
     return 'Attivo';
+  }
+
+  function privacyStatusLabel(value) {
+    if (value === 'accepted') return 'Accettata';
+    if (value === 'refused') return 'Rifiutata';
+    if (value === 'not_published') return 'Nessuna informativa';
+    return 'Da accettare';
   }
 
   function renderProfessionals(rows) {
@@ -97,16 +104,35 @@
       nubemoStatus.className = 'admin-professional-status-line';
       nubemoStatus.textContent = `NUBEMO: ${nubemoStatusLabel(row.nubemo_status)}`;
 
+      const privacyStatus = document.createElement('span');
+      privacyStatus.className = 'admin-professional-status-line';
+      privacyStatus.textContent = `Privacy: ${privacyStatusLabel(row.privacy_status)}`;
+      if (row.privacy_status === 'accepted' && row.privacy_accepted_at) {
+        privacyStatus.title = `Accettata il ${new Date(row.privacy_accepted_at).toLocaleDateString('it-IT')}${row.privacy_version ? ` · versione ${row.privacy_version}` : ''}`;
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'admin-professional-actions';
+
+      if (row.account_status === 'invited') {
+        const resend = document.createElement('button');
+        resend.type = 'button';
+        resend.className = 'secondary admin-professional-resend';
+        resend.dataset.professionalId = row.professional_id;
+        resend.textContent = 'Reinvia invito';
+        actions.append(resend);
+      }
+
       const action = document.createElement('button');
       action.type = 'button';
       action.className = 'secondary admin-professional-action';
       action.dataset.professionalId = row.professional_id;
       action.dataset.action = row.nubemo_status === 'suspended' ? 'activate-professional' : 'suspend-professional';
       action.textContent = row.nubemo_status === 'suspended' ? 'Riattiva' : 'Sospendi';
-      if (row.nubemo_status === 'disabled') action.hidden = true;
+      if (row.nubemo_status !== 'disabled') actions.append(action);
 
-      copy.append(name, email, accountStatus, nubemoStatus);
-      card.append(copy, action);
+      copy.append(name, email, accountStatus, nubemoStatus, privacyStatus);
+      card.append(copy, actions);
       professionalsList.append(card);
     });
   }
@@ -124,12 +150,45 @@
     return data;
   }
 
+  async function enrichPrivacy(rows) {
+    if (!rows.length) return rows;
+    const { data: documentRow, error: documentError } = await client.from('privacy_documents')
+      .select('id,version')
+      .eq('document_type','nubemo')
+      .eq('active',true)
+      .order('published_at',{ascending:false,nullsFirst:false})
+      .order('created_at',{ascending:false})
+      .limit(1)
+      .maybeSingle();
+    if (documentError) throw documentError;
+    if (!documentRow?.id) return rows.map(row => ({...row,privacy_status:'not_published',privacy_version:null,privacy_accepted_at:null}));
+
+    const profileIds = rows.map(row => row.profile_id).filter(Boolean);
+    if (!profileIds.length) return rows;
+    const { data: acceptances, error: acceptanceError } = await client.from('privacy_acceptances')
+      .select('profile_id,status,accepted_at,refused_at')
+      .eq('privacy_document_id',documentRow.id)
+      .in('profile_id',profileIds);
+    if (acceptanceError) throw acceptanceError;
+    const map = new Map((acceptances || []).map(row => [row.profile_id,row]));
+    return rows.map(row => {
+      const acceptance = map.get(row.profile_id);
+      return {
+        ...row,
+        privacy_status: acceptance?.status || 'pending',
+        privacy_version: documentRow.version || null,
+        privacy_accepted_at: acceptance?.accepted_at || null
+      };
+    });
+  }
+
   async function loadProfessionals() {
     setProfessionalsMessage('Caricamento professionisti…');
 
     try {
       const data = await invokeAdminAction({ action: 'list-professionals' });
-      renderProfessionals(Array.isArray(data.professionals) ? data.professionals : []);
+      const baseRows = Array.isArray(data.professionals) ? data.professionals : [];
+      renderProfessionals(await enrichPrivacy(baseRows));
       setProfessionalsMessage('');
     } catch (error) {
       setProfessionalsMessage(error?.message || 'Impossibile caricare i professionisti.', true);
@@ -149,6 +208,22 @@
       await loadProfessionals();
     } catch (error) {
       setProfessionalsMessage(error?.message || 'Operazione non completata.', true);
+      button.disabled = false;
+    }
+  }
+
+  async function resendProfessionalInvite(button) {
+    const professionalId = button.dataset.professionalId;
+    if (!professionalId) return;
+
+    button.disabled = true;
+    setProfessionalsMessage('Reinvio invito in corso…');
+    try {
+      await invokeAdminAction({ action:'resend-professional-invite', professional_id:professionalId });
+      setProfessionalsMessage('Invito reinviato.');
+      await loadProfessionals();
+    } catch (error) {
+      setProfessionalsMessage(error?.message || 'Impossibile reinviare l’invito.', true);
       button.disabled = false;
     }
   }
@@ -226,6 +301,11 @@
   });
   inviteForm.addEventListener('submit', inviteProfessional);
   professionalsList.addEventListener('click', (event) => {
+    const resendButton = event.target.closest('.admin-professional-resend');
+    if (resendButton) {
+      resendProfessionalInvite(resendButton);
+      return;
+    }
     const button = event.target.closest('.admin-professional-action');
     if (button) changeProfessionalStatus(button);
   });
