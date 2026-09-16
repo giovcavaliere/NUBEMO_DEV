@@ -2280,14 +2280,17 @@ function agenda(){
    weekDate=new Date(today()+'T12:00:00');
  }
  const monday=getMonday(weekDate),s=settings(),dayCount=Number(s.workDays)===6?6:5,days=Array.from({length:dayCount},(_,i)=>addDays(monday,i));
- const start=timeMin(s.dayStart),end=timeMin(s.dayEnd),step=30,slots=[];
+ // Griglia a 15 minuti: consente di rappresentare correttamente durate
+ // non multiple di mezz'ora (es. 45'). L'altezza per ora resta invariata
+ // (4 righe da 23px = 92px, come prima 2 righe da 46px).
+ const start=timeMin(s.dayStart),end=timeMin(s.dayEnd),step=15,slots=[];
  for(let m=start;m<end;m+=step)slots.push(m);
 
  const evs=appointments().filter(a=>days.some(d=>iso(d)===a.date));
- let grid=`<div class="pro3-calendar" style="grid-template-columns:55px repeat(${days.length},minmax(135px,1fr));grid-template-rows:48px repeat(${slots.length},46px)">`;
+ let grid=`<div class="pro3-calendar" style="grid-template-columns:55px repeat(${days.length},minmax(135px,1fr));grid-template-rows:48px repeat(${slots.length},23px)">`;
  grid+=`<div></div>`;
  days.forEach((d,i)=>grid+=`<div class="pro3-dayhead" style="grid-column:${i+2};grid-row:1"><b>${d.toLocaleDateString('it-IT',{weekday:'short'})}</b><span>${d.getDate()}</span></div>`);
- slots.forEach((m,i)=>grid+=`<div class="pro3-time" style="grid-column:1;grid-row:${i+2}">${minTime(m)}</div>`);
+ slots.forEach((m,i)=>grid+=`<div class="pro3-time" style="grid-column:1;grid-row:${i+2}">${m%30===0?minTime(m):''}</div>`);
  days.forEach((d,di)=>slots.forEach((m,si)=>grid+=`<button class="pro3-slot" data-date="${iso(d)}" data-time="${minTime(m)}" style="grid-column:${di+2};grid-row:${si+2}"></button>`));
  evs.forEach(a=>{
    const di=days.findIndex(d=>iso(d)===a.date),si=Math.max(0,Math.round((timeMin(a.time)-start)/step)),span=Math.max(1,Math.ceil(a.duration/step));
@@ -2302,62 +2305,10 @@ function agenda(){
 }
 
 
-function backupCleanProfile(v){const x=v&&typeof v==='object'?JSON.parse(JSON.stringify(v)):{};delete x.nextVisit;return x}
-function backupCleanExtraPatients(items){return (Array.isArray(items)?items:[]).map(p=>{const x=JSON.parse(JSON.stringify(p));delete x.nextVisit;return x})}
-function blobToBackupData(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res({type:blob.type||'application/octet-stream',data:String(r.result||'').split(',')[1]||''});r.onerror=()=>rej(r.error);r.readAsDataURL(blob)})}
-function backupDataToBlob(item){const bin=atob(item?.data||''),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new Blob([bytes],{type:item?.type||'application/octet-stream'})}
-async function exportIndexedDbStore(storeName){
- const db=await openPlanDb();
- const rows=await new Promise((res,rej)=>{const tx=db.transaction(storeName,'readonly'),st=tx.objectStore(storeName),out=[],r=st.openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return res(out);out.push([c.key,c.value]);c.continue()};r.onerror=()=>rej(r.error)});
- const out=[];for(const [key,value] of rows)if(value instanceof Blob)out.push({key,value:await blobToBackupData(value)});return out;
-}
-async function restoreIndexedDbStore(storeName,items){
- const db=await openPlanDb();
- await new Promise((res,rej)=>{const tx=db.transaction(storeName,'readwrite'),st=tx.objectStore(storeName);st.clear();for(const item of (Array.isArray(items)?items:[]))st.put(backupDataToBlob(item.value),item.key);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)});
-}
-async function proBackupData(){
- const indexedDb={};for(const store of [PLAN_STORE,'privacy','documents','labUploads'])indexedDb[store]=await exportIndexedDbStore(store);
- return {app:'Diario Pro Demo',version:2,exportedAt:new Date().toISOString(),data:{
-  mainProfile:backupCleanProfile(load(PROFILE_KEY,{})),mainEntries:load(KEY,[]),mainMeasures:load(MEASURE_KEY,[]),
-  extraPatients:backupCleanExtraPatients(load(EXTRA_PATIENTS_KEY,[])),demoMeasures:load(DEMO_MEASURES_KEY,{}),
-  deletedPatients:load(DELETED_PATIENTS_KEY,[]),labs:load(LABS_KEY,{}),notes:load(NOTES_KEY,{}),appointments:load(APPT_KEY,[]),
-  settings:load(SETTINGS_KEY,{}),accounts:load(ACCOUNT_KEY,{}),privacyMeta:load(PRIVACY_META_KEY,{}),pendingLabs:load(PENDING_LABS_KEY,{}),
-  planMeta:load(PLAN_META_KEY,{}),documentMeta:documentMetaList(),patientStartDates:load(PATIENT_START_DATE_KEY,{}),indexedDb
- }};
-}
-async function downloadProBackup(){
- try{const payload=await proBackupData(),blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`nubemo-backup-completo-${today()}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200)}
- catch(e){alert('Impossibile creare il backup completo: '+e.message)}
-}
-function validateProBackup(obj){return obj&&obj.app==='Diario Pro Demo'&&obj.data&&typeof obj.data==='object'}
-async function importProBackupFile(file){
- let obj;try{obj=JSON.parse(await file.text())}catch(e){return alert('Il file selezionato non è un JSON valido.')}
- if(!validateProBackup(obj))return alert('Il file non è un backup valido di Diario Pro Demo.');
- if(!confirm('Caricare questo backup? I dati locali di NUBEMO verranno sostituiti con quelli contenuti nel file.'))return;
- const d=obj.data;
- try{
-  save(PROFILE_KEY,backupCleanProfile(d.mainProfile||{}));save(KEY,Array.isArray(d.mainEntries)?d.mainEntries:[]);save(MEASURE_KEY,Array.isArray(d.mainMeasures)?d.mainMeasures:[]);
-  save(EXTRA_PATIENTS_KEY,backupCleanExtraPatients(d.extraPatients));save(DEMO_MEASURES_KEY,d.demoMeasures&&typeof d.demoMeasures==='object'?d.demoMeasures:{});
-  save(DELETED_PATIENTS_KEY,Array.isArray(d.deletedPatients)?d.deletedPatients:[]);save(LABS_KEY,d.labs&&typeof d.labs==='object'?d.labs:{});
-  save(NOTES_KEY,d.notes&&typeof d.notes==='object'?d.notes:{});save(APPT_KEY,Array.isArray(d.appointments)?d.appointments:[]);
-  save(SETTINGS_KEY,d.settings&&typeof d.settings==='object'?d.settings:{});save(ACCOUNT_KEY,d.accounts&&typeof d.accounts==='object'?d.accounts:{});
-  save(PRIVACY_META_KEY,d.privacyMeta&&typeof d.privacyMeta==='object'?d.privacyMeta:{});save(PENDING_LABS_KEY,d.pendingLabs&&typeof d.pendingLabs==='object'?d.pendingLabs:{});
-  if(Object.prototype.hasOwnProperty.call(d,'planMeta'))save(PLAN_META_KEY,d.planMeta&&typeof d.planMeta==='object'?d.planMeta:{});
-  if(Object.prototype.hasOwnProperty.call(d,'documentMeta'))saveDocumentMetaList(Array.isArray(d.documentMeta)?d.documentMeta:[]);
-  if(Object.prototype.hasOwnProperty.call(d,'patientStartDates'))save(PATIENT_START_DATE_KEY,d.patientStartDates&&typeof d.patientStartDates==='object'?d.patientStartDates:{});
-  if(d.indexedDb&&typeof d.indexedDb==='object')for(const store of [PLAN_STORE,'privacy','documents','labUploads'])await restoreIndexedDbStore(store,d.indexedDb[store]||[]);
-  selected='main';tab='summary';view='dashboard';
-  alert(obj.version>=2?'Backup completo caricato correttamente.':'Backup precedente caricato correttamente. I file non inclusi nel vecchio formato sono stati lasciati invariati.');render();
- }catch(e){alert('Impossibile completare il ripristino: '+e.message)}
-}
-
 function professionalDisplayName(s=settings()){
  const n=[s.firstName,s.surname].filter(Boolean).join(' ').trim();
  return n||s.name||'Professionista';
 }
-let pendingProfessionalLogo;
-let pendingProfessionalLogoFile;
-let pendingProfessionalLogoRemove=false;
 function proSupportPage(){
  // Corpo della pagina delegato a nubemo-support.js (riscrittura Assistenza).
  // Intestazione e nav restano qui perche' appartengono alla shell PRO.
@@ -2366,69 +2317,10 @@ function proSupportPage(){
 }
 
 function settingsPage(){
- const s=settings();
- const display=professionalDisplayName(s);
+ // Corpo della pagina delegato a pro-profile.js (riscrittura Profilo professionista).
+ // Intestazione e nav restano qui perche' appartengono alla shell PRO.
  return `${top('Profilo professionista')}${nav()}
- <section class="card">
-   <div class="section-head"><h2>Dati professionali</h2><span class="pill">Report NUBEMO</span></div>
-   <div class="pro-profile-grid">
-     <div><label>Nome</label><input id="sFirstName" value="${esc(s.firstName||'')}" readonly></div>
-     <div><label>Cognome</label><input id="sSurname" value="${esc(s.surname||'')}" readonly></div>
-   </div>
-   <label>Qualifica / titolo professionale</label><input id="sQualification" value="${esc(s.qualification||'')}" placeholder="es. Biologa Nutrizionista">
-   <label>Nome visualizzato</label><input id="sName" value="${esc(s.name||display)}" placeholder="es. Dott.ssa Maria Rossi">
-   <div class="pro-profile-grid">
-     <div><label>Codice fiscale</label><input id="sCf" value="${esc(s.cf||'')}"></div>
-     <div><label>Partita IVA</label><input id="sVat" value="${esc(s.vat||'')}"></div>
-   </div>
- </section>
-
- <section class="card">
-   <div class="section-head"><h2>Studio e recapiti</h2></div>
-   <label>Indirizzo</label><input id="sAddress" value="${esc(s.address||'')}">
-   <div class="pro-profile-grid three">
-     <div><label>CAP</label><input id="sZip" value="${esc(s.zip||'')}"></div>
-     <div><label>Comune</label><input id="sCity" value="${esc(s.city||'')}"></div>
-     <div><label>Provincia</label><input id="sProvince" value="${esc(s.province||'')}"></div>
-   </div>
-   <div class="pro-profile-grid">
-     <div><label>E-mail</label><input id="sEmail" type="email" value="${esc(s.email||'')}" readonly></div>
-     <div><label>Telefono</label><input id="sPhone" value="${esc(s.phone||'')}"></div>
-   </div>
- </section>
-
- <section class="card">
-   <div class="section-head"><h2>Logo professionale</h2><span class="pill">Opzionale</span></div>
-   <p class="muted">Se presente, viene riportato nella cartella PDF del paziente insieme al logo NUBEMO.</p>
-   <div class="pro-logo-editor">
-     <div class="pro-logo-preview">${s.logoData?`<img id="professionalLogoPreview" src="${s.logoData}" alt="Logo professionale">`:'<span id="professionalLogoEmpty">Nessun logo</span>'}</div>
-     <div class="pro-logo-actions">
-       <label class="secondary file-button">Carica logo<input id="sLogoFile" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
-       <button class="mini" id="removeProfessionalLogo" type="button">Rimuovi logo</button>
-     </div>
-   </div>
- </section>
-
- <section class="card">
-   <div class="section-head"><h2>Agenda</h2></div>
-   <label>Durata predefinita prima visita</label><input id="sFirst" type="number" step="5" value="${s.first}">
-   <label>Durata predefinita controllo</label><input id="sControl" type="number" step="5" value="${s.control}">
-   <label>Inizio agenda</label><input id="sStart" type="time" value="${s.dayStart}">
-   <label>Fine agenda</label><input id="sEnd" type="time" value="${s.dayEnd}">
-   <label>Settimana lavorativa</label>
-   <select id="sWorkDays">
-     <option value="5" ${Number(s.workDays)===5?'selected':''}>Da lunedì a venerdì</option>
-     <option value="6" ${Number(s.workDays)===6?'selected':''}>Da lunedì a sabato</option>
-   </select>
-   <p class="muted">L'Agenda mostrerà solo i giorni lavorativi selezionati.</p>
-   <button class="primary" id="saveSettings">Salva profilo professionista</button>
- </section>
-
- <section class="card"><div class="section-head"><h2>Backup pazienti</h2><span class="pill">JSON</span></div>
- <p class="muted">Scarica una copia dei dati locali della demo oppure ripristina un backup precedente. I PDF dei piani alimentari non sono inclusi.</p>
- <div class="pro3-actions"><button class="secondary" id="downloadProBackup">↓ Scarica backup</button><button class="secondary" id="uploadProBackup">↑ Carica backup</button></div>
- <input id="proBackupFile" type="file" accept="application/json,.json" style="display:none">
- </section>`;
+ ${window.NubemoProfessionalProfile.body(settings())}`;
 }
 
 function eventForm(prefill){
@@ -2901,127 +2793,16 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
  patientsUnreadOnly=!!e.target.checked;
  render();
 });
-  el('sLogoFile')?.addEventListener('change',e=>{
-   const f=e.target.files?.[0];if(!f)return;
-   if(f.size>2.5*1024*1024)return alert('Il logo è troppo grande. Usa un file sotto 2,5 MB.');
-   if(!['image/png','image/jpeg','image/webp'].includes(f.type))return alert('Formato logo non supportato. Usa PNG, JPEG o WebP.');
-   pendingProfessionalLogoFile=f;
-   pendingProfessionalLogoRemove=false;
-   const r=new FileReader();
-   r.onload=()=>{
-     pendingProfessionalLogo=String(r.result||'');
-     const box=document.querySelector('.pro-logo-preview');
-     if(box)box.innerHTML=`<img id="professionalLogoPreview" src="${pendingProfessionalLogo}" alt="Logo professionale">`;
-   };
-   r.readAsDataURL(f);
- });
- el('removeProfessionalLogo')?.addEventListener('click',()=>{
-   pendingProfessionalLogo='';
-   pendingProfessionalLogoFile=undefined;
-   pendingProfessionalLogoRemove=true;
-   const box=document.querySelector('.pro-logo-preview');
-   if(box)box.innerHTML='<span id="professionalLogoEmpty">Nessun logo</span>';
- });
- el('saveSettings')?.addEventListener('click',async()=>{
-   const prev=settings();
-   const ctx=window.nubemoProfessionalContext||{};
-   const professionalId=ctx.professional?.id;
-   if(!professionalId)return alert('Profilo professionale NUBEMO non disponibile.');
-
-   const logoPath=`${professionalId}/logo`;
-   const selectedProfessionalLogoFile=el('sLogoFile')?.files?.[0]||pendingProfessionalLogoFile;
-   const professionalPatch={
-     qualification:(el('sQualification')?.value||'').trim()||null,
-     display_name:(el('sName')?.value||'').trim()||null,
-     tax_code:(el('sCf')?.value||'').trim()||null,
-     vat_number:(el('sVat')?.value||'').trim()||null,
-     phone:(el('sPhone')?.value||'').trim()||null,
-     address:(el('sAddress')?.value||'').trim()||null,
-     zip:(el('sZip')?.value||'').trim()||null,
-     city:(el('sCity')?.value||'').trim()||null,
-     province:(el('sProvince')?.value||'').trim()||null
-   };
-
-   const saveButton=el('saveSettings');
-   if(saveButton)saveButton.disabled=true;
-   try{
-     let nextLogoData=ctx.logoData||'';
-     let nextLogoPath=ctx.professional?.logo_storage_path||null;
-     let uploadedNewLogo=false;
-
-     if(selectedProfessionalLogoFile){
-       const {error:uploadError}=await window.nubemoSupabase.storage
-         .from('professional-assets')
-         .upload(logoPath,selectedProfessionalLogoFile,{
-           upsert:true,
-           contentType:selectedProfessionalLogoFile.type,
-           cacheControl:'3600'
-         });
-       if(uploadError)throw uploadError;
-       uploadedNewLogo=true;
-       nextLogoPath=logoPath;
-       nextLogoData=pendingProfessionalLogo||'';
-       professionalPatch.logo_storage_path=logoPath;
-     }else if(pendingProfessionalLogoRemove){
-       professionalPatch.logo_storage_path=null;
-       nextLogoPath=null;
-       nextLogoData='';
-     }
-
-     const {data:updated,error}=await window.nubemoSupabase
-       .from('professionals')
-       .update(professionalPatch)
-       .eq('id',professionalId)
-       .select('id,profile_id,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,status,logo_storage_path')
-       .single();
-
-     if(error){
-       if(uploadedNewLogo && !ctx.professional?.logo_storage_path){
-         await window.nubemoSupabase.storage.from('professional-assets').remove([logoPath]);
-       }
-       throw error;
-     }
-
-     if(pendingProfessionalLogoRemove && ctx.professional?.logo_storage_path){
-       const {error:removeError}=await window.nubemoSupabase.storage
-         .from('professional-assets')
-         .remove([ctx.professional.logo_storage_path]);
-       if(removeError)console.error('NUBEMO professional logo remove:',removeError);
-     }
-
-     window.nubemoProfessionalContext={
-       ...ctx,
-       professional:{...ctx.professional,...updated,logo_storage_path:nextLogoPath},
-       logoData:nextLogoData
-     };
-
-     // Solo Agenda resta locale. Il logo remoto è ora la fonte principale.
+ // Profilo professionista: handler nel modulo dedicato.
+ window.NubemoProfessionalProfile.bind({
+   render,
+   saveAgendaSettings(patch){
      const local=load(SETTINGS_KEY,{});
-     save(SETTINGS_KEY,{
-       ...local,
-       logoData:nextLogoPath?'':(local.logoData||''),
-       first:+el('sFirst').value||60,
-       control:+el('sControl').value||30,
-       dayStart:el('sStart').value||'08:00',
-       dayEnd:el('sEnd').value||'19:00',
-       workDays:+el('sWorkDays').value||5
-     });
-
-     pendingProfessionalLogo=undefined;
-     pendingProfessionalLogoFile=undefined;
-     pendingProfessionalLogoRemove=false;
-     alert('Profilo professionista salvato');
-     render();
-   }catch(e){
-     console.error('NUBEMO professional profile save:',e);
-     alert('Impossibile salvare il profilo professionista. Riprova.');
-   }finally{
-     if(saveButton)saveButton.disabled=false;
+     const next={...local,...patch};
+     if(patch.logoData===undefined)next.logoData=local.logoData||'';
+     save(SETTINGS_KEY,next);
    }
  });
- el('downloadProBackup')?.addEventListener('click',downloadProBackup);
- el('uploadProBackup')?.addEventListener('click',()=>el('proBackupFile')?.click());
- el('proBackupFile')?.addEventListener('change',e=>{const f=e.target.files?.[0];if(f)importProBackupFile(f)});
 
  el('saveNote')?.addEventListener('click',()=>{const n=load(NOTES_KEY,{});n[selected]=el('noteText').value;save(NOTES_KEY,n);alert('Nota salvata')});
 

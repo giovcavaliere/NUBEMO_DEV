@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-support01';
+const CACHE='nubemo-demo-v4.0-profilo01';
 const CORE=[
   './storage-bridge-kit.js?v=nubemo40clean01',
   './food-catalog.js?v=nubemo40clean01',
@@ -16,6 +16,7 @@ const CORE=[
   './supabase-client.js?v=nubemo40clean01',
   './password-visibility.js?v=nubemo40clean01',
   './nubemo-support.js?v=nubemo40clean01',
+  './pro-profile.js?v=nubemo40clean01',
   './auth.js?v=nubemo40clean01',
   './privacy.js?v=nubemo40clean01',
   './patient-services.js?v=nubemo40clean01',
