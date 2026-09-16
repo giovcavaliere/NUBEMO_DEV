@@ -31,6 +31,7 @@
   let notesTabPromise=null;
   let agendaPromise=null;
   let professionalProfilePromise=null;
+  let draftLifecyclePromise=null;
   const patientAccessContextPromises=new Map();
   const replayClicks=new WeakSet();
 
@@ -129,6 +130,27 @@
   function isProfessionalProfileAction(action){return action?.matches?.('[data-view="settings"],[data-drawer-view="settings"]');}
 
   function virtualPatient(patientId){try{const rows=JSON.parse(localStorage.getItem('diario-pro-extra-patients-v1')||'[]');return Array.isArray(rows)?rows.find(row=>String(row?.id||'')===String(patientId||''))||null:null;}catch(_){return null;}}
+
+  function draftAction(target){
+    const patient=target?.closest?.('[data-patient]');
+    if(!patient)return null;
+    const row=virtualPatient(patient.dataset.patient);
+    return row&&(row._draft===true||row.relationshipStatus==='draft')?patient:null;
+  }
+
+  async function prepareDraftAction(){
+    if(draftLifecyclePromise)return draftLifecyclePromise;
+    draftLifecyclePromise=(async()=>{
+      const timer=perfStart('Contatto draft lazy');
+      try{
+        if(!hasScript('professional-patient-lifecycle-bridge.js'))await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40clean03','Impossibile preparare il contatto provvisorio.');
+        await window.nubemoPatientLifecycleBridge?.ready;
+        if(!window.nubemoPatientLifecycleBridge)throw new Error('Gestione contatti provvisori non disponibile.');
+        return true;
+      }finally{perfEnd(timer);}
+    })().catch(error=>{draftLifecyclePromise=null;throw error;});
+    return draftLifecyclePromise;
+  }
 
   function pointAction(target){
     const patient=target?.closest?.('[data-patient]');
@@ -369,6 +391,11 @@
       if(isProfessionalProfileAction(anyAction)){
         event.preventDefault();event.stopImmediatePropagation();const action=anyAction;const wasDisabled='disabled' in action?action.disabled:false;if('disabled' in action)action.disabled=true;
         void ensureProfessionalProfile().then(()=>{if('disabled' in action)action.disabled=wasDisabled;replayAction(action);}).catch(error=>{if('disabled' in action)action.disabled=wasDisabled;console.error('NUBEMO Profilo professionista lazy:',error);alert('Non riesco a caricare il Profilo professionista. Riprova.');});return;
+      }
+      const draft=draftAction(target);
+      if(draft){
+        event.preventDefault();event.stopImmediatePropagation();const wasDisabled='disabled' in draft?draft.disabled:false;if('disabled' in draft)draft.disabled=true;
+        void prepareDraftAction().then(()=>{if('disabled' in draft)draft.disabled=wasDisabled;replayAction(draft);}).catch(error=>{if('disabled' in draft)draft.disabled=wasDisabled;console.error('NUBEMO contatto draft lazy:',error);alert('Non riesco ad aprire il contatto provvisorio. Riprova.');});return;
       }
       const point=pointAction(target);
       if(point){event.preventDefault();event.stopImmediatePropagation();const wasDisabled='disabled' in point?point.disabled:false;if('disabled' in point)point.disabled=true;void preparePointAction(point).then(()=>{if('disabled' in point)point.disabled=wasDisabled;replayAction(point);}).catch(error=>{if('disabled' in point)point.disabled=wasDisabled;console.error('NUBEMO query puntuale:',error);alert('Non riesco a caricare questa sezione. Riprova.');});return;}
