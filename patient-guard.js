@@ -27,7 +27,7 @@
   }
 
   function loadPatientApp() {
-    return loadScript('app.js?v=nubemo40clean02','Impossibile caricare l’Area Paziente.');
+    return loadScript('app.js?v=nubemo40clean03','Impossibile caricare l’Area Paziente.');
   }
 
   async function requiresPrivacyGate(profileId) {
@@ -88,19 +88,19 @@
       if (await requiresPrivacyGate(context.profile.id)) return goToPrivacy();
       window.nubemoPatientContext = context;
       await window.nubemoPatientLegacyAdapter.init(context);
-      await loadScript('patient-settings-supabase-bridge.js?v=nubemo40clean02','Impossibile applicare le impostazioni dell’Area Paziente.');
-      await loadScript('patient-document-read-supabase-bridge.js?v=nubemo40clean02','Impossibile preparare lo stato di lettura dei documenti.');
+      await loadScript('patient-settings-supabase-bridge.js?v=nubemo40clean03','Impossibile applicare le impostazioni dell’Area Paziente.');
+      await loadScript('patient-document-read-supabase-bridge.js?v=nubemo40clean03','Impossibile preparare lo stato di lettura dei documenti.');
       await window.nubemoPatientDocumentReadBridge?.ready;
 
       if (logoutButton) logoutButton.style.display = 'inline-flex';
       window.patientLogout = logout;
 
-      await loadScript('food-catalog.js?v=nubemo40clean02','Impossibile caricare il catalogo alimenti.');
+      await loadScript('food-catalog.js?v=nubemo40clean03','Impossibile caricare il catalogo alimenti.');
       await window.nubemoFoodCatalog.load(client);
       await loadPatientApp();
-      await loadScript('patient-measures-pdf.js?v=nubemo40clean02','Impossibile preparare il PDF delle misurazioni.');
+      await loadScript('patient-measures-pdf.js?v=nubemo40clean03','Impossibile preparare il PDF delle misurazioni.');
       window.nubemoPatientLegacyAdapter.bindLegacyApp?.();
-      await loadScript('patient-recovery-contract.js?v=nubemo40clean02','Impossibile applicare il contratto dell’Area Paziente.');
+      await loadScript('patient-recovery-contract.js?v=nubemo40clean03','Impossibile applicare il contratto dell’Area Paziente.');
 
       window.openPatientPlan = openCurrentPlan;
     } catch (error) {

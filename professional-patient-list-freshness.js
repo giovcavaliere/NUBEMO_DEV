@@ -40,19 +40,19 @@
       await dashboard.loadPatientsList(true);
 
       if(!hasScript('professional-services.js'))
-        await loadScript('professional-services.js?v=nubemo40clean02','Impossibile caricare i servizi Supabase dell’Agenda.');
+        await loadScript('professional-services.js?v=nubemo40clean03','Impossibile caricare i servizi Supabase dell’Agenda.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Agenda non inizializzati.');
 
       if(!hasScript('professional-settings-supabase-bridge.js'))
-        await loadScript('professional-settings-supabase-bridge.js?v=nubemo40clean02','Impossibile preparare le impostazioni dell’Agenda.');
+        await loadScript('professional-settings-supabase-bridge.js?v=nubemo40clean03','Impossibile preparare le impostazioni dell’Agenda.');
       await window.nubemoProfessionalSettingsBridge?.ready;
 
       if(!hasScript('professional-patient-lifecycle-bridge.js'))
-        await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40clean02','Impossibile preparare i contatti dell’Agenda.');
+        await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40clean03','Impossibile preparare i contatti dell’Agenda.');
       await window.nubemoPatientLifecycleBridge?.ready;
 
       if(!hasScript('professional-agenda-supabase-bridge.js')){
-        await loadScript('professional-agenda-supabase-bridge.js?v=nubemo40clean02','Impossibile preparare l’Agenda.');
+        await loadScript('professional-agenda-supabase-bridge.js?v=nubemo40clean03','Impossibile preparare l’Agenda.');
         await window.nubemoProfessionalAgendaBridge?.ready;
       }else{
         await window.nubemoProfessionalAgendaBridge?.refresh?.();

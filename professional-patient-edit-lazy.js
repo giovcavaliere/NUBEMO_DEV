@@ -59,11 +59,11 @@
 
   async function ensureDependencies(){
     if(!window.nubemoProfessionalServices){
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40clean02','Impossibile caricare i servizi paziente.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40clean03','Impossibile caricare i servizi paziente.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi paziente non disponibili.');
     }
     if(!window.nubemoProfessionalPatientSummaryLazy){
-      if(!hasScript('professional-patient-summary-lazy.js'))await loadScript('professional-patient-summary-lazy.js?v=nubemo40clean02','Impossibile caricare il riepilogo paziente.');
+      if(!hasScript('professional-patient-summary-lazy.js'))await loadScript('professional-patient-summary-lazy.js?v=nubemo40clean03','Impossibile caricare il riepilogo paziente.');
       if(!window.nubemoProfessionalPatientSummaryLazy)throw new Error('Riepilogo paziente non disponibile.');
     }
   }

@@ -194,7 +194,6 @@
   function patch(){if(patching)return;patching=true;try{patchNewPatientPhone();patchNewPatientAccessChoice();}finally{patching=false;}}
 
   const style=document.createElement('style');style.textContent=`
-    .pro3-draft-badge{display:block;width:max-content;margin-top:7px;font-size:11px;font-weight:800;color:#8a6420;background:#fff4cf;border-radius:999px;padding:5px 8px;line-height:1.15}
     .patient-content-card,.patient-content-card .nubemo-remote-tab-content,.patient-content-card .pro-read-grid,.patient-content-card .pro-read-grid>div{min-width:0}
     .patient-content-card b,.patient-content-card p,.patient-content-card span{overflow-wrap:anywhere;word-break:break-word}
     .nubemo-access-hidden{display:none!important}

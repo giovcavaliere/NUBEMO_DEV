@@ -1,39 +1,53 @@
-# Delta — badge "Anagrafica parziale" + bump di build
+# Delta clean03 — stile del badge sempre disponibile
 
-Sovrascrivere tutti i 18 file nella radice del repo.
+Sovrascrivere i 19 file nella radice del repo.
 
-## Perche' il badge era sparito
+## Il problema
 
-Nel delta precedente `pro.js` era stato modificato (badge reso nel markup)
-ma il numero di build `?v=` NON era stato incrementato. Il service worker
-ha quindi continuato a servire il `pro.js` in cache, privo del badge nuovo,
-mentre `professional-dashboard-bootstrap.js` — aggiornato correttamente —
-aveva gia' rimosso il vecchio badge iniettato via CSS.
+Il badge "Anagrafica parziale" compariva senza stile alla prima apertura
+della lista pazienti, e diventava una pillola gialla solo dopo aver
+cliccato un paziente.
 
-Risultato: vecchio badge rimosso, nuovo mai caricato.
+Causa: la regola CSS `.pro3-draft-badge` era stata messa dentro
+`professional-patient-lifecycle-bridge.js`, che viene caricato lazy.
+Alla prima apertura della lista quel file non e' ancora in memoria,
+quindi il markup c'e' ma nessuna regola lo veste. Cliccando un paziente
+il guard carica il bridge, lo stile viene iniettato e da quel momento il
+badge appare corretto anche tornando indietro.
 
-I dati erano corretti per tutto il tempo (`_draft: true` su tutti i
-contatti provvisori): il difetto era solo di distribuzione.
+Era il posto sbagliato: uno stile che serve al primo render non puo'
+vivere in un file caricato su richiesta.
 
-## Cosa cambia in questo delta
+## La correzione
 
-Build passato da `nubemo40clean01` a **`nubemo40clean02`** in tutti i
-punti, e nome cache del service worker da `nubemo-demo-v4.0-profilo01` a
-`nubemo-demo-v4.0-clean02`. Questo forza il rifetch di tutto.
+La regola e' ora in `style.css`, accanto alle altre `.pro3-patient`.
+`style.css` e' caricato dal tag `<link>` della pagina, quindi e'
+disponibile prima di qualsiasi render. Rimossa dal lifecycle bridge.
 
-Nessuna modifica di logica rispetto al delta precedente: i 5 file
-funzionali sono identici a quelli gia' consegnati, cambiano solo le
-stringhe di versione nei file che li referenziano.
+Nessuna modifica di logica: cambia solo dove vive una regola CSS.
 
-### File con modifiche funzionali (identici al delta precedente)
+## Build
+
+Portato a `nubemo40clean03`, cache service worker a
+`nubemo-demo-v4.0-clean03`. `style.css` e' versionato e presente
+nell'elenco `CORE`, quindi il bump forza il rifetch anche del foglio di
+stile.
+
+## File
+
+Modifiche funzionali:
+
+    style.css                                  regola .pro3-draft-badge aggiunta
+    professional-patient-lifecycle-bridge.js   regola rimossa
+
+Gia' consegnati nei delta precedenti, inclusi qui per completezza:
 
     pro.js
     professional-dashboard-bootstrap.js
-    professional-patient-lifecycle-bridge.js
     professional-patient-management.js
     professional-patient-invite-guard.js
 
-### File con solo il numero di build aggiornato
+Solo numero di build:
 
     sw.js  (anche il nome cache)
     professional-guard.js
@@ -49,28 +63,7 @@ stringhe di versione nei file che li referenziano.
     privacy.html
     set-password.html
 
-## Regola per i prossimi giri
-
-Qualsiasi file servito dal service worker che venga modificato richiede
-l'incremento del build in TRE posti, tenuti allineati:
-
-1. il tag `<script src="...?v=">` nella pagina che lo carica
-2. la chiamata `loadScript('...?v=')` nel guard, per i file lazy
-3. l'elenco `CORE` in `sw.js`, piu' la costante `CACHE`
-
-E' esattamente il problema che il numero di build unico doveva prevenire:
-unico va incrementato, non solo unico.
-
-## Dopo il deploy
-
-Se il badge ancora non compare, e' cache del browser e non del service
-worker: forzare un ricaricamento completo, oppure disinstallare il service
-worker da DevTools > Application > Service Workers > Unregister e
-ricaricare.
-
 ## Da collaudare
 
-- Badge "Anagrafica parziale" sui 10 contatti provvisori in elenco.
-- Conversione di un draft in paziente: il badge sparisce solo per quello.
-- Eliminazione contatto draft.
-- Creazione paziente senza spunta di attivazione: un solo record.
+Aprire la lista pazienti come primo gesto dopo il login: il badge deve
+gia' essere una pillola gialla, senza bisogno di cliccare nulla.
