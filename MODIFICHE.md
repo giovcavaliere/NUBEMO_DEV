@@ -1,65 +1,76 @@
-# Delta — tab Pazienti
+# Delta — badge "Anagrafica parziale" + bump di build
 
-Sovrascrivere questi 5 file nella radice del repo. Nessun file da
-eliminare, nessun file nuovo, nessuna modifica a `pro.html` o `sw.js`
-(le versioni `?v=` restano `nubemo40clean01`).
+Sovrascrivere tutti i 18 file nella radice del repo.
 
-## professional-patient-invite-guard.js — FIX doppio paziente
+## Perche' il badge era sparito
 
-Il guard, quando decideva di non intervenire, rilanciava il click con
-`button.click()` invece di lasciar proseguire l'evento. Il rilancio
-creava il paziente una volta, e l'evento originale — mai bloccato —
-lo creava una seconda volta. Rimosso il rilancio, la funzione che lo
-faceva e il flag di bypass che serviva solo a gestirlo.
+Nel delta precedente `pro.js` era stato modificato (badge reso nel markup)
+ma il numero di build `?v=` NON era stato incrementato. Il service worker
+ha quindi continuato a servire il `pro.js` in cache, privo del badge nuovo,
+mentre `professional-dashboard-bootstrap.js` — aggiornato correttamente —
+aveva gia' rimosso il vecchio badge iniettato via CSS.
 
-## pro.js + professional-dashboard-bootstrap.js — badge "Anagrafica parziale"
+Risultato: vecchio badge rimosso, nuovo mai caricato.
 
-Il badge veniva iniettato come foglio di stile con un selettore `::after`
-per ogni id draft, agganciato alla posizione esatta dei nodi
-(`> div:nth-child(2)`). Si perdeva a ogni ricostruzione della lista, per
-i draft creati dopo il caricamento, e si sarebbe rotto in silenzio a
-qualsiasi modifica del markup.
+I dati erano corretti per tutto il tempo (`_draft: true` su tutti i
+contatti provvisori): il difetto era solo di distribuzione.
 
-Ora il badge e' reso direttamente nell'elenco pazienti, dalla stessa
-condizione gia' usata per "Paziente non ancora attivo". Lo stile vive
-accanto agli altri del lifecycle bridge.
+## Cosa cambia in questo delta
 
-Rimossi dal bootstrap: `syncDraftPresentation()`, `cssAttributeValue()`,
-la costante `DRAFT_STYLE_ID` e le quattro chiamate.
+Build passato da `nubemo40clean01` a **`nubemo40clean02`** in tutti i
+punti, e nome cache del service worker da `nubemo-demo-v4.0-profilo01` a
+`nubemo-demo-v4.0-clean02`. Questo forza il rifetch di tutto.
 
-## professional-patient-lifecycle-bridge.js — eliminazione contatto draft
+Nessuna modifica di logica rispetto al delta precedente: i 5 file
+funzionali sono identici a quelli gia' consegnati, cambiano solo le
+stringhe di versione nei file che li referenziano.
 
-Nuovo pulsante "Elimina contatto" nel modale "Completa anagrafica".
-Chiede conferma, cancella la riga da `professional_patient_drafts`
-filtrando anche per `professional_id`, poi ricarica.
+### File con modifiche funzionali (identici al delta precedente)
 
-Gli appuntamenti collegati NON vengono toccati: restano in Agenda senza
-paziente associato. E' scritto nel testo di conferma. Se preferisci un
-comportamento diverso (bloccare l'eliminazione se ci sono appuntamenti,
-oppure eliminarli a cascata) va deciso e implementato a parte.
+    pro.js
+    professional-dashboard-bootstrap.js
+    professional-patient-lifecycle-bridge.js
+    professional-patient-management.js
+    professional-patient-invite-guard.js
 
-## professional-patient-management.js — rimosso il creatore duplicato
+### File con solo il numero di build aggiornato
 
-Conteneva una seconda implementazione completa della creazione paziente
-verso la Edge Function `swift-endpoint`, mai raggiunta: il lifecycle
-bridge si carica prima (guard riga 95 contro 104), si registra prima
-sulla fase di cattura e blocca l'evento. Rimossa insieme alle tre
-funzioni di supporto rimaste orfane (`clinicalFromForm`,
-`readItalianDate`, `optionalNumber`) e al flag `creatingPatient`.
+    sw.js  (anche il nome cache)
+    professional-guard.js
+    patient-guard.js
+    professional-pathway-lazy.js
+    professional-new-patient-lazy.js
+    professional-patient-list-freshness.js
+    professional-patient-edit-lazy.js
+    pro.html
+    patient.html
+    index.html
+    admin.html
+    privacy.html
+    set-password.html
 
-Il file resta in uso per fine percorso, riattivazione, modifiche alla
-scheda e telefono.
+## Regola per i prossimi giri
 
-Nota: la Edge Function `swift-endpoint` non e' piu' chiamata da nessun
-punto del frontend. Verificare su Supabase se e' usata altrove prima di
-rimuoverla anche li'.
+Qualsiasi file servito dal service worker che venga modificato richiede
+l'incremento del build in TRE posti, tenuti allineati:
+
+1. il tag `<script src="...?v=">` nella pagina che lo carica
+2. la chiamata `loadScript('...?v=')` nel guard, per i file lazy
+3. l'elenco `CORE` in `sw.js`, piu' la costante `CACHE`
+
+E' esattamente il problema che il numero di build unico doveva prevenire:
+unico va incrementato, non solo unico.
+
+## Dopo il deploy
+
+Se il badge ancora non compare, e' cache del browser e non del service
+worker: forzare un ricaricamento completo, oppure disinstallare il service
+worker da DevTools > Application > Service Workers > Unregister e
+ricaricare.
 
 ## Da collaudare
 
+- Badge "Anagrafica parziale" sui 10 contatti provvisori in elenco.
+- Conversione di un draft in paziente: il badge sparisce solo per quello.
+- Eliminazione contatto draft.
 - Creazione paziente senza spunta di attivazione: un solo record.
-- Creazione con spunta ed email nuova, e con email di paziente esistente.
-- Badge "Anagrafica parziale" sui draft: all'apertura della tab, dopo un
-  filtro di ricerca, e su un draft appena creato dall'Agenda.
-- Eliminazione di un contatto draft, con e senza appuntamenti collegati.
-- Fine percorso e riattivazione paziente, perche' vivono nel file da cui
-  e' stato rimosso il creatore duplicato.

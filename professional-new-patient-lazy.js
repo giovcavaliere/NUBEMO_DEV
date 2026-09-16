@@ -26,14 +26,14 @@
 
       if(!window.nubemoProfessionalServices){
         if(!hasScript('professional-services.js')){
-          await loadScript('professional-services.js?v=nubemo40clean01','Impossibile caricare i servizi necessari al nuovo paziente.');
+          await loadScript('professional-services.js?v=nubemo40clean02','Impossibile caricare i servizi necessari al nuovo paziente.');
         }
         if(!window.nubemoProfessionalServices)throw new Error('Servizi paziente non disponibili.');
       }
 
       if(!window.nubemoPatientLifecycleBridge){
         if(!hasScript('professional-patient-lifecycle-bridge.js')){
-          await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40clean01','Impossibile preparare la creazione del paziente.');
+          await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40clean02','Impossibile preparare la creazione del paziente.');
         }
         await window.nubemoPatientLifecycleBridge?.ready;
         if(!window.nubemoPatientLifecycleBridge)throw new Error('Gestione nuovo paziente non disponibile.');
