@@ -1,85 +1,65 @@
-# Pacchetto delta — solo i file modificati
+# Delta — tab Pazienti
 
-Sovrascrivere questi file nel repo, mantenendo i percorsi (`docs/` va in
-`docs/`, il resto nella radice).
+Sovrascrivere questi 5 file nella radice del repo. Nessun file da
+eliminare, nessun file nuovo, nessuna modifica a `pro.html` o `sw.js`
+(le versioni `?v=` restano `nubemo40clean01`).
 
-## ATTENZIONE — un file va ELIMINATO
+## professional-patient-invite-guard.js — FIX doppio paziente
 
-    support-email-supabase-bridge.js      → eliminare
+Il guard, quando decideva di non intervenire, rilanciava il click con
+`button.click()` invece di lasciar proseguire l'evento. Il rilancio
+creava il paziente una volta, e l'evento originale — mai bloccato —
+lo creava una seconda volta. Rimosso il rilancio, la funzione che lo
+faceva e il flag di bypass che serviva solo a gestirlo.
 
-Sostituito da `nubemo-support.js`. Non e' piu' referenziato da nessuna
-pagina ne' dal service worker: se resta nel repo e' solo codice morto, ma
-va rimosso perche' registra listener sui pulsanti Assistenza e andrebbe in
-conflitto con il modulo nuovo.
+## pro.js + professional-dashboard-bootstrap.js — badge "Anagrafica parziale"
 
-## File NUOVI (3)
+Il badge veniva iniettato come foglio di stile con un selettore `::after`
+per ogni id draft, agganciato alla posizione esatta dei nodi
+(`> div:nth-child(2)`). Si perdeva a ogni ricostruzione della lista, per
+i draft creati dopo il caricamento, e si sarebbe rotto in silenzio a
+qualsiasi modifica del markup.
 
-    storage-bridge-kit.js     kit condiviso per l'intercettazione di Storage
-    nubemo-support.js         Assistenza NUBEMO, aree Professionista e Paziente
-    pro-profile.js            Profilo professionista
+Ora il badge e' reso direttamente nell'elenco pazienti, dalla stessa
+condizione gia' usata per "Paziente non ancora attivo". Lo stile vive
+accanto agli altri del lifecycle bridge.
 
-## Codice modificato (19)
+Rimossi dal bootstrap: `syncDraftPresentation()`, `cssAttributeValue()`,
+la costante `DRAFT_STYLE_ID` e le quattro chiamate.
 
-    app.js                                         delega pagina Assistenza; rimosse sendPatientSupport e deviceInfo
-    pro.js                                         delega Assistenza e Profilo; rimossi backup, quick patient, saveNewPatient; griglia Agenda a 15'
-    pro.html                                       nuovi script, rimosso il vecchio bridge Assistenza
-    patient.html                                   nuovi script, rimosso il vecchio bridge Assistenza
-    sw.js                                          elenco CORE aggiornato, versione cache
-    professional-recovery-contract.js              FIX draft: consulta anche il lifecycle bridge
-    professional-dashboard-bootstrap.js            uso del kit condiviso
-    professional-legacy-supabase-adapter.js        uso del kit condiviso
-    patient-legacy-supabase-adapter.js             uso del kit condiviso
-    professional-agenda-supabase-bridge.js         uso del kit condiviso
-    professional-diary-calorie-supabase-bridge.js  uso del kit condiviso
-    professional-document-read-supabase-bridge.js  uso del kit condiviso
-    professional-documents-supabase-bridge.js      uso del kit condiviso
-    professional-labs-supabase-bridge.js           uso del kit condiviso
-    professional-notes-supabase-bridge.js          uso del kit condiviso
-    professional-patient-settings-supabase-bridge.js uso del kit condiviso
-    professional-settings-supabase-bridge.js       uso del kit condiviso
-    professional-visits-supabase-bridge.js         uso del kit condiviso
-    patient-document-read-supabase-bridge.js       uso del kit condiviso
-    patient-settings-supabase-bridge.js            uso del kit condiviso
+## professional-patient-lifecycle-bridge.js — eliminazione contatto draft
 
-## Solo commenti — rimozione dei riferimenti "3.98" (10)
+Nuovo pulsante "Elimina contatto" nel modale "Completa anagrafica".
+Chiede conferma, cancella la riga da `professional_patient_drafts`
+filtrando anche per `professional_id`, poi ricarica.
 
-Nessuna modifica di codice. Si possono anche non applicare, ma restano
-allora i riferimenti alla vecchia versione.
+Gli appuntamenti collegati NON vengono toccati: restano in Agenda senza
+paziente associato. E' scritto nel testo di conferma. Se preferisci un
+comportamento diverso (bloccare l'eliminazione se ci sono appuntamenti,
+oppure eliminarli a cascata) va deciso e implementato a parte.
 
-    auth.js
-    patient-guard.js
-    patient-labs-supabase-bridge.js
-    patient-measures-pdf.js
-    patient-recovery-contract.js
-    pdf-open-recovery-bridge.js
-    professional-bmi-dashboard-fix.js
-    professional-patient-actions-menu.js
-    professional-patient-management.js
-    professional-plans-supabase-bridge.js
+## professional-patient-management.js — rimosso il creatore duplicato
 
-## Solo numero di build `?v=` (8)
+Conteneva una seconda implementazione completa della creazione paziente
+verso la Edge Function `swift-endpoint`, mai raggiunta: il lifecycle
+bridge si carica prima (guard riga 95 contro 104), si registra prima
+sulla fase di cattura e blocca l'evento. Rimossa insieme alle tre
+funzioni di supporto rimaste orfane (`clinicalFromForm`,
+`readItalianDate`, `optionalNumber`) e al flag `creatingPatient`.
 
-Le versioni sono state unificate su `nubemo40clean01`. Questi file cambiano
-solo per quello: vanno applicati comunque, altrimenti le versioni tornano
-disallineate tra chi carica e chi e' caricato.
+Il file resta in uso per fine percorso, riattivazione, modifiche alla
+scheda e telefono.
 
-    admin.html
-    index.html
-    privacy.html
-    set-password.html
-    professional-guard.js
-    professional-new-patient-lazy.js
-    professional-pathway-lazy.js
-    professional-patient-edit-lazy.js
-    professional-patient-list-freshness.js
+Nota: la Edge Function `swift-endpoint` non e' piu' chiamata da nessun
+punto del frontend. Verificare su Supabase se e' usata altrove prima di
+rimuoverla anche li'.
 
-## Documentazione (3, in docs/)
+## Da collaudare
 
-    docs/storage-bridge-kit-refactor.md   il kit condiviso e il fix del timing
-    docs/storage-key-mapping.md           mappatura chiave per chiave
-    docs/punti-aperti.md                  i due punti rimandati alla Dashboard
-
-## Non toccati
-
-`style.css`, `supabase/`, `assets/`, `tests/` e tutti gli altri file non
-elencati qui sono invariati rispetto allo zip di partenza.
+- Creazione paziente senza spunta di attivazione: un solo record.
+- Creazione con spunta ed email nuova, e con email di paziente esistente.
+- Badge "Anagrafica parziale" sui draft: all'apertura della tab, dopo un
+  filtro di ricerca, e su un draft appena creato dall'Agenda.
+- Eliminazione di un contatto draft, con e senza appuntamenti collegati.
+- Fine percorso e riattivazione paziente, perche' vivono nel file da cui
+  e' stato rimosso il creatore duplicato.

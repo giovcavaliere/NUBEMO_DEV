@@ -681,11 +681,13 @@ function patientsPage(){
  </div>
  <div class="pro3-patients">${visible.map(p=>{
    const delta=p.delta!=null?(p.delta>0?'+':'')+p.delta.toFixed(1).replace('.',',')+' kg':'—';
+   const isDraft=p._draft===true||p.relationshipStatus==='draft';
    return `<button data-patient="${p.id}" class="pro3-patient" style="font-weight:400">
      <div class="patient-avatar">${p.name.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
      <div>
        <span style="display:block;font-size:15px;font-weight:700;color:#34484f">${esc(p.name)}${hasUnreadProfessionalActivity(p.id)?'<span class="document-alert-inline">!</span>':''}</span>
-       <span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">${p._draft===true||p.relationshipStatus==='draft'?'Paziente non ancora attivo':p.last!=null?'Ultimo peso '+p.last.toFixed(1).replace('.',',')+' kg':'Dati non disponibili'}</span>
+       <span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">${isDraft?'Paziente non ancora attivo':p.last!=null?'Ultimo peso '+p.last.toFixed(1).replace('.',',')+' kg':'Dati non disponibili'}</span>
+       ${isDraft?'<span class="pro3-draft-badge">Anagrafica parziale</span>':''}
      </div>
      <span style="font-size:12px;font-weight:600;color:${p.delta<0?'#3d8b69':p.delta>0?'#a66a45':'#7b898f'}">${delta}</span>
    </button>`;

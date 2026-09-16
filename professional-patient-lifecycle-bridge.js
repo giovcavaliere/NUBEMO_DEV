@@ -156,13 +156,30 @@
   function draftModal(row){
     document.getElementById('nubemoDraftModal')?.remove();
     const modal=document.createElement('div');modal.id='nubemoDraftModal';modal.className='nubemo-draft-modal-backdrop';
-    modal.innerHTML=`<section class="card nubemo-draft-modal" role="dialog" aria-modal="true"><div class="section-head"><h2>Completa anagrafica</h2><button type="button" class="mini" data-close-draft-modal>✕</button></div><p><b>${esc(row.first_name)} ${esc(row.last_name)}</b>${row.phone?` · ${esc(row.phone)}</small>`:''}</p><label>Data di nascita</label><div class="date-entry nubemo-draft-date"><input id="draftBirth" placeholder="gg/mm/aaaa" inputmode="numeric" autocomplete="bday" maxlength="10"><label class="date-picker-btn" aria-label="Apri calendario"><span aria-hidden="true">📅</span><input id="draftBirthPicker" type="date" tabindex="-1" aria-hidden="true"></label></div><label>Sesso</label><select id="draftSex"><option value="">Non specificato</option><option value="M">Maschile</option><option value="F">Femminile</option><option value="X">Altro / preferisco non specificare</option></select><label>Altezza (cm)</label><input id="draftHeight" type="number" min="80" max="250" step="1"><div class="nubemo-patient-area-choice"><label><input id="draftActivateArea" type="checkbox"> Attiva Area Paziente NUBEMO</label><p class="muted">Attivandola verrà richiesto l’indirizzo email e sarà inviato l’invito.</p></div><div id="draftEmailBox" hidden><label>Email</label><input id="draftEmail" type="email" inputmode="email"></div><div class="pro3-actions"><button type="button" class="secondary" data-close-draft-modal>Annulla</button><button type="button" class="primary" id="convertDraftPatient">Crea paziente</button></div></section>`;
+    modal.innerHTML=`<section class="card nubemo-draft-modal" role="dialog" aria-modal="true"><div class="section-head"><h2>Completa anagrafica</h2><button type="button" class="mini" data-close-draft-modal>✕</button></div><p><b>${esc(row.first_name)} ${esc(row.last_name)}</b>${row.phone?` · ${esc(row.phone)}</small>`:''}</p><label>Data di nascita</label><div class="date-entry nubemo-draft-date"><input id="draftBirth" placeholder="gg/mm/aaaa" inputmode="numeric" autocomplete="bday" maxlength="10"><label class="date-picker-btn" aria-label="Apri calendario"><span aria-hidden="true">📅</span><input id="draftBirthPicker" type="date" tabindex="-1" aria-hidden="true"></label></div><label>Sesso</label><select id="draftSex"><option value="">Non specificato</option><option value="M">Maschile</option><option value="F">Femminile</option><option value="X">Altro / preferisco non specificare</option></select><label>Altezza (cm)</label><input id="draftHeight" type="number" min="80" max="250" step="1"><div class="nubemo-patient-area-choice"><label><input id="draftActivateArea" type="checkbox"> Attiva Area Paziente NUBEMO</label><p class="muted">Attivandola verrà richiesto l’indirizzo email e sarà inviato l’invito.</p></div><div id="draftEmailBox" hidden><label>Email</label><input id="draftEmail" type="email" inputmode="email"></div><div class="pro3-actions"><button type="button" class="mini" id="deleteDraftPatient">Elimina contatto</button><button type="button" class="secondary" data-close-draft-modal>Annulla</button><button type="button" class="primary" id="convertDraftPatient">Crea paziente</button></div></section>`;
     document.body.appendChild(modal);
     const birthInput=modal.querySelector('#draftBirth'),birthPicker=modal.querySelector('#draftBirthPicker');
     birthInput?.addEventListener('input',()=>formatDraftBirthInput(birthInput));
     birthPicker?.addEventListener('change',()=>{const value=String(birthPicker.value||'');const m=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)birthInput.value=`${m[3]}/${m[2]}/${m[1]}`;});
     const toggle=modal.querySelector('#draftActivateArea'),emailBox=modal.querySelector('#draftEmailBox');toggle.addEventListener('change',()=>emailBox.hidden=!toggle.checked);
     modal.querySelectorAll('[data-close-draft-modal]').forEach(b=>b.addEventListener('click',()=>modal.remove()));
+    modal.querySelector('#deleteDraftPatient').addEventListener('click',async event=>{
+      const name=[row.first_name,row.last_name].filter(Boolean).join(' ').trim()||'questo contatto';
+      if(!confirm(`Eliminare ${name}?\n\nIl contatto provvisorio verra' rimosso definitivamente. Gli appuntamenti collegati restano in Agenda senza paziente.`))return;
+      const button=event.currentTarget;button.disabled=true;button.textContent='Eliminazione...';
+      try{
+        const {error}=await client.from('professional_patient_drafts').delete().eq('id',row.id).eq('professional_id',context.professional.id);
+        if(error)throw error;
+        drafts.delete(row.id);
+        modal.remove();
+        await refreshCanonicalPatients();
+        window.location.reload();
+      }catch(error){
+        console.error('NUBEMO draft delete:',error);
+        alert('Non e\u2019 stato possibile eliminare il contatto provvisorio.');
+        button.disabled=false;button.textContent='Elimina contatto';
+      }
+    });
     modal.querySelector('#convertDraftPatient').addEventListener('click',async event=>{
       const button=event.currentTarget,activate=toggle.checked,email=activate?String(modal.querySelector('#draftEmail').value||'').trim().toLowerCase():'';
       if(activate&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert('Inserisci un indirizzo email valido.');
@@ -177,6 +194,7 @@
   function patch(){if(patching)return;patching=true;try{patchNewPatientPhone();patchNewPatientAccessChoice();}finally{patching=false;}}
 
   const style=document.createElement('style');style.textContent=`
+    .pro3-draft-badge{display:block;width:max-content;margin-top:7px;font-size:11px;font-weight:800;color:#8a6420;background:#fff4cf;border-radius:999px;padding:5px 8px;line-height:1.15}
     .patient-content-card,.patient-content-card .nubemo-remote-tab-content,.patient-content-card .pro-read-grid,.patient-content-card .pro-read-grid>div{min-width:0}
     .patient-content-card b,.patient-content-card p,.patient-content-card span{overflow-wrap:anywhere;word-break:break-word}
     .nubemo-access-hidden{display:none!important}

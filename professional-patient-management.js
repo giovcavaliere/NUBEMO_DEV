@@ -12,7 +12,6 @@
   const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
   let currentPatientId = '';
   let patching = false;
-  let creatingPatient = false;
 
   const esc = (value='') => String(value)
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
@@ -52,33 +51,8 @@
     return currentPatientId;
   }
 
-  function readItalianDate(id) {
-    const value=String(document.getElementById(id)?.value||'').trim();
-    if(!value)return null;
-    const m=value.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
-    if(!m)return '';
-    const iso=`${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
-    const date=new Date(`${iso}T12:00:00`);
-    return !Number.isNaN(date.getTime())&&date.getFullYear()===Number(m[3])&&date.getMonth()+1===Number(m[2])&&date.getDate()===Number(m[1])?iso:'';
-  }
 
-  function optionalNumber(id) {
-    const raw=String(document.getElementById(id)?.value||'').trim().replace(',','.');
-    if(raw==='')return null;
-    const value=Number(raw);
-    return Number.isFinite(value)?value:NaN;
-  }
 
-  function clinicalFromForm() {
-    const text=id=>String(document.getElementById(id)?.value||'').trim()||null;
-    const checked=id=>!!document.getElementById(id)?.checked;
-    return {
-      goalWeight:optionalNumber('npGoal'),minWeight:optionalNumber('npMinWeight'),maxWeight:optionalNumber('npMaxWeight'),reasonableWeight:optionalNumber('npReasonableWeight'),theoreticalWeight:optionalNumber('npTheoreticalWeight'),
-      work:text('npWork'),activity:text('npActivity'),activityFactor:optionalNumber('npActivityFactor'),smoking:text('npSmoking'),alcohol:text('npAlcohol'),diagnosis:text('npDiagnosis'),bowel:text('npBowel'),metabolism:text('npMetabolism'),feeg:text('npFeeg'),impedance:text('npImpedance'),
-      familyObesity:checked('npFamObesity'),familyDiabetes:checked('npFamDiabetes'),familyHypertension:checked('npFamHypertension'),familyCardiovascular:checked('npFamCardiovascular'),familyDyslipidemia:checked('npFamDyslipidemia'),familyThyroid:checked('npFamThyroid'),
-      previousDiets:text('npPreviousDiets'),allergies:text('npAllergies'),medications:text('npMedications'),giIssues:text('npGiIssues'),pastConditions:text('npPastConditions'),observations:text('npObservations'),objectives:text('npObjectives')
-    };
-  }
 
   function patchNewPatientForm() {
     if(document.body.dataset.proView!=='newPatient'||document.getElementById('npEmail'))return;
@@ -112,37 +86,11 @@
     }catch(error){console.error('NUBEMO patient phone stage:',error);}
   }
 
-  async function createRealPatient() {
-    if(creatingPatient||document.body.dataset.proView!=='newPatient')return;
-    const firstName=String(document.getElementById('npName')?.value||'').trim();
-    const lastName=String(document.getElementById('npSurname')?.value||'').trim();
-    const email=String(document.getElementById('npEmail')?.value||'').trim().toLowerCase();
-    const birthDate=readItalianDate('npBirth');
-    const sex=document.getElementById('npSex')?.value||null;
-    const height=optionalNumber('npHeight');
-    const clinical=clinicalFromForm();
-    if(!firstName||!lastName)return alert('Inserisci nome e cognome.');
-    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert('Inserisci un indirizzo email valido.');
-    if(birthDate==='')return alert('Controlla la data di nascita.');
-    if(height!==null&&(!Number.isFinite(height)||height<80||height>250))return alert('Controlla l’altezza inserita.');
-    for(const value of [clinical.goalWeight,clinical.minWeight,clinical.maxWeight,clinical.reasonableWeight,clinical.theoreticalWeight]){
-      if(value!==null&&(!Number.isFinite(value)||value<30||value>300))return alert('Controlla i valori di peso inseriti.');
-    }
-    const button=document.getElementById('saveNewPatient');
-    creatingPatient=true;if(button){button.disabled=true;button.textContent='Creazione...';}
-    try{
-      const {data,error}=await client.functions.invoke('swift-endpoint',{body:{action:'create-patient',first_name:firstName,last_name:lastName,email,birth_date:birthDate,sex,height_cm:height,pathway_start_date:null}});
-      if(error)throw error;
-      if(!data?.ok||!data?.patient_id)throw new Error(data?.error||'Creazione paziente non completata.');
-      try{await services.savePatientAnamnesis(data.patient_id,clinical);}catch(clinicalError){console.error('NUBEMO recovery create patient anamnesis:',clinicalError);alert('Il paziente è stato creato e invitato, ma alcuni dati anamnestici non sono stati salvati. La scheda verrà ricaricata.');}
-      if(typeof window.nubemoReloadProfessionalPatients==='function')await window.nubemoReloadProfessionalPatients();
-      window.location.reload();
-    }catch(error){
-      console.error('NUBEMO recovery create patient:',error);
-      alert(`Non è stato possibile creare il paziente. ${error?.message||''}`.trim());
-      creatingPatient=false;if(button){button.disabled=false;button.textContent='Salva paziente';}
-    }
-  }
+  // La creazione del paziente e' gestita da
+  // professional-patient-lifecycle-bridge.js (Edge Function patient-lifecycle).
+  // Qui esisteva una seconda implementazione completa verso la Edge Function
+  // swift-endpoint, mai raggiunta: il lifecycle bridge si carica prima e
+  // blocca l'evento. E' stata rimossa.
 
   async function endPathway(patientId) {
     const row=activePatients().find(p=>p.id===patientId);
@@ -199,9 +147,6 @@
   document.addEventListener('click',event=>{
     rememberPatient(event.target);
     if(event.target?.closest?.('#saveEditProfile')&&document.body.dataset.proView==='editProfile')stageEditedPatientPhone();
-    if(event.target?.closest?.('#saveNewPatient')&&document.body.dataset.proView==='newPatient'){
-      event.preventDefault();event.stopImmediatePropagation();void createRealPatient();return;
-    }
     const end=event.target?.closest?.('#deletePatient[data-end-pathway]');
     if(end){event.preventDefault();event.stopImmediatePropagation();void endPathway(end.dataset.endPathway);return;}
   },true);
