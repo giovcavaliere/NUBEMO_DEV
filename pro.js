@@ -1985,62 +1985,6 @@ function newPatientForm(){
  </section>`;
 }
 
-function saveNewPatient(){
- const name=(el('npName')?.value||'').trim();
- const surname=(el('npSurname')?.value||'').trim();
- if(!name || !surname)return alert('Inserisci nome e cognome.');
-
- const num=id=>{
-   const v=(el(id)?.value||'').trim().replace(',','.');
-   return v===''?'':Number(v);
- };
-
- const height=num('npHeight');
- const goal=num('npGoal');
- const minWeight=num('npMinWeight');
- const maxWeight=num('npMaxWeight');
- const reasonableWeight=num('npReasonableWeight');
-
- if(height!=='' && (!Number.isFinite(height) || height<80 || height>250))return alert('Controlla l’altezza inserita.');
- for(const v of [goal,minWeight,maxWeight,reasonableWeight]){
-   if(v!=='' && (!Number.isFinite(v) || v<30 || v>300))return alert('Controlla i valori di peso inseriti.');
- }
-
- const arr=extraPatients();
- const id='patient-'+Date.now();
- arr.push({
-   id,
-   name:`${name} ${surname}`,
-   firstName:name,
-   surname,
-   birth:readProDate('npBirth')||'',
-   sex:el('npSex')?.value||'',
-   height,
-   goal,
-   startDate:'',
-   minWeight,
-   maxWeight,
-   reasonableWeight,
-   work:(el('npWork')?.value||'').trim(),
-   activity:(el('npActivity')?.value||'').trim(),activityFactor:el('npActivityFactor')?.value||'',
-   smoking:(el('npSmoking')?.value||'').trim(),
-   alcohol:(el('npAlcohol')?.value||'').trim(), diagnosis:(el('npDiagnosis')?.value||'').trim(), theoreticalWeight:num('npTheoreticalWeight'), bowel:(el('npBowel')?.value||'').trim(), metabolism:(el('npMetabolism')?.value||'').trim(), feeg:(el('npFeeg')?.value||'').trim(), impedance:(el('npImpedance')?.value||'').trim(), famObesity:!!el('npFamObesity')?.checked, famDiabetes:!!el('npFamDiabetes')?.checked, famHypertension:!!el('npFamHypertension')?.checked, famCardiovascular:!!el('npFamCardiovascular')?.checked, famDyslipidemia:!!el('npFamDyslipidemia')?.checked, famThyroid:!!el('npFamThyroid')?.checked, previousDiets:(el('npPreviousDiets')?.value||'').trim(), allergies:(el('npAllergies')?.value||'').trim(), medications:(el('npMedications')?.value||'').trim(), giIssues:(el('npGiIssues')?.value||'').trim(), pastConditions:(el('npPastConditions')?.value||'').trim(), observations:(el('npObservations')?.value||'').trim(), objectives:(el('npObjectives')?.value||'').trim(),
-   showEnergyValues:true,
-   readOnly:false,
-   weights:[],
-   diary:[],
-   measures:[]
- });
- saveExtraPatients(arr);
-
- selected=id;
- tab='summary';
- view='details';
- render();
-}
-
-
-
 function editPatientProfileForm(){
  const p=patient(selected);
  if(!p)return `${top('Paziente non trovato')}`;
@@ -2361,35 +2305,6 @@ function eventForm(prefill){
  </section>`;
 }
 
-
-function createAgendaQuickPatient(){
- const firstName=(el('agendaNpName')?.value||'').trim();
- const surname=(el('agendaNpSurname')?.value||'').trim();
- const phone=(el('agendaNpPhone')?.value||'').trim();
- if(!firstName||!surname)return alert('Inserisci nome e cognome.');
- if(!phone)return alert('Inserisci un recapito telefonico.');
-
- const arr=extraPatients();
- const id='patient-'+Date.now();
- arr.push({
-   id,
-   name:`${firstName} ${surname}`,
-   firstName,
-   surname,
-   phone,
-   startDate:'',
-   birth:'',sex:'',height:'',goal:'',
-   minWeight:'',maxWeight:'',reasonableWeight:'',
-   work:'',activity:'',activityFactor:'',smoking:'',alcohol:'',
-   diagnosis:'',theoreticalWeight:'',bowel:'',metabolism:'',feeg:'',impedance:'',
-   famObesity:false,famDiabetes:false,famHypertension:false,famCardiovascular:false,
-   famDyslipidemia:false,famThyroid:false,previousDiets:'',allergies:'',medications:'',
-   giIssues:'',pastConditions:'',observations:'',objectives:'',
-   weights:[],diary:[],measures:[]
- });
- saveExtraPatients(arr);
- return id;
-}
 
 function selectAgendaPatient(id){
  const hidden=el('ePatient');
@@ -2768,7 +2683,7 @@ document.querySelectorAll('[data-delete-pro-plan]').forEach(b=>b.addEventListene
    });
  });
  el('cancelNewPatient')?.addEventListener('click',()=>{view='patients';render()});
- el('saveNewPatient')?.addEventListener('click',saveNewPatient);
+ // #saveNewPatient e' gestito da professional-patient-lifecycle-bridge.js.
  el('newEvent')?.addEventListener('click',()=>{editing=null;window.prefill=null;view='event';render()});
  el('prevWeek')?.addEventListener('click',()=>{weekDate=addDays(weekDate,-7);render()});
  el('nextWeek')?.addEventListener('click',()=>{weekDate=addDays(weekDate,7);render()});
@@ -2820,31 +2735,11 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    if(!box.hidden)el('agendaNpName')?.focus();
  });
  el('agendaCancelQuickPatient')?.addEventListener('click',()=>{const box=el('agendaQuickPatient');if(box)box.hidden=true;});
- el('agendaCreateQuickPatient')?.addEventListener('click',()=>{
-   const id=createAgendaQuickPatient();
-   if(!id)return;
-   const p=patient(id);
-   const results=el('ePatientResults');
-   if(results){
-     results.insertAdjacentHTML('beforeend',`<button type="button" class="agenda-patient-option" data-agenda-patient="${id}"><span>${esc(p?.name||'Paziente')}</span>${p?.phone?`<small>${esc(p.phone)}</small>`:''}</button>`);
-     const btn=results.querySelector(`[data-agenda-patient="${id}"]`);
-     btn?.addEventListener('click',()=>selectAgendaPatient(id));
-   }
-   selectAgendaPatient(id);
-   if(el('ePatientSearch'))el('ePatientSearch').value=p?.name||'';
-   document.querySelectorAll('[data-agenda-patient]').forEach(b=>b.hidden=false);
+ // La creazione del contatto provvisorio dall'Agenda e' gestita da
+ // professional-patient-lifecycle-bridge.js, che crea una riga reale in
+ // professional_patient_drafts. Il vecchio percorso locale creava un id
+ // finto mai sincronizzato con Supabase ed e' stato rimosso.
 
-   // Un paziente creato direttamente dall'Agenda è un nuovo paziente:
-   // l'appuntamento viene quindi proposto automaticamente come Prima visita.
-   const typeSelect=el('eType');
-   if(typeSelect){
-     typeSelect.value='first';
-     typeSelect.dispatchEvent(new Event('change'));
-   }
-
-   const box=el('agendaQuickPatient');if(box)box.hidden=true;
-   alert('Paziente creato e selezionato. Appuntamento impostato come Prima visita.');
- });
  el('eType')?.addEventListener('change',()=>{const t=el('eType').value,s=settings();el('patientBox').style.display=t==='personal'?'none':'block';el('titleBox').style.display=t==='personal'?'block':'none';if(t==='first')el('eDuration').value=s.first;if(t==='control')el('eDuration').value=s.control});
  el('cancelEvent')?.addEventListener('click',()=>{
    editing=null;window.prefill=null;

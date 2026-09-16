@@ -25,13 +25,25 @@
 
   const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoStorageKit.capture();
 
+  // Un contatto provvisorio (draft) e' noto a due componenti diverse a
+  // seconda di come si e' arrivati alla pagina: l'adapter legacy lo espone
+  // come `remoteDrafts`, il lifecycle bridge come `drafts`. Nel percorso
+  // Agenda viene caricato solo il secondo, quindi vanno consultati
+  // entrambi - come fa gia' professional-agenda-supabase-bridge.js.
+  // Consultandone uno solo, i draft sparivano dalla lista dopo il
+  // salvataggio dell'appuntamento.
+  function isKnownDraft(id) {
+    if (window.nubemoProfessionalLegacyAdapter?.isDraft?.(id)) return true;
+    if (window.nubemoPatientLifecycleBridge?.isDraft?.(id)) return true;
+    return false;
+  }
+
   function filterSupabasePatients(value) {
     let rows = [];
     try { rows = JSON.parse(value || '[]'); } catch (_) { rows = []; }
     if (!Array.isArray(rows)) rows = [];
     const allowedPatients = new Set((window.nubemoProfessionalContext?.patients || []).map(row => row.id));
-    const adapter = window.nubemoProfessionalLegacyAdapter;
-    return JSON.stringify(rows.filter(row => row?.id && (allowedPatients.has(row.id) || adapter?.isDraft?.(row.id))));
+    return JSON.stringify(rows.filter(row => row?.id && (allowedPatients.has(row.id) || isKnownDraft(row.id))));
   }
 
   window.NubemoStorageKit.patch('professional-recovery-contract', {
