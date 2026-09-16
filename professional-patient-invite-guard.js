@@ -6,7 +6,6 @@
   if (!client) return;
 
   const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
-  let bypassOnce = false;
   let busy = false;
 
   function closeCreation() {
@@ -19,13 +18,6 @@
     if (!button?.isConnected) return;
     button.disabled = false;
     button.textContent = 'Salva paziente';
-  }
-
-  function continueNormalCreation(button) {
-    busy = false;
-    restoreButton(button);
-    bypassOnce = true;
-    button.click();
   }
 
   function existingPatientByEmail(email){
@@ -41,21 +33,21 @@
     const button = event.target?.closest?.('#saveNewPatient');
     if (!button || document.body.dataset.proView !== 'newPatient') return;
 
-    if (bypassOnce) {
-      bypassOnce = false;
-      return;
-    }
-
     const activate=!!document.getElementById('npActivatePatientArea')?.checked;
     const email = String(document.getElementById('npEmail')?.value || '').trim().toLowerCase();
     if (!activate || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      continueNormalCreation(button);
+      // Nessuna verifica necessaria: si esce senza bloccare l'evento,
+      // che prosegue da solo fino al bridge che crea il paziente.
+      // NON va rilanciato con button.click(): il rilancio faceva creare
+      // il paziente due volte (una dal click rilanciato, una dall'evento
+      // originale che proseguiva comunque).
+      restoreButton(button);
       return;
     }
 
     const existing=existingPatientByEmail(email);
     if(!existing?.id){
-      continueNormalCreation(button);
+      restoreButton(button);
       return;
     }
 
