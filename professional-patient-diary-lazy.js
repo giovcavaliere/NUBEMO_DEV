@@ -180,7 +180,7 @@
       controls?.querySelectorAll('[data-diary-range]').forEach(button=>button.disabled=true);
       const scrollTop=document.scrollingElement?.scrollTop||0;
 
-      void load(patientId,requested).then(()=>{
+      void load(patientId,requested,true).then(()=>{
         refreshDiaryView(scrollTop);
       }).catch(error=>{
         console.error('NUBEMO Diario filtro periodo:',error);
