@@ -173,7 +173,8 @@
         drafts.delete(row.id);
         modal.remove();
         await refreshCanonicalPatients();
-        window.nubemoProfessionalRender?.();
+        if(document.body.dataset.proView==='patients')window.nubemoProfessionalRender?.();
+        else document.querySelector('[data-view="patients"],[data-drawer-view="patients"]')?.click();
       }catch(error){
         console.error('NUBEMO draft delete:',error);
         alert('Non e\u2019 stato possibile eliminare il contatto provvisorio.');
@@ -189,6 +190,13 @@
       try{await invokeLifecycle({action:'convert-draft',draft_id:row.id,activate_patient_area:activate,email:activate?email:null,birth_date:birth,sex,height_cm:height,pathway_start_date:null});await refreshCanonicalPatients();window.location.reload();}
       catch(error){console.error('NUBEMO draft convert:',error);alert(error.message||'Conversione non completata.');button.disabled=false;button.textContent='Crea paziente';}
     });
+  }
+
+  function openDraft(id){
+    const row=drafts.get(String(id||''));
+    if(!row)return false;
+    draftModal(row);
+    return true;
   }
 
   function patch(){if(patching)return;patching=true;try{patchNewPatientPhone();patchNewPatientAccessChoice();}finally{patching=false;}}
@@ -224,6 +232,6 @@
   hydrateDraftStateFromStorage();
   const ready=Promise.resolve();
   void refreshDraftState().catch(error=>console.error('NUBEMO draft hydrate:',error));
-  window.nubemoPatientLifecycleBridge={ready,refresh:refreshCanonicalPatients,isDraft:id=>drafts.has(id)};
+  window.nubemoPatientLifecycleBridge={ready,refresh:refreshCanonicalPatients,isDraft:id=>drafts.has(id),openDraft};
   const observer=new MutationObserver(()=>queueMicrotask(patch));observer.observe(app,{childList:true,subtree:true});patch();
 })();
