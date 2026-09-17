@@ -65,12 +65,12 @@
     localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(patients));
   }
 
-  async function load(patientId,days=30){
+  async function load(patientId,days=30,force=false){
     const id=String(patientId||'');
     if(!id)throw new Error('Paziente non valido.');
     const range=normalizeRange(days);
     const key=`${id}:${range===0?'all':range}`;
-    if(cache.has(key)){
+    if(!force&&cache.has(key)){
       const rows=cache.get(key);
       publish(id,rows,range);
       activeRangeByPatient.set(id,range);
@@ -190,7 +190,19 @@
       return;
     }
 
-    if(event.target?.closest?.('[data-patient-tab="diary"],[data-drawer-tab="diary"],#backDiary'))queueRangePatch();
+    if(event.target?.closest?.('[data-patient-tab="diary"],[data-drawer-tab="diary"],#backDiary')){
+      queueRangePatch();
+      // La cache del diario non veniva mai invalidata: una giornata
+      // inserita dal paziente non compariva fino al ricaricamento della
+      // pagina. Al click sulla tab si rilegge sempre dal database.
+      const patientId=currentPatientId();
+      if(patientId&&event.target.closest('[data-patient-tab="diary"],[data-drawer-tab="diary"]')){
+        const range=activeRangeByPatient.get(patientId)??30;
+        const scrollTop=document.scrollingElement?.scrollTop||0;
+        void load(patientId,range,true).then(()=>refreshDiaryView(scrollTop))
+          .catch(error=>console.error('NUBEMO Diario aggiornamento:',error));
+      }
+    }
 
     const button=event.target?.closest?.('[data-diary-export-period]');
     if(!button)return;

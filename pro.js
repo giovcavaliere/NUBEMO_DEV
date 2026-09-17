@@ -2436,6 +2436,11 @@ function bindProDrawer(){
  });
 }
 
+// Esposto per i bridge che aggiornano i dati e devono ridisegnare la vista
+// corrente (es. il refresh dei conteggi Dashboard). Preferito al ri-click
+// del pulsante di navigazione, che rilancia l'intero evento.
+window.nubemoProfessionalRender=()=>render();
+
 function render(){
  syncPhoneLandscapeClass();
  syncIPadLayoutClass();

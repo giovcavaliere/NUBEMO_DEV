@@ -285,6 +285,34 @@
     if(patientListPayload)publishPatientList(patientListPayload);
   }
 
+  // get_professional_dashboard veniva eseguita una sola volta in init():
+  // i conteggi BMI restavano quelli del caricamento iniziale anche dopo
+  // che un paziente inseriva un nuovo peso. Qui si rilegge dal database.
+  let refreshing=null;
+  function refreshDashboard(){
+    if(refreshing)return refreshing;
+    refreshing=(async()=>{
+      const {data,error}=await client.rpc('get_professional_dashboard');
+      if(error)throw error;
+      dashboardPayload=data&&typeof data==='object'?data:{};
+      publishDashboard(dashboardPayload);
+      const ctx=window.nubemoProfessionalContext;
+      if(ctx)ctx.dashboard=dashboardPayload;
+      return dashboardPayload;
+    })().finally(()=>{refreshing=null;});
+    return refreshing;
+  }
+
+  // Il ritorno sulla Dashboard rilegge i conteggi.
+  document.addEventListener('click',event=>{
+    if(!event.target?.closest?.('[data-view="dashboard"],[data-drawer-view="dashboard"]'))return;
+    setTimeout(()=>{
+      refreshDashboard()
+        .then(()=>window.nubemoProfessionalRender?.())
+        .catch(error=>console.error('NUBEMO Dashboard aggiornamento:',error));
+    },0);
+  });
+
   async function init(context){
     const {data,error}=await client.rpc('get_professional_dashboard');
     if(error)throw error;
@@ -305,6 +333,6 @@
   function disable(){enabled=false;}
 
   window.nubemoProfessionalDashboardBootstrap=Object.freeze({
-    init,disable,memory,restoreDashboard,loadBmiCategory,loadPatientsList
+    init,disable,memory,restoreDashboard,refreshDashboard,loadBmiCategory,loadPatientsList
   });
 })();

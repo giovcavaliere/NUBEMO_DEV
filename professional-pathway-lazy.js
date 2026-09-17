@@ -39,7 +39,7 @@
 
   async function ensureDependencies(){
     if(!window.nubemoProfessionalServices){
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40clean03','Impossibile caricare i servizi paziente.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40clean04','Impossibile caricare i servizi paziente.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi paziente non disponibili.');
     }
   }
@@ -65,7 +65,7 @@
 
   async function ensureManagement(){
     if(!hasScript('professional-patient-management.js')){
-      await loadScript('professional-patient-management.js?v=nubemo40clean03','Impossibile preparare la gestione del percorso.');
+      await loadScript('professional-patient-management.js?v=nubemo40clean04','Impossibile preparare la gestione del percorso.');
     }
     window.nubemoReloadProfessionalPatients=refreshPatients;
   }
