@@ -173,7 +173,7 @@
         drafts.delete(row.id);
         modal.remove();
         await refreshCanonicalPatients();
-        window.location.reload();
+        window.nubemoProfessionalRender?.();
       }catch(error){
         console.error('NUBEMO draft delete:',error);
         alert('Non e\u2019 stato possibile eliminare il contatto provvisorio.');
@@ -221,7 +221,9 @@
     }
   },true);
 
-  const ready=(async()=>{try{hydrateDraftStateFromStorage();await refreshDraftState();}catch(error){console.error('NUBEMO draft hydrate:',error);}})();
+  hydrateDraftStateFromStorage();
+  const ready=Promise.resolve();
+  void refreshDraftState().catch(error=>console.error('NUBEMO draft hydrate:',error));
   window.nubemoPatientLifecycleBridge={ready,refresh:refreshCanonicalPatients,isDraft:id=>drafts.has(id)};
   const observer=new MutationObserver(()=>queueMicrotask(patch));observer.observe(app,{childList:true,subtree:true});patch();
 })();
