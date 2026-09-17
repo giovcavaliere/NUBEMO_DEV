@@ -6,6 +6,7 @@
   const eventBypass=new WeakSet();
   let refreshing=null;
   let agendaPreparing=null;
+  let lifecyclePreparing=null;
 
   function hasScript(fragment){
     return [...document.scripts].some(script=>String(script.src||'').includes(fragment));
@@ -19,6 +20,27 @@
       script.onerror=()=>reject(new Error(errorMessage));
       document.body.appendChild(script);
     });
+  }
+
+  function localDraft(patientId){
+    try{
+      const rows=JSON.parse(localStorage.getItem('diario-pro-extra-patients-v1')||'[]');
+      if(!Array.isArray(rows))return null;
+      return rows.find(row=>String(row?.id||'')===String(patientId||'')&&(row?._draft===true||row?.relationshipStatus==='draft'))||null;
+    }catch(_){return null;}
+  }
+
+  async function ensureLifecycleBridge(){
+    if(window.nubemoPatientLifecycleBridge)return window.nubemoPatientLifecycleBridge;
+    if(lifecyclePreparing)return lifecyclePreparing;
+    lifecyclePreparing=(async()=>{
+      if(!hasScript('professional-patient-lifecycle-bridge.js'))
+        await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40clean04draftfix1','Impossibile preparare i contatti paziente.');
+      await window.nubemoPatientLifecycleBridge?.ready;
+      if(!window.nubemoPatientLifecycleBridge)throw new Error('Gestione contatti non disponibile.');
+      return window.nubemoPatientLifecycleBridge;
+    })().finally(()=>{lifecyclePreparing=null;});
+    return lifecyclePreparing;
   }
 
   async function refreshPatientList(){
@@ -47,9 +69,7 @@
         await loadScript('professional-settings-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare le impostazioni dell’Agenda.');
       await window.nubemoProfessionalSettingsBridge?.ready;
 
-      if(!hasScript('professional-patient-lifecycle-bridge.js'))
-        await loadScript('professional-patient-lifecycle-bridge.js?v=nubemo40clean04','Impossibile preparare i contatti dell’Agenda.');
-      await window.nubemoPatientLifecycleBridge?.ready;
+      await ensureLifecycleBridge();
 
       if(!hasScript('professional-agenda-supabase-bridge.js')){
         await loadScript('professional-agenda-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare l’Agenda.');
@@ -64,6 +84,8 @@
   }
 
   // Pazienti deve sempre riflettere il DB dopo creazioni/modifiche.
+  // In parallelo precarichiamo il lifecycle bridge: il primo click su un draft
+  // non deve avviare il runtime completo dell'Area Professionista.
   document.addEventListener('click',event=>{
     const action=event.target?.closest?.('[data-view="patients"],[data-drawer-view="patients"],#openUnreadLabPatients,#openUnreadPatients');
     if(!action)return;
@@ -79,12 +101,31 @@
     event.preventDefault();
     event.stopImmediatePropagation();
 
-    void refreshPatientList().then(()=>{
+    void Promise.all([refreshPatientList(),ensureLifecycleBridge()]).then(()=>{
       patientBypass.add(action);
       action.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
     }).catch(error=>{
       console.error('NUBEMO refresh elenco pazienti:',error);
       alert('Non riesco ad aggiornare l’elenco pazienti. Riprova.');
+    });
+  },true);
+
+  // Un draft viene aperto direttamente dal lifecycle bridge prima che il guard
+  // possa trattarlo come paziente reale e avviare il runtime completo.
+  document.addEventListener('click',event=>{
+    const target=event.target?.closest?.('[data-patient],[data-drawer-patient]');
+    if(!target)return;
+    const id=target.dataset.patient||target.dataset.drawerPatient||'';
+    if(!localDraft(id))return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    void ensureLifecycleBridge().then(bridge=>{
+      if(!bridge.openDraft?.(id))throw new Error('Contatto provvisorio non disponibile.');
+    }).catch(error=>{
+      console.error('NUBEMO apertura contatto draft:',error);
+      alert('Non riesco ad aprire il contatto provvisorio. Riprova.');
     });
   },true);
 
