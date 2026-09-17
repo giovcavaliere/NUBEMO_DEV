@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-clean04';
+const CACHE='nubemo-demo-v4.0-clean04-draftfix1';
 const CORE=[
   './storage-bridge-kit.js?v=nubemo40clean04',
   './food-catalog.js?v=nubemo40clean04',
@@ -41,9 +41,9 @@ const CORE=[
   './professional-patient-edit-lazy.js?v=nubemo40clean04',
   './professional-pathway-lazy.js?v=nubemo40clean04',
   './professional-new-patient-lazy.js?v=nubemo40clean04',
-  './professional-patient-list-freshness.js?v=nubemo40clean04',
+  './professional-patient-list-freshness.js?v=nubemo40clean04draftfix1',
   './professional-legacy-supabase-adapter.js?v=nubemo40clean04',
-  './professional-patient-lifecycle-bridge.js?v=nubemo40clean04',
+  './professional-patient-lifecycle-bridge.js?v=nubemo40clean04draftfix1',
   './professional-recovery-contract.js?v=nubemo40clean04',
   './professional-patient-settings-supabase-bridge.js?v=nubemo40clean04',
   './professional-settings-supabase-bridge.js?v=nubemo40clean04',
