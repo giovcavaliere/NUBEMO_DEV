@@ -7,6 +7,8 @@
 
   const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
   let busy=false;
+  let patientListReady=false;
+  let patientListPromise=null;
 
   function loadScript(src,errorMessage){
     return new Promise((resolve,reject)=>{
@@ -60,6 +62,7 @@
       patients:loaded.activePatients,
       endedPatients:loaded.endedPatients
     };
+    patientListReady=true;
     return loaded;
   }
 
@@ -68,6 +71,26 @@
       await loadScript('professional-patient-management.js?v=nubemo40clean04','Impossibile preparare la gestione del percorso.');
     }
     window.nubemoReloadProfessionalPatients=refreshPatients;
+  }
+
+  async function ensurePatientListLifecycle(){
+    if(patientListReady)return;
+    if(patientListPromise)return patientListPromise;
+    patientListPromise=(async()=>{
+      await ensureDependencies();
+      const services=window.nubemoProfessionalServices;
+      const professionalId=window.nubemoProfessionalContext?.professional?.id;
+      if(!services||!professionalId)throw new Error('Contesto professionista non disponibile.');
+      const loaded=await services.loadPatients(professionalId);
+      window.nubemoProfessionalContext={
+        ...window.nubemoProfessionalContext,
+        patients:loaded.activePatients,
+        endedPatients:loaded.endedPatients
+      };
+      await ensureManagement();
+      patientListReady=true;
+    })().finally(()=>{patientListPromise=null;});
+    return patientListPromise;
   }
 
   async function endPathway(){
@@ -98,8 +121,14 @@
     }
   }
 
-  // Registrato prima del guard: intercetta solo Termina percorso e impedisce il runtime completo.
+  // Registrato prima del guard: prepara i percorsi terminati quando si apre
+  // l'elenco Pazienti, senza avviare il runtime completo.
   document.addEventListener('click',event=>{
+    const patientsNav=event.target?.closest?.('[data-view="patients"],[data-drawer-view="patients"],#openUnreadLabPatients,#openUnreadPatients');
+    if(patientsNav){
+      void ensurePatientListLifecycle().catch(error=>console.error('NUBEMO percorsi terminati lazy:',error));
+    }
+
     const button=event.target?.closest?.('#deletePatient');
     if(!button)return;
     event.preventDefault();
