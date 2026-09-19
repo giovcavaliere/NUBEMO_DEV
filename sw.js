@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-clean04-draftfix1';
+const CACHE='nubemo-demo-v4.0-env-20260919';
 const CORE=[
   './storage-bridge-kit.js?v=nubemo40clean04',
   './food-catalog.js?v=nubemo40clean04',
@@ -13,7 +13,8 @@ const CORE=[
   './app.js?v=nubemo40clean04',
   './pro.js?v=nubemo40clean04',
   './monubi-ui.js?v=nubemo40clean04',
-  './supabase-client.js?v=nubemo40clean04',
+  './config.js?v=nubemo-env-20260919',
+  './supabase-client.js?v=nubemo-env-20260919',
   './password-visibility.js?v=nubemo40clean04',
   './nubemo-support.js?v=nubemo40clean04',
   './pro-profile.js?v=nubemo40clean04',
