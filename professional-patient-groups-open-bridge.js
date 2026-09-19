@@ -1,4 +1,4 @@
-// NUBEMO — PENDING / ENDED: apri la scheda paziente reale, non le viste temporanee.
+// NUBEMO — PENDING / ENDED: apri la scheda paziente reale, bypassando il lazy guard ACTIVE-only.
 (() => {
   'use strict';
   const app=document.getElementById('proApp');
@@ -20,6 +20,12 @@
 
     event.preventDefault();
     event.stopImmediatePropagation();
-    original.click();
+
+    // Non ridispatchare un click DOM: professional-guard lo intercetterebbe e
+    // tenterebbe get_professional_patient_summary(), valido solo per ACTIVE.
+    // Chiamiamo direttamente l'handler installato da pro.js.
+    if(typeof original.onclick==='function'){
+      original.onclick.call(original,new MouseEvent('click',{bubbles:false,cancelable:true,view:window}));
+    }
   },true);
 })();
