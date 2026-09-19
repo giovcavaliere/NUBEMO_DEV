@@ -1,4 +1,4 @@
-// NUBEMO 4.0 — Termina/Riattiva percorso senza runtime completo.
+// NUBEMO 4.0 — gestione percorso senza runtime completo.
 (() => {
   'use strict';
 
@@ -99,15 +99,14 @@
     if(!patientId)return alert('Paziente non disponibile.');
     const row=localPatient(patientId);
     const name=String(row?.name||'il paziente');
-    if(!confirm(`Terminare il percorso di ${name}?\n\nIl paziente non verrà cancellato e potrà essere riattivato in seguito.`))return;
+    if(!confirm(`Terminare il percorso di ${name}?\n\nI dati resteranno disponibili nello storico in sola lettura.`))return;
 
     busy=true;
     const started=performance.now();
     try{
+      const {error}=await client.rpc('end_current_professional_patient_pathway',{p_patient_id:patientId});
+      if(error)throw error;
       await ensureDependencies();
-      const professionalId=window.nubemoProfessionalContext?.professional?.id;
-      if(!professionalId)throw new Error('Professionista non disponibile.');
-      await window.nubemoProfessionalServices.setPatientPathwayStatus(professionalId,patientId,'ended');
       await refreshPatients();
       await ensureManagement();
       console.log(`[NUBEMO PERF] Termina percorso lazy: ${Math.round(performance.now()-started)} ms`);
@@ -115,14 +114,12 @@
       if(nav)nav.click();else window.location.reload();
     }catch(error){
       console.error('NUBEMO Termina percorso lazy:',error);
-      alert('Non è stato possibile terminare il percorso. Riprova.');
+      alert(error?.message||'Non è stato possibile terminare il percorso. Riprova.');
     }finally{
       busy=false;
     }
   }
 
-  // Registrato prima del guard: prepara i percorsi terminati quando si apre
-  // l'elenco Pazienti, senza avviare il runtime completo.
   document.addEventListener('click',event=>{
     const patientsNav=event.target?.closest?.('[data-view="patients"],[data-drawer-view="patients"],#openUnreadLabPatients,#openUnreadPatients');
     if(patientsNav){
