@@ -9,6 +9,7 @@
   let busy=false;
   let queued=false;
   let stateMap=new Map();
+  let lastSignature='';
 
   function parse(value,fallback){try{return JSON.parse(value)}catch(_){return fallback}}
 
@@ -45,14 +46,27 @@
   }
 
   function removePreviousGroups(){
-    document.querySelectorAll('.nubemo-patient-state-group').forEach(node=>node.remove());
+    document.querySelectorAll('.nubemo-patient-state-group,#nubemoPatientGroupsMarker').forEach(node=>node.remove());
     const oldPending=document.getElementById('pendingPathwaysCard');
     if(oldPending)oldPending.style.display='none';
+  }
+
+  function cloneForGroup(original,label){
+    const clone=original.cloneNode(true);
+    clone.style.display='';
+    if(label)setSecondaryText(clone,label);
+    clone.addEventListener('click',event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      original.click();
+    });
+    return clone;
   }
 
   function organise(){
     if(document.body.dataset.proView!=='patients'){
       removePreviousGroups();
+      lastSignature='';
       return;
     }
 
@@ -61,41 +75,49 @@
     const baseCard=baseList.closest('section.card');
     if(!baseCard)return;
 
-    removePreviousGroups();
     const rows=rowMap();
     const buttons=[...baseList.querySelectorAll('button[data-patient]')];
-    const grouped={active:[],pending:[],draft:[],ended:[]};
-
-    for(const button of buttons){
+    const classified=buttons.map(button=>{
       const id=String(button.dataset.patient||'');
-      const row=rows.get(id)||null;
-      const group=classify(id,row);
-      grouped[group].push(button);
-      if(group==='pending')setSecondaryText(button,'Percorso proposto · in attesa di accettazione');
-      else if(group==='draft')setSecondaryText(button,'Contatto provvisorio');
-      else if(group==='ended')setSecondaryText(button,'Percorso terminato · storico disponibile');
+      return {button,id,row:rows.get(id)||null,group:classify(id,rows.get(id)||null)};
+    });
+    const signature=classified.map(x=>`${x.id}:${x.group}`).sort().join('|');
+    if(signature===lastSignature&&document.getElementById('nubemoPatientGroupsMarker')){
+      const oldPending=document.getElementById('pendingPathwaysCard');
+      if(oldPending)oldPending.style.display='none';
+      return;
     }
 
-    baseList.replaceChildren(...grouped.active);
+    removePreviousGroups();
+    lastSignature=signature;
+
+    const grouped={active:[],pending:[],draft:[],ended:[]};
+    for(const item of classified){
+      grouped[item.group].push(item);
+      item.button.style.display=item.group==='active'?'':'none';
+    }
+
     const heading=baseCard.querySelector(':scope > .section-head h2');
     if(heading)heading.textContent='Attivi';
 
-    const sections=[];
+    const marker=document.createElement('div');
+    marker.id='nubemoPatientGroupsMarker';
+    marker.hidden=true;
+    baseCard.insertAdjacentElement('afterend',marker);
+
     const defs=[
-      ['pending','nubemoPendingPatientsGroup','In attesa di accettazione','Il percorso diventerà attivo dopo la conferma del paziente.'],
-      ['draft','nubemoDraftPatientsGroup','Contatti provvisori','Anagrafiche non ancora trasformate in pazienti.'],
-      ['ended','nubemoEndedPatientsGroup','Terminati','Il paziente resta unico; i singoli percorsi terminati sono consultabili nella sua scheda.']
+      ['pending','nubemoPendingPatientsGroup','In attesa di accettazione','Il percorso diventerà attivo dopo la conferma del paziente.','Percorso proposto · in attesa di accettazione'],
+      ['draft','nubemoDraftPatientsGroup','Contatti provvisori','Anagrafiche non ancora trasformate in pazienti.','Contatto provvisorio'],
+      ['ended','nubemoEndedPatientsGroup','Terminati','Il paziente resta unico; i singoli percorsi terminati sono consultabili nella sua scheda.','Percorso terminato · storico disponibile']
     ];
-    for(const [key,id,title,subtitle] of defs){
+
+    let anchor=marker;
+    for(const [key,id,title,subtitle,rowLabel] of defs){
       if(!grouped[key].length)continue;
       const section=groupSection(id,title,subtitle);
       section.querySelector('[data-group-count]').textContent=String(grouped[key].length);
-      section.querySelector('[data-group-list]').append(...grouped[key]);
-      sections.push(section);
-    }
-
-    let anchor=baseCard;
-    for(const section of sections){
+      const list=section.querySelector('[data-group-list]');
+      for(const item of grouped[key])list.appendChild(cloneForGroup(item.button,rowLabel));
       anchor.insertAdjacentElement('afterend',section);
       anchor=section;
     }
@@ -121,8 +143,11 @@
   const observer=new MutationObserver(schedule);
   observer.observe(app,{childList:true,subtree:true});
   document.addEventListener('click',event=>{
-    if(event.target?.closest?.('[data-view="patients"],[data-drawer-view="patients"],#openUnreadLabPatients,#openUnreadPatients'))setTimeout(schedule,0);
+    if(event.target?.closest?.('[data-view="patients"],[data-drawer-view="patients"],#openUnreadLabPatients,#openUnreadPatients')){
+      lastSignature='';
+      setTimeout(schedule,0);
+    }
   },true);
-  window.addEventListener('storage',event=>{if(event.key===EXTRA_PATIENTS_KEY)schedule();});
+  window.addEventListener('storage',event=>{if(event.key===EXTRA_PATIENTS_KEY){lastSignature='';schedule();}});
   schedule();
 })();
