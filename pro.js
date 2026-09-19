@@ -966,6 +966,9 @@ function clinicalWeightSeries(p){
  (p.weights||[]).forEach(x=>{
    if(Array.isArray(x)&&x[0]&&Number.isFinite(Number(x[1]))&&!byDate.has(x[0]))byDate.set(x[0],Number(x[1]));
  });
+ (p.measures||[]).forEach(x=>{
+   if(x&&x.date&&x.professionalWeight!==''&&x.professionalWeight!=null&&Number.isFinite(Number(x.professionalWeight)))byDate.set(x.date,Number(x.professionalWeight));
+ });
  return [...byDate.entries()].map(([date,weight])=>({date,weight})).sort((a,b)=>a.date.localeCompare(b.date));
 }
 function clinicalFilterDays(items,days){
