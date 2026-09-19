@@ -30,6 +30,12 @@
     const row=Array.isArray(rows)?rows.find(item=>String(item?.id||'')===String(patientId)):null;
     return String(row?.name||[row?.firstName,row?.surname].filter(Boolean).join(' ')||'Paziente');
   }
+  function currentPatientTab(){
+    return String(document.querySelector('[data-patient-tab].active')?.dataset.patientTab||'');
+  }
+  function historyHiddenOnCurrentTab(){
+    return new Set(['summary','privacy','account']).has(currentPatientTab());
+  }
 
   async function getPathways(patientId){
     const {data,error}=await client.rpc('get_professional_patient_pathways',{p_patient_id:patientId});
@@ -96,13 +102,31 @@
 
   function renderHistory(patientId,pathways){
     document.getElementById('nubemoPathwayHistoryCard')?.remove();
-    if(document.body.dataset.proView!=='details')return;
+    if(document.body.dataset.proView!=='details'||historyHiddenOnCurrentTab())return;
     const ended=pathways.filter(x=>x.status==='ended');
     if(!ended.length)return;
     const card=document.createElement('section');
     card.className='card';
     card.id='nubemoPathwayHistoryCard';
-    card.innerHTML=`<div class="section-head"><div><h2>Storico percorsi</h2><p class="muted" style="margin:4px 0 0">Percorsi precedenti con questo professionista, disponibili in sola lettura.</p></div><span class="pill">${ended.length}</span></div><div class="pro3-patients">${ended.map((p,i)=>`<div class="pro3-patient" style="font-weight:400"><div><span style="display:block;font-size:15px;font-weight:700;color:#34484f">Percorso ${ended.length-i}</span><span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">${fmtDate(p.pathway_start_date||p.started_at)} → ${fmtDate(p.ended_at)} · ${p.diary_count||0} giornate diario · ${p.document_count||0} documenti</span></div><button class="mini" type="button" data-open-pathway-history="${esc(p.id)}">Consulta</button></div>`).join('')}</div>`;
+    card.innerHTML=`
+      <div class="section-head">
+        <div>
+          <h2>Storico percorsi</h2>
+          <p class="muted" style="margin:4px 0 0">Percorsi precedenti con questo professionista, disponibili in sola lettura.</p>
+        </div>
+        <span class="pill">${ended.length}</span>
+      </div>
+      <div style="display:grid;gap:10px;margin-top:14px">
+        ${ended.map((p,i)=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border:1px solid #dbe6e1;border-radius:16px;background:#fbfdfb">
+            <div style="min-width:0">
+              <div style="font-size:15px;font-weight:800;color:#213b36">Percorso ${ended.length-i}</div>
+              <div style="margin-top:4px;font-size:13px;color:#6f807b;line-height:1.45">${fmtDate(p.pathway_start_date||p.started_at)} → ${fmtDate(p.ended_at)}</div>
+              <div style="margin-top:3px;font-size:12px;color:#7b898f;line-height:1.45">${p.diary_count||0} giornate diario · ${p.document_count||0} documenti</div>
+            </div>
+            <button class="secondary compact" style="flex:0 0 auto;white-space:nowrap" type="button" data-open-pathway-history="${esc(p.id)}">Consulta</button>
+          </div>`).join('')}
+      </div>`;
     app.appendChild(card);
     card.querySelectorAll('[data-open-pathway-history]').forEach(button=>button.addEventListener('click',async()=>{
       button.disabled=true;const old=button.textContent;button.textContent='Apertura...';
@@ -112,9 +136,13 @@
   }
 
   async function refreshDetails(){
-    if(document.body.dataset.proView!=='details'){document.getElementById('nubemoPathwayHistoryCard')?.remove();lastKey='';return;}
+    if(document.body.dataset.proView!=='details'||historyHiddenOnCurrentTab()){
+      document.getElementById('nubemoPathwayHistoryCard')?.remove();
+      lastKey='';
+      return;
+    }
     const patientId=currentPatientId();if(!patientId||loading)return;
-    const key=`${patientId}:${document.body.dataset.proView}`;
+    const key=`${patientId}:${document.body.dataset.proView}:${currentPatientTab()}`;
     if(key===lastKey&&document.getElementById('nubemoPathwayHistoryCard'))return;
     loading=true;
     try{const pathways=await getPathways(patientId);lastKey=key;renderHistory(patientId,pathways);}catch(error){console.error('NUBEMO carica storico percorsi:',error);}finally{loading=false;}
