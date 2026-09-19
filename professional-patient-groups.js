@@ -198,8 +198,10 @@
       action.type='button';
       action.className='mini';
       action.textContent='Nuovo percorso';
+      action.style.whiteSpace='nowrap';
       action.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();void createNewPathway(item,action);});
-      row.appendChild(action);
+      const trailing=row.children[2]||null;
+      if(trailing)trailing.replaceWith(action);else row.appendChild(action);
     }
     return row;
   }
