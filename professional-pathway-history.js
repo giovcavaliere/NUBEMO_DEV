@@ -9,7 +9,6 @@
   let lastKey='';
   let loading=false;
   let servicesPatched=false;
-  let pendingPatients=[];
 
   const esc=(v='')=>String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
   const fmtDate=value=>{
@@ -30,10 +29,6 @@
     const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     const row=Array.isArray(rows)?rows.find(item=>String(item?.id||'')===String(patientId)):null;
     return String(row?.name||[row?.firstName,row?.surname].filter(Boolean).join(' ')||'Paziente');
-  }
-  function rowName(row){
-    const p=row?.profile||{};
-    return [p.first_name,p.last_name].filter(Boolean).join(' ').trim()||p.email||'Paziente';
   }
 
   async function getPathways(patientId){
@@ -66,23 +61,12 @@
         else if(state?.status==='pending')pending.push(decorated);
         else endedPatients.push(decorated);
       }
-      pendingPatients=pending;
       window.nubemoProfessionalPendingPatients=pending;
-      queueMicrotask(renderPendingPatients);
       return{activePatients,endedPatients,pendingPatients:pending};
     };
     wrapped.__nubemoPathway17=true;
     window.nubemoProfessionalServices=Object.freeze(wrapped);
     servicesPatched=true;
-  }
-
-  function renderPendingPatients(){
-    document.getElementById('pendingPathwaysCard')?.remove();
-    if(document.body.dataset.proView!=='patients'||!pendingPatients.length)return;
-    const firstCard=app.querySelector('section.card');if(!firstCard)return;
-    const card=document.createElement('section');card.className='card';card.id='pendingPathwaysCard';
-    card.innerHTML=`<div class="section-head"><div><h2>In attesa di accettazione</h2><p class="muted" style="margin:4px 0 0">Il nuovo percorso diventerà attivo solo dopo la conferma del paziente.</p></div><span class="pill">${pendingPatients.length}</span></div><div class="pro3-patients">${pendingPatients.map(row=>`<div class="pro3-patient" style="font-weight:400"><div class="patient-avatar">${esc(rowName(row).split(' ').map(x=>x[0]).slice(0,2).join(''))}</div><div><span style="display:block;font-size:15px;font-weight:700;color:#34484f">${esc(rowName(row))}</span><span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">Nuovo percorso proposto · attesa conferma paziente</span></div></div>`).join('')}</div>`;
-    firstCard.insertAdjacentElement('afterend',card);
   }
 
   function summaryRow(label,value){return `<div style="display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid #edf1f2"><span class="muted">${esc(label)}</span><b style="text-align:right">${esc(value??'—')}</b></div>`;}
@@ -171,9 +155,8 @@
   const observer=new MutationObserver(()=>queueMicrotask(()=>{
     patchServices();
     document.querySelectorAll('[data-reactivate-patient]').forEach(b=>{if(b.textContent!=='Nuovo percorso')b.textContent='Nuovo percorso';});
-    renderPendingPatients();
     void refreshDetails();
   }));
   observer.observe(app,{childList:true,subtree:true});
-  queueMicrotask(()=>{patchServices();document.querySelectorAll('[data-reactivate-patient]').forEach(b=>b.textContent='Nuovo percorso');renderPendingPatients();void refreshDetails();});
+  queueMicrotask(()=>{patchServices();document.querySelectorAll('[data-reactivate-patient]').forEach(b=>b.textContent='Nuovo percorso');void refreshDetails();});
 })();
