@@ -92,7 +92,32 @@
     return rows().find(row=>row?.id&&title.includes(String(row.name||'').trim()))||null;
   }
 
+  function patientName(patient){
+    return String(patient?.name||[patient?.firstName,patient?.surname].filter(Boolean).join(' ')||'Paziente');
+  }
+
   function statusLabel(status){return status==='pending'?'In attesa di accettazione':'Percorso terminato'}
+
+  async function createNewPathway(patient,button){
+    if(!patient?.id)return;
+    const name=patientName(patient);
+    if(!confirm(`Creare un nuovo percorso per ${name}?\n\nIl percorso terminato resterà nello storico e non verrà riattivato.`))return;
+    if(button){button.disabled=true;button.textContent='Creazione...';}
+    try{
+      const {data,error}=await client.rpc('create_new_professional_patient_pathway',{p_patient_id:patient.id});
+      if(error)throw error;
+      await loadStates(true);
+      if(typeof window.nubemoReloadProfessionalPatients==='function')await window.nubemoReloadProfessionalPatients();
+      if(data?.status==='pending')alert('Nuovo percorso proposto. Il paziente dovrà accettarlo dalla propria Area Paziente.');
+      else alert('Nuovo percorso creato e attivato.');
+      document.querySelector('[data-view="patients"],[data-drawer-view="patients"]')?.click();
+    }catch(error){
+      console.error('NUBEMO nuovo percorso da scheda terminata:',error);
+      alert(error?.message||'Non è stato possibile creare il nuovo percorso.');
+    }finally{
+      if(button){button.disabled=false;button.textContent='Nuovo percorso';}
+    }
+  }
 
   function patchDetailsUi(){
     if(document.body.dataset.proView!=='details'){
@@ -124,8 +149,14 @@
       banner.dataset.pathwayStatus=status;
       banner.innerHTML=status==='pending'
         ? `<div class="section-head"><div><div class="eyebrow">STATO PERCORSO</div><h2>${statusLabel(status)}</h2></div></div><p class="muted" style="margin:6px 0 0">La scheda anagrafica resta consultabile. Le funzioni operative del nuovo percorso saranno disponibili dopo l'accettazione del paziente.</p>`
-        : `<div class="section-head"><div><div class="eyebrow">STATO PERCORSO</div><h2>${statusLabel(status)}</h2></div></div><p class="muted" style="margin:6px 0 0">La scheda resta consultabile in sola lettura. I percorsi precedenti sono disponibili nello Storico percorsi.</p>`;
+        : `<div class="section-head"><div><div class="eyebrow">STATO PERCORSO</div><h2>${statusLabel(status)}</h2></div><button class="primary" type="button" data-new-ended-pathway>Nuovo percorso</button></div><p class="muted" style="margin:6px 0 0">La scheda resta consultabile in sola lettura. I percorsi precedenti sono disponibili nello Storico percorsi.</p>`;
     }
+
+    const moreWrap=document.querySelector('.patient-more-wrap');
+    if(moreWrap)moreWrap.style.display=status==='ended'?'none':'';
+
+    const newPathwayButton=banner.querySelector('[data-new-ended-pathway]');
+    if(newPathwayButton)newPathwayButton.onclick=()=>{void createNewPathway(patient,newPathwayButton);};
 
     const allowed=new Set(['summary','privacy','account']);
     document.querySelectorAll('[data-patient-tab]').forEach(button=>{
