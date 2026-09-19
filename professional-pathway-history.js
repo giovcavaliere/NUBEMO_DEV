@@ -76,13 +76,97 @@
   }
 
   function summaryRow(label,value){return `<div style="display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid #edf1f2"><span class="muted">${esc(label)}</span><b style="text-align:right">${esc(value??'—')}</b></div>`;}
+  function valueOrDash(value,suffix=''){
+    return value===null||value===undefined||value===''?'—':`${value}${suffix}`;
+  }
+  function yesNo(value){
+    if(value===true)return 'Sì';
+    if(value===false)return 'No';
+    return '—';
+  }
+  function anamnesisContent(c){
+    if(!c||!Object.keys(c).length)return '<p class="muted" style="margin:0">Nessuna anamnesi disponibile per questo percorso.</p>';
+    const rows=[
+      ['Obiettivo peso',valueOrDash(c.goal_weight_kg,' kg')],
+      ['Peso minimo',valueOrDash(c.min_weight_kg,' kg')],
+      ['Peso massimo',valueOrDash(c.max_weight_kg,' kg')],
+      ['Peso ragionevole',valueOrDash(c.reasonable_weight_kg,' kg')],
+      ['Peso teorico',valueOrDash(c.theoretical_weight_kg,' kg')],
+      ['Lavoro',valueOrDash(c.work)],
+      ['Attività',valueOrDash(c.activity)],
+      ['Fattore attività',valueOrDash(c.activity_factor)],
+      ['Fumo',valueOrDash(c.smoking)],
+      ['Alcol',valueOrDash(c.alcohol)],
+      ['Diagnosi',valueOrDash(c.diagnosis)],
+      ['Alvo',valueOrDash(c.bowel)],
+      ['Metabolismo',valueOrDash(c.metabolism)],
+      ['FEEG',valueOrDash(c.feeg)],
+      ['Impedenziometria',valueOrDash(c.impedance)],
+      ['Familiarità obesità',yesNo(c.family_obesity)],
+      ['Familiarità diabete',yesNo(c.family_diabetes)],
+      ['Familiarità ipertensione',yesNo(c.family_hypertension)],
+      ['Familiarità cardiovascolare',yesNo(c.family_cardiovascular)],
+      ['Familiarità dislipidemia',yesNo(c.family_dyslipidemia)],
+      ['Familiarità tiroide',yesNo(c.family_thyroid)],
+      ['Diete precedenti',valueOrDash(c.previous_diets)],
+      ['Allergie / intolleranze',valueOrDash(c.allergies)],
+      ['Farmaci',valueOrDash(c.medications)],
+      ['Disturbi gastrointestinali',valueOrDash(c.gi_issues)],
+      ['Patologie pregresse',valueOrDash(c.past_conditions)],
+      ['Osservazioni',valueOrDash(c.observations)],
+      ['Obiettivi',valueOrDash(c.objectives)]
+    ];
+    return `<div class="grid two">${rows.map(([label,value])=>summaryRow(label,value)).join('')}</div>`;
+  }
+  function diaryContent(diary){
+    if(!diary.length)return '<p class="muted" style="margin:0">Nessuna giornata registrata.</p>';
+    const latest=[...diary].sort((a,b)=>String(b.entry_date||'').localeCompare(String(a.entry_date||'')));
+    return `<div style="max-height:320px;overflow-y:auto;border:1px solid #e2e9e6;border-radius:12px">
+      <table style="width:100%;border-collapse:collapse;min-width:520px">
+        <thead style="position:sticky;top:0;background:#f8fbf9;z-index:1">
+          <tr><th style="text-align:left;padding:10px 12px">Data</th><th style="text-align:left;padding:10px 12px">Peso</th><th style="text-align:left;padding:10px 12px">Acqua</th><th style="text-align:left;padding:10px 12px">Kcal</th></tr>
+        </thead>
+        <tbody>${latest.map(d=>`<tr><td style="padding:10px 12px;border-top:1px solid #edf1f2">${fmtDate(d.entry_date)}</td><td style="padding:10px 12px;border-top:1px solid #edf1f2">${d.weight_kg!=null?esc(d.weight_kg)+' kg':'—'}</td><td style="padding:10px 12px;border-top:1px solid #edf1f2">${d.water!=null?esc(d.water)+' L':'—'}</td><td style="padding:10px 12px;border-top:1px solid #edf1f2">${d.total_kcal!=null?esc(d.total_kcal):'—'}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }
+  function documentGroup(row){
+    if(row.category==='health'&&row.sub_category==='blood_test')return 'Esami del sangue';
+    if(row.category==='health')return 'Documenti sanitari';
+    if(row.category==='plan')return 'Piani alimentari';
+    if(row.category==='accounting')return 'Documenti contabili';
+    return 'Altri documenti';
+  }
+  function documentsContent(docs){
+    if(!docs.length)return '<p class="muted" style="margin:0">Nessun documento disponibile per questo percorso.</p>';
+    const groups=new Map();
+    [...docs].sort((a,b)=>String(b.document_date||b.created_at||'').localeCompare(String(a.document_date||a.created_at||''))).forEach(doc=>{
+      const key=documentGroup(doc),list=groups.get(key)||[];list.push(doc);groups.set(key,list);
+    });
+    return [...groups.entries()].map(([label,list])=>`<section style="margin-top:14px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:7px"><b>${esc(label)}</b><span class="pill">${list.length}</span></div><div style="display:grid;gap:7px">${list.map(doc=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;border:1px solid #e4ebe8;border-radius:12px;background:#fbfdfc"><div style="min-width:0"><div style="font-weight:700;color:#2d4741;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(doc.title||doc.original_filename||'Documento')}</div><div class="muted" style="margin-top:2px;font-size:12px">${fmtDate(doc.document_date||doc.created_at)}${doc.original_filename?` · ${esc(doc.original_filename)}`:''}</div></div><button class="secondary compact" style="flex:0 0 auto;white-space:nowrap" type="button" data-open-history-document="${esc(doc.id)}">Apri</button></div>`).join('')}</div></section>`).join('');
+  }
+  async function openHistoryDocument(doc){
+    if(!doc?.storage_bucket||!doc?.storage_path)throw new Error('File non disponibile.');
+    const services=window.nubemoProfessionalServices;
+    if(typeof services?.openDocumentUrl==='function'){
+      const url=await services.openDocumentUrl(doc,300);
+      if(!url)throw new Error('URL documento non disponibile.');
+      window.location.href=url;
+      return;
+    }
+    const {data,error}=await client.storage.from(doc.storage_bucket).createSignedUrl(doc.storage_path,300);
+    if(error)throw error;
+    if(!data?.signedUrl)throw new Error('URL documento non disponibile.');
+    window.location.href=data.signedUrl;
+  }
 
   async function openSnapshot(pathwayId,patientId){
     const {data,error}=await client.rpc('get_professional_pathway_snapshot',{p_pathway_id:pathwayId});
     if(error)throw error;
-    const p=data?.pathway||{},c=data?.clinical||{},diary=data?.diary||[],measures=data?.measurements||[],docs=data?.documents||[],plans=data?.plans||[],labs=data?.labs||[],notes=data?.notes||[],appointments=data?.appointments||[];
+    const p=data?.pathway||{},c=data?.clinical||{},diary=data?.diary||[],measures=data?.measurements||[],docs=data?.documents||[],plans=data?.plans||[],labs=data?.labs||[];
     const firstWeight=[...diary].find(x=>x?.weight_kg!=null)?.weight_kg;
     const lastWeight=[...diary].reverse().find(x=>x?.weight_kg!=null)?.weight_kg;
+    const docsById=new Map(docs.map(doc=>[String(doc.id),doc]));
     document.getElementById('nubemoPathwayHistoryModal')?.remove();
     const modal=document.createElement('div');
     modal.id='nubemoPathwayHistoryModal';
@@ -90,14 +174,29 @@
     modal.innerHTML=`<section class="card" style="width:min(900px,100%);margin:auto;max-height:none">
       <div class="section-head"><div><div class="eyebrow">STORICO PERCORSO</div><h2 style="margin-bottom:4px">${esc(patientName(patientId))}</h2><p class="muted" style="margin:0">${fmtDate(p.pathway_start_date||p.started_at)} → ${fmtDate(p.ended_at)}</p></div><button class="mini" type="button" data-close-pathway-history>✕</button></div>
       <div class="grid two" style="margin-top:16px"><section>${summaryRow('Stato','Terminato')}${summaryRow('Giornate diario',diary.length)}${summaryRow('Peso iniziale',firstWeight!=null?`${firstWeight} kg`:'—')}${summaryRow('Peso finale',lastWeight!=null?`${lastWeight} kg`:'—')}</section><section>${summaryRow('Misurazioni professionista',measures.length)}${summaryRow('Documenti',docs.length)}${summaryRow('Piani alimentari',plans.length)}${summaryRow('Referti',labs.length)}</section></div>
-      <section class="card" style="margin-top:16px"><h3>Anamnesi del percorso</h3>${c?`<div class="grid two">${summaryRow('Obiettivo peso',c.goal_weight_kg!=null?`${c.goal_weight_kg} kg`:'—')}${summaryRow('Attività',c.activity||'—')}${summaryRow('Diagnosi',c.diagnosis||'—')}${summaryRow('Farmaci',c.medications||'—')}</div><p><b>Osservazioni</b><br>${esc(c.observations||'—')}</p><p><b>Obiettivi</b><br>${esc(c.objectives||'—')}</p>`:'<p class="muted">Nessuna anamnesi disponibile per questo percorso.</p>'}</section>
-      <section class="card" style="margin-top:16px"><div class="section-head"><h3>Diario</h3><span class="pill">${diary.length}</span></div>${diary.length?`<div style="overflow:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:8px">Data</th><th style="text-align:left;padding:8px">Peso</th><th style="text-align:left;padding:8px">Note</th></tr></thead><tbody>${diary.map(d=>`<tr><td style="padding:8px;border-top:1px solid #edf1f2">${fmtDate(d.entry_date)}</td><td style="padding:8px;border-top:1px solid #edf1f2">${d.weight_kg!=null?esc(d.weight_kg)+' kg':'—'}</td><td style="padding:8px;border-top:1px solid #edf1f2">${esc(d.notes||d.sport||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna giornata registrata.</p>'}</section>
-      <section class="card" style="margin-top:16px"><div class="section-head"><h3>Altri dati del percorso</h3></div><div class="grid two">${summaryRow('Note professionista',notes.length)}${summaryRow('Appuntamenti',appointments.length)}${summaryRow('Documenti',docs.length)}${summaryRow('Piani',plans.length)}</div></section>
+      <details class="card" style="margin-top:16px;padding:0;overflow:hidden">
+        <summary style="cursor:pointer;padding:16px 18px;font-size:17px;font-weight:800;color:#213b36">Anamnesi</summary>
+        <div style="padding:0 18px 18px">${anamnesisContent(c)}</div>
+      </details>
+      <details class="card" style="margin-top:12px;padding:0;overflow:hidden">
+        <summary style="cursor:pointer;padding:16px 18px;font-size:17px;font-weight:800;color:#213b36">Diario <span class="pill" style="margin-left:8px">${diary.length}</span></summary>
+        <div style="padding:0 18px 18px">${diaryContent(diary)}</div>
+      </details>
+      <details class="card" style="margin-top:12px;padding:0;overflow:hidden">
+        <summary style="cursor:pointer;padding:16px 18px;font-size:17px;font-weight:800;color:#213b36">Documenti <span class="pill" style="margin-left:8px">${docs.length}</span></summary>
+        <div style="padding:0 18px 18px">${documentsContent(docs)}</div>
+      </details>
       <p class="muted" style="margin-top:16px">Percorso storico in sola lettura.</p>
     </section>`;
     document.body.appendChild(modal);
     modal.querySelector('[data-close-pathway-history]')?.addEventListener('click',()=>modal.remove());
     modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+    modal.querySelectorAll('[data-open-history-document]').forEach(button=>button.addEventListener('click',async()=>{
+      const doc=docsById.get(String(button.dataset.openHistoryDocument));
+      button.disabled=true;const old=button.textContent;button.textContent='Apertura...';
+      try{await openHistoryDocument(doc);}catch(error){console.error('NUBEMO documento storico:',error);alert(error?.message||'Documento non disponibile.');}
+      finally{button.disabled=false;button.textContent=old;}
+    }));
   }
 
   function renderHistory(patientId,pathways){
