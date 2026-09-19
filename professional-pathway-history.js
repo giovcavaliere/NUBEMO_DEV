@@ -34,7 +34,7 @@
     return String(document.querySelector('[data-patient-tab].active')?.dataset.patientTab||'');
   }
   function historyHiddenOnCurrentTab(){
-    return new Set(['summary','privacy','account']).has(currentPatientTab());
+    return new Set(['privacy','account']).has(currentPatientTab());
   }
 
   async function getPathways(patientId){
