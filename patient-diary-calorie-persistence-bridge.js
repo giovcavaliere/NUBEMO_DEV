@@ -47,11 +47,12 @@
     installed=true;
 
     async function saveDiaryEntry(patientId,userId,values,existingId=null){
-      // Il calcolo avviene SEMPRE sul payload effettivamente salvato.
-      // Quindi anche "Aggiorna giornata" senza modifiche aggiorna i campi kcal.
-      const calories=calculateFromValues(values);
+      const pathwayId=window.nubemoPatientContext?.activePathway?.id;
+      if(!pathwayId)throw new Error('Nessun percorso attivo.');
 
+      const calories=calculateFromValues(values);
       const payload={
+        pathway_id:pathwayId,
         patient_id:patientId,
         entry_date:values.entry_date,
         weight_kg:values.weight_kg,
