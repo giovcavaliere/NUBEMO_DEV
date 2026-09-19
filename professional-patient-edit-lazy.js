@@ -150,8 +150,6 @@
       ...row,
       birth_date:values.birthDate,
       sex:values.sex,
-      height_cm:values.height,
-      pathway_start_date:values.pathwayStart,
       profile:{...(row.profile||{}),first_name:values.firstName,last_name:values.lastName,phone:values.phone}
     }:row);
     window.nubemoProfessionalContext={...ctx,patients:next};
@@ -180,30 +178,25 @@
     saving=true;if(button){button.disabled=true;button.textContent='Salvataggio...';}
     try{
       await ensureDependencies();
-      let profileId=row.profileId||row.profile_id||null;
-      if(!profileId){
-        const {data,error}=await client.from('patients').select('profile_id').eq('id',patientId).single();
-        if(error)throw error;
-        profileId=data?.profile_id||null;
-      }
-      if(!profileId)throw new Error('Profilo paziente non disponibile.');
-
-      const services=window.nubemoProfessionalServices;
-      await Promise.all([
-        services.updatePatientDemographics({id:patientId,profile_id:profileId},{firstName,lastName,phone,birthDate,sex,height,pathwayStart}),
-        services.savePatientAnamnesis(patientId,clinical)
-      ]);
-
-      const currentSettings=await client.from('patient_settings').select('settings_json').eq('patient_id',patientId).maybeSingle();
-      if(currentSettings.error)throw currentSettings.error;
-      const settingsJson={...(currentSettings.data?.settings_json||{}),showEnergyValues,readOnly};
-      const settingsResult=await client.from('patient_settings').upsert({patient_id:patientId,settings_json:settingsJson},{onConflict:'patient_id'});
-      if(settingsResult.error)throw settingsResult.error;
+      const {data,error}=await client.rpc('save_professional_active_patient_sheet',{
+        p_patient_id:patientId,
+        p_first_name:firstName,
+        p_last_name:lastName,
+        p_phone:phone||null,
+        p_birth_date:birthDate,
+        p_sex:sex,
+        p_pathway_start_date:pathwayStart,
+        p_height:height,
+        p_clinical:clinical,
+        p_settings:{showEnergyValues,readOnly}
+      });
+      if(error)throw error;
+      if(!data||data.status!=='saved')throw new Error('Salvataggio percorso non confermato.');
 
       updateStartDateCache(patientId,pathwayStart||'');
-      updateContext(patientId,{firstName,lastName,phone,birthDate,sex,height,pathwayStart});
+      updateContext(patientId,{firstName,lastName,phone,birthDate,sex});
 
-      // Aggiorna cache elenco e poi ripubblica il riepilogo completo del paziente appena salvato.
+      // Aggiorna elenco e riepilogo: entrambi rileggono il percorso ACTIVE appena salvato.
       await window.nubemoProfessionalDashboardBootstrap?.loadPatientsList?.(true);
       await window.nubemoProfessionalPatientSummaryLazy.load(patientId);
 
