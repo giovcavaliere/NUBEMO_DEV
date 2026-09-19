@@ -13,9 +13,6 @@
   let currentPatientId = '';
   let patching = false;
 
-  const esc = (value='') => String(value)
-    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
-    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
   const context = () => window.nubemoProfessionalContext || {};
   const activePatients = () => Array.isArray(context().patients) ? context().patients : [];
   const endedPatients = () => Array.isArray(context().endedPatients) ? context().endedPatients : [];
@@ -50,9 +47,6 @@
     if(row)currentPatientId=row.id;
     return currentPatientId;
   }
-
-
-
 
   function patchNewPatientForm() {
     if(document.body.dataset.proView!=='newPatient'||document.getElementById('npEmail'))return;
@@ -105,18 +99,6 @@
     }catch(error){console.error('NUBEMO recovery end pathway:',error);alert('Non è stato possibile terminare il percorso.');}
   }
 
-  async function reactivatePathway(patientId,button) {
-    const row=endedPatients().find(p=>p.id===patientId);
-    if(!row)return alert('Percorso terminato non disponibile.');
-    if(!window.confirm(`Riattivare il percorso di ${patientName(row)}?`))return;
-    if(button){button.disabled=true;button.textContent='Riattivazione...';}
-    try{
-      await services.setPatientPathwayStatus(context().professional?.id,row.id,'active');
-      if(typeof window.nubemoReloadProfessionalPatients==='function')await window.nubemoReloadProfessionalPatients();
-      const nav=document.querySelector('[data-view="patients"]');if(nav)nav.click();else window.location.reload();
-    }catch(error){console.error('NUBEMO recovery reactivate pathway:',error);alert('Non è stato possibile riattivare il percorso.');if(button){button.disabled=false;button.textContent='Riattiva percorso';}}
-  }
-
   function patchDetails() {
     if(document.body.dataset.proView!=='details')return;
     const patientId=inferCurrentPatient();if(!patientId)return;
@@ -127,22 +109,23 @@
     }
   }
 
-  function patchEndedPatients() {
-    if(document.body.dataset.proView!=='patients')return;
-    const rows=endedPatients();
-    const existing=document.getElementById('endedPatientsCard');
-    if(!rows.length){existing?.remove();return;}
-    const signature=rows.map(row=>`${row.id}:${row.relationship?.ended_at||''}:${patientName(row)}`).join('|');
-    if(existing?.dataset.signature===signature)return;
-    existing?.remove();
-    const activeCard=app.querySelector('section.card');if(!activeCard)return;
-    const card=document.createElement('section');card.className='card';card.id='endedPatientsCard';card.dataset.signature=signature;
-    card.innerHTML=`<div class="section-head"><h2>Percorsi terminati</h2></div><div class="pro3-patients">${rows.map(row=>`<div class="pro3-patient" style="font-weight:400"><div class="patient-avatar">${esc(patientName(row).split(' ').map(x=>x[0]).slice(0,2).join(''))}</div><div><span style="display:block;font-size:15px;font-weight:700;color:#34484f">${esc(patientName(row))}</span><span style="display:block;margin-top:3px;font-size:12px;color:#7b898f">Percorso terminato${row.relationship?.ended_at?' · '+new Date(row.relationship.ended_at).toLocaleDateString('it-IT'):''}</span></div><button class="mini" type="button" data-reactivate-patient="${row.id}">Riattiva percorso</button></div>`).join('')}</div>`;
-    activeCard.insertAdjacentElement('afterend',card);
-    card.querySelectorAll('[data-reactivate-patient]').forEach(button=>button.addEventListener('click',()=>reactivatePathway(button.dataset.reactivatePatient,button)));
+  // I pazienti terminati sono ora renderizzati unicamente da
+  // professional-patient-groups.js. La vecchia card endedPatientsCard
+  // duplicava la stessa categoria e non deve più essere ricreata.
+  function removeLegacyEndedPatientsCard(){
+    document.getElementById('endedPatientsCard')?.remove();
   }
 
-  function patch(){if(patching)return;patching=true;try{patchNewPatientForm();patchEditPatientPhone();patchDetails();patchEndedPatients();}finally{patching=false;}}
+  function patch(){
+    if(patching)return;
+    patching=true;
+    try{
+      patchNewPatientForm();
+      patchEditPatientPhone();
+      patchDetails();
+      removeLegacyEndedPatientsCard();
+    }finally{patching=false;}
+  }
 
   document.addEventListener('click',event=>{
     rememberPatient(event.target);
@@ -151,5 +134,7 @@
     if(end){event.preventDefault();event.stopImmediatePropagation();void endPathway(end.dataset.endPathway);return;}
   },true);
 
-  const observer=new MutationObserver(()=>queueMicrotask(patch));observer.observe(app,{childList:true,subtree:true});patch();
+  const observer=new MutationObserver(()=>queueMicrotask(patch));
+  observer.observe(app,{childList:true,subtree:true});
+  patch();
 })();
