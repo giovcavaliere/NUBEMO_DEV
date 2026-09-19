@@ -1,5 +1,5 @@
 // NUBEMO — impostazioni Area Paziente gestite dal professionista.
-// Mantiene i campi e il flusso (showEnergyValues/readOnly) e persiste su patient_settings.
+// Mantiene i campi e il flusso (showEnergyValues/readOnly) e persiste sul percorso corrente.
 (() => {
   'use strict';
 
@@ -11,6 +11,7 @@
   const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoStorageKit.capture();
 
   const settingsByPatient = new Map();
+  const pathwayByPatient = new Map();
   let hydrated = false;
   let queue = Promise.resolve();
 
@@ -42,11 +43,17 @@
   async function loadAll() {
     if (!context.patients.length) { hydrated = true; return; }
     const ids = context.patients.map(p => p.id);
-    const result = await client.from('patient_settings').select('patient_id,settings_json').in('patient_id', ids);
+    const result = await client.from('patient_settings').select('patient_id,pathway_id,settings_json').in('patient_id', ids);
     if (result.error) throw result.error;
-    settingsByPatient.clear();
-    for (const row of result.data || []) settingsByPatient.set(row.patient_id, normalizedSettings(row.settings_json));
-    for (const patient of context.patients) if (!settingsByPatient.has(patient.id)) settingsByPatient.set(patient.id, normalizedSettings({}));
+    settingsByPatient.clear();pathwayByPatient.clear();
+    for (const row of result.data || []) {
+      settingsByPatient.set(row.patient_id, normalizedSettings(row.settings_json));
+      if(row.pathway_id)pathwayByPatient.set(row.patient_id,row.pathway_id);
+    }
+    for (const patient of context.patients) {
+      if (!settingsByPatient.has(patient.id)) settingsByPatient.set(patient.id, normalizedSettings({}));
+      if (patient.pathwayId && !pathwayByPatient.has(patient.id)) pathwayByPatient.set(patient.id, patient.pathwayId);
+    }
     hydrated = true;
   }
 
@@ -64,8 +71,16 @@
         readOnly: patient.readOnly === true
       };
       if (current.showEnergyValues === next.showEnergyValues && current.readOnly === next.readOnly) continue;
-      const result = await client.from('patient_settings').upsert({patient_id: patient.id, settings_json: next},{onConflict:'patient_id'}).select('patient_id,settings_json').single();
+      let pathwayId=pathwayByPatient.get(patient.id)||context.patients.find(p=>p.id===patient.id)?.pathwayId||null;
+      if(!pathwayId){
+        const {data,error}=await client.rpc('get_professional_patient_pathways',{p_patient_id:patient.id});
+        if(error)throw error;
+        pathwayId=(Array.isArray(data)?data:[]).find(p=>p.status==='active'||p.status==='pending')?.id||null;
+      }
+      if(!pathwayId)throw new Error('Percorso corrente non disponibile per le impostazioni paziente.');
+      const result = await client.from('patient_settings').upsert({patient_id: patient.id, pathway_id:pathwayId, settings_json: next},{onConflict:'pathway_id'}).select('patient_id,pathway_id,settings_json').single();
       if (result.error) throw result.error;
+      pathwayByPatient.set(patient.id,result.data.pathway_id);
       settingsByPatient.set(patient.id, normalizedSettings(result.data.settings_json));
     }
   }
