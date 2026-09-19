@@ -68,7 +68,7 @@
 
   async function ensureManagement(){
     if(!hasScript('professional-patient-management.js')){
-      await loadScript('professional-patient-management.js?v=nubemo40clean04','Impossibile preparare la gestione del percorso.');
+      await loadScript('professional-patient-management.js?v=nubemo-pathway19test4','Impossibile preparare la gestione del percorso.');
     }
     window.nubemoReloadProfessionalPatients=refreshPatients;
   }
