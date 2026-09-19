@@ -272,14 +272,16 @@
 
   function watchPdfDialog(){
     lifecycleObserver?.disconnect();
+    let dialogSeen=false;
     lifecycleObserver=new MutationObserver(()=>{
       const overlay=document.getElementById('clinicalPdfOverlay');
       if(overlay){
+        dialogSeen=true;
         overlay.querySelector('#closeClinicalPdf')?.addEventListener('click',()=>setTimeout(restoreOverlay,0),{once:true});
         overlay.querySelector('#cancelClinicalPdf')?.addEventListener('click',()=>setTimeout(restoreOverlay,0),{once:true});
         return;
       }
-      if(activeOverlay)restoreOverlay();
+      if(dialogSeen&&activeOverlay)restoreOverlay();
     });
     lifecycleObserver.observe(document.body,{childList:true,subtree:true});
   }
