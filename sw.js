@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-pathway19fix12';
+const CACHE='nubemo-demo-v4.0-pathway19fix13';
 const CORE=[
   './storage-bridge-kit.js?v=nubemo40clean04',
   './food-catalog.js?v=nubemo40clean04',
@@ -41,7 +41,7 @@ const CORE=[
   './professional-measures-supabase-bridge.js?v=nubemo40clean04',
   './professional-visits-supabase-bridge.js?v=nubemo40clean04',
   './professional-agenda-supabase-bridge.js?v=nubemo40clean04',
-  './professional-patient-edit-lazy.js?v=nubemo40clean04',
+  './professional-patient-edit-lazy.js?v=nubemo-pathway19fix13',
   './professional-pathway-lazy.js?v=nubemo-pathway17',
   './professional-pathway-history.js?v=nubemo-pathway19fix5',
   './professional-patient-groups.js?v=nubemo-pathway19fix3',
