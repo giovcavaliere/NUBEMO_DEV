@@ -119,9 +119,13 @@
       else if(content)content.insertAdjacentElement('beforebegin',banner);
       else app.prepend(banner);
     }
-    banner.innerHTML=status==='pending'
-      ? `<div class="section-head"><div><div class="eyebrow">STATO PERCORSO</div><h2>${statusLabel(status)}</h2></div></div><p class="muted" style="margin:6px 0 0">La scheda anagrafica resta consultabile. Le funzioni operative del nuovo percorso saranno disponibili dopo l'accettazione del paziente.</p>`
-      : `<div class="section-head"><div><div class="eyebrow">STATO PERCORSO</div><h2>${statusLabel(status)}</h2></div></div><p class="muted" style="margin:6px 0 0">La scheda resta consultabile in sola lettura. I percorsi precedenti sono disponibili nello Storico percorsi.</p>`;
+
+    if(banner.dataset.pathwayStatus!==status){
+      banner.dataset.pathwayStatus=status;
+      banner.innerHTML=status==='pending'
+        ? `<div class="section-head"><div><div class="eyebrow">STATO PERCORSO</div><h2>${statusLabel(status)}</h2></div></div><p class="muted" style="margin:6px 0 0">La scheda anagrafica resta consultabile. Le funzioni operative del nuovo percorso saranno disponibili dopo l'accettazione del paziente.</p>`
+        : `<div class="section-head"><div><div class="eyebrow">STATO PERCORSO</div><h2>${statusLabel(status)}</h2></div></div><p class="muted" style="margin:6px 0 0">La scheda resta consultabile in sola lettura. I percorsi precedenti sono disponibili nello Storico percorsi.</p>`;
+    }
 
     const allowed=new Set(['summary','privacy','account']);
     document.querySelectorAll('[data-patient-tab]').forEach(button=>{
