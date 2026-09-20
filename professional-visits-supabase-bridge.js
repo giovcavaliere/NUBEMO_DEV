@@ -3,11 +3,11 @@
   'use strict';
 
   const client=window.nubemoSupabase;
+  const runtime=window.nubemoProfessionalRuntimeStore;
   const services=()=>window.nubemoProfessionalServices;
-  if(!client)return;
+  if(!client||!runtime)return;
 
   const APPT_KEY='diario-pro-appts-recovery-v1';
-  const {getItem:nativeGetItem,setItem:nativeSetItem}=window.NubemoStorageKit.capture();
 
   const rowsByPatient=new Map();
   let currentPatientId='';
@@ -16,10 +16,10 @@
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
   const localAppointments=()=>{
-    const rows=parse(nativeGetItem.call(window.localStorage,APPT_KEY)||'[]',[]);
+    const rows=parse(runtime.peek(APPT_KEY)||'[]',[]);
     return Array.isArray(rows)?rows:[];
   };
-  const saveLocalAppointments=rows=>nativeSetItem.call(window.localStorage,APPT_KEY,JSON.stringify(rows||[]));
+  const saveLocalAppointments=rows=>runtime.put(APPT_KEY,JSON.stringify(rows||[]));
 
   function toLegacy(row,patientId){
     const start=new Date(row.starts_at);
