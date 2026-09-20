@@ -1,17 +1,16 @@
 // NUBEMO — bridge Documenti PRO -> Supabase.
-// Step 3B: metadata leggero globale per badge + dettaglio lazy per paziente.
+// Step 20D-2A: metadata Documenti su runtime store, senza dipendenza NubemoStorageKit.
 (() => {
   'use strict';
 
   const client = window.nubemoSupabase;
+  const runtime = window.nubemoProfessionalRuntimeStore;
   const services = window.nubemoProfessionalServices;
   const context = window.nubemoProfessionalContext || {};
-  if (!client || !services || !Array.isArray(context.patients)) return;
+  if (!client || !runtime || !services || !Array.isArray(context.patients)) return;
 
   const DOCUMENT_META_KEY = 'nubemo-documents-meta-v1';
-  const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoStorageKit.capture();
 
-  const memory = new Map();
   const remoteDocuments = new Map();
   const hydratedPatients = new Set();
   const hydrationPromises = new Map();
@@ -66,8 +65,8 @@
     };
   }
 
-  function readMeta(){return parse(memory.get(DOCUMENT_META_KEY)||'[]',[])}
-  function writeMeta(rows){memory.set(DOCUMENT_META_KEY,JSON.stringify(rows))}
+  function readMeta(){return parse(runtime.peek(DOCUMENT_META_KEY)||'[]',[])}
+  function writeMeta(rows){runtime.set(DOCUMENT_META_KEY,JSON.stringify(rows))}
 
   async function hydrateLightMetadata() {
     const ids=context.patients.map(p=>p.id);
@@ -95,29 +94,6 @@
     hydrationPromises.set(patientId,promise);
     return promise;
   }
-
-  window.NubemoStorageKit.patch('professional-documents-supabase-bridge', {
-    getItem: function(key) {
-      if (this === window.localStorage && String(key) === DOCUMENT_META_KEY) {
-        return memory.has(DOCUMENT_META_KEY) ? memory.get(DOCUMENT_META_KEY) : null;
-      }
-      return previousGetItem.call(this, key);
-    },
-    setItem: function(key, value) {
-      if (this === window.localStorage && String(key) === DOCUMENT_META_KEY) {
-        memory.set(DOCUMENT_META_KEY, String(value));
-        return;
-      }
-      return previousSetItem.call(this, key, value);
-    },
-    removeItem: function(key) {
-      if (this === window.localStorage && String(key) === DOCUMENT_META_KEY) {
-        memory.delete(DOCUMENT_META_KEY);
-        return;
-      }
-      return previousRemoveItem.call(this, key);
-    }
-  }, [DOCUMENT_META_KEY]);
 
   async function openRemote(id) {
     let row = remoteDocuments.get(id);
