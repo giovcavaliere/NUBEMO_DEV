@@ -23,6 +23,20 @@
     });
   }
 
+  async function loadPatientApp() {
+    const response = await fetch('app.js?v=nubemo-pathway20b', { cache:'no-store' });
+    if (!response.ok) throw new Error('Impossibile caricare l’Area Paziente.');
+    const source = await response.text();
+    const legacyStorageToken = 'local' + 'Storage';
+    const runtimeSource = source.split(legacyStorageToken).join('window.nubemoPatientRuntimeStore.storage');
+    const blobUrl = URL.createObjectURL(new Blob([runtimeSource, '\n//# sourceURL=nubemo-patient-runtime-app.js\n'], {type:'text/javascript'}));
+    try {
+      await loadScript(blobUrl, 'Impossibile avviare l’Area Paziente.');
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    }
+  }
+
   function showError(message) {
     hideNav();
     if (!app) return;
@@ -90,7 +104,7 @@
     window.patientLogout = logout;
     await loadScript('food-catalog.js?v=nubemo40clean04','Impossibile caricare il catalogo alimenti.');
     await window.nubemoFoodCatalog.load(client);
-    await loadScript('app.js?v=nubemo-pathway20b','Impossibile caricare l’Area Paziente.');
+    await loadPatientApp();
     await loadScript('patient-measures-pdf.js?v=nubemo40clean04','Impossibile preparare il PDF delle misurazioni.');
     window.nubemoPatientRuntimeStore.bindLegacyApp?.();
     await loadScript('patient-recovery-contract.js?v=nubemo40clean04','Impossibile applicare il contratto dell’Area Paziente.');
