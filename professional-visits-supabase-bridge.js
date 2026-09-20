@@ -48,6 +48,13 @@
     saveLocalAppointments(current);
   }
 
+  function refreshRenderedVisitsAfterDelete(appointmentId){
+    requestAnimationFrame(()=>{
+      const escaped=window.CSS?.escape?window.CSS.escape(String(appointmentId)):String(appointmentId).replace(/"/g,'\\"');
+      document.querySelector(`[data-edit-visit="${escaped}"]`)?.remove();
+    });
+  }
+
   async function ensurePatient(patientId,force=false){
     const id=String(patientId||'');
     if(!id)throw new Error('Paziente non valido.');
@@ -204,6 +211,7 @@
       await refreshAfterMutation(currentPatientId,null);
       editingVisitId='';
       document.getElementById('cancelEvent')?.click();
+      refreshRenderedVisitsAfterDelete(id);
     }finally{
       saving=false;
     }
