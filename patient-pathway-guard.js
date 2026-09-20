@@ -48,7 +48,7 @@
   async function logout() {
     try {
       await window.nubemoPatientDocumentReadBridge?.flush?.();
-      await window.nubemoPatientLegacyAdapter?.flush?.();
+      await window.nubemoPatientRuntimeStore?.flush?.();
       await client.auth.signOut();
     } finally { backToLogin(); }
   }
@@ -83,17 +83,16 @@
     if (!context?.activePathway?.id) return showNoActivePathway();
     showNav();
     window.nubemoPatientContext = context;
-    await window.nubemoPatientLegacyAdapter.init(context);
-    await loadScript('patient-settings-supabase-bridge.js?v=nubemo40clean04','Impossibile applicare le impostazioni dell’Area Paziente.');
+    await window.nubemoPatientRuntimeStore.init(context);
     await loadScript('patient-document-read-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare lo stato di lettura dei documenti.');
     await window.nubemoPatientDocumentReadBridge?.ready;
     if (logoutButton) logoutButton.style.display='inline-flex';
     window.patientLogout = logout;
     await loadScript('food-catalog.js?v=nubemo40clean04','Impossibile caricare il catalogo alimenti.');
     await window.nubemoFoodCatalog.load(client);
-    await loadScript('app.js?v=nubemo40clean04','Impossibile caricare l’Area Paziente.');
+    await loadScript('app.js?v=nubemo-pathway20b','Impossibile caricare l’Area Paziente.');
     await loadScript('patient-measures-pdf.js?v=nubemo40clean04','Impossibile preparare il PDF delle misurazioni.');
-    window.nubemoPatientLegacyAdapter.bindLegacyApp?.();
+    window.nubemoPatientRuntimeStore.bindLegacyApp?.();
     await loadScript('patient-recovery-contract.js?v=nubemo40clean04','Impossibile applicare il contratto dell’Area Paziente.');
     window.openPatientPlan = openCurrentPlan;
   }
@@ -128,7 +127,7 @@
 
   async function bootstrap() {
     try {
-      if (!client || !window.nubemoPatientServices || !window.nubemoPatientLegacyAdapter) throw new Error('Servizi di accesso non disponibili.');
+      if (!client || !window.nubemoPatientServices || !window.nubemoPatientRuntimeStore) throw new Error('Servizi di accesso non disponibili.');
       const { data: { session }, error: sessionError } = await client.auth.getSession();
       if (sessionError) throw sessionError;
       if (!session) return backToLogin();
