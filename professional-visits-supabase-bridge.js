@@ -199,9 +199,8 @@
     saving=true;
     const id=editingVisitId;
     try{
-      const {data,error}=await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:id});
+      const {error}=await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:id});
       if(error)throw error;
-      if(data!==true)throw new Error('Appuntamento non eliminato.');
       await refreshAfterMutation(currentPatientId,null);
       editingVisitId='';
       document.getElementById('cancelEvent')?.click();
