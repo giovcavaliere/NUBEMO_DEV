@@ -1,7 +1,7 @@
-const CACHE='nubemo-demo-v4.0-pathway20cfix1';
+const CACHE='nubemo-demo-v4.0-pathway20d1a';
 const CORE=[
   './storage-bridge-kit.js?v=nubemo-pathway20c',
-  './professional-runtime-store.js?v=nubemo-pathway20c',
+  './professional-runtime-store.js?v=nubemo-pathway20d1a',
   './food-catalog.js?v=nubemo40clean04',
   './',
   './index.html',
