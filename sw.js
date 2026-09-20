@@ -1,6 +1,7 @@
-const CACHE='nubemo-demo-v4.0-pathway20b';
+const CACHE='nubemo-demo-v4.0-pathway20c';
 const CORE=[
-  './storage-bridge-kit.js?v=nubemo40clean04',
+  './storage-bridge-kit.js?v=nubemo-pathway20c',
+  './professional-runtime-store.js?v=nubemo-pathway20c',
   './food-catalog.js?v=nubemo40clean04',
   './',
   './index.html',
@@ -66,7 +67,7 @@ const CORE=[
   './professional-bmi-dashboard-fix.js?v=nubemo40clean04',
   './professional-access-privacy-supabase-bridge.js?v=nubemo40clean04',
   './professional-profile-privacy-supabase-bridge.js?v=nubemo40clean04',
-  './professional-guard.js?v=nubemo40clean04',
+  './professional-guard.js?v=nubemo-pathway20c',
   './manifest.json?v=nubemo40clean04',
   './assets/nubemo-brand-clean-v2.png',
   './assets/nubemo-n-icon-180.png',
