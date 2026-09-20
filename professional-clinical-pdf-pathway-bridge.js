@@ -19,10 +19,10 @@
   let fallbackTimer=null;
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
-  const originalGetItem=Storage.prototype.getItem;
+  const runtimeStorage=()=>window.nubemoProfessionalRuntimeStore?.storage||window.localStorage;
 
   function rawLocal(key){
-    try{return originalGetItem.call(localStorage,key)}catch(_){return null}
+    try{return runtimeStorage()?.getItem?.(key)??null}catch(_){return null}
   }
 
   function currentPatientId(){
@@ -252,7 +252,9 @@
   function restoreOverlay(){
     if(fallbackTimer){clearTimeout(fallbackTimer);fallbackTimer=null;}
     lifecycleObserver?.disconnect();lifecycleObserver=null;
-    if(activeOverlay&&Storage.prototype.getItem===activeOverlay.wrapper){
+    if(activeOverlay?.kind==='runtime'){
+      if(activeOverlay.storage.getItem===activeOverlay.wrapper)activeOverlay.storage.getItem=activeOverlay.original;
+    }else if(activeOverlay?.kind==='native'&&Storage.prototype.getItem===activeOverlay.wrapper){
       Storage.prototype.getItem=activeOverlay.original;
     }
     activeOverlay=null;
@@ -260,13 +262,25 @@
 
   function installOverlay(overrides){
     restoreOverlay();
-    const original=Storage.prototype.getItem;
-    const wrapper=function(key){
-      if(this===localStorage&&overrides.has(String(key)))return overrides.get(String(key));
-      return original.call(this,key);
-    };
-    Storage.prototype.getItem=wrapper;
-    activeOverlay={original,wrapper};
+    const storage=runtimeStorage();
+    const runtime=window.nubemoProfessionalRuntimeStore?.storage;
+    if(runtime&&storage===runtime){
+      const original=storage.getItem;
+      const wrapper=function(key){
+        if(overrides.has(String(key)))return overrides.get(String(key));
+        return original.call(this,key);
+      };
+      storage.getItem=wrapper;
+      activeOverlay={kind:'runtime',storage,original,wrapper};
+    }else{
+      const original=Storage.prototype.getItem;
+      const wrapper=function(key){
+        if(this===window.localStorage&&overrides.has(String(key)))return overrides.get(String(key));
+        return original.call(this,key);
+      };
+      Storage.prototype.getItem=wrapper;
+      activeOverlay={kind:'native',original,wrapper};
+    }
     fallbackTimer=setTimeout(restoreOverlay,5*60*1000);
   }
 
