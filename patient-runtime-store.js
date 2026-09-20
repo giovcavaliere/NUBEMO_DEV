@@ -15,7 +15,6 @@
   const DOCUMENT_META_KEY = 'nubemo-documents-meta-v1';
   const PLAN_META_KEY = 'diario-pro-plan-meta-v1';
   const PENDING_LABS_KEY = 'diario-pro-pending-labs-v1';
-  const STORAGE_GLOBAL = 'local' + 'Storage';
 
   const memory = new Map();
   const remoteDocuments = new Map();
@@ -213,21 +212,6 @@
     removeItem(key) { memory.delete(String(key)); },
     clear() { memory.clear(); }
   });
-
-  function installRuntimeFacade() {
-    const descriptor = Object.getOwnPropertyDescriptor(window, STORAGE_GLOBAL);
-    try {
-      Object.defineProperty(window, STORAGE_GLOBAL, {
-        configurable: true,
-        enumerable: descriptor?.enumerable ?? true,
-        get: () => storageFacade
-      });
-    } catch (error) {
-      try { window[STORAGE_GLOBAL] = storageFacade; }
-      catch (_) { throw new Error('Impossibile inizializzare lo stato runtime dell’Area Paziente.'); }
-      if (window[STORAGE_GLOBAL] !== storageFacade) throw new Error('Stato runtime dell’Area Paziente non disponibile.');
-    }
-  }
 
   async function hydrateDocuments() {
     const [docs, plans, privacy] = await Promise.all([
@@ -443,7 +427,6 @@
     memory.set(DOCUMENT_META_KEY, '[]');
     memory.set(PLAN_META_KEY, '{}');
     memory.set(PENDING_LABS_KEY, '{}');
-    installRuntimeFacade();
     await hydrateDocuments();
   }
 
