@@ -136,13 +136,14 @@
         if (String(button.getAttribute('onclick') || '').includes("go('trend')")) button.remove();
       });
 
-      document.getElementById('nubemoPatientPathways')?.remove();
+      if (document.getElementById('nubemoPatientPathways') || !pathways.length) return;
       const section = historySection();
       if (section) actions.insertAdjacentElement('afterend', section);
     } finally { patching = false; }
   }
 
   async function mountActive() {
+    patchActiveHome();
     try {
       await loadPathways();
       patchActiveHome();
@@ -152,10 +153,10 @@
   }
 
   async function mountNoActive() {
+    if (document.getElementById('nubemoPatientPathways')) return;
     try {
       await loadPathways();
-      document.getElementById('nubemoPatientPathways')?.remove();
-      if (!pathways.length) return;
+      if (!pathways.length || document.getElementById('nubemoPatientPathways')) return;
       const section = historySection();
       if (section) app.appendChild(section);
     } catch (error) {
