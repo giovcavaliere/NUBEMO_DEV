@@ -28,26 +28,28 @@
     style.id = 'nubemoPatientPathwayHistoryStyles';
     style.textContent = `
       #nubemoPatientPathways{
-        width:100%;
-        max-width:none;
-        grid-column:1 / -1;
-        align-self:stretch;
+        width:100%!important;
+        max-width:none!important;
+        min-width:0!important;
+        grid-column:1 / -1!important;
+        justify-self:stretch!important;
+        align-self:stretch!important;
       }
       #nubemoPatientPathways .nubemo-patient-pathway-head{
         align-items:flex-start;
-        margin-bottom:10px;
+        margin-bottom:8px;
       }
       #nubemoPatientPathways .nubemo-patient-pathway-list{
-        display:grid;
-        grid-template-columns:1fr;
-        gap:0;
+        display:block;
+        width:100%;
       }
       #nubemoPatientPathways .nubemo-patient-pathway-row{
         display:grid;
         grid-template-columns:minmax(0,1fr) auto;
         align-items:center;
         gap:18px;
-        min-height:82px;
+        width:100%;
+        min-height:76px;
         padding:14px 2px;
         border-top:1px solid #e7ece9;
       }
@@ -73,21 +75,15 @@
         min-width:70px;
         margin-left:0;
       }
+      .nubemo-patient-home-actions-single{
+        grid-template-columns:1fr!important;
+      }
       @media (min-width:700px){
         #nubemoPatientPathways{
           padding:22px 24px;
         }
-        #nubemoPatientPathways .nubemo-patient-pathway-list{
-          grid-template-columns:repeat(2,minmax(0,1fr));
-          column-gap:28px;
-        }
         #nubemoPatientPathways .nubemo-patient-pathway-row{
-          border-top:0;
-          border-bottom:1px solid #e7ece9;
           padding:16px 2px;
-        }
-        #nubemoPatientPathways .nubemo-patient-pathway-row:nth-last-child(-n+2){
-          border-bottom:0;
         }
       }
       @media (max-width:480px){
@@ -96,7 +92,7 @@
         }
         #nubemoPatientPathways .nubemo-patient-pathway-row{
           gap:12px;
-          min-height:76px;
+          min-height:72px;
           padding:12px 0;
         }
         #nubemoPatientPathways .nubemo-patient-pathway-copy b{
@@ -228,6 +224,7 @@
       [...actions.querySelectorAll('button')].forEach(button => {
         if (String(button.getAttribute('onclick') || '').includes("go('trend')")) button.remove();
       });
+      actions.classList.add('nubemo-patient-home-actions-single');
 
       if (document.getElementById('nubemoPatientPathways') || !pathways.length) return;
       const section = historySection();
