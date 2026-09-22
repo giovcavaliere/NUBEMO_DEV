@@ -42,6 +42,7 @@
 
   const json = value => JSON.stringify(value);
   const parse = (value, fallback) => { try { return JSON.parse(value); } catch (_) { return fallback; } };
+  const uniqueIds = values => [...new Set((values || []).filter(Boolean).map(String))];
   const numberOrNull = value => {
     if (value === '' || value === undefined || value === null) return null;
     const n = Number(value);
@@ -172,7 +173,7 @@
     };
   }
 
-  function legacyAppointment(row, subjectId) {
+  function legacyAppointment(row, subjectIds) {
     const start = new Date(row.starts_at);
     const end = new Date(row.ends_at || row.starts_at);
     const local = new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString();
@@ -181,9 +182,11 @@
     const type = label.includes('prima') || label === 'first' ? 'first'
       : label.includes('personal') || label.includes('impegno') || label === 'personal' ? 'personal'
       : 'control';
+    const ids = type === 'personal' ? [] : uniqueIds(Array.isArray(subjectIds) ? subjectIds : [subjectIds]).slice(0,2);
     return {
       id: legacyAppointmentIds.get(row.id) || row.id,
-      patientId: type === 'personal' ? null : (subjectId || null),
+      patientId: ids[0] || null,
+      patientIds: ids,
       date: local.slice(0, 10),
       time: local.slice(11, 16),
       type,
@@ -283,15 +286,44 @@
       : { patient_id:subjectId, draft_patient_id:null };
   }
 
+  function appointmentSubjectIds(a) {
+    if (a?.type === 'personal') return [];
+    const raw = Array.isArray(a?.patientIds) && a.patientIds.length ? a.patientIds : [a?.patientId];
+    return uniqueIds(raw).slice(0,2);
+  }
+
+  async function replaceAppointmentLinks(appointmentId, subjectIds) {
+    const desired = uniqueIds(subjectIds).slice(0,2);
+    const { data:links, error:linkReadError } = await client.from('appointment_patients')
+      .select('id,patient_id,draft_patient_id')
+      .eq('appointment_id', appointmentId);
+    if (linkReadError) throw linkReadError;
+
+    const existing = new Map((links || []).map(link => [String(link.patient_id || link.draft_patient_id || ''), link]));
+
+    for (const [subjectId, link] of existing) {
+      if (desired.includes(subjectId)) continue;
+      const { error } = await client.from('appointment_patients').delete().eq('id', link.id);
+      if (error) throw error;
+    }
+
+    for (const subjectId of desired) {
+      if (existing.has(subjectId)) continue;
+      const { error } = await client.from('appointment_patients').insert({ appointment_id:appointmentId, ...subjectLink(subjectId) });
+      if (error) throw error;
+    }
+  }
+
   async function createAppointment(a) {
     const { data, error } = await client.from('appointments').insert({
       professional_id:context.professional.id, created_by_user_id:context.user.id, ...appointmentPayload(a)
     }).select('*').single();
     if (error) throw error;
     legacyAppointmentIds.set(data.id, a.id);
-    if (a.type !== 'personal' && a.patientId) {
-      const { error: linkError } = await client.from('appointment_patients').insert({appointment_id:data.id, ...subjectLink(a.patientId)});
-      if (linkError) { await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:data.id}); throw linkError; }
+    const subjects = appointmentSubjectIds(a);
+    if (a.type !== 'personal' && subjects.length) {
+      try { await replaceAppointmentLinks(data.id, subjects); }
+      catch (linkError) { await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:data.id}); throw linkError; }
     }
     return data;
   }
@@ -299,27 +331,8 @@
   async function updateAppointment(remote, a) {
     const { error } = await client.from('appointments').update(appointmentPayload(a)).eq('id', remote.id);
     if (error) throw error;
-    const { data:links, error:linkReadError } = await client.from('appointment_patients').select('id,patient_id,draft_patient_id').eq('appointment_id', remote.id);
-    if (linkReadError) throw linkReadError;
-    const oldLink = links?.[0] || null;
-    const oldSubjectId = oldLink?.patient_id || oldLink?.draft_patient_id || null;
-    const newSubjectId = a.type === 'personal' ? null : (a.patientId || null);
-    if (!newSubjectId) {
-      if (oldLink) {
-        const { error:delError } = await client.from('appointment_patients').delete().eq('id', oldLink.id);
-        if (delError) throw delError;
-      }
-      return;
-    }
-    if (oldSubjectId === newSubjectId) return;
-    const next = subjectLink(newSubjectId);
-    if (oldLink) {
-      const { error:updateLinkError } = await client.from('appointment_patients').update(next).eq('id', oldLink.id);
-      if (updateLinkError) throw updateLinkError;
-    } else {
-      const { error:addError } = await client.from('appointment_patients').insert({appointment_id:remote.id, ...next});
-      if (addError) throw addError;
-    }
+    const subjects = a.type === 'personal' ? [] : appointmentSubjectIds(a);
+    await replaceAppointmentLinks(remote.id, subjects);
   }
 
   async function syncAppointments(serialized) {
@@ -361,12 +374,22 @@
     const ids = remoteAppointments.map(x => x.id);
     let links = [];
     if (ids.length) {
-      const result = await client.from('appointment_patients').select('appointment_id,patient_id,draft_patient_id').in('appointment_id',ids);
+      const result = await client.from('appointment_patients')
+        .select('appointment_id,patient_id,draft_patient_id,created_at')
+        .in('appointment_id',ids)
+        .order('created_at');
       if (result.error) throw result.error;
       links = result.data || [];
     }
-    const subjectByAppointment = new Map(links.map(x => [x.appointment_id, x.patient_id || x.draft_patient_id || null]));
-    memory.set(APPT_KEY,json(remoteAppointments.map(row => legacyAppointment(row,subjectByAppointment.get(row.id)||null))));
+    const subjectsByAppointment = new Map();
+    for (const link of links) {
+      const subjectId = link.patient_id || link.draft_patient_id || null;
+      if (!subjectId) continue;
+      const current = subjectsByAppointment.get(link.appointment_id) || [];
+      current.push(String(subjectId));
+      subjectsByAppointment.set(link.appointment_id, uniqueIds(current).slice(0,2));
+    }
+    memory.set(APPT_KEY,json(remoteAppointments.map(row => legacyAppointment(row,subjectsByAppointment.get(row.id)||[]))));
   }
 
   function publishPatientsMemory() {
