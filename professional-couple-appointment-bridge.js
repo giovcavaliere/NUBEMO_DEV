@@ -161,13 +161,10 @@
     target.patientIds=subjectIds;
     localStorage.setItem(APPT_KEY,JSON.stringify(rows));
 
-    // Aspetta la sincronizzazione Agenda e ridisegna una sola volta con gli id definitivi.
-    const bridge=window.nubemoProfessionalAgendaBridge;
-    if(bridge?.flush){
-      void bridge.flush().then(()=>{
-        bridge.restoreContext?.();
-        window.nubemoProfessionalRender?.();
-      }).catch(error=>console.error('NUBEMO couple post-save refresh:',error));
+    // L'adapter legacy è l'unico owner della sincronizzazione Agenda.
+    const adapter=window.nubemoProfessionalLegacyAdapter;
+    if(adapter?.flush){
+      void adapter.flush().then(()=>window.nubemoProfessionalRender?.()).catch(error=>console.error('NUBEMO couple post-save refresh:',error));
     }else{
       queueMicrotask(()=>window.nubemoProfessionalRender?.());
     }
