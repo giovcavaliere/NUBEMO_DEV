@@ -123,13 +123,20 @@
     return section;
   }
 
+  function homeActions() {
+    const buttons = [...app.querySelectorAll('button')];
+    const addButton = buttons.find(button => String(button.getAttribute('onclick') || '').includes('newDay()'));
+    const trendButton = buttons.find(button => String(button.getAttribute('onclick') || '').includes("go('trend')"));
+    const anchor = addButton || trendButton;
+    if (!anchor) return null;
+    return anchor.closest('.grid.actions') || anchor.parentElement;
+  }
+
   function patchActiveHome() {
     if (patching) return;
     patching = true;
     try {
-      const addButton = [...app.querySelectorAll('button')].find(button => String(button.getAttribute('onclick') || '').includes('newDay()'));
-      if (!addButton) return;
-      const actions = addButton.closest('.grid.actions') || addButton.parentElement;
+      const actions = homeActions();
       if (!actions) return;
 
       [...actions.querySelectorAll('button')].forEach(button => {
@@ -165,8 +172,7 @@
   }
 
   async function autoMount() {
-    const addButton = [...app.querySelectorAll('button')].find(button => String(button.getAttribute('onclick') || '').includes('newDay()'));
-    if (addButton) return mountActive();
+    if (homeActions()) return mountActive();
     const title = app.querySelector('h1')?.textContent?.trim() || '';
     if (title === 'Nessun percorso attivo') return mountNoActive();
   }
