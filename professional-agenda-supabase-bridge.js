@@ -42,6 +42,33 @@
     return !!(row?._draft===true||row?.relationshipStatus==='draft');
   }
 
+  function draftName(subjectId){
+    const row=localPatients().find(item=>String(item?.id||'')===String(subjectId));
+    if(!row)return 'il contatto provvisorio';
+    const name=[row.firstName||row.first_name,row.surname||row.last_name].filter(Boolean).join(' ').trim();
+    return name||'il contatto provvisorio';
+  }
+
+  async function askAndDeleteDraft(subjectId){
+    if(!subjectId||!isDraft(subjectId))return;
+    const name=draftName(subjectId);
+    const removeDraft=window.confirm(`Appuntamento eliminato.\n\nVuoi eliminare anche il contatto provvisorio ${name}?`);
+    if(!removeDraft)return;
+
+    try{
+      const {error}=await client.from('professional_patient_drafts')
+        .delete()
+        .eq('id',subjectId)
+        .eq('professional_id',professionalId);
+      if(error)throw error;
+      await window.nubemoPatientLifecycleBridge?.refresh?.();
+      syncAgendaPatientsFromCanonical();
+    }catch(error){
+      console.error('NUBEMO draft delete after appointment:',error);
+      window.alert('L’appuntamento è stato eliminato, ma non è stato possibile eliminare il contatto provvisorio.');
+    }
+  }
+
   function subjectLink(subjectId){
     if(!subjectId)return{patient_id:null,draft_patient_id:null};
     return isDraft(subjectId)
@@ -213,10 +240,17 @@
     }
 
     if(version!==syncVersion)return;
+    const handledDrafts=new Set();
     for(const remote of remoteAppointments){
       if(!retained.has(String(remote.id))){
+        const subjectId=linkByAppointment.get(remote.id)||null;
+        const draftSubject=subjectId&&isDraft(subjectId)?String(subjectId):'';
         const result=await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:remote.id});
         if(result.error)throw result.error;
+        if(draftSubject&&!handledDrafts.has(draftSubject)){
+          handledDrafts.add(draftSubject);
+          await askAndDeleteDraft(draftSubject);
+        }
       }
     }
 
