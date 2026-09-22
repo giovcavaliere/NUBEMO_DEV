@@ -22,6 +22,91 @@
     return Number.isNaN(d.getTime()) ? raw : d.toLocaleDateString('it-IT');
   };
 
+  function ensureStyles() {
+    if (document.getElementById('nubemoPatientPathwayHistoryStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'nubemoPatientPathwayHistoryStyles';
+    style.textContent = `
+      #nubemoPatientPathways{
+        width:100%;
+        max-width:none;
+        grid-column:1 / -1;
+        align-self:stretch;
+      }
+      #nubemoPatientPathways .nubemo-patient-pathway-head{
+        align-items:flex-start;
+        margin-bottom:10px;
+      }
+      #nubemoPatientPathways .nubemo-patient-pathway-list{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:0;
+      }
+      #nubemoPatientPathways .nubemo-patient-pathway-row{
+        display:grid;
+        grid-template-columns:minmax(0,1fr) auto;
+        align-items:center;
+        gap:18px;
+        min-height:82px;
+        padding:14px 2px;
+        border-top:1px solid #e7ece9;
+      }
+      #nubemoPatientPathways .nubemo-patient-pathway-row:first-child{
+        border-top:0;
+      }
+      #nubemoPatientPathways .nubemo-patient-pathway-copy{
+        min-width:0;
+      }
+      #nubemoPatientPathways .nubemo-patient-pathway-copy b{
+        display:block;
+        color:#064b43;
+        font-size:16px;
+        line-height:1.3;
+      }
+      #nubemoPatientPathways .nubemo-patient-pathway-copy span{
+        display:block;
+        margin-top:5px;
+        color:#708078;
+        font-size:12px;
+      }
+      #nubemoPatientPathways [data-open-patient-pathway]{
+        min-width:70px;
+        margin-left:0;
+      }
+      @media (min-width:700px){
+        #nubemoPatientPathways{
+          padding:22px 24px;
+        }
+        #nubemoPatientPathways .nubemo-patient-pathway-list{
+          grid-template-columns:repeat(2,minmax(0,1fr));
+          column-gap:28px;
+        }
+        #nubemoPatientPathways .nubemo-patient-pathway-row{
+          border-top:0;
+          border-bottom:1px solid #e7ece9;
+          padding:16px 2px;
+        }
+        #nubemoPatientPathways .nubemo-patient-pathway-row:nth-last-child(-n+2){
+          border-bottom:0;
+        }
+      }
+      @media (max-width:480px){
+        #nubemoPatientPathways{
+          padding:18px;
+        }
+        #nubemoPatientPathways .nubemo-patient-pathway-row{
+          gap:12px;
+          min-height:76px;
+          padding:12px 0;
+        }
+        #nubemoPatientPathways .nubemo-patient-pathway-copy b{
+          font-size:15px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   async function loadPathways() {
     if (loaded) return pathways;
     if (loadingPromise) return loadingPromise;
@@ -103,15 +188,16 @@
 
   function pathwayCard(pathway) {
     const from = pathway.pathway_start_date || pathway.started_at;
-    return `<div class="document-row" style="align-items:center"><div><b>${fmtDate(from)} → ${fmtDate(pathway.ended_at)}</b>${pathway.professional_name ? `<span>${esc(pathway.professional_name)}</span>` : ''}</div><button class="secondary compact" type="button" data-open-patient-pathway="${esc(pathway.id)}">Apri</button></div>`;
+    return `<div class="nubemo-patient-pathway-row"><div class="nubemo-patient-pathway-copy"><b>${fmtDate(from)} → ${fmtDate(pathway.ended_at)}</b>${pathway.professional_name ? `<span>${esc(pathway.professional_name)}</span>` : ''}</div><button class="secondary compact" type="button" data-open-patient-pathway="${esc(pathway.id)}">Apri</button></div>`;
   }
 
   function historySection() {
     if (!pathways.length) return null;
+    ensureStyles();
     const section = document.createElement('section');
     section.className = 'card';
     section.id = 'nubemoPatientPathways';
-    section.innerHTML = `<div class="section-head"><div><div class="eyebrow">PERCORSI</div><h2>Percorsi precedenti</h2></div><span class="pill">${pathways.length}</span></div><div class="document-list">${pathways.map(pathwayCard).join('')}</div>`;
+    section.innerHTML = `<div class="section-head nubemo-patient-pathway-head"><div><div class="eyebrow">PERCORSI</div><h2>Percorsi precedenti</h2></div><span class="pill">${pathways.length}</span></div><div class="nubemo-patient-pathway-list">${pathways.map(pathwayCard).join('')}</div>`;
     section.querySelectorAll('[data-open-patient-pathway]').forEach(button => button.addEventListener('click', async () => {
       button.disabled = true;
       const old = button.textContent;
