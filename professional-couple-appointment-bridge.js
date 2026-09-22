@@ -161,7 +161,7 @@
     target.patientIds=subjectIds;
     localStorage.setItem(APPT_KEY,JSON.stringify(rows));
 
-    // L'adapter legacy è l'unico owner della sincronizzazione Agenda.
+    // L'adapter legacy e' l'unico owner della sincronizzazione Agenda quando il runtime completo e' attivo.
     const adapter=window.nubemoProfessionalLegacyAdapter;
     if(adapter?.flush){
       void adapter.flush().then(()=>window.nubemoProfessionalRender?.()).catch(error=>console.error('NUBEMO couple post-save refresh:',error));
@@ -273,14 +273,19 @@
       const a=byId.get(String(node.dataset.event||''));
       const ids=idsFor(a);
       if(ids.length<2||a?.type==='personal')return;
+      const signature=ids.join('|');
+      if(node.dataset.coupleSignature===signature)return;
       const names=ids.map(patientName).join(' + ');
       const span=node.querySelector('span');
       if(!span)return;
-      if(node.classList.contains('pro3-cal-event'))span.textContent=names;
+      let nextText='';
+      if(node.classList.contains('pro3-cal-event'))nextText=names;
       else{
         const parts=String(span.textContent||'').split(' · ');
-        span.textContent=parts.length>1?`${names} · ${parts.slice(1).join(' · ')}`:names;
+        nextText=parts.length>1?`${names} · ${parts.slice(1).join(' · ')}`:names;
       }
+      if(span.textContent!==nextText)span.textContent=nextText;
+      node.dataset.coupleSignature=signature;
     });
   }
 
