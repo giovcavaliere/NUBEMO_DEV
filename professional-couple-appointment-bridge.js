@@ -1,10 +1,12 @@
-// NUBEMO — visite di coppia: secondo paziente senza alterare il modello legacy della UI.
+// NUBEMO — visite di coppia: massimo due partecipanti sullo stesso appuntamento.
 (() => {
   'use strict';
 
   const APPT_KEY='diario-pro-appts-recovery-v1';
   const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
+  const SETTINGS_KEY='diario-pro-settings-recovery-v1';
   const app=document.getElementById('proApp');
+  const client=window.nubemoSupabase;
   if(!app)return;
 
   let editingEventId='';
@@ -20,10 +22,24 @@
   const patientName=id=>{
     const p=patientById(id);
     if(!p)return 'Paziente';
-    const name=p.name||[p.firstName||p.first_name,p.surname||p.last_name].filter(Boolean).join(' ').trim();
-    return name||'Paziente';
+    return p.name||[p.firstName||p.first_name,p.surname||p.last_name].filter(Boolean).join(' ').trim()||'Paziente';
   };
   const esc=(value='')=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+
+  function settings(){
+    const raw=parse(localStorage.getItem(SETTINGS_KEY)||'{}',{});
+    return raw&&typeof raw==='object'?raw:{};
+  }
+  function standardDuration(type){
+    const s=settings();
+    return type==='first'?Math.max(1,Number(s.first)||60):Math.max(1,Number(s.control)||30);
+  }
+  function applyCoupleDuration(couple){
+    const type=String(document.getElementById('eType')?.value||'control');
+    if(type==='personal')return;
+    const duration=document.getElementById('eDuration');
+    if(duration)duration.value=String(standardDuration(type)*(couple?2:1));
+  }
 
   function ensureStyles(){
     if(document.getElementById('nubemoCoupleAppointmentStyles'))return;
@@ -37,6 +53,9 @@
       .nubemo-couple-head label{margin:0}
       .nubemo-couple-remove{width:auto;margin:0}
       .nubemo-couple-option[hidden]{display:none!important}
+      .nubemo-couple-quick{margin-top:10px}
+      .nubemo-couple-quick[hidden]{display:none!important}
+      .nubemo-couple-quick .grid{margin-top:8px}
       .nubemo-couple-visit-badge{margin-left:8px;font-size:10px;font-weight:800;padding:3px 7px;border-radius:999px;background:#e7f4f4;color:#167d89}
     `;
     document.head.appendChild(style);
@@ -46,15 +65,14 @@
     return patients().map(p=>{
       const id=String(p.id||'');
       if(!id)return'';
-      const name=p.name||[p.firstName||p.first_name,p.surname||p.last_name].filter(Boolean).join(' ').trim()||'Paziente';
+      const name=patientName(id);
       const phone=p.phone||'';
       return `<button type="button" class="agenda-patient-option nubemo-couple-option ${id===String(selectedId||'')?'selected':''}" data-couple-patient="${esc(id)}" ${id===String(primaryId||'')?'hidden':''}><span>${esc(name)}</span>${phone?`<small>${esc(phone)}</small>`:''}</button>`;
     }).join('');
   }
 
   function currentEditingAppointment(){
-    if(!editingEventId)return null;
-    return appointments().find(a=>String(a.id)===String(editingEventId))||null;
+    return editingEventId?appointments().find(a=>String(a.id)===String(editingEventId))||null:null;
   }
 
   function refreshSecondOptions(){
@@ -80,19 +98,72 @@
     refreshSecondOptions();
   }
 
+  function clearFirstQuickDraftFields(){
+    ['agendaNpName','agendaNpSurname','agendaNpPhone'].forEach(id=>{const input=document.getElementById(id);if(input)input.value='';});
+  }
+
+  async function waitAndClearFirstQuickDraft(previousId){
+    for(let i=0;i<100;i++){
+      await new Promise(resolve=>setTimeout(resolve,50));
+      const current=String(document.getElementById('ePatient')?.value||'');
+      if(current&&current!==previousId){clearFirstQuickDraftFields();return;}
+    }
+  }
+
+  async function createSecondDraft(button){
+    if(!client)return alert('Servizio non disponibile.');
+    const context=window.nubemoProfessionalContext||{};
+    const professionalId=context.professional?.id;
+    const userId=context.user?.id;
+    const firstName=String(document.getElementById('nubemoCoupleDraftName')?.value||'').trim();
+    const lastName=String(document.getElementById('nubemoCoupleDraftSurname')?.value||'').trim();
+    const phone=String(document.getElementById('nubemoCoupleDraftPhone')?.value||'').trim();
+    if(!firstName||!lastName)return alert('Inserisci nome e cognome.');
+    if(!phone)return alert('Inserisci un recapito telefonico.');
+    if(!professionalId||!userId)return alert('Contesto professionista non disponibile.');
+
+    button.disabled=true;const old=button.textContent;button.textContent='Creazione...';
+    try{
+      const {data,error}=await client.from('professional_patient_drafts').insert({professional_id:professionalId,first_name:firstName,last_name:lastName,phone,created_by_user_id:userId}).select().single();
+      if(error||!data)throw error||new Error('Contatto non creato.');
+      await window.nubemoPatientLifecycleBridge?.refresh?.();
+      window.nubemoProfessionalAgendaBridge?.syncPatients?.();
+
+      const results=document.getElementById('ePatient2Results');
+      if(results&&!results.querySelector(`[data-couple-patient="${CSS.escape(String(data.id))}"]`)){
+        const option=document.createElement('button');
+        option.type='button';option.className='agenda-patient-option nubemo-couple-option selected';option.dataset.couplePatient=String(data.id);
+        option.innerHTML=`<span>${esc([data.first_name,data.last_name].filter(Boolean).join(' '))}</span>${data.phone?`<small>${esc(data.phone)}</small>`:''}`;
+        option.addEventListener('click',()=>selectSecondPatient(data.id));
+        results.appendChild(option);
+      }
+      selectSecondPatient(data.id);
+      ['nubemoCoupleDraftName','nubemoCoupleDraftSurname','nubemoCoupleDraftPhone'].forEach(id=>{const input=document.getElementById(id);if(input)input.value='';});
+      const quick=document.getElementById('nubemoCoupleQuickDraft');if(quick)quick.hidden=true;
+      const toggle=document.getElementById('nubemoCoupleNewDraftToggle');if(toggle)toggle.hidden=false;
+    }catch(error){
+      console.error('NUBEMO second draft create:',error);
+      alert('Non è stato possibile creare il contatto provvisorio.');
+    }finally{button.disabled=false;button.textContent=old;}
+  }
+
   function patchSavedAppointment(snapshot){
     const rows=appointments();
     let target=null;
     if(snapshot.editingId)target=rows.find(a=>String(a.id)===String(snapshot.editingId))||null;
     if(!target){
       const added=rows.filter(a=>!snapshot.beforeIds.has(String(a.id)));
-      target=added.find(a=>String(a.patientId||'')===snapshot.primary&&String(a.date||'')===snapshot.date&&String(a.time||'')===snapshot.time&&String(a.type||'')===snapshot.type)||added[0]||null;
+      target=added.find(a=>String(a.patientId||'')===snapshot.primary&&String(a.time||'')===snapshot.time&&String(a.type||'')===snapshot.type)||added[0]||null;
     }
     if(!target)return;
     const subjectIds=[snapshot.primary,snapshot.second].filter(Boolean).filter((id,index,arr)=>arr.indexOf(id)===index).slice(0,2);
     target.patientId=subjectIds[0]||null;
     target.patientIds=subjectIds;
     localStorage.setItem(APPT_KEY,JSON.stringify(rows));
+
+    // Il render legacy è già avvenuto: ridisegna subito con patientIds, senza refresh manuale.
+    queueMicrotask(()=>window.nubemoProfessionalRender?.());
+    void window.nubemoProfessionalAgendaBridge?.flush?.().then(()=>window.nubemoProfessionalRender?.()).catch(error=>console.error('NUBEMO couple post-save refresh:',error));
   }
 
   function bindSave(button){
@@ -107,7 +178,6 @@
         type,
         primary:type==='personal'?'':String(document.getElementById('ePatient')?.value||''),
         second:type==='personal'?'':String(document.getElementById('ePatient2')?.value||''),
-        date:(document.getElementById('eDate')?.value||''),
         time:String(document.getElementById('eTime')?.value||'')
       };
     },true);
@@ -135,28 +205,30 @@
       const second=currentIds.find(id=>String(id)!==primary)||'';
 
       const add=document.createElement('button');
-      add.type='button';
-      add.id='nubemoAddSecondPatient';
-      add.className='secondary nubemo-couple-add';
-      add.textContent='＋ Aggiungi secondo paziente';
+      add.type='button';add.id='nubemoAddSecondPatient';add.className='secondary nubemo-couple-add';add.textContent='＋ Aggiungi secondo paziente';
 
       const box=document.createElement('div');
-      box.id='nubemoSecondPatientBox';
-      box.className='nubemo-couple-box';
-      box.hidden=!second;
+      box.id='nubemoSecondPatientBox';box.className='nubemo-couple-box';box.hidden=!second;
       box.innerHTML=`<div class="nubemo-couple-head"><label>Secondo paziente</label><button type="button" class="mini danger-text nubemo-couple-remove" id="nubemoRemoveSecondPatient">Rimuovi</button></div>
         <div class="agenda-patient-picker">
           <input id="ePatient2Search" type="search" placeholder="Cerca secondo paziente per nome o cognome..." autocomplete="off">
           <input id="ePatient2" type="hidden" value="${esc(second)}">
           <div id="ePatient2Results" class="agenda-patient-results">${secondPatientOptions(primary,second)}</div>
+          <button type="button" class="secondary agenda-new-patient-toggle" id="nubemoCoupleNewDraftToggle">＋ Nuovo paziente</button>
+          <div id="nubemoCoupleQuickDraft" class="agenda-quick-patient nubemo-couple-quick" hidden>
+            <div class="section-head"><h3>Nuovo paziente rapido</h3><span class="pill">Agenda</span></div>
+            <div class="grid"><div><label>Nome</label><input id="nubemoCoupleDraftName"></div><div><label>Cognome</label><input id="nubemoCoupleDraftSurname"></div></div>
+            <label>Telefono</label><input id="nubemoCoupleDraftPhone" type="tel">
+            <div class="pro3-actions"><button type="button" class="secondary" id="nubemoCancelSecondDraft">Annulla</button><button type="button" class="primary" id="nubemoCreateSecondDraft">Crea contatto</button></div>
+          </div>
         </div>`;
 
       firstResults.insertAdjacentElement('afterend',add);
       add.insertAdjacentElement('afterend',box);
 
-      add.addEventListener('click',()=>{box.hidden=false;add.hidden=true;document.getElementById('ePatient2Search')?.focus();});
+      add.addEventListener('click',()=>{box.hidden=false;add.hidden=true;applyCoupleDuration(true);document.getElementById('ePatient2Search')?.focus();});
       if(second)add.hidden=true;
-      document.getElementById('nubemoRemoveSecondPatient')?.addEventListener('click',()=>{selectSecondPatient('');box.hidden=true;add.hidden=false;});
+      document.getElementById('nubemoRemoveSecondPatient')?.addEventListener('click',()=>{selectSecondPatient('');box.hidden=true;add.hidden=false;applyCoupleDuration(false);});
       document.querySelectorAll('[data-couple-patient]').forEach(button=>button.addEventListener('click',()=>selectSecondPatient(button.dataset.couplePatient)));
       document.getElementById('ePatient2Search')?.addEventListener('input',event=>{
         const q=String(event.target.value||'').trim().toLocaleLowerCase('it-IT');
@@ -165,11 +237,23 @@
           button.hidden=isPrimary||(q!==''&&!button.innerText.toLocaleLowerCase('it-IT').includes(q));
         });
       });
+      document.getElementById('nubemoCoupleNewDraftToggle')?.addEventListener('click',()=>{
+        const quick=document.getElementById('nubemoCoupleQuickDraft');if(quick)quick.hidden=false;
+        const toggle=document.getElementById('nubemoCoupleNewDraftToggle');if(toggle)toggle.hidden=true;
+        document.getElementById('nubemoCoupleDraftName')?.focus();
+      });
+      document.getElementById('nubemoCancelSecondDraft')?.addEventListener('click',()=>{
+        const quick=document.getElementById('nubemoCoupleQuickDraft');if(quick)quick.hidden=true;
+        const toggle=document.getElementById('nubemoCoupleNewDraftToggle');if(toggle)toggle.hidden=false;
+        ['nubemoCoupleDraftName','nubemoCoupleDraftSurname','nubemoCoupleDraftPhone'].forEach(id=>{const input=document.getElementById(id);if(input)input.value='';});
+      });
+      document.getElementById('nubemoCreateSecondDraft')?.addEventListener('click',event=>void createSecondDraft(event.currentTarget));
       document.querySelectorAll('[data-agenda-patient]').forEach(button=>button.addEventListener('click',()=>queueMicrotask(refreshSecondOptions)));
       document.getElementById('eType')?.addEventListener('change',event=>{
         const personal=event.target.value==='personal';
         add.style.display=personal?'none':'';
         box.style.display=personal?'none':'';
+        if(!personal)setTimeout(()=>applyCoupleDuration(!!String(document.getElementById('ePatient2')?.value||'')),0);
       });
       refreshSecondOptions();
     }finally{mounting=false;}
@@ -181,8 +265,6 @@
       const a=byId.get(String(node.dataset.event||''));
       const ids=idsFor(a);
       if(ids.length<2||a?.type==='personal')return;
-      const signature=ids.join('|');
-      if(node.dataset.coupleSignature===signature)return;
       const names=ids.map(patientName).join(' + ');
       const span=node.querySelector('span');
       if(!span)return;
@@ -191,58 +273,58 @@
         const parts=String(span.textContent||'').split(' · ');
         span.textContent=parts.length>1?`${names} · ${parts.slice(1).join(' · ')}`:names;
       }
-      node.dataset.coupleSignature=signature;
     });
   }
 
+  function visitsTabActive(){
+    return !!document.querySelector('[data-patient-tab="visits"].active,[data-drawer-tab="visits"].active');
+  }
+
   function patchSecondaryVisits(){
-    if(!selectedPatientId)return;
-    const visitsTab=document.querySelector('[data-tab="visits"].active,[data-tab="visits"][aria-selected="true"]');
-    if(!visitsTab)return;
+    if(!selectedPatientId||!visitsTabActive())return;
     const shared=appointments().filter(a=>a.type!=='personal'&&String(a.patientId||'')!==selectedPatientId&&idsFor(a).includes(selectedPatientId));
     if(!shared.length)return;
-    const existing=new Set([...document.querySelectorAll('[data-edit-visit],[data-couple-edit-visit]')].map(b=>String(b.dataset.editVisit||b.dataset.coupleEditVisit||'')));
-    let anchor=document.querySelector('[data-edit-visit],[data-couple-edit-visit]')?.parentElement||null;
-    if(!anchor){
-      const empty=[...app.querySelectorAll('p.muted')].find(p=>p.textContent.trim()==='Nessuna visita.');
-      if(empty){anchor=empty.parentElement;empty.remove();}
-    }
-    if(!anchor)return;
+    const card=document.querySelector('.patient-content-card');
+    if(!card)return;
+    const existing=new Set([...card.querySelectorAll('[data-edit-visit],[data-couple-edit-visit]')].map(b=>String(b.dataset.editVisit||b.dataset.coupleEditVisit||'')));
+    const empty=[...card.querySelectorAll('p.muted')].find(p=>p.textContent.trim()==='Nessuna visita.');
+    if(empty)empty.remove();
+
     shared.sort((a,b)=>String(b.date+b.time).localeCompare(String(a.date+a.time))).forEach(a=>{
       if(existing.has(String(a.id)))return;
       const button=document.createElement('button');
-      button.type='button';
-      button.className=`pro3-event pro3-event-clickable ${a.type==='first'?'pro-first':'pro-control'}`;
-      button.dataset.coupleEditVisit=String(a.id);
-      button.innerHTML=`<b>${esc(String(a.date||'').split('-').reverse().join('-'))} · ${esc(a.time||'')}</b><span>${a.type==='first'?'Prima visita':'Controllo'} · ${esc(a.duration||30)} min <span class="nubemo-couple-visit-badge">COPPIA</span></span>`;
+      button.type='button';button.className=`pro3-event ${a.type==='first'?'pro-first':'pro-control'} pro3-event-clickable`;button.dataset.coupleEditVisit=String(a.id);
+      const date=String(a.date||'').split('-').reverse().join('-');
+      button.innerHTML=`<b>${esc(date)} · ${esc(a.time||'')}</b><span>${a.type==='first'?'Prima visita':'Controllo'} · ${esc(a.duration||30)} min <span class="nubemo-couple-visit-badge">COPPIA</span></span>`;
       button.addEventListener('click',()=>openAgendaEvent(a.id));
-      anchor.appendChild(button);
+      card.appendChild(button);
     });
   }
 
   function openAgendaEvent(id){
     pendingOpenEventId=String(id||'');
-    const action=document.querySelector('[data-view="agenda"],[data-drawer-view="agenda"],#goAgenda');
-    action?.click();
+    document.querySelector('[data-view="agenda"],[data-drawer-view="agenda"],#goAgenda')?.click();
   }
 
   function tryOpenPendingEvent(){
     if(!pendingOpenEventId)return;
     const eventButton=document.querySelector(`[data-event="${CSS.escape(pendingOpenEventId)}"]`);
     if(!eventButton)return;
-    pendingOpenEventId='';
-    eventButton.click();
+    pendingOpenEventId='';eventButton.click();
   }
 
   function refresh(){
-    mountEventForm();
-    patchAgendaLabels();
-    patchSecondaryVisits();
-    tryOpenPendingEvent();
+    mountEventForm();patchAgendaLabels();patchSecondaryVisits();tryOpenPendingEvent();
   }
 
   document.addEventListener('click',event=>{
-    const target=event.target?.closest?.('[data-event],[data-edit-visit],#newEvent,.pro3-slot,[data-patient],[data-drawer-patient],[data-tab]');
+    const firstDraftCreate=event.target?.closest?.('#agendaCreateQuickPatient');
+    if(firstDraftCreate){
+      const previousId=String(document.getElementById('ePatient')?.value||'');
+      void waitAndClearFirstQuickDraft(previousId);
+    }
+
+    const target=event.target?.closest?.('[data-event],[data-edit-visit],#newEvent,.pro3-slot,[data-patient],[data-drawer-patient],[data-patient-tab],[data-drawer-tab]');
     if(!target)return;
     if(target.matches('[data-event]'))editingEventId=String(target.dataset.event||'');
     else if(target.matches('[data-edit-visit]'))editingEventId=String(target.dataset.editVisit||'');
