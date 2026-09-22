@@ -161,9 +161,16 @@
     target.patientIds=subjectIds;
     localStorage.setItem(APPT_KEY,JSON.stringify(rows));
 
-    // Il render legacy è già avvenuto: ridisegna subito con patientIds, senza refresh manuale.
-    queueMicrotask(()=>window.nubemoProfessionalRender?.());
-    void window.nubemoProfessionalAgendaBridge?.flush?.().then(()=>window.nubemoProfessionalRender?.()).catch(error=>console.error('NUBEMO couple post-save refresh:',error));
+    // Aspetta la sincronizzazione Agenda e ridisegna una sola volta con gli id definitivi.
+    const bridge=window.nubemoProfessionalAgendaBridge;
+    if(bridge?.flush){
+      void bridge.flush().then(()=>{
+        bridge.restoreContext?.();
+        window.nubemoProfessionalRender?.();
+      }).catch(error=>console.error('NUBEMO couple post-save refresh:',error));
+    }else{
+      queueMicrotask(()=>window.nubemoProfessionalRender?.());
+    }
   }
 
   function bindSave(button){
@@ -223,7 +230,11 @@
           </div>
         </div>`;
 
-      firstResults.insertAdjacentElement('afterend',add);
+      // Mantiene il blocco "Nuovo paziente" del primo partecipante dentro il primo selettore.
+      const primaryQuick=document.getElementById('agendaQuickPatient');
+      const primaryToggle=document.getElementById('agendaNewPatientToggle');
+      const insertionAnchor=primaryQuick||primaryToggle||firstResults;
+      insertionAnchor.insertAdjacentElement('afterend',add);
       add.insertAdjacentElement('afterend',box);
 
       add.addEventListener('click',()=>{box.hidden=false;add.hidden=true;applyCoupleDuration(true);document.getElementById('ePatient2Search')?.focus();});
