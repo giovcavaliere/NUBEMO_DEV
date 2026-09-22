@@ -9,7 +9,6 @@
   let pathways = [];
   let loaded = false;
   let loadingPromise = null;
-  let observer = null;
   let patching = false;
 
   const esc = (value='') => String(value)
@@ -112,7 +111,7 @@
     const section = document.createElement('section');
     section.className = 'card';
     section.id = 'nubemoPatientPathways';
-    section.innerHTML = `<div class="section-head"><div><div class="eyebrow">PERCORSI</div><h2>Le tue esperienze precedenti</h2></div><span class="pill">${pathways.length}</span></div><div class="document-list">${pathways.map(pathwayCard).join('')}</div>`;
+    section.innerHTML = `<div class="section-head"><div><div class="eyebrow">PERCORSI</div><h2>Percorsi precedenti</h2></div><span class="pill">${pathways.length}</span></div><div class="document-list">${pathways.map(pathwayCard).join('')}</div>`;
     section.querySelectorAll('[data-open-patient-pathway]').forEach(button => button.addEventListener('click', async () => {
       button.disabled = true;
       const old = button.textContent;
@@ -125,7 +124,7 @@
   }
 
   function patchActiveHome() {
-    if (patching || !pathways.length) return;
+    if (patching) return;
     patching = true;
     try {
       const addButton = [...app.querySelectorAll('button')].find(button => String(button.getAttribute('onclick') || '').includes('newDay()'));
@@ -146,10 +145,6 @@
   async function mountActive() {
     try {
       await loadPathways();
-      if (!observer) {
-        observer = new MutationObserver(() => queueMicrotask(patchActiveHome));
-        observer.observe(app, {childList:true, subtree:true});
-      }
       patchActiveHome();
     } catch (error) {
       console.error('NUBEMO storico percorsi paziente:', error);
@@ -167,6 +162,17 @@
       console.error('NUBEMO storico percorsi paziente:', error);
     }
   }
+
+  async function autoMount() {
+    const addButton = [...app.querySelectorAll('button')].find(button => String(button.getAttribute('onclick') || '').includes('newDay()'));
+    if (addButton) return mountActive();
+    const title = app.querySelector('h1')?.textContent?.trim() || '';
+    if (title === 'Nessun percorso attivo') return mountNoActive();
+  }
+
+  const autoObserver = new MutationObserver(() => queueMicrotask(autoMount));
+  autoObserver.observe(app, {childList:true, subtree:true});
+  queueMicrotask(autoMount);
 
   window.nubemoPatientPathwayHistory = Object.freeze({mountActive, mountNoActive});
 })();
