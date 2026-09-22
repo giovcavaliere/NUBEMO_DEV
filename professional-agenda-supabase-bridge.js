@@ -12,7 +12,7 @@
   const {getItem:previousGetItem,setItem:previousSetItem}=window.NubemoStorageKit.capture();
 
   let remoteAppointments=[];
-  let linkByAppointment=new Map();
+  let linksByAppointment=new Map();
   let queue=Promise.resolve();
   let syncVersion=0;
   let hydrated=false;
@@ -20,6 +20,7 @@
   let agendaPatientsSerialized='[]';
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
+  const uniqueIds=values=>[...new Set((values||[]).filter(Boolean).map(String))];
 
   function syncAgendaPatientsFromCanonical(){
     agendaPatientsSerialized=window.localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]';
@@ -49,23 +50,28 @@
     return name||'il contatto provvisorio';
   }
 
-  async function askAndDeleteDraft(subjectId){
-    if(!subjectId||!isDraft(subjectId))return;
-    const name=draftName(subjectId);
-    const removeDraft=window.confirm(`Appuntamento eliminato.\n\nVuoi eliminare anche il contatto provvisorio ${name}?`);
-    if(!removeDraft)return;
+  async function askAndDeleteDrafts(subjectIds){
+    const drafts=uniqueIds(subjectIds).filter(isDraft);
+    if(!drafts.length)return;
+    const names=drafts.map(draftName);
+    const question=drafts.length===1
+      ?`Appuntamento eliminato.\n\nVuoi eliminare anche il contatto provvisorio ${names[0]}?`
+      :`Appuntamento eliminato.\n\nVuoi eliminare anche i contatti provvisori ${names.join(' e ')}?`;
+    if(!window.confirm(question))return;
 
     try{
-      const {error}=await client.from('professional_patient_drafts')
-        .delete()
-        .eq('id',subjectId)
-        .eq('professional_id',professionalId);
-      if(error)throw error;
+      for(const draftId of drafts){
+        const {error}=await client.from('professional_patient_drafts')
+          .delete()
+          .eq('id',draftId)
+          .eq('professional_id',professionalId);
+        if(error)throw error;
+      }
       await window.nubemoPatientLifecycleBridge?.refresh?.();
       syncAgendaPatientsFromCanonical();
     }catch(error){
       console.error('NUBEMO draft delete after appointment:',error);
-      window.alert('L’appuntamento è stato eliminato, ma non è stato possibile eliminare il contatto provvisorio.');
+      window.alert('L’appuntamento è stato eliminato, ma non è stato possibile eliminare uno o più contatti provvisori.');
     }
   }
 
@@ -76,20 +82,28 @@
       :{patient_id:subjectId,draft_patient_id:null};
   }
 
+  function appointmentSubjectIds(a){
+    if(a?.type==='personal')return[];
+    const ids=Array.isArray(a?.patientIds)?a.patientIds:[a?.patientId];
+    return uniqueIds(ids.length?ids:[a?.patientId]).slice(0,2);
+  }
+
   function remoteType(row){
     const label=String(row?.appointment_type||'').toLowerCase();
     return label.includes('prima')||label==='first'?'first':label.includes('personal')||label.includes('impegno')||label==='personal'?'personal':'control';
   }
 
-  function legacyAppointment(row,subjectId){
+  function legacyAppointment(row,subjectIds){
     const start=new Date(row.starts_at);
     const end=new Date(row.ends_at||row.starts_at);
     const local=new Date(start.getTime()-start.getTimezoneOffset()*60000).toISOString();
     const duration=Math.max(1,Math.round((end-start)/60000)||30);
     const type=remoteType(row);
+    const ids=type==='personal'?[]:uniqueIds(subjectIds).slice(0,2);
     return {
       id:String(row.id),
-      patientId:type==='personal'?null:(subjectId||null),
+      patientId:ids[0]||null,
+      patientIds:ids,
       date:local.slice(0,10),
       time:local.slice(11,16),
       type,
@@ -100,7 +114,7 @@
   }
 
   function publish(){
-    const rows=remoteAppointments.map(row=>legacyAppointment(row,linkByAppointment.get(row.id)||null));
+    const rows=remoteAppointments.map(row=>legacyAppointment(row,linksByAppointment.get(row.id)||[]));
     latestAppointmentsSerialized=JSON.stringify(rows);
     previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
   }
@@ -117,19 +131,25 @@
       .order('starts_at');
     if(error)throw error;
     remoteAppointments=rows||[];
-    linkByAppointment=new Map();
+    linksByAppointment=new Map();
     const ids=remoteAppointments.map(row=>row.id);
     if(ids.length){
       const result=await client.from('appointment_patients')
-        .select('appointment_id,patient_id,draft_patient_id')
-        .in('appointment_id',ids);
+        .select('appointment_id,patient_id,draft_patient_id,created_at')
+        .in('appointment_id',ids)
+        .order('created_at');
       if(result.error)throw result.error;
-      (result.data||[]).forEach(link=>linkByAppointment.set(link.appointment_id,link.patient_id||link.draft_patient_id||null));
+      (result.data||[]).forEach(link=>{
+        const subjectId=link.patient_id||link.draft_patient_id||null;
+        if(!subjectId)return;
+        const current=linksByAppointment.get(link.appointment_id)||[];
+        current.push(String(subjectId));
+        linksByAppointment.set(link.appointment_id,uniqueIds(current).slice(0,2));
+      });
     }
 
     // Prima visita/controllo senza paziente non è un evento valido in NUBEMO.
-    // Rimuove anche gli eventuali record fantasma creati dal vecchio payload Dashboard.
-    const invalid=remoteAppointments.filter(row=>remoteType(row)!=='personal'&&!linkByAppointment.get(row.id));
+    const invalid=remoteAppointments.filter(row=>remoteType(row)!=='personal'&&!(linksByAppointment.get(row.id)||[]).length);
     if(invalid.length){
       for(const row of invalid){
         const result=await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:row.id});
@@ -167,21 +187,24 @@
     if(result.error)throw result.error;
   }
 
-  async function replaceLink(appointmentId,subjectId){
+  async function replaceLinks(appointmentId,subjectIds){
+    const desired=uniqueIds(subjectIds).slice(0,2);
     const {data:links,error}=await client.from('appointment_patients')
       .select('id,patient_id,draft_patient_id')
       .eq('appointment_id',appointmentId);
     if(error)throw error;
-    const old=links?.[0]||null;
-    if(!subjectId){
-      if(old){const result=await client.from('appointment_patients').delete().eq('id',old.id);if(result.error)throw result.error;}
-      return;
+
+    const existing=new Map((links||[]).map(link=>[String(link.patient_id||link.draft_patient_id||''),link]));
+    for(const [subjectId,link] of existing){
+      if(desired.includes(subjectId))continue;
+      const result=await client.from('appointment_patients').delete().eq('id',link.id);
+      if(result.error)throw result.error;
     }
-    const next=subjectLink(subjectId);
-    const oldSubject=old?.patient_id||old?.draft_patient_id||null;
-    if(String(oldSubject||'')===String(subjectId))return;
-    if(old){const result=await client.from('appointment_patients').update(next).eq('id',old.id);if(result.error)throw result.error;}
-    else{const result=await client.from('appointment_patients').insert({appointment_id:appointmentId,...next});if(result.error)throw result.error;}
+    for(const subjectId of desired){
+      if(existing.has(subjectId))continue;
+      const result=await client.from('appointment_patients').insert({appointment_id:appointmentId,...subjectLink(subjectId)});
+      if(result.error)throw result.error;
+    }
   }
 
   async function createAppointment(a){
@@ -193,19 +216,21 @@
       ...appointmentPayload(a)
     }).select('id').single();
     if(error)throw error;
-    if(a.type!=='personal'&&a.patientId){
-      const link=await client.from('appointment_patients').insert({appointment_id:data.id,...subjectLink(a.patientId)});
-      if(link.error){await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:data.id});throw link.error;}
+    const subjects=appointmentSubjectIds(a);
+    if(a.type!=='personal'&&subjects.length){
+      try{await replaceLinks(data.id,subjects);}
+      catch(error){await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:data.id});throw error;}
     }
-    if(a.type==='first'&&a.patientId)await setStartDateIfEmpty(a.patientId,a.date);
+    if(a.type==='first')for(const subjectId of subjects)await setStartDateIfEmpty(subjectId,a.date);
     return data.id;
   }
 
   async function updateAppointment(remote,a){
     const result=await client.from('appointments').update(appointmentPayload(a)).eq('id',remote.id);
     if(result.error)throw result.error;
-    await replaceLink(remote.id,a.type==='personal'?null:(a.patientId||null));
-    if(a.type==='first'&&a.patientId)await setStartDateIfEmpty(a.patientId,a.date);
+    const subjects=appointmentSubjectIds(a);
+    await replaceLinks(remote.id,a.type==='personal'?[]:subjects);
+    if(a.type==='first')for(const subjectId of subjects)await setStartDateIfEmpty(subjectId,a.date);
   }
 
   async function sync(serialized,version){
@@ -216,11 +241,10 @@
     if(!hydrated)await hydrate(version);
     if(version!==syncVersion)return;
 
-    // Le righe __dash_* sono solo aggregati grafici della Dashboard e non sono appuntamenti.
     const incoming=parsed.filter(a=>{
       if(!a?.date)return false;
       if(String(a.id||'').startsWith('__dash_'))return false;
-      if(a.type!=='personal'&&!a.patientId)return false;
+      if(a.type!=='personal'&&!appointmentSubjectIds(a).length)return false;
       return true;
     });
 
@@ -240,17 +264,12 @@
     }
 
     if(version!==syncVersion)return;
-    const handledDrafts=new Set();
     for(const remote of remoteAppointments){
       if(!retained.has(String(remote.id))){
-        const subjectId=linkByAppointment.get(remote.id)||null;
-        const draftSubject=subjectId&&isDraft(subjectId)?String(subjectId):'';
+        const subjects=linksByAppointment.get(remote.id)||[];
         const result=await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:remote.id});
         if(result.error)throw result.error;
-        if(draftSubject&&!handledDrafts.has(draftSubject)){
-          handledDrafts.add(draftSubject);
-          await askAndDeleteDraft(draftSubject);
-        }
+        await askAndDeleteDrafts(subjects);
       }
     }
 
