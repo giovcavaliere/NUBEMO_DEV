@@ -227,7 +227,6 @@
           </div>
         </div>`;
 
-      // Mantiene il blocco "Nuovo paziente" del primo partecipante dentro il primo selettore.
       const primaryQuick=document.getElementById('agendaQuickPatient');
       const primaryToggle=document.getElementById('agendaNewPatientToggle');
       const insertionAnchor=primaryQuick||primaryToggle||firstResults;
@@ -293,9 +292,16 @@
     return !!document.querySelector('[data-patient-tab="visits"].active,[data-drawer-tab="visits"].active');
   }
 
+  function currentDetailsPatientId(){
+    const drawerPatient=document.querySelector('[data-drawer-patient]')?.dataset?.drawerPatient;
+    return String(drawerPatient||selectedPatientId||'');
+  }
+
   function patchSecondaryVisits(){
-    if(!selectedPatientId||!visitsTabActive())return;
-    const shared=appointments().filter(a=>a.type!=='personal'&&String(a.patientId||'')!==selectedPatientId&&idsFor(a).includes(selectedPatientId));
+    const patientId=currentDetailsPatientId();
+    if(!patientId||!visitsTabActive())return;
+    selectedPatientId=patientId;
+    const shared=appointments().filter(a=>a.type!=='personal'&&String(a.patientId||'')!==patientId&&idsFor(a).includes(patientId));
     if(!shared.length)return;
     const card=document.querySelector('.patient-content-card');
     if(!card)return;
