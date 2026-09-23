@@ -53,6 +53,12 @@
       .nubemo-couple-head label{margin:0}
       .nubemo-couple-remove{width:auto;margin:0}
       .nubemo-couple-option[hidden]{display:none!important}
+      .nubemo-couple-selection{margin:8px 0 10px;padding:10px 12px;border:1px solid #cfe1e3;border-radius:12px;background:#f7fbfb;display:flex;align-items:center;justify-content:space-between;gap:12px}
+      .nubemo-couple-selection[hidden]{display:none!important}
+      .nubemo-couple-selection-copy{min-width:0}
+      .nubemo-couple-selection-label{display:block;margin-bottom:2px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5f7477}
+      .nubemo-couple-selection-name{display:block;font-size:14px;font-weight:800;color:#17373b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .nubemo-couple-selection-check{flex:0 0 auto;font-size:12px;font-weight:800;color:#167d89}
       .nubemo-couple-quick{margin-top:10px}
       .nubemo-couple-quick[hidden]{display:none!important}
       .nubemo-couple-quick .grid{margin-top:8px}
@@ -75,6 +81,21 @@
     return editingEventId?appointments().find(a=>String(a.id)===String(editingEventId))||null:null;
   }
 
+  function refreshSelectionCards(){
+    const states=[
+      ['nubemoPrimarySelection','nubemoPrimarySelectionName',String(document.getElementById('ePatient')?.value||'')],
+      ['nubemoSecondSelection','nubemoSecondSelectionName',String(document.getElementById('ePatient2')?.value||'')]
+    ];
+    states.forEach(([cardId,nameId,id])=>{
+      const card=document.getElementById(cardId);
+      const name=document.getElementById(nameId);
+      if(!card||!name)return;
+      card.hidden=!id;
+      const next=id?patientName(id):'';
+      if(name.textContent!==next)name.textContent=next;
+    });
+  }
+
   function refreshSecondOptions(){
     const primary=String(document.getElementById('ePatient')?.value||'');
     const second=String(document.getElementById('ePatient2')?.value||'');
@@ -87,6 +108,7 @@
       const hidden=document.getElementById('ePatient2');
       if(hidden)hidden.value='';
     }
+    refreshSelectionCards();
   }
 
   function selectSecondPatient(id){
@@ -208,6 +230,13 @@
       const primary=String(document.getElementById('ePatient')?.value||currentIds[0]||'');
       const second=currentIds.find(id=>String(id)!==primary)||'';
 
+      const primarySelection=document.createElement('div');
+      primarySelection.id='nubemoPrimarySelection';
+      primarySelection.className='nubemo-couple-selection';
+      primarySelection.hidden=!primary;
+      primarySelection.innerHTML=`<div class="nubemo-couple-selection-copy"><span class="nubemo-couple-selection-label">Paziente principale selezionato</span><span class="nubemo-couple-selection-name" id="nubemoPrimarySelectionName">${esc(primary?patientName(primary):'')}</span></div><span class="nubemo-couple-selection-check">✓ Selezionato</span>`;
+      firstResults.insertAdjacentElement('beforebegin',primarySelection);
+
       const add=document.createElement('button');
       add.type='button';add.id='nubemoAddSecondPatient';add.className='secondary nubemo-couple-add';add.textContent='＋ Aggiungi secondo paziente';
 
@@ -217,6 +246,7 @@
         <div class="agenda-patient-picker">
           <input id="ePatient2Search" type="search" placeholder="Cerca secondo paziente per nome o cognome..." autocomplete="off">
           <input id="ePatient2" type="hidden" value="${esc(second)}">
+          <div id="nubemoSecondSelection" class="nubemo-couple-selection" ${second?'':'hidden'}><div class="nubemo-couple-selection-copy"><span class="nubemo-couple-selection-label">Secondo paziente selezionato</span><span class="nubemo-couple-selection-name" id="nubemoSecondSelectionName">${esc(second?patientName(second):'')}</span></div><span class="nubemo-couple-selection-check">✓ Selezionato</span></div>
           <div id="ePatient2Results" class="agenda-patient-results">${secondPatientOptions(primary,second)}</div>
           <button type="button" class="secondary agenda-new-patient-toggle" id="nubemoCoupleNewDraftToggle">＋ Nuovo paziente</button>
           <div id="nubemoCoupleQuickDraft" class="agenda-quick-patient nubemo-couple-quick" hidden>
