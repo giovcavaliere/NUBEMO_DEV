@@ -1923,7 +1923,15 @@ function tabContent(p){
    <td><button class="mini" data-edit-measure="${m.date}">Modifica</button></td>
  </tr>`).join('')||'<tr><td colspan="6">Nessuna misura.</td></tr>'}
  </tbody></table></div>`;
- if(tab==='visits')return appointments().filter(a=>a.patientId===p.id&&a.type!=='personal').sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).map(a=>`<button class="pro3-event ${typeClass(a.type)} pro3-event-clickable" data-edit-visit="${a.id}"><b>${fmt(a.date)} · ${a.time}</b><span>${typeLabel(a.type)} · ${a.duration} min</span></button>`).join('')||'<p class="muted">Nessuna visita.</p>';
+ if(tab==='visits')return appointments().filter(a=>{
+  if(a.type==='personal')return false;
+  const ids=[...new Set((Array.isArray(a.patientIds)&&a.patientIds.length?a.patientIds:[a.patientId]).filter(Boolean).map(String))];
+  return ids.includes(String(p.id));
+ }).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).map(a=>{
+  const ids=[...new Set((Array.isArray(a.patientIds)&&a.patientIds.length?a.patientIds:[a.patientId]).filter(Boolean).map(String))];
+  const couple=ids.length>1;
+  return `<button class="pro3-event ${typeClass(a.type)} pro3-event-clickable" data-edit-visit="${a.id}"><b>${fmt(a.date)} · ${a.time}</b><span>${typeLabel(a.type)} · ${a.duration} min${couple?' <span class="nubemo-couple-visit-badge">COPPIA</span>':''}</span></button>`;
+ }).join('')||'<p class="muted">Nessuna visita.</p>';
  const notes=load(NOTES_KEY,{});
  return `<textarea id="noteText" rows="7" placeholder="Note professionista">${esc(notes[p.id]||'')}</textarea><button class="primary" id="saveNote">Salva nota</button>`;
 }
