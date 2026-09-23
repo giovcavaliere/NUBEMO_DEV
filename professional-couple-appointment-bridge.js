@@ -363,7 +363,7 @@
   }
 
   function refresh(){
-    mountEventForm();patchAgendaLabels();patchSecondaryVisits();tryOpenPendingEvent();
+    mountEventForm();patchAgendaLabels();tryOpenPendingEvent();
   }
 
   document.addEventListener('click',event=>{
@@ -383,6 +383,7 @@
     queueMicrotask(refresh);
   },true);
 
+  ensureStyles();
   const observer=new MutationObserver(()=>queueMicrotask(refresh));
   observer.observe(app,{childList:true,subtree:true});
   queueMicrotask(refresh);
