@@ -623,9 +623,10 @@ function dashboard(){
  ${bmiPieCard()}`;
 }
 function eventRow(a){
- const p=a.patientId?patient(a.patientId):null;
+ const ids=[...new Set((Array.isArray(a.patientIds)&&a.patientIds.length?a.patientIds:[a.patientId]).filter(Boolean).map(String))];
+ const names=ids.map(id=>patient(id)?.name).filter(Boolean);
  return `<button class="pro3-event ${typeClass(a.type)}" data-event="${a.id}">
-  <b>${a.time}</b><span>${a.type==='personal'?esc(a.title||'Impegno personale'):esc(p?.name||'Paziente')} · ${typeLabel(a.type)} · ${a.duration} min</span>
+  <b>${a.time}</b><span>${a.type==='personal'?esc(a.title||'Impegno personale'):esc(names.length?names.join(' + '):'Paziente')} · ${typeLabel(a.type)} · ${a.duration} min</span>
  </button>`;
 }
 
