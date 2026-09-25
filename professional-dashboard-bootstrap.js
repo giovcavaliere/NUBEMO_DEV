@@ -73,28 +73,42 @@
     const subjectMap=new Map();
     let cursor=0;
     for(const appt of Array.isArray(payload?.today_appointments)?payload.today_appointments:[]){
-      if(appt?.type==='personal'||!appt?.subject_id||subjectMap.has(appt.subject_id))continue;
-      if(cursor>=rows.length)break;
-      const row=rows[cursor++];
-      row.id=String(appt.subject_id);
-      row.name=String(appt.subject_name||'Paziente');
-      row.firstName=row.name;
-      subjectMap.set(String(appt.subject_id),row.id);
+      if(appt?.type==='personal')continue;
+      const subjects=Array.isArray(appt?.subjects)&&appt.subjects.length
+        ?appt.subjects
+        :(appt?.subject_id?[{id:appt.subject_id,name:appt.subject_name||'Paziente'}]:[]);
+      for(const subject of subjects){
+        const id=String(subject?.id||'');
+        if(!id||subjectMap.has(id))continue;
+        if(cursor>=rows.length)break;
+        const row=rows[cursor++];
+        row.id=id;
+        row.name=String(subject?.name||'Paziente');
+        row.firstName=row.name;
+        subjectMap.set(id,row.id);
+      }
     }
     return {rows,subjectMap};
   }
 
   function buildAppointments(payload,subjectMap){
-    const actual=(Array.isArray(payload?.today_appointments)?payload.today_appointments:[]).map(row=>({
+    const actual=(Array.isArray(payload?.today_appointments)?payload.today_appointments:[]).map(row=>{
+      const subjects=row.type==='personal'?[]:(Array.isArray(row?.subjects)&&row.subjects.length
+        ?row.subjects
+        :(row?.subject_id?[{id:row.subject_id,name:row.subject_name||'Paziente'}]:[]));
+      const patientIds=[...new Set(subjects.map(subject=>subjectMap.get(String(subject?.id||''))).filter(Boolean).map(String))].slice(0,2);
+      return {
       id:String(row.id),
-      patientId:row.type==='personal'?null:(subjectMap.get(String(row.subject_id||''))||null),
+      patientId:patientIds[0]||null,
+      patientIds,
       date:String(row.date||''),
       time:String(row.time||'00:00'),
       type:String(row.type||'control'),
       duration:Math.max(1,asInt(row.duration)||30),
       title:row.type==='personal'?String(row.title||'Impegno personale'):'',
       note:row.type==='personal'?'':String(row.note||'')
-    }));
+    };
+    });
 
     const currentDay=today();
     const synthetic=[];
@@ -241,15 +255,21 @@
     const free=rows.filter(row=>row?._dashboardShell===true);
     let cursor=0;
     for(const appt of Array.isArray(payload?.today_appointments)?payload.today_appointments:[]){
-      const id=String(appt?.subject_id||'');
-      if(appt?.type==='personal'||!id||existing.has(id))continue;
-      while(cursor<free.length&&free[cursor]?._dashboardShell!==true)cursor++;
-      const row=free[cursor++];
-      if(!row)break;
-      row.id=id;
-      row.name=String(appt.subject_name||'Paziente');
-      row.firstName=row.name;
-      existing.add(id);
+      if(appt?.type==='personal')continue;
+      const subjects=Array.isArray(appt?.subjects)&&appt.subjects.length
+        ?appt.subjects
+        :(appt?.subject_id?[{id:appt.subject_id,name:appt.subject_name||'Paziente'}]:[]);
+      for(const subject of subjects){
+        const id=String(subject?.id||'');
+        if(!id||existing.has(id))continue;
+        while(cursor<free.length&&free[cursor]?._dashboardShell!==true)cursor++;
+        const row=free[cursor++];
+        if(!row)return;
+        row.id=id;
+        row.name=String(subject?.name||'Paziente');
+        row.firstName=row.name;
+        existing.add(id);
+      }
     }
   }
 
