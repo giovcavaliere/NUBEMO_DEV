@@ -252,10 +252,8 @@
   function restoreOverlay(){
     if(fallbackTimer){clearTimeout(fallbackTimer);fallbackTimer=null;}
     lifecycleObserver?.disconnect();lifecycleObserver=null;
-    if(activeOverlay?.kind==='runtime'){
-      if(activeOverlay.storage.getItem===activeOverlay.wrapper)activeOverlay.storage.getItem=activeOverlay.original;
-    }else if(activeOverlay?.kind==='native'&&Storage.prototype.getItem===activeOverlay.wrapper){
-      Storage.prototype.getItem=activeOverlay.original;
+    if(activeOverlay?.kind==='runtime'&&activeOverlay.storage.getItem===activeOverlay.wrapper){
+      activeOverlay.storage.getItem=activeOverlay.original;
     }
     activeOverlay=null;
   }
@@ -264,23 +262,14 @@
     restoreOverlay();
     const storage=runtimeStorage();
     const runtime=window.nubemoProfessionalRuntimeStore?.storage;
-    if(runtime&&storage===runtime){
-      const original=storage.getItem;
-      const wrapper=function(key){
-        if(overrides.has(String(key)))return overrides.get(String(key));
-        return original.call(this,key);
-      };
-      storage.getItem=wrapper;
-      activeOverlay={kind:'runtime',storage,original,wrapper};
-    }else{
-      const original=Storage.prototype.getItem;
-      const wrapper=function(key){
-        if(this===window.nubemoProfessionalRuntimeStore.storage&&overrides.has(String(key)))return overrides.get(String(key));
-        return original.call(this,key);
-      };
-      Storage.prototype.getItem=wrapper;
-      activeOverlay={kind:'native',original,wrapper};
-    }
+    if(!runtime||storage!==runtime)throw new Error('Runtime store professionista non disponibile.');
+    const original=storage.getItem;
+    const wrapper=function(key){
+      if(overrides.has(String(key)))return overrides.get(String(key));
+      return original.call(this,key);
+    };
+    storage.getItem=wrapper;
+    activeOverlay={kind:'runtime',storage,original,wrapper};
     fallbackTimer=setTimeout(restoreOverlay,5*60*1000);
   }
 
