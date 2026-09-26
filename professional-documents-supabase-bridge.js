@@ -1,5 +1,5 @@
 // NUBEMO — bridge Documenti PRO -> Supabase.
-// Step 20D-2A: metadata Documenti su runtime store, senza dipendenza NubemoStorageKit.
+// Metadata Documenti su runtime store; Supabase resta la source of truth.
 (() => {
   'use strict';
 
