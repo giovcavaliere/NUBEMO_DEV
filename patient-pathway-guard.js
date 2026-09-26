@@ -24,17 +24,7 @@
   }
 
   async function loadPatientApp() {
-    const response = await fetch('app.js?v=nubemo-pathway20b', { cache:'no-store' });
-    if (!response.ok) throw new Error('Impossibile caricare l’Area Paziente.');
-    const source = await response.text();
-    const legacyStorageToken = 'local' + 'Storage';
-    const runtimeSource = source.split(legacyStorageToken).join('window.nubemoPatientRuntimeStore.storage');
-    const blobUrl = URL.createObjectURL(new Blob([runtimeSource, '\n//# sourceURL=nubemo-patient-runtime-app.js\n'], {type:'text/javascript'}));
-    try {
-      await loadScript(blobUrl, 'Impossibile avviare l’Area Paziente.');
-    } finally {
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-    }
+    await loadScript('app.js?v=nubemo-runtime-clean1', 'Impossibile avviare l’Area Paziente.');
   }
 
   function showError(message) {
