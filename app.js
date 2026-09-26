@@ -19,21 +19,21 @@ let bmiDays=30;
 let measuresCompleteOnly=false;
 
 const $=s=>document.querySelector(s);
-const rawExtraPatients=()=>{try{return JSON.parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]')}catch(e){return []}};
-const activePatientId=()=>localStorage.getItem(ACTIVE_PATIENT_KEY)||'';
+const rawExtraPatients=()=>{try{return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]')}catch(e){return []}};
+const activePatientId=()=>window.nubemoPatientRuntimeStore.storage.getItem(ACTIVE_PATIENT_KEY)||'';
 const activeExtraPatient=()=>rawExtraPatients().find(p=>p.id===activePatientId())||null;
-const accountMap=()=>{try{return JSON.parse(localStorage.getItem(ACCOUNT_KEY)||'{}')||{}}catch(e){return {}}};
+const accountMap=()=>{try{return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(ACCOUNT_KEY)||'{}')||{}}catch(e){return {}}};
 const load=()=>{
  const id=activePatientId();if(id&&id!=='main'){const p=activeExtraPatient();return Array.isArray(p?.diary)?JSON.parse(JSON.stringify(p.diary)):[]}
- return JSON.parse(localStorage.getItem(KEY)||'[]');
+ return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(KEY)||'[]');
 };
 const save=d=>{
- const id=activePatientId();if(id&&id!=='main'){const arr=rawExtraPatients(),i=arr.findIndex(p=>p.id===id);if(i<0)return;arr[i]={...arr[i],diary:d,weights:d.filter(x=>x.weight!==''&&x.weight!=null).map(x=>[x.date,Number(x.weight)])};localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(arr));return}
- localStorage.setItem(KEY,JSON.stringify(d));
+ const id=activePatientId();if(id&&id!=='main'){const arr=rawExtraPatients(),i=arr.findIndex(p=>p.id===id);if(i<0)return;arr[i]={...arr[i],diary:d,weights:d.filter(x=>x.weight!==''&&x.weight!=null).map(x=>[x.date,Number(x.weight)])};window.nubemoPatientRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(arr));return}
+ window.nubemoPatientRuntimeStore.storage.setItem(KEY,JSON.stringify(d));
 };
 const loadProfile=()=>{
  let p={},id=activePatientId();
- if(id&&id!=='main')p=activeExtraPatient()||{};else{try{p=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}')||{}}catch(e){p={}}}
+ if(id&&id!=='main')p=activeExtraPatient()||{};else{try{p=JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(PROFILE_KEY)||'{}')||{}}catch(e){p={}}}
  const num=k=>p[k]===undefined||p[k]===null||p[k]===''?'':Number(p[k]);
  let first=p.firstName||p.name||'',surname=p.surname||'';
  if(id&&id!=='main'&&!p.firstName&&p.name){const parts=String(p.name).trim().split(/\s+/);first=parts.shift()||'';surname=surname||parts.join(' ')}
@@ -46,14 +46,14 @@ const saveProfile=p=>{
    const arr=rawExtraPatients(),i=arr.findIndex(x=>x.id===id);if(i<0)return;
    arr[i]={...arr[i],...clean,firstName:clean.name??arr[i].firstName??'',surname:clean.surname??arr[i].surname??''};
    arr[i].name=[arr[i].firstName,arr[i].surname].filter(Boolean).join(' ');delete arr[i].nextVisit;
-   localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(arr));return;
+   window.nubemoPatientRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(arr));return;
  }
- let current={};try{current=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}')||{}}catch(e){}
+ let current={};try{current=JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(PROFILE_KEY)||'{}')||{}}catch(e){}
  const merged={...current,...clean};delete merged.nextVisit;
- localStorage.setItem(PROFILE_KEY,JSON.stringify(merged));
+ window.nubemoPatientRuntimeStore.storage.setItem(PROFILE_KEY,JSON.stringify(merged));
 };
-const loadMeasures=()=>{const id=activePatientId();if(id&&id!=='main'){const p=activeExtraPatient();return Array.isArray(p?.measures)?JSON.parse(JSON.stringify(p.measures)):[]}try{return JSON.parse(localStorage.getItem(MEASURE_KEY)||'[]')}catch(e){return []}};
-const saveMeasures=d=>{const id=activePatientId();if(id&&id!=='main'){const arr=rawExtraPatients(),i=arr.findIndex(p=>p.id===id);if(i<0)return;arr[i]={...arr[i],measures:d};localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(arr));return}localStorage.setItem(MEASURE_KEY,JSON.stringify(d))};
+const loadMeasures=()=>{const id=activePatientId();if(id&&id!=='main'){const p=activeExtraPatient();return Array.isArray(p?.measures)?JSON.parse(JSON.stringify(p.measures)):[]}try{return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(MEASURE_KEY)||'[]')}catch(e){return []}};
+const saveMeasures=d=>{const id=activePatientId();if(id&&id!=='main'){const arr=rawExtraPatients(),i=arr.findIndex(p=>p.id===id);if(i<0)return;arr[i]={...arr[i],measures:d};window.nubemoPatientRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(arr));return}window.nubemoPatientRuntimeStore.storage.setItem(MEASURE_KEY,JSON.stringify(d))};
 const isoToday=()=>{let d=new Date(),z=d.getTimezoneOffset()*60000;return new Date(d-z).toISOString().slice(0,10)};
 const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 const fmtShort=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -302,8 +302,8 @@ function bmiChart(items,days){
 }
 
 
-const PLAN_META_KEY='diario-pro-plan-meta-v1',PLAN_DB='diario-pro-documents-v1',PLAN_STORE='plans';
-function planMetaMap(){try{return JSON.parse(localStorage.getItem(PLAN_META_KEY)||'{}')||{}}catch(e){return {}}}
+const PLAN_META_KEY='diario-pro-plan-meta-v1',PLAN_STORE='plans';
+function planMetaMap(){try{return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(PLAN_META_KEY)||'{}')||{}}catch(e){return {}}}
 function patientPlanDocuments(){
  const pid=activePatientId()||'main';
  return documentMetaList().filter(d=>d.patientId===pid&&d.category==='plan').sort((a,b)=>String(b.validFrom||b.documentDate||b.uploadedAt).localeCompare(String(a.validFrom||a.documentDate||a.uploadedAt)));
@@ -316,7 +316,7 @@ function mainPlanMeta(){
  const todayIso=isoToday();
  const valid=patientPlanDocuments().filter(d=>d.validFrom&&d.validFrom<=todayIso).sort((a,b)=>String(b.validFrom).localeCompare(String(a.validFrom)));
  return valid[0]||legacyPatientPlanMeta();
-}function openPlanDb(){return new Promise((res,rej)=>{const r=indexedDB.open(PLAN_DB,3);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(PLAN_STORE))r.result.createObjectStore(PLAN_STORE);if(!r.result.objectStoreNames.contains('labUploads'))r.result.createObjectStore('labUploads');if(!r.result.objectStoreNames.contains('privacy'))r.result.createObjectStore('privacy');if(!r.result.objectStoreNames.contains('documents'))r.result.createObjectStore('documents')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}async function readPlanPdf(id='main'){const db=await openPlanDb();return new Promise((res,rej)=>{const r=db.transaction(PLAN_STORE,'readonly').objectStore(PLAN_STORE).get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}window.openPatientPlan=async planId=>{
+}async function readPlanPdf(id='main'){return window.nubemoPatientRuntimeStore.blobGet(PLAN_STORE,id)}window.openPatientPlan=async planId=>{
  const pid=activePatientId()||'main';
  const meta=planId?(planId==='legacy-plan'?legacyPatientPlanMeta():documentMetaList().find(d=>d.id===planId&&d.patientId===pid&&d.category==='plan')):mainPlanMeta();
  if(!meta)return alert('Piano alimentare non disponibile.');
@@ -339,7 +339,7 @@ function mainPlanMeta(){
 const PATIENT_APPT_KEY='diario-pro-appts-recovery-v1';
 function patientAppointments(){
   try{
-    const a=JSON.parse(localStorage.getItem(PATIENT_APPT_KEY)||'[]');
+    const a=JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(PATIENT_APPT_KEY)||'[]');
     return Array.isArray(a)?a:[];
   }catch(e){return []}
 }
@@ -352,8 +352,8 @@ function nextPatientVisit(){
 }
 
 
-async function storeLabPdf(key,b){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction('labUploads','readwrite');tx.objectStore('labUploads').put(b,key);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
-function pendingLabMap(){try{return JSON.parse(localStorage.getItem(PENDING_LABS_KEY)||'{}')||{}}catch(e){return {}}}
+async function storeLabPdf(key,b){window.nubemoPatientRuntimeStore.blobSet('labUploads',key,b)}
+function pendingLabMap(){try{return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(PENDING_LABS_KEY)||'{}')||{}}catch(e){return {}}}
 function parseLabValues(text){
  const c=String(text||'').replace(/\s+/g,' '),out={};
  const specs=[['glucose',['glicemia','glucosio']],['cholesterol',['colesterolo totale','colesterolo']],['hdl',['hdl']],['ldl',['ldl']],['triglycerides',['trigliceridi']],['got',['got','ast']],['gpt',['gpt','alt']],['uricAcid',['acido urico','uricemia']],['creatinine',['creatinina']],['ggt',['gamma gt','ggt']]];
@@ -439,7 +439,7 @@ async function queueBloodTestForReview(file,{documentId=null,patientId=null,docu
    uploadedAt:new Date().toISOString(),
    status:'Da verificare',values,note
  };
- localStorage.setItem(PENDING_LABS_KEY,JSON.stringify(m));
+ window.nubemoPatientRuntimeStore.storage.setItem(PENDING_LABS_KEY,JSON.stringify(m));
  return key;
 }
 
@@ -1064,10 +1064,10 @@ const DOCUMENT_STORE='documents';
 const DOCUMENT_MAX_BYTES=10*1024*1024;
 
 function documentMetaList(){
-  try{return JSON.parse(localStorage.getItem(DOCUMENT_META_KEY)||'[]')||[]}
+  try{return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(DOCUMENT_META_KEY)||'[]')||[]}
   catch(e){return []}
 }
-function saveDocumentMetaList(items){localStorage.setItem(DOCUMENT_META_KEY,JSON.stringify(items))}
+function saveDocumentMetaList(items){window.nubemoPatientRuntimeStore.storage.setItem(DOCUMENT_META_KEY,JSON.stringify(items))}
 
 function hasUnreadPatientDocuments(){
   return documentMetaList().some(d=>d.patientId===activePatientId()&&d.unreadForPatient===true);
@@ -1097,22 +1097,8 @@ function documentTitleFromFile(name=''){
 function documentId(prefix='doc'){
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
 }
-async function writeDocumentBlob(fileId,file){
-  const db=await openPlanDb();
-  return new Promise((res,rej)=>{
-    const tx=db.transaction(DOCUMENT_STORE,'readwrite');
-    tx.objectStore(DOCUMENT_STORE).put(file,fileId);
-    tx.oncomplete=()=>res();
-    tx.onerror=()=>rej(tx.error);
-  });
-}
-async function readDocumentBlob(fileId){
-  const db=await openPlanDb();
-  return new Promise((res,rej)=>{
-    const r=db.transaction(DOCUMENT_STORE,'readonly').objectStore(DOCUMENT_STORE).get(fileId);
-    r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error);
-  });
-}
+async function writeDocumentBlob(fileId,file){window.nubemoPatientRuntimeStore.blobSet(DOCUMENT_STORE,fileId,file)}
+async function readDocumentBlob(fileId){return window.nubemoPatientRuntimeStore.blobGet(DOCUMENT_STORE,fileId)}
 async function openStoredDocument(id){
   const items=documentMetaList();
   const meta=items.find(d=>d.id===id&&d.patientId===activePatientId());
@@ -1167,8 +1153,8 @@ function bindDocumentsPage(){
   document.querySelectorAll('[data-open-patient-document]').forEach(b=>b.onclick=()=>openStoredDocument(b.dataset.openPatientDocument));
 }
 function loginPage(){const hasAccounts=Object.keys(accountMap()).length>0;return `<div class="login-shell"><section class="card login-card"><div class="login-brand-mark"><img src="assets/nubemo-brand-clean-v2.png" alt=""><div><b>NUBEMO</b><span>Area Paziente · Demo</span></div></div><div class="eyebrow">ACCESSO PAZIENTE</div><h1>Il tuo percorso inizia qui.</h1><p class="muted">${hasAccounts?'Usa le credenziali create dal professionista.':'Prima crea le credenziali dalla scheda paziente nell’Area Professionista.'}</p><label>Username</label><input id="loginUser" autocomplete="username" ${hasAccounts?'':'disabled'}><label>Password</label><input id="loginPass" type="password" autocomplete="current-password" ${hasAccounts?'':'disabled'}><button class="primary" onclick="patientLogin()" ${hasAccounts?'':'disabled'}>Accedi a NUBEMO</button></section></div>`}
-window.patientLogin=()=>{const u=($('#loginUser')?.value||'').trim().toLowerCase(),pw=$('#loginPass')?.value||'';const f=Object.entries(accountMap()).find(([id,a])=>a&&a.active!==false&&String(a.username||'').toLowerCase()===u&&String(a.password||'')===pw);if(!f)return alert('Credenziali non valide.');localStorage.setItem(ACTIVE_PATIENT_KEY,f[0]);page='home';render()};
-window.patientLogout=()=>{localStorage.removeItem(ACTIVE_PATIENT_KEY);page='home';render()};
+window.patientLogin=()=>{const u=($('#loginUser')?.value||'').trim().toLowerCase(),pw=$('#loginPass')?.value||'';const f=Object.entries(accountMap()).find(([id,a])=>a&&a.active!==false&&String(a.username||'').toLowerCase()===u&&String(a.password||'')===pw);if(!f)return alert('Credenziali non valide.');window.nubemoPatientRuntimeStore.storage.setItem(ACTIVE_PATIENT_KEY,f[0]);page='home';render()};
+window.patientLogout=()=>{window.nubemoPatientRuntimeStore.storage.removeItem(ACTIVE_PATIENT_KEY);page='home';render()};
 
 function syncAndroidLandscapeClass(){
  const ua=navigator.userAgent||'';
