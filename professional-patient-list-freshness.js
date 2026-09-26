@@ -24,7 +24,7 @@
 
   function localDraft(patientId){
     try{
-      const rows=JSON.parse(localStorage.getItem('diario-pro-extra-patients-v1')||'[]');
+      const rows=JSON.parse(window.nubemoProfessionalRuntimeStore.storage.getItem('diario-pro-extra-patients-v1')||'[]');
       if(!Array.isArray(rows))return null;
       return rows.find(row=>String(row?.id||'')===String(patientId||'')&&(row?._draft===true||row?.relationshipStatus==='draft'))||null;
     }catch(_){return null;}
