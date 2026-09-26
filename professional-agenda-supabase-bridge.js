@@ -9,7 +9,7 @@
 
   const APPT_KEY='diario-pro-appts-recovery-v1';
   const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
-  const {getItem:previousGetItem,setItem:previousSetItem}=window.NubemoStorageKit.capture();
+  const {getItem:previousGetItem,setItem:previousSetItem}=window.NubemoRuntimeKit.capture();
 
   let remoteAppointments=[];
   let linksByAppointment=new Map();
@@ -23,12 +23,12 @@
   const uniqueIds=values=>[...new Set((values||[]).filter(Boolean).map(String))];
 
   function syncAgendaPatientsFromCanonical(){
-    agendaPatientsSerialized=window.localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]';
+    agendaPatientsSerialized=window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]';
     return agendaPatientsSerialized;
   }
 
   function restoreAgendaPatients(){
-    if(agendaPatientsSerialized)previousSetItem.call(window.localStorage,EXTRA_PATIENTS_KEY,agendaPatientsSerialized);
+    if(agendaPatientsSerialized)previousSetItem.call(window.nubemoProfessionalRuntimeStore.storage,EXTRA_PATIENTS_KEY,agendaPatientsSerialized);
   }
 
   function localPatients(){
@@ -116,7 +116,7 @@
   function publish(){
     const rows=remoteAppointments.map(row=>legacyAppointment(row,linksByAppointment.get(row.id)||[]));
     latestAppointmentsSerialized=JSON.stringify(rows);
-    previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
+    previousSetItem.call(window.nubemoProfessionalRuntimeStore.storage,APPT_KEY,latestAppointmentsSerialized);
   }
 
   async function hydrate(expectedVersion=null){
@@ -285,10 +285,10 @@
     }while(observed!==queue);
   }
 
-  window.NubemoStorageKit.patch('professional-agenda-supabase-bridge',{
+  window.NubemoRuntimeKit.patch('professional-agenda-supabase-bridge',{
     setItem:function(key,value){
       previousSetItem.call(this,key,value);
-      if(this!==window.localStorage||String(key)!==APPT_KEY)return;
+      if(this!==window.nubemoProfessionalRuntimeStore.storage||String(key)!==APPT_KEY)return;
       if(window.nubemoProfessionalLegacyAdapter)return;
       const serialized=String(value);
       latestAppointmentsSerialized=serialized;
@@ -304,7 +304,7 @@
     const dashboardAction=event.target?.closest?.('[data-view="dashboard"],[data-drawer-view="dashboard"]');
     if(!dashboardAction)return;
     restoreAgendaPatients();
-    if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);
+    if(latestAppointmentsSerialized)previousSetItem.call(window.nubemoProfessionalRuntimeStore.storage,APPT_KEY,latestAppointmentsSerialized);
   },true);
 
   const ready=hydrate();
@@ -314,6 +314,6 @@
     refresh:async()=>{await flush();return hydrate();},
     syncPatients:syncAgendaPatientsFromCanonical,
     flush,
-    restoreContext:()=>{restoreAgendaPatients();if(latestAppointmentsSerialized)previousSetItem.call(window.localStorage,APPT_KEY,latestAppointmentsSerialized);}
+    restoreContext:()=>{restoreAgendaPatients();if(latestAppointmentsSerialized)previousSetItem.call(window.nubemoProfessionalRuntimeStore.storage,APPT_KEY,latestAppointmentsSerialized);}
   });
 })();
