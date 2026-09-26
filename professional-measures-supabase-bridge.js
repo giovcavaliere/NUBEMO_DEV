@@ -26,12 +26,12 @@
   }
 
   function publish(patientId,rows){
-    const patients=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const patients=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     if(!Array.isArray(patients))throw new Error('Elenco pazienti non disponibile.');
     const index=patients.findIndex(row=>String(row?.id||'')===String(patientId));
     if(index<0)throw new Error('Paziente non disponibile nel contesto corrente.');
     patients[index]={...patients[index],measures:(rows||[]).map(legacyMeasurement)};
-    localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(patients));
+    window.nubemoProfessionalRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(patients));
   }
 
   async function ensurePatient(patientId,force=false){
