@@ -8,7 +8,7 @@
   if (!client || !context.profile?.id || !context.user?.id) return;
 
   const KEY='nubemo-documents-meta-v1';
-  const {getItem:previousGetItem,setItem:previousSetItem,removeItem:previousRemoveItem}=window.NubemoStorageKit.capture();
+  const {getItem:previousGetItem,setItem:previousSetItem,removeItem:previousRemoveItem}=window.NubemoRuntimeKit.capture();
   const unread=new Set();
   const replayClicks=new WeakSet();
   let readyDone=false;
@@ -20,7 +20,7 @@
     const ids=(context.patients||[]).map(p=>p.id);
     if(!ids.length){readyDone=true;return;}
     await window.nubemoProfessionalDocumentsBridge?.ready;
-    const docs=parse(previousGetItem.call(window.localStorage,KEY)||'[]',[]);
+    const docs=parse(previousGetItem.call(window.nubemoProfessionalRuntimeStore.storage,KEY)||'[]',[]);
     const statuses=await client.from('document_read_status').select('document_id,read_at').eq('profile_id',context.profile.id);
     if(statuses.error)throw statuses.error;
     const readIds=new Set((statuses.data||[]).filter(x=>x.read_at).map(x=>x.document_id));
@@ -51,15 +51,15 @@
     }
   }
 
-  window.NubemoStorageKit.patch('professional-document-read-supabase-bridge',{
+  window.NubemoRuntimeKit.patch('professional-document-read-supabase-bridge',{
     getItem:function(key){
       const value=previousGetItem.call(this,key);
-      if(this===window.localStorage&&String(key)===KEY&&readyDone)return overlay(value);
+      if(this===window.nubemoProfessionalRuntimeStore.storage&&String(key)===KEY&&readyDone)return overlay(value);
       return value;
     },
     setItem:function(key,value){
       previousSetItem.call(this,key,value);
-      if(this!==window.localStorage||String(key)!==KEY||!readyDone)return;
+      if(this!==window.nubemoProfessionalRuntimeStore.storage||String(key)!==KEY||!readyDone)return;
       const serialized=String(value);
       queue=queue.then(()=>persistReads(serialized)).catch(error=>console.error('NUBEMO PRO document read status:',error));
     },
