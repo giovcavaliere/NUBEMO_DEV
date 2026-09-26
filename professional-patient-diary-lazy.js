@@ -46,7 +46,7 @@
   }
 
   function publish(patientId,rows,range){
-    const patients=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const patients=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     if(!Array.isArray(patients))throw new Error('Elenco pazienti non disponibile.');
     const index=patients.findIndex(row=>String(row?.id||'')===String(patientId));
     if(index<0)throw new Error('Paziente non disponibile nel contesto corrente.');
@@ -62,7 +62,7 @@
       weights:[...weightMap.entries()].filter(([,w])=>Number.isFinite(w)).sort((a,b)=>a[0].localeCompare(b[0])),
       _diaryLazyDays:range===0?'all':range
     };
-    localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(patients));
+    window.nubemoProfessionalRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(patients));
   }
 
   async function load(patientId,days=30,force=false){
