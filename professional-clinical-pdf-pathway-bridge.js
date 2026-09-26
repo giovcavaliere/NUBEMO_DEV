@@ -195,11 +195,8 @@
   function noteText(snapshot){
     return (Array.isArray(snapshot?.notes)?snapshot.notes:[])
       .filter(row=>String(row?.content||'').trim())
-      .map(row=>{
-        const date=String(row?.created_at||'').slice(0,10);
-        const content=String(row.content).trim();
-        return date?`${date} — ${content}`:content;
-      }).join('\n\n');
+      .map(row=>String(row.content).trim())
+      .join('\n\n');
   }
 
   function buildOverrides(patientId,summary,snapshot){
