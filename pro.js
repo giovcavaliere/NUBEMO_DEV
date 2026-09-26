@@ -16,8 +16,8 @@ const DELETED_PATIENTS_KEY='diario-pro-deleted-patients-v1';
 const LABS_KEY='diario-pro-labs-v1',PLAN_META_KEY='diario-pro-plan-meta-v1',PLAN_DB='diario-pro-documents-v1',PLAN_STORE='plans',ACCOUNT_KEY='diario-pro-accounts-v1',PRIVACY_META_KEY='diario-pro-privacy-meta-v1',PENDING_LABS_KEY='diario-pro-pending-labs-v1';
 
 const DOCUMENT_META_KEY='nubemo-documents-meta-v1',DOCUMENT_STORE='documents',DOCUMENT_MAX_BYTES=10*1024*1024;
-function documentMetaList(){try{return JSON.parse(localStorage.getItem(DOCUMENT_META_KEY)||'[]')||[]}catch(e){return []}}
-function saveDocumentMetaList(items){localStorage.setItem(DOCUMENT_META_KEY,JSON.stringify(items))}
+function documentMetaList(){try{return JSON.parse(window.nubemoProfessionalRuntimeStore.storage.getItem(DOCUMENT_META_KEY)||'[]')||[]}catch(e){return []}}
+function saveDocumentMetaList(items){window.nubemoProfessionalRuntimeStore.storage.setItem(DOCUMENT_META_KEY,JSON.stringify(items))}
 function documentTitleFromFile(name=''){return String(name).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim()}
 function documentId(prefix='doc'){return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`}
 async function writeDocumentBlob(fileId,file){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction(DOCUMENT_STORE,'readwrite');tx.objectStore(DOCUMENT_STORE).put(file,fileId);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
@@ -184,8 +184,8 @@ function setPatientStartDateIfEmpty(patientId,date){
 }
 
 const el=id=>document.getElementById(id);
-const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
-const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const load=(k,d)=>{try{const v=window.nubemoProfessionalRuntimeStore.storage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>window.nubemoProfessionalRuntimeStore.storage.setItem(k,JSON.stringify(v));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Date().toISOString().slice(0,10);
 const fmt=d=>{
