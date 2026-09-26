@@ -272,7 +272,7 @@
       ensureSelectedPatientContext(patientId);
       if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo40clean04','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
-      if(!hasScript('professional-visits-supabase-bridge.js'))await loadScript('professional-visits-supabase-bridge.js?v=nubemo-visitsfix-20260926a','Impossibile preparare le visite del paziente.');
+      if(!hasScript('professional-visits-supabase-bridge.js'))await loadScript('professional-visits-supabase-bridge.js?v=nubemo-visitsfix-20260926b','Impossibile preparare le visite del paziente.');
       await window.nubemoProfessionalVisitsBridge?.ready;
       if(!window.nubemoProfessionalVisitsBridge)throw new Error('Bridge Visite non inizializzato.');
       await window.nubemoProfessionalVisitsBridge.ensurePatient(patientId);
