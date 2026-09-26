@@ -12,7 +12,7 @@
   const SETTINGS_KEY='diario-pro-settings-recovery-v1';
   const DOCUMENT_META_KEY='nubemo-documents-meta-v1';
 
-  const {getItem:previousGetItem,setItem:previousSetItem,removeItem:previousRemoveItem}=window.NubemoStorageKit.capture();
+  const {getItem:previousGetItem,setItem:previousSetItem,removeItem:previousRemoveItem}=window.NubemoRuntimeKit.capture();
   const memory=new Map();
   let enabled=false;
   let installed=false;
@@ -177,15 +177,15 @@
   function installStorage(){
     if(installed)return;
     installed=true;
-    window.NubemoStorageKit.patch('professional-dashboard-bootstrap',{
+    window.NubemoRuntimeKit.patch('professional-dashboard-bootstrap',{
       getItem:function(key){
         const k=String(key);
-        if(this===window.localStorage&&enabled&&memory.has(k))return memory.get(k);
+        if(this===window.nubemoProfessionalRuntimeStore.storage&&enabled&&memory.has(k))return memory.get(k);
         return previousGetItem.call(this,key);
       },
       setItem:function(key,value){
         const k=String(key);
-        if(this===window.localStorage&&enabled&&memory.has(k)){
+        if(this===window.nubemoProfessionalRuntimeStore.storage&&enabled&&memory.has(k)){
           memory.set(k,String(value));
           return;
         }
@@ -193,7 +193,7 @@
       },
       removeItem:function(key){
         const k=String(key);
-        if(this===window.localStorage&&enabled&&memory.has(k)){
+        if(this===window.nubemoProfessionalRuntimeStore.storage&&enabled&&memory.has(k)){
           memory.delete(k);
           return;
         }
