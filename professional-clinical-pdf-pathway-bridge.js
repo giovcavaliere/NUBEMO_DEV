@@ -19,7 +19,7 @@
   let fallbackTimer=null;
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
-  const runtimeStorage=()=>window.nubemoProfessionalRuntimeStore?.storage||window.localStorage;
+  const runtimeStorage=()=>window.nubemoProfessionalRuntimeStore?.storage||window.nubemoProfessionalRuntimeStore.storage;
 
   function rawLocal(key){
     try{return runtimeStorage()?.getItem?.(key)??null}catch(_){return null}
@@ -275,7 +275,7 @@
     }else{
       const original=Storage.prototype.getItem;
       const wrapper=function(key){
-        if(this===window.localStorage&&overrides.has(String(key)))return overrides.get(String(key));
+        if(this===window.nubemoProfessionalRuntimeStore.storage&&overrides.has(String(key)))return overrides.get(String(key));
         return original.call(this,key);
       };
       Storage.prototype.getItem=wrapper;
