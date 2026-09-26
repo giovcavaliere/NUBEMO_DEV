@@ -32,7 +32,7 @@
 
   function hydrateDraftStateFromStorage(){
     let rows=[];
-    try{rows=JSON.parse(window.localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]');}catch(_){rows=[];}
+    try{rows=JSON.parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]');}catch(_){rows=[];}
     drafts.clear();
     (Array.isArray(rows)?rows:[]).filter(row=>row?._draft===true||row?.relationshipStatus==='draft').forEach(row=>{
       drafts.set(row.id,{
