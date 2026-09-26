@@ -17,7 +17,14 @@
   const PENDING_LABS_KEY = 'diario-pro-pending-labs-v1';
 
   const memory = new Map();
+  const blobNamespaces = new Map();
   const remoteDocuments = new Map();
+
+  function blobMap(namespace='default'){
+    const key=String(namespace);
+    if(!blobNamespaces.has(key))blobNamespaces.set(key,new Map());
+    return blobNamespaces.get(key);
+  }
   const openedPrivacyIds = new Set();
   let context = null;
   let diaryRows = [];
@@ -439,6 +446,10 @@
     flush,
     bindLegacyApp,
     refreshDocuments: hydrateDocuments,
-    storage: storageFacade
+    storage: storageFacade,
+    blobGet: (namespace,key)=>blobMap(namespace).get(String(key)) ?? null,
+    blobSet: (namespace,key,value)=>{blobMap(namespace).set(String(key),value);return value;},
+    blobDelete: (namespace,key)=>blobMap(namespace).delete(String(key)),
+    blobClear: namespace=>blobMap(namespace).clear()
   });
 })();
