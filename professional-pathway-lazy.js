@@ -26,7 +26,7 @@
     const drawer=document.querySelector('[data-drawer-patient]')?.dataset.drawerPatient;
     if(drawer)return String(drawer);
     const title=document.querySelector('.patient-global-title')?.textContent?.trim()||'';
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     if(Array.isArray(rows)){
       const row=rows.find(item=>item?.id&&title.includes(String(item.name||'').trim()));
       if(row)return String(row.id);
@@ -35,7 +35,7 @@
   }
 
   function localPatient(patientId){
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     return Array.isArray(rows)?rows.find(row=>String(row?.id||'')===String(patientId))||null:null;
   }
 
