@@ -21,12 +21,12 @@
     const drawer=document.querySelector('[data-drawer-patient]')?.dataset.drawerPatient;
     if(drawer)return String(drawer);
     const title=document.querySelector('.patient-global-title')?.textContent?.trim()||'';
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     const row=Array.isArray(rows)?rows.find(item=>item?.id&&title.includes(String(item.name||'').trim())):null;
     return row?.id?String(row.id):'';
   }
   function patientName(patientId){
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     const row=Array.isArray(rows)?rows.find(item=>String(item?.id||'')===String(patientId)):null;
     return String(row?.name||[row?.firstName,row?.surname].filter(Boolean).join(' ')||'Paziente');
   }
