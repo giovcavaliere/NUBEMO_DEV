@@ -26,7 +26,7 @@
   }
 
   function rowMap(){
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     return new Map((Array.isArray(rows)?rows:[]).map(row=>[String(row?.id||''),row]));
   }
 
