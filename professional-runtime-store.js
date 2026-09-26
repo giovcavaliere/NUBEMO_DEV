@@ -5,7 +5,6 @@
 (() => {
   'use strict';
 
-  const STORAGE_GLOBAL = 'local' + 'Storage';
   const writeListeners = new Map();
   const removeListeners = new Map();
 
@@ -49,18 +48,12 @@
   }
 
   const facade = new RuntimeStorage();
-  const descriptor = Object.getOwnPropertyDescriptor(window, STORAGE_GLOBAL);
+  const blobNamespaces = new Map();
 
-  try {
-    Object.defineProperty(window, STORAGE_GLOBAL, {
-      configurable: true,
-      enumerable: descriptor?.enumerable ?? true,
-      get: () => facade
-    });
-  } catch (error) {
-    try { window[STORAGE_GLOBAL] = facade; }
-    catch (_) { throw new Error('Impossibile inizializzare lo stato runtime dell’Area Professionista.'); }
-    if (window[STORAGE_GLOBAL] !== facade) throw new Error('Stato runtime dell’Area Professionista non disponibile.');
+  function blobMap(namespace='default'){
+    const key=String(namespace);
+    if(!blobNamespaces.has(key))blobNamespaces.set(key,new Map());
+    return blobNamespaces.get(key);
   }
 
   window.nubemoProfessionalRuntimeStore = Object.freeze({
@@ -74,6 +67,10 @@
     clear: () => facade.clear(),
     snapshot: () => facade.snapshot(),
     onWrite: (key,fn)=>register(writeListeners,key,fn),
-    onRemove: (key,fn)=>register(removeListeners,key,fn)
+    onRemove: (key,fn)=>register(removeListeners,key,fn),
+    blobGet: (namespace,key)=>blobMap(namespace).get(String(key)) ?? null,
+    blobSet: (namespace,key,value)=>{blobMap(namespace).set(String(key),value);return value;},
+    blobDelete: (namespace,key)=>blobMap(namespace).delete(String(key)),
+    blobClear: namespace=>blobMap(namespace).clear()
   });
 })();
