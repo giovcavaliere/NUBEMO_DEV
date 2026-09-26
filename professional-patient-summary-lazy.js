@@ -43,12 +43,12 @@
   }
 
   function publishPatient(patient){
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     if(!Array.isArray(rows))return;
     const index=rows.findIndex(row=>String(row?.id||'')===patient.id);
     if(index>=0)rows[index]={...rows[index],...patient};
     else rows.push(patient);
-    localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(rows));
+    window.nubemoProfessionalRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(rows));
   }
 
 
