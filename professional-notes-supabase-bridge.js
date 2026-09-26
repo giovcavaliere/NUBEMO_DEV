@@ -8,7 +8,7 @@
   const context = window.nubemoProfessionalContext || {};
   if (!services || !Array.isArray(context.patients)) return;
 
-  const { setItem: previousSetItem } = window.NubemoStorageKit.capture();
+  const { setItem: previousSetItem } = window.NubemoRuntimeKit.capture();
   const remoteByPatient = new Map();
   const hydratedPatients = new Set();
   const hydrationPromises = new Map();
@@ -39,10 +39,10 @@
   }
 
   function publishPatientNote(patientId, content) {
-    const map=parse(window.localStorage.getItem(NOTES_KEY));
+    const map=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(NOTES_KEY));
     if(content) map[patientId]=content;
     else delete map[patientId];
-    previousSetItem.call(window.localStorage, NOTES_KEY, JSON.stringify(map));
+    previousSetItem.call(window.nubemoProfessionalRuntimeStore.storage, NOTES_KEY, JSON.stringify(map));
   }
 
   async function ensurePatient(patientId, force=false) {
@@ -77,17 +77,17 @@
     }
   }
 
-  window.NubemoStorageKit.patch('professional-notes-supabase-bridge', {
+  window.NubemoRuntimeKit.patch('professional-notes-supabase-bridge', {
     setItem: function(key, value) {
       previousSetItem.call(this, key, value);
-      if (this !== window.localStorage || String(key) !== NOTES_KEY) return;
+      if (this !== window.nubemoProfessionalRuntimeStore.storage || String(key) !== NOTES_KEY) return;
       const serialized = String(value);
       queue = queue.then(() => sync(serialized)).catch(report);
     }
   }, [NOTES_KEY]);
 
   // Inizializza la chiave virtuale senza interrogare Supabase.
-  previousSetItem.call(window.localStorage, NOTES_KEY, '{}');
+  previousSetItem.call(window.nubemoProfessionalRuntimeStore.storage, NOTES_KEY, '{}');
 
   document.addEventListener('click',event=>{
     const button=event.target?.closest?.('[data-patient-tab="notes"],[data-drawer-tab="notes"]');
