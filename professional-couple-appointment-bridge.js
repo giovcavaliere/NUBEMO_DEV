@@ -15,8 +15,8 @@
   let mounting=false;
 
   const parse=(value,fallback)=>{try{return JSON.parse(value)}catch(_){return fallback}};
-  const appointments=()=>{const rows=parse(localStorage.getItem(APPT_KEY)||'[]',[]);return Array.isArray(rows)?rows:[];};
-  const patients=()=>{const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);return Array.isArray(rows)?rows:[];};
+  const appointments=()=>{const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(APPT_KEY)||'[]',[]);return Array.isArray(rows)?rows:[];};
+  const patients=()=>{const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);return Array.isArray(rows)?rows:[];};
   const idsFor=a=>[...new Set((Array.isArray(a?.patientIds)&&a.patientIds.length?a.patientIds:[a?.patientId]).filter(Boolean).map(String))].slice(0,2);
   const patientById=id=>patients().find(row=>String(row?.id||'')===String(id||''))||null;
   const patientName=id=>{
@@ -27,7 +27,7 @@
   const esc=(value='')=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
   function settings(){
-    const raw=parse(localStorage.getItem(SETTINGS_KEY)||'{}',{});
+    const raw=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(SETTINGS_KEY)||'{}',{});
     return raw&&typeof raw==='object'?raw:{};
   }
   function standardDuration(type){
@@ -181,7 +181,7 @@
     const subjectIds=[snapshot.primary,snapshot.second].filter(Boolean).filter((id,index,arr)=>arr.indexOf(id)===index).slice(0,2);
     target.patientId=subjectIds[0]||null;
     target.patientIds=subjectIds;
-    localStorage.setItem(APPT_KEY,JSON.stringify(rows));
+    window.nubemoProfessionalRuntimeStore.storage.setItem(APPT_KEY,JSON.stringify(rows));
 
     // L'adapter legacy e' l'unico owner della sincronizzazione Agenda quando il runtime completo e' attivo.
     const adapter=window.nubemoProfessionalLegacyAdapter;
