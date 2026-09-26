@@ -23,7 +23,7 @@
     [PATIENT_START_DATE_KEY, JSON.stringify(startDateMap())]
   ]);
 
-  const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoStorageKit.capture();
+  const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoRuntimeKit.capture();
 
   // Un contatto provvisorio (draft) e' noto a due componenti diverse a
   // seconda di come si e' arrivati alla pagina: l'adapter legacy lo espone
@@ -46,21 +46,21 @@
     return JSON.stringify(rows.filter(row => row?.id && (allowedPatients.has(row.id) || isKnownDraft(row.id))));
   }
 
-  window.NubemoStorageKit.patch('professional-recovery-contract', {
+  window.NubemoRuntimeKit.patch('professional-recovery-contract', {
     getItem: function(key) {
       const k = String(key);
-      if (this === window.localStorage && k === EXTRA_PATIENTS_KEY) {
+      if (this === window.nubemoProfessionalRuntimeStore.storage && k === EXTRA_PATIENTS_KEY) {
         return filterSupabasePatients(previousGetItem.call(this, key));
       }
-      if (this === window.localStorage && RETIRED_LOCAL_KEYS.has(k)) return memory.get(k) ?? null;
+      if (this === window.nubemoProfessionalRuntimeStore.storage && RETIRED_LOCAL_KEYS.has(k)) return memory.get(k) ?? null;
       return previousGetItem.call(this,key);
     },
     setItem: function(key, value) {
       const k = String(key);
-      if (this === window.localStorage && k === EXTRA_PATIENTS_KEY) {
+      if (this === window.nubemoProfessionalRuntimeStore.storage && k === EXTRA_PATIENTS_KEY) {
         return previousSetItem.call(this, key, filterSupabasePatients(String(value)));
       }
-      if (this === window.localStorage && RETIRED_LOCAL_KEYS.has(k)) {
+      if (this === window.nubemoProfessionalRuntimeStore.storage && RETIRED_LOCAL_KEYS.has(k)) {
         memory.set(k, String(value));
         return;
       }
@@ -68,10 +68,10 @@
     },
     removeItem: function(key) {
       const k = String(key);
-      if (this === window.localStorage && k === EXTRA_PATIENTS_KEY) {
+      if (this === window.nubemoProfessionalRuntimeStore.storage && k === EXTRA_PATIENTS_KEY) {
         return previousRemoveItem.call(this, key);
       }
-      if (this === window.localStorage && RETIRED_LOCAL_KEYS.has(k)) {
+      if (this === window.nubemoProfessionalRuntimeStore.storage && RETIRED_LOCAL_KEYS.has(k)) {
         memory.delete(k);
         return;
       }
