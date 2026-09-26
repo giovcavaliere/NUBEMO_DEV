@@ -34,13 +34,13 @@
       }));
       const count = Number(cookies[base + '-count'] || 0);
       if (!count) return cookies[base] ? decodeURIComponent(cookies[base]) : null;
-      let value='';
+      let encoded='';
       for(let i=0;i<count;i++){
         const part=cookies[base+'-'+i];
         if(part==null)return null;
-        value += decodeURIComponent(part);
+        encoded += part;
       }
-      return value || null;
+      return encoded ? decodeURIComponent(encoded) : null;
     },
     setItem(key, value) {
       const base = AUTH_COOKIE_PREFIX + encodeURIComponent(String(key));
@@ -48,7 +48,7 @@
       const encoded = encodeURIComponent(String(value));
       const chunks=[];
       for(let i=0;i<encoded.length;i+=COOKIE_CHUNK_BYTES) chunks.push(encoded.slice(i,i+COOKIE_CHUNK_BYTES));
-      const attrs='; Path=/; SameSite=Lax; Secure; Max-Age=2592000';
+      const attrs='; Path=/; SameSite=Lax; Secure; Max-Age=31536000';
       if(chunks.length<=1){document.cookie=base+'='+chunks[0]+attrs;return;}
       document.cookie=base+'-count='+chunks.length+attrs;
       chunks.forEach((part,i)=>{document.cookie=base+'-'+i+'='+part+attrs;});
