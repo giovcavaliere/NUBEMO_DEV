@@ -36,6 +36,7 @@
     return {
       id:row.id,
       patientId:type==='personal'?null:patientId,
+      patientIds:type==='personal'?[]:[...new Set((Array.isArray(row.patient_ids)&&row.patient_ids.length?row.patient_ids:[patientId]).filter(Boolean).map(String))],
       date:local.slice(0,10),
       time:local.slice(11,16),
       type,
