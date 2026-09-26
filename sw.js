@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-runtime-clean2';
+const CACHE='nubemo-demo-v4.0-bugfix-20260926a';
 const CORE=[
   './runtime-bridge-kit.js?v=nubemo-runtime-clean1',
   './professional-runtime-store.js?v=nubemo-runtime-clean1',
@@ -49,7 +49,7 @@ const CORE=[
   './professional-patient-groups-open-bridge.js?v=nubemo-pathway19fix5',
   './professional-mobile-history-privacy-fix.js?v=nubemo-pathway19fix16',
   './professional-clinical-pdf-professional-identity.js?v=nubemo-pathway19fix15',
-  './professional-clinical-pdf-pathway-bridge.js?v=nubemo-runtime-clean2',
+  './professional-clinical-pdf-pathway-bridge.js?v=nubemo-bugfix-20260926a',
   './professional-new-patient-lazy.js?v=nubemo40clean04',
   './professional-patient-list-freshness.js?v=nubemo40clean04draftfix1',
   './professional-legacy-supabase-adapter.js?v=nubemo-runtime-clean1',
