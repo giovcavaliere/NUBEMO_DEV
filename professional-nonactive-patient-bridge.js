@@ -12,8 +12,8 @@
   let loadingStates=null;
 
   function parse(value,fallback){try{return JSON.parse(value)}catch(_){return fallback}}
-  function rows(){const value=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);return Array.isArray(value)?value:[]}
-  function saveRows(value){localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(value))}
+  function rows(){const value=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);return Array.isArray(value)?value:[]}
+  function saveRows(value){window.nubemoProfessionalRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(value))}
 
   async function loadStates(force=false){
     if(stateMap.size&&!force)return stateMap;
