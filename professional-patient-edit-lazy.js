@@ -45,7 +45,7 @@
     const direct=document.querySelector('[data-drawer-patient]')?.dataset.drawerPatient;
     if(direct)return String(direct);
     const title=document.querySelector('.patient-global-title')?.textContent?.trim()||'';
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     if(Array.isArray(rows)){
       const row=rows.find(item=>item?.id&&title.includes(String(item.name||'').trim()));
       if(row)return String(row.id);
@@ -53,7 +53,7 @@
     return currentPatientId;
   }
   function shell(patientId){
-    const rows=parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+    const rows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
     return Array.isArray(rows)?rows.find(row=>String(row?.id||'')===String(patientId))||null:null;
   }
 
@@ -138,9 +138,9 @@
   }
 
   function updateStartDateCache(patientId,date){
-    const map=parse(localStorage.getItem(PATIENT_START_DATE_KEY)||'{}',{});
+    const map=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(PATIENT_START_DATE_KEY)||'{}',{});
     if(date)map[patientId]=date;else delete map[patientId];
-    localStorage.setItem(PATIENT_START_DATE_KEY,JSON.stringify(map));
+    window.nubemoProfessionalRuntimeStore.storage.setItem(PATIENT_START_DATE_KEY,JSON.stringify(map));
   }
 
   function updateContext(patientId,values){
