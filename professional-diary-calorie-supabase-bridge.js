@@ -57,11 +57,11 @@
   function installStorageOverlay(){
     if(storageInstalled)return;
     storageInstalled=true;
-    const {getItem:previousGetItem}=window.NubemoStorageKit.capture();
-    window.NubemoStorageKit.patch('professional-diary-calorie-supabase-bridge',{
+    const {getItem:previousGetItem}=window.NubemoRuntimeKit.capture();
+    window.NubemoRuntimeKit.patch('professional-diary-calorie-supabase-bridge',{
       getItem:function(key){
         const value=previousGetItem.call(this,key);
-        if(this!==window.localStorage||String(key)!==EXTRA_PATIENTS_KEY||!value)return value;
+        if(this!==window.nubemoProfessionalRuntimeStore.storage||String(key)!==EXTRA_PATIENTS_KEY||!value)return value;
         try{
           const rows=JSON.parse(value);
           if(!Array.isArray(rows))return value;
