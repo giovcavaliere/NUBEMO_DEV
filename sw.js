@@ -1,4 +1,4 @@
-const CACHE='nubemo-demo-v4.0-visitsfix-20260926a';
+const CACHE='nubemo-demo-v4.0-visitsfix-20260926b';
 const CORE=[
   './runtime-bridge-kit.js?v=nubemo-runtime-clean1',
   './professional-runtime-store.js?v=nubemo-runtime-clean1',
@@ -39,7 +39,7 @@ const CORE=[
   './professional-patient-diary-lazy.js?v=nubemo40clean04',
   './professional-patient-trend-lazy.js?v=nubemo40clean04',
   './professional-measures-supabase-bridge.js?v=nubemo40clean04',
-  './professional-visits-supabase-bridge.js?v=nubemo-visitsfix-20260926a',
+  './professional-visits-supabase-bridge.js?v=nubemo-visitsfix-20260926b',
   './professional-agenda-supabase-bridge.js?v=nubemo40clean04',
   './professional-patient-edit-lazy.js?v=nubemo-pathway19fix13',
   './professional-pathway-lazy.js?v=nubemo-pathway17',
