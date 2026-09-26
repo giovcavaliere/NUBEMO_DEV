@@ -13,16 +13,16 @@ const NOTES_KEY='diario-pro-notes-recovery-v1';
 const EXTRA_PATIENTS_KEY='diario-pro-extra-patients-v1';
 const DEMO_MEASURES_KEY='diario-pro-demo-measures-overrides-v1';
 const DELETED_PATIENTS_KEY='diario-pro-deleted-patients-v1';
-const LABS_KEY='diario-pro-labs-v1',PLAN_META_KEY='diario-pro-plan-meta-v1',PLAN_DB='diario-pro-documents-v1',PLAN_STORE='plans',ACCOUNT_KEY='diario-pro-accounts-v1',PRIVACY_META_KEY='diario-pro-privacy-meta-v1',PENDING_LABS_KEY='diario-pro-pending-labs-v1';
+const LABS_KEY='diario-pro-labs-v1',PLAN_META_KEY='diario-pro-plan-meta-v1',PLAN_STORE='plans',ACCOUNT_KEY='diario-pro-accounts-v1',PRIVACY_META_KEY='diario-pro-privacy-meta-v1',PENDING_LABS_KEY='diario-pro-pending-labs-v1';
 
 const DOCUMENT_META_KEY='nubemo-documents-meta-v1',DOCUMENT_STORE='documents',DOCUMENT_MAX_BYTES=10*1024*1024;
 function documentMetaList(){try{return JSON.parse(window.nubemoProfessionalRuntimeStore.storage.getItem(DOCUMENT_META_KEY)||'[]')||[]}catch(e){return []}}
 function saveDocumentMetaList(items){window.nubemoProfessionalRuntimeStore.storage.setItem(DOCUMENT_META_KEY,JSON.stringify(items))}
 function documentTitleFromFile(name=''){return String(name).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim()}
 function documentId(prefix='doc'){return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`}
-async function writeDocumentBlob(fileId,file){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction(DOCUMENT_STORE,'readwrite');tx.objectStore(DOCUMENT_STORE).put(file,fileId);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
-async function readDocumentBlob(fileId){const db=await openPlanDb();return new Promise((res,rej)=>{const r=db.transaction(DOCUMENT_STORE,'readonly').objectStore(DOCUMENT_STORE).get(fileId);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}
-async function deleteDocumentBlob(fileId){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction(DOCUMENT_STORE,'readwrite');tx.objectStore(DOCUMENT_STORE).delete(fileId);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function writeDocumentBlob(fileId,file){window.nubemoProfessionalRuntimeStore.blobSet(DOCUMENT_STORE,fileId,file)}
+async function readDocumentBlob(fileId){return window.nubemoProfessionalRuntimeStore.blobGet(DOCUMENT_STORE,fileId)}
+async function deleteDocumentBlob(fileId){window.nubemoProfessionalRuntimeStore.blobDelete(DOCUMENT_STORE,fileId)}
 async function openProfessionalDocument(id){
  const items=documentMetaList();
  const d=items.find(x=>x.id===id&&x.patientId===selected);
@@ -364,7 +364,7 @@ async function archiveLegacyPlanIfNeeded(patientId){
    }
  }
  await deletePlanPdf(patientId);savePlanMeta(patientId,null);return true;
-}function openPlanDb(){return new Promise((res,rej)=>{const r=indexedDB.open(PLAN_DB,3);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(PLAN_STORE))r.result.createObjectStore(PLAN_STORE);if(!r.result.objectStoreNames.contains('privacy'))r.result.createObjectStore('privacy');if(!r.result.objectStoreNames.contains('documents'))r.result.createObjectStore('documents');if(!r.result.objectStoreNames.contains('labUploads'))r.result.createObjectStore('labUploads')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}async function writePlanPdf(id,b){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction(PLAN_STORE,'readwrite');tx.objectStore(PLAN_STORE).put(b,id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}async function readPlanPdf(id){const db=await openPlanDb();return new Promise((res,rej)=>{const r=db.transaction(PLAN_STORE,'readonly').objectStore(PLAN_STORE).get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}async function deletePlanPdf(id){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction(PLAN_STORE,'readwrite');tx.objectStore(PLAN_STORE).delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+}async function writePlanPdf(id,b){window.nubemoProfessionalRuntimeStore.blobSet(PLAN_STORE,id,b)}async function readPlanPdf(id){return window.nubemoProfessionalRuntimeStore.blobGet(PLAN_STORE,id)}async function deletePlanPdf(id){window.nubemoProfessionalRuntimeStore.blobDelete(PLAN_STORE,id)}
 function extraPatients(){
  return load(EXTRA_PATIENTS_KEY,[]);
 }
@@ -1868,8 +1868,8 @@ return `<div class="section-head"><h2>Esami ematici</h2><button class="mini" id=
 }
 function proAccount(p){const a=accountFor(p.id);return `<div class="section-head"><h2>Account paziente</h2><span class="pill">${a?'Attivo':'Non attivo'}</span></div><p class="muted">Credenziali demo locali. Dopo averle salvate, vai in Area Paziente e premi <b>Esci</b>: comparirà la schermata login dove puoi provare username e password.</p><label>Username</label><input id="accUser" value="${esc(a?.username||'')}"><label>Password demo</label><input id="accPass" value="${esc(a?.password||'')}"><div class="pro3-actions"><button class="primary" id="savePatientAccount">${a?'Aggiorna account':'Crea account'}</button>${a?'<button class="secondary" id="deletePatientAccount">Disattiva account</button>':''}</div>`}
 function privacyPdfBlob(p){const lines=['INFORMATIVA E CONSENSO - DEMO','',`Paziente: ${p.name||''}`,`Data di nascita: ${p.birth?fmt(p.birth):''}`,`Diagnosi/motivo: ${p.diagnosis||''}`,'','Modulo dimostrativo precompilato con i dati della scheda.','Il testo privacy definitivo dovra essere validato per il prodotto reale.','','Firma paziente: ______________________________','Data: __________________'];const ep=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,' ').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');let st='BT /F1 11 Tf 50 800 Td '+lines.map((l,i)=>`${i?'0 -24 Td ':''}(${ep(l)}) Tj`).join('\n')+' ET\n',o=['<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];const add=x=>(o.push(x),o.length),pages=add('P'),content=add(`<< /Length ${st.length} >>\nstream\n${st}endstream`),page=add(`<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents ${content} 0 R >>`);o[pages-1]=`<< /Type /Pages /Count 1 /Kids [${page} 0 R] >>`;const cat=add(`<< /Type /Catalog /Pages ${pages} 0 R >>`);let pdf='%PDF-1.4\n',off=[0];o.forEach((x,i)=>{off[i+1]=pdf.length;pdf+=`${i+1} 0 obj\n${x}\nendobj\n`});const xr=pdf.length;pdf+=`xref\n0 ${o.length+1}\n0000000000 65535 f \n`;for(let i=1;i<=o.length;i++)pdf+=String(off[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size ${o.length+1} /Root ${cat} 0 R >>\nstartxref\n${xr}\n%%EOF`;return new Blob([pdf],{type:'application/pdf'})}
-async function storePrivacyPdf(id,b){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction('privacy','readwrite');tx.objectStore('privacy').put(b,id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
-async function readPrivacyPdf(id){const db=await openPlanDb();return new Promise((res,rej)=>{const r=db.transaction('privacy','readonly').objectStore('privacy').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}
+async function storePrivacyPdf(id,b){window.nubemoProfessionalRuntimeStore.blobSet('privacy',id,b)}
+async function readPrivacyPdf(id){return window.nubemoProfessionalRuntimeStore.blobGet('privacy',id)}
 function proPrivacy(p){const m=privacyMetaFor(p.id);return `<div class="section-head"><h2>Privacy</h2><span class="pill">${m?'PDF firmato presente':'Da completare'}</span></div><div class="pro-read-grid"><div><span>Paziente</span><b>${esc(p.name||'—')}</b></div><div><span>Data di nascita</span><b>${p.birth?fmt(p.birth):'—'}</b></div><div><span>Diagnosi / motivo</span><b>${esc(p.diagnosis||'—')}</b></div></div><p class="muted">Modulo demo precompilato. Il testo legale definitivo dovrà essere validato.</p><div class="pro3-actions"><button class="secondary" id="downloadPrivacyForm">↓ Scarica modulo PDF</button><button class="secondary" id="uploadSignedPrivacy">↑ Carica PDF firmato</button>${m?'<button class="secondary" id="openSignedPrivacy">Apri firmato</button>':''}</div><input id="signedPrivacyFile" type="file" accept="application/pdf,.pdf" style="display:none">`}
 
 function pendingLabForDocument(documentId){
@@ -1903,8 +1903,8 @@ function markBloodTestDocumentRead(documentId){
    saveDocumentMetaList(items);
  }
 }
-async function readLabUploadPdf(key){const db=await openPlanDb();return new Promise((res,rej)=>{const r=db.transaction('labUploads','readonly').objectStore('labUploads').get(key);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}
-async function deleteLabUploadPdf(key){const db=await openPlanDb();return new Promise((res,rej)=>{const tx=db.transaction('labUploads','readwrite');tx.objectStore('labUploads').delete(key);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+async function readLabUploadPdf(key){return window.nubemoProfessionalRuntimeStore.blobGet('labUploads',key)}
+async function deleteLabUploadPdf(key){window.nubemoProfessionalRuntimeStore.blobDelete('labUploads',key)}
 function labReview(){const item=pendingLabs()[window.reviewLabKey];if(!item)return `${top('Referto non trovato')}`;const p=patient(item.patientId);selected=item.patientId;const f=(id,l)=>`<label>${l}<input id="rev${id}" value="${esc(item.values?.[id]||'')}"></label>`;return `${top('Verifica analisi')}<section class="card"><div class="section-head"><h2>${esc(p?.name||'Paziente')}</h2><span class="pill">Da verificare</span></div><p class="muted">${esc(item.filename||'')} · ${esc(item.note||'Controlla i valori estratti.')}</p><div class="form-grid"><label>Data${proDateControl('revDate',item.values?.date||today())}</label>${f('glucose','Glicemia')}${f('cholesterol','Colesterolo')}${f('hdl','HDL')}${f('ldl','LDL')}${f('triglycerides','Trigliceridi')}${f('got','GOT')}${f('gpt','GPT')}${f('uricAcid','Acido urico')}${f('creatinine','Creatinina')}${f('ggt','γGT')}</div><div class="pro3-actions lab-review-actions"><button class="secondary" id="openLabReviewPdf">Apri PDF</button><button class="danger-soft" id="deleteLabReview">Elimina</button><button class="secondary" id="cancelLabReview">Annulla</button><button class="primary" id="confirmLabReview">Conferma e inserisci</button></div></section>`}
 
 function tabContent(p){
