@@ -62,7 +62,10 @@
 
     if(window.nubemoProfessionalLegacyAdapter?.ensurePatientHydrated){
       await window.nubemoProfessionalLegacyAdapter.ensurePatientHydrated(id);
-      return services().loadPatientAppointments(id);
+      const rows=await services().loadPatientAppointments(id);
+      rowsByPatient.set(id,rows);
+      publish(id,rows);
+      return rows;
     }
 
     if(!force&&rowsByPatient.has(id)){
