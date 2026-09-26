@@ -38,7 +38,7 @@
   let patientQueue = Promise.resolve();
   let appointmentQueue = Promise.resolve();
 
-  const { getItem: nativeGetItem, setItem: nativeSetItem, removeItem: nativeRemoveItem } = window.NubemoStorageKit.capture();
+  const { getItem: nativeGetItem, setItem: nativeSetItem, removeItem: nativeRemoveItem } = window.NubemoRuntimeKit.capture();
 
   const json = value => JSON.stringify(value);
   const parse = (value, fallback) => { try { return JSON.parse(value); } catch (_) { return fallback; } };
@@ -451,19 +451,19 @@
   function installVirtualStorage() {
     if (installed) return;
     installed = true;
-    window.NubemoStorageKit.patch('professional-legacy-supabase-adapter', {
+    window.NubemoRuntimeKit.patch('professional-legacy-supabase-adapter', {
       getItem: function(key) {
-        const k=String(key); if (this===window.localStorage && MANAGED_KEYS.has(k)) return memory.has(k)?memory.get(k):null;
+        const k=String(key); if (this===window.nubemoProfessionalRuntimeStore.storage && MANAGED_KEYS.has(k)) return memory.has(k)?memory.get(k):null;
         return nativeGetItem.call(this,key);
       },
       setItem: function(key,value) {
-        const k=String(key); if (this!==window.localStorage || !MANAGED_KEYS.has(k)) return nativeSetItem.call(this,key,value);
+        const k=String(key); if (this!==window.nubemoProfessionalRuntimeStore.storage || !MANAGED_KEYS.has(k)) return nativeSetItem.call(this,key,value);
         const v=String(value); memory.set(k,v);
         if (k===EXTRA_PATIENTS_KEY) patientQueue=patientQueue.then(()=>syncPatients(v)).catch(error=>reportSyncError('pazienti',error));
         else if (k===APPT_KEY) appointmentQueue=appointmentQueue.then(()=>syncAppointments(v)).catch(error=>reportSyncError('agenda',error));
       },
       removeItem: function(key) {
-        const k=String(key); if (this===window.localStorage && MANAGED_KEYS.has(k)) {memory.delete(k);return;}
+        const k=String(key); if (this===window.nubemoProfessionalRuntimeStore.storage && MANAGED_KEYS.has(k)) {memory.delete(k);return;}
         return nativeRemoveItem.call(this,key);
       }
     }, [...MANAGED_KEYS]);
