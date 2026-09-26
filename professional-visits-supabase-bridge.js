@@ -26,6 +26,17 @@
     if(dashboardMemory?.has?.(APPT_KEY))dashboardMemory.set(APPT_KEY,serialized);
   };
 
+  runtime.onWrite(APPT_KEY,serialized=>{
+    const rows=parse(serialized||'[]',[]);
+    const affected=new Set();
+    for(const row of Array.isArray(rows)?rows:[]){
+      const ids=Array.isArray(row?.patientIds)&&row.patientIds.length?row.patientIds:[row?.patientId];
+      for(const id of ids.filter(Boolean))affected.add(String(id));
+    }
+    if(!affected.size){rowsByPatient.clear();return;}
+    for(const id of affected)rowsByPatient.delete(id);
+  });
+
   function toLegacy(row,patientId){
     const start=new Date(row.starts_at);
     const end=new Date(row.ends_at||row.starts_at);
