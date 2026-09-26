@@ -128,7 +128,7 @@
   function isAgendaAction(action){return action?.matches?.('[data-view="agenda"],[data-drawer-view="agenda"],#goAgenda');}
   function isProfessionalProfileAction(action){return action?.matches?.('[data-view="settings"],[data-drawer-view="settings"]');}
 
-  function virtualPatient(patientId){try{const rows=JSON.parse(localStorage.getItem('diario-pro-extra-patients-v1')||'[]');return Array.isArray(rows)?rows.find(row=>String(row?.id||'')===String(patientId||''))||null:null;}catch(_){return null;}}
+  function virtualPatient(patientId){try{const rows=JSON.parse(window.nubemoProfessionalRuntimeStore.storage.getItem('diario-pro-extra-patients-v1')||'[]');return Array.isArray(rows)?rows.find(row=>String(row?.id||'')===String(patientId||''))||null:null;}catch(_){return null;}}
 
   function pointAction(target){
     const patient=target?.closest?.('[data-patient]');
