@@ -72,11 +72,11 @@
   function stageEditedPatientPhone(){
     const id=editPatientId(),input=document.getElementById('epPhone');if(!id||!input)return;
     try{
-      const rows=JSON.parse(localStorage.getItem(EXTRA_PATIENTS_KEY)||'[]');
+      const rows=JSON.parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]');
       if(!Array.isArray(rows))return;
       const row=rows.find(x=>x?.id===id);if(!row)return;
       row.phone=String(input.value||'').trim();
-      localStorage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(rows));
+      window.nubemoProfessionalRuntimeStore.storage.setItem(EXTRA_PATIENTS_KEY,JSON.stringify(rows));
     }catch(error){console.error('NUBEMO patient phone stage:',error);}
   }
 
