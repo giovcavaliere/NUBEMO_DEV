@@ -11,7 +11,7 @@
 
   const SETTINGS_KEY = 'diario-pro-settings-recovery-v1';
   const SETTINGS_COLUMNS = 'professional_id,first_visit_duration_min,control_visit_duration_min,day_start,day_end,report_weight_interval,settings_json';
-  const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoStorageKit.capture();
+  const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoRuntimeKit.capture();
   let serialized = null;
   let queue = Promise.resolve();
   let installed = false;
@@ -60,13 +60,13 @@
   function install() {
     if (installed) return;
     installed = true;
-    window.NubemoStorageKit.patch('professional-settings-supabase-bridge', {
+    window.NubemoRuntimeKit.patch('professional-settings-supabase-bridge', {
       getItem: function(key) {
-        if (this === window.localStorage && String(key) === SETTINGS_KEY) return serialized;
+        if (this === window.nubemoProfessionalRuntimeStore.storage && String(key) === SETTINGS_KEY) return serialized;
         return previousGetItem.call(this,key);
       },
       setItem: function(key,value) {
-        if (this !== window.localStorage || String(key) !== SETTINGS_KEY) return previousSetItem.call(this,key,value);
+        if (this !== window.nubemoProfessionalRuntimeStore.storage || String(key) !== SETTINGS_KEY) return previousSetItem.call(this,key,value);
         serialized = String(value);
         queue = queue.then(() => persist(serialized)).catch(error => {
           console.error('NUBEMO PRO Supabase sync (impostazioni):',error);
@@ -74,7 +74,7 @@
         });
       },
       removeItem: function(key) {
-        if (this === window.localStorage && String(key) === SETTINGS_KEY) { serialized=null; return; }
+        if (this === window.nubemoProfessionalRuntimeStore.storage && String(key) === SETTINGS_KEY) { serialized=null; return; }
         return previousRemoveItem.call(this,key);
       }
     }, [SETTINGS_KEY]);
