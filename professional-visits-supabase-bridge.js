@@ -19,7 +19,12 @@
     const rows=parse(runtime.peek(APPT_KEY)||'[]',[]);
     return Array.isArray(rows)?rows:[];
   };
-  const saveLocalAppointments=rows=>runtime.put(APPT_KEY,JSON.stringify(rows||[]));
+  const saveLocalAppointments=rows=>{
+    const serialized=JSON.stringify(rows||[]);
+    runtime.put(APPT_KEY,serialized);
+    const dashboardMemory=window.nubemoProfessionalDashboardBootstrap?.memory;
+    if(dashboardMemory?.has?.(APPT_KEY))dashboardMemory.set(APPT_KEY,serialized);
+  };
 
   function toLegacy(row,patientId){
     const start=new Date(row.starts_at);
