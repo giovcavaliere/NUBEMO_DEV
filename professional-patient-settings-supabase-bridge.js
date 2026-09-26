@@ -8,7 +8,7 @@
   if (!client || !Array.isArray(context.patients)) return;
 
   const EXTRA_PATIENTS_KEY = 'diario-pro-extra-patients-v1';
-  const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoStorageKit.capture();
+  const { getItem: previousGetItem, setItem: previousSetItem, removeItem: previousRemoveItem } = window.NubemoRuntimeKit.capture();
 
   const settingsByPatient = new Map();
   const pathwayByPatient = new Map();
@@ -85,15 +85,15 @@
     }
   }
 
-  window.NubemoStorageKit.patch('professional-patient-settings-supabase-bridge', {
+  window.NubemoRuntimeKit.patch('professional-patient-settings-supabase-bridge', {
     getItem: function(key) {
       const value = previousGetItem.call(this, key);
-      if (this === window.localStorage && String(key) === EXTRA_PATIENTS_KEY && hydrated) return overlay(value);
+      if (this === window.nubemoProfessionalRuntimeStore.storage && String(key) === EXTRA_PATIENTS_KEY && hydrated) return overlay(value);
       return value;
     },
     setItem: function(key, value) {
       previousSetItem.call(this, key, value);
-      if (this !== window.localStorage || String(key) !== EXTRA_PATIENTS_KEY || !hydrated) return;
+      if (this !== window.nubemoProfessionalRuntimeStore.storage || String(key) !== EXTRA_PATIENTS_KEY || !hydrated) return;
       const serialized = String(value);
       queue = queue.then(() => persist(serialized)).catch(error => {
         console.error('NUBEMO PRO Supabase sync (impostazioni paziente):', error);
