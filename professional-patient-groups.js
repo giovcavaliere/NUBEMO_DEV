@@ -241,7 +241,7 @@
     grouped.active.sort((a,b)=>{
       const ad=String(a.row?.createdAt||'');
       const bd=String(b.row?.createdAt||'');
-      if(ad&&bd)return ad.localeCompare(bd);
+      if(ad&&bd)return bd.localeCompare(ad);
       if(ad)return -1;
       if(bd)return 1;
       return 0;
