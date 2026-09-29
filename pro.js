@@ -669,7 +669,13 @@ function studioSummaryChart(){
 
 function patientsPage(){
  const all=patients();
- const visible=all.filter(p=>{
+ const activeSorted=all
+   .filter(p=>p&&p._draft!==true&&p.relationshipStatus==='active')
+   .slice()
+   .sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+ let activeIndex=0;
+ const ordered=all.map(p=>p&&p._draft!==true&&p.relationshipStatus==='active'?activeSorted[activeIndex++]:p);
+ const visible=ordered.filter(p=>{
    const searchOk=!patientSearchText||p.name.toLowerCase().includes(patientSearchText.toLowerCase());
    const unreadOk=!patientsUnreadOnly||hasUnreadProfessionalActivity(p.id);
    return searchOk&&unreadOk;
