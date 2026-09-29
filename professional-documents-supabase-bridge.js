@@ -197,16 +197,34 @@
     const firstConfirm=isBlood?`Eliminare il PDF delle analisi “${esc(row.title||row.original_filename||'Referto analisi')}”?\n\nNel passaggio successivo potrai scegliere se eliminare anche i dati registrati.`:`Eliminare “${esc(row.title||row.original_filename||'Documento')}” dalla cartella del paziente?`;
     if(!confirm(firstConfirm))return;
     busy=true;
+
     try{
       const {deleteReportIds}=await bloodReportDeletionDecision(row);
-      for(const reportId of deleteReportIds){const labDelete=await client.rpc('soft_delete_associated_laboratory_report',{p_report_id:reportId});if(labDelete.error)throw labDelete.error;}
-      const {error}=await client.rpc('soft_delete_associated_patient_document',{p_document_id:id});if(error)throw error;
-      if(row.storage_bucket&&row.storage_path){const removal=await client.storage.from(row.storage_bucket).remove([row.storage_path]);if(removal.error)console.error('NUBEMO PRO orphan document cleanup:',removal.error);}
-      await ensurePatient(row.patient_id,true);
-      await window.nubemoProfessionalLabsBridge?.refresh?.(row.patient_id);
-      rerenderAfterDelete(row);
-    }catch(error){console.error('NUBEMO PRO delete document:',error);alert('Non riesco a eliminare il documento.');}
-    finally{busy=false;}
+      for(const reportId of deleteReportIds){
+        const labDelete=await client.rpc('soft_delete_associated_laboratory_report',{p_report_id:reportId});
+        if(labDelete.error)throw labDelete.error;
+      }
+      const {error}=await client.rpc('soft_delete_associated_patient_document',{p_document_id:id});
+      if(error)throw error;
+      if(row.storage_bucket&&row.storage_path){
+        const removal=await client.storage.from(row.storage_bucket).remove([row.storage_path]);
+        if(removal.error)console.error('NUBEMO PRO orphan document cleanup:',removal.error);
+      }
+    }catch(error){
+      console.error('NUBEMO PRO delete document:',error);
+      alert('Non riesco a eliminare il documento.');
+      busy=false;
+      return;
+    }
+
+    try{await ensurePatient(row.patient_id,true);}
+    catch(error){console.warn('NUBEMO PRO refresh documenti dopo eliminazione:',error);}
+
+    try{await window.nubemoProfessionalLabsBridge?.refresh?.(row.patient_id);}
+    catch(error){console.warn('NUBEMO PRO refresh esami dopo eliminazione:',error);}
+
+    busy=false;
+    rerenderAfterDelete(row);
   }
 
   document.addEventListener('click', event => {
