@@ -114,6 +114,11 @@
     }
   }
 
+  function rerenderDocuments() {
+    const tab=document.querySelector('[data-patient-tab="documents"]')||document.querySelector('[data-drawer-tab="documents"]');
+    if(tab)tab.click();else window.location.reload();
+  }
+
   function rerenderAfterDelete(row) {
     const target=row?.sub_category==='blood_test'?'labs':'documents';
     const tab=document.querySelector(`[data-patient-tab="${target}"]`)||document.querySelector(`[data-drawer-tab="${target}"]`);
@@ -137,7 +142,7 @@
     try {
       await services.uploadPatientDocument(patientId, file, {category:'health',subCategory:'health_other',title,documentDate});
       await ensurePatient(patientId,true);
-      rerenderAfterDelete(row);
+      rerenderDocuments();
     } catch (error) {
       console.error('NUBEMO PRO save health document:', error);
       alert('Non riesco a salvare il documento.');
@@ -199,7 +204,7 @@
       if(row.storage_bucket&&row.storage_path){const removal=await client.storage.from(row.storage_bucket).remove([row.storage_path]);if(removal.error)console.error('NUBEMO PRO orphan document cleanup:',removal.error);}
       await ensurePatient(row.patient_id,true);
       await window.nubemoProfessionalLabsBridge?.refresh?.(row.patient_id);
-      rerenderDocuments();
+      rerenderAfterDelete(row);
     }catch(error){console.error('NUBEMO PRO delete document:',error);alert('Non riesco a eliminare il documento.');}
     finally{busy=false;}
   }
