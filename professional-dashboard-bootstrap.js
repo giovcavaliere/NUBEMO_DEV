@@ -302,7 +302,6 @@
 
   function restoreDashboard(){
     if(dashboardPayload)publishDashboard(dashboardPayload);
-    if(patientListPayload)publishPatientList(patientListPayload);
   }
 
   // get_professional_dashboard veniva eseguita una sola volta in init():
