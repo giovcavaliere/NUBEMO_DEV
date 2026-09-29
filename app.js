@@ -1321,7 +1321,7 @@ async function storeLabPdf(key,b){const db=await openPlanDb();return new Promise
 function pendingLabMap(){try{return JSON.parse(localStorage.getItem(PENDING_LABS_KEY)||'{}')||{}}catch(e){return {}}}
 function parseLabValues(text){
  const c=String(text||'').replace(/\s+/g,' '),out={};
- const specs=[['glucose',['glicemia','glucosio']],['cholesterol',['colesterolo totale','colesterolo']],['hdl',['hdl']],['ldl',['ldl']],['triglycerides',['trigliceridi']],['got',['got','ast']],['gpt',['gpt','alt']],['uricAcid',['acido urico','uricemia']],['creatinine',['creatinina']],['ggt',['gamma gt','ggt']]];
+ const specs=[['glucose',['glicemia','glucosio']],['cholesterol',['colesterolo totale','colesterolo']],['hdl',['hdl']],['ldl',['ldl']],['triglycerides',['trigliceridi']],['got',['got','ast']],['gpt',['gpt','alt']],['uricAcid',['acido urico','uricemia']],['creatinine',['creatinina']],['ggt',['gamma gt','ggt']],['tsh',['tsh']],['vitaminD',['25-oh vitamina d','25 oh vitamina d','25(oh)d','vitamina d']]];
  for(const [k,names] of specs)for(const n of names){const safe=n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),m=c.match(new RegExp(safe+'[^0-9]{0,24}([0-9]+(?:[.,][0-9]+)?)','i'));if(m){out[k]=m[1].replace(',','.');break}}
  const dm=c.match(/\b([0-3]?\d)[\/.-]([01]?\d)[\/.-](20\d{2})\b/);out.date=dm?`${dm[3]}-${String(dm[2]).padStart(2,'0')}-${String(dm[1]).padStart(2,'0')}`:isoToday();return out;
 }
