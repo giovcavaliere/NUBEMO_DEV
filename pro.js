@@ -601,7 +601,7 @@ function bmiPieCard(){
 }
 
 function dashboard(){
- const ps=patients();
+ const ps=patients().filter(p=>p&&p._draft!==true&&p.relationshipStatus!=='draft'&&p.status!=='draft');
  const todays=appointments().filter(a=>a.date===today());
  const first=todays.filter(a=>a.type==='first').length;
  const controls=todays.filter(a=>a.type==='control').length;
@@ -675,7 +675,7 @@ function patientsPage(){
    return searchOk&&unreadOk;
  });
  return `${top('Pazienti')}${nav()}
- <section class="card"><div class="section-head"><h2>Anagrafiche</h2><button class="mini" id="newPatient">＋ Nuovo paziente</button></div>
+ <section class="card"><div class="section-head"><h2>Attivi</h2><button class="mini" id="newPatient">＋ Nuovo paziente</button></div>
  <div class="patient-list-tools">
    <input id="searchPatient" type="search" placeholder="Cerca paziente..." value="${esc(patientSearchText)}">
    <label class="patient-unread-filter"><input id="filterUnreadPatients" type="checkbox" ${patientsUnreadOnly?'checked':''}><span>Solo con documenti da leggere</span>${patientsUnreadOnly?`<b>${visible.length}</b>`:''}</label>
