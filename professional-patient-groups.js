@@ -236,6 +236,18 @@
       item.button.style.display=item.group==='active'?'':'none';
     }
 
+    // Solo la sezione Attivi segue la data di creazione dell'anagrafica.
+    // Pending, draft e terminati mantengono rigorosamente l'ordine esistente.
+    grouped.active.sort((a,b)=>{
+      const ad=String(a.row?.createdAt||'');
+      const bd=String(b.row?.createdAt||'');
+      if(ad&&bd)return ad.localeCompare(bd);
+      if(ad)return -1;
+      if(bd)return 1;
+      return 0;
+    });
+    for(const item of grouped.active)baseList.appendChild(item.button);
+
     const heading=baseCard.querySelector(':scope > .section-head h2');
     if(heading)heading.textContent='Attivi';
 
