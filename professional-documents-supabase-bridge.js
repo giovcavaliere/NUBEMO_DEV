@@ -114,9 +114,10 @@
     }
   }
 
-  function rerenderDocuments() {
-    const tab = document.querySelector('[data-patient-tab="documents"]');
-    if (tab) tab.click(); else window.location.reload();
+  function rerenderAfterDelete(row) {
+    const target=row?.sub_category==='blood_test'?'labs':'documents';
+    const tab=document.querySelector(`[data-patient-tab="${target}"]`)||document.querySelector(`[data-drawer-tab="${target}"]`);
+    if(tab)tab.click();else window.location.reload();
   }
 
   async function saveHealth() {
@@ -136,7 +137,7 @@
     try {
       await services.uploadPatientDocument(patientId, file, {category:'health',subCategory:'health_other',title,documentDate});
       await ensurePatient(patientId,true);
-      rerenderDocuments();
+      rerenderAfterDelete(row);
     } catch (error) {
       console.error('NUBEMO PRO save health document:', error);
       alert('Non riesco a salvare il documento.');
