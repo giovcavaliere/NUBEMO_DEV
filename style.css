@@ -3388,11 +3388,17 @@ body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
 .meal-favorite-star{font-size:15px!important}
 .meal-favorite-star span,.meal-favorite-recall span{font-size:12px}
 .meal-favorite-overlay{position:fixed;inset:0;z-index:10020;background:rgba(20,35,40,.42);display:flex;align-items:center;justify-content:center;padding:18px}
-.meal-favorite-modal{width:min(520px,100%);max-height:min(78vh,680px);overflow:auto;background:#fff;border-radius:20px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.24)}
-.meal-favorite-modal .section-head{position:sticky;top:-18px;background:#fff;padding:6px 0 10px;z-index:1}
-.meal-favorite-list{display:flex;flex-direction:column;gap:8px}
-.meal-favorite-option{width:100%!important;margin:0!important;text-align:left!important;padding:13px 14px!important;border:1px solid #e1e9e3!important;border-radius:14px!important;background:#fbfdfb!important;color:#243832!important;font-weight:650!important;line-height:1.4!important}
+.meal-favorite-modal{width:min(520px,100%);max-height:min(78vh,680px);display:flex;flex-direction:column;background:#fff;border-radius:20px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.24)}
+.meal-favorite-modal .section-head{flex:0 0 auto;background:#fff;padding:2px 0 10px;z-index:1}
+.meal-favorite-search-wrap{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:8px;margin:0 0 10px;padding:0 12px;border:1px solid #dfe8e1;border-radius:14px;background:#f8fbf8}
+.meal-favorite-search-wrap span{color:#6d7d77;font-size:18px}
+.meal-favorite-search-wrap input{border:0!important;box-shadow:none!important;background:transparent!important;padding:11px 0!important;margin:0!important;min-width:0}
+.meal-favorite-list{display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0;max-height:min(52vh,430px);padding-right:2px}
+.meal-favorite-option{width:100%!important;margin:0!important;display:grid!important;grid-template-columns:18px minmax(0,1fr)!important;align-items:center!important;gap:8px!important;text-align:left!important;padding:10px 12px!important;border:1px solid #e3ebe5!important;border-radius:12px!important;background:#fbfdfb!important;color:#243832!important;font-weight:650!important;line-height:1.35!important}
+.meal-favorite-option-icon{color:#6a7c75;font-size:14px;line-height:1}
+.meal-favorite-option-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal}
 .meal-favorite-option:hover{background:#f3f8f1!important}
+.meal-favorite-empty{padding:18px 12px;text-align:center;color:#75857f;font-size:13px}
 @media(max-width:480px){
  .meal-favorite-actions{display:grid;grid-template-columns:1fr 1fr}
  .meal-favorite-star,.meal-favorite-recall{width:100%!important}
