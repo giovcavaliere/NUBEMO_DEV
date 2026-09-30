@@ -52,12 +52,14 @@
     if(le)throw le;
     const ids=[...new Set((links||[]).map(l=>l.appointment_id).filter(Boolean))];
     if(!ids.length)return[];
-    const [{data:appointments,error},{data:allLinks,error:ale}]=await Promise.all([
+    const [{data:appointments,error},{data:allLinks,error:ale},{data:visits,error:ve}]=await Promise.all([
       client.from('appointments').select('id,professional_id,starts_at,ends_at,appointment_type,status,notes,created_by_user_id,created_at,updated_at').in('id',ids).is('deleted_at',null).order('starts_at',{ascending:false}),
-      client.from('appointment_patients').select('appointment_id,patient_id,draft_patient_id,created_at').in('appointment_id',ids)
+      client.from('appointment_patients').select('id,appointment_id,patient_id,draft_patient_id,created_at').in('appointment_id',ids),
+      client.from('appointment_visits').select('id,appointment_patient_id,appointment_id,patient_id,visit_note,registered_at,updated_at').eq('patient_id',patientId).in('appointment_id',ids)
     ]);
     if(error)throw error;
     if(ale)throw ale;
+    if(ve)throw ve;
     const subjectsByAppointment=new Map();
     for(const link of allLinks||[]){
       const subjectId=link.patient_id||link.draft_patient_id;
@@ -67,7 +69,18 @@
       if(!current.includes(String(subjectId)))current.push(String(subjectId));
       subjectsByAppointment.set(key,current);
     }
-    return (appointments||[]).map(row=>({...row,patient_ids:subjectsByAppointment.get(String(row.id))||[]}));
+    const visitByAppointment=new Map((visits||[]).map(v=>[String(v.appointment_id),v]));
+    return (appointments||[]).map(row=>{
+      const visit=visitByAppointment.get(String(row.id))||null;
+      return {
+        ...row,
+        patient_ids:subjectsByAppointment.get(String(row.id))||[],
+        visit_registered:!!visit,
+        visit_id:visit?.id||null,
+        visit_note:visit?.visit_note||'',
+        visit_registered_at:visit?.registered_at||null
+      };
+    });
   }
   async function createPatientAppointment(patientId,v){const uid=await authUserId();const {data,error}=await client.from('appointments').insert({professional_id:ctx().professional?.id,starts_at:v.startsAt,ends_at:v.endsAt,appointment_type:v.appointmentType||null,status:v.status||'scheduled',notes:v.notes||null,created_by_user_id:uid}).select().single();if(error)throw error;const {error:linkError}=await client.from('appointment_patients').insert({appointment_id:data.id,patient_id:patientId});if(linkError){await client.rpc('soft_delete_own_professional_appointment',{p_appointment_id:data.id});throw linkError;}return data;}
   async function updatePatientAppointment(id,v){const {data,error}=await client.from('appointments').update({starts_at:v.startsAt,ends_at:v.endsAt,appointment_type:v.appointmentType||null,status:v.status||'scheduled',notes:v.notes||null}).eq('id',id).select().single();if(error)throw error;return data;}
