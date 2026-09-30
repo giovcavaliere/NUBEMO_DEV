@@ -2328,7 +2328,7 @@ function settingsPage(){
 function eventForm(prefill){
  const s=settings();
  const a=editing||{type:'control',patientId:prefill?.patientId||'',date:prefill?.date||today(),time:prefill?.time||'09:00',duration:s.control,title:'Impegno personale',note:''};
- const registered=!!a.visitRegistered;
+ const registered=!!(a.appointmentLocked||a.visitRegistered);
  const correctionMode=registered&&String(window.nubemoVisitDateCorrectionId||'')===String(a.id||'');
  const lockIdentity=registered;
  return `${top(editing?'Modifica evento':'Nuovo evento')}<section class="card">
@@ -2844,6 +2844,12 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
  // professional_patient_drafts. Il vecchio percorso locale creava un id
  // finto mai sincronizzato con Supabase ed e' stato rimosso.
 
+ if(editing&&(editing.appointmentLocked||editing.visitRegistered)&&String(window.nubemoVisitDateCorrectionId||'')!==String(editing.id||'')){
+   const dateInput=el('eDate');
+   const datePicker=document.querySelector('[data-date-target="eDate"]');
+   if(dateInput)dateInput.disabled=true;
+   if(datePicker)datePicker.disabled=true;
+ }
  el('eType')?.addEventListener('change',()=>{const t=el('eType').value,s=settings();el('patientBox').style.display=t==='personal'?'none':'block';el('titleBox').style.display=t==='personal'?'block':'none';if(t==='first')el('eDuration').value=s.first;if(t==='control')el('eDuration').value=s.control});
  el('correctVisitDateTime')?.addEventListener('click',()=>{
    if(!editing?.id)return;
@@ -2852,7 +2858,6 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    render();
  });
  el('cancelEvent')?.addEventListener('click',()=>{
-   window.nubemoVisitDateCorrectionId='';
    window.nubemoVisitDateCorrectionId='';
    editing=null;window.prefill=null;
    if(eventReturnToPatient){eventReturnToPatient=false;view='details';tab='visits';}
@@ -2874,10 +2879,11 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    const type=el('eType').value;
    const chosenPatient=type==='personal'?null:(el('ePatient')?.value||'');
    if(type!=='personal'&&!chosenPatient)return alert('Seleziona un paziente.');
-   const obj={id:editing?.id||'e'+Date.now(),type,patientId:chosenPatient,date,time:el('eTime').value,duration:+el('eDuration').value||30,title:type==='personal'?(el('eTitle').value||'Impegno personale'):'',note:el('eNote').value,_correctVisitDateTime:!!editing?.visitRegistered&&String(window.nubemoVisitDateCorrectionId||'')===String(editing?.id||'')};
+   const obj={id:editing?.id||'e'+Date.now(),type,patientId:chosenPatient,date,time:el('eTime').value,duration:+el('eDuration').value||30,title:type==='personal'?(el('eTitle').value||'Impegno personale'):'',note:el('eNote').value,_correctVisitDateTime:!!(editing?.appointmentLocked||editing?.visitRegistered)&&String(window.nubemoVisitDateCorrectionId||'')===String(editing?.id||'')};
    const c=conflict(obj);if(c)return alert(`Orario già occupato: ${fmt(c.date)} alle ${c.time}. Appuntamento già fissato.`);
    let arr=appointments();const i=arr.findIndex(a=>a.id===obj.id);if(i>=0)arr[i]=obj;else arr.push(obj);save(APPT_KEY,arr);
    if(type==='first'&&chosenPatient)setPatientStartDateIfEmpty(chosenPatient,date);
+   window.nubemoVisitDateCorrectionId='';
    editing=null;window.prefill=null;
    if(eventReturnToPatient){eventReturnToPatient=false;view='details';tab='visits';}
    else view='agenda';
