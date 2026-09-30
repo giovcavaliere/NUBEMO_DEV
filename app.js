@@ -647,12 +647,26 @@ window.openMealFavorites=async type=>{
    const modal=document.createElement('div');
    modal.id='mealFavoritePicker';
    modal.className='meal-favorite-overlay';
+   const renderFavoriteRows=list=>list.length
+     ?list.map(x=>`<button type="button" class="meal-favorite-option" data-favorite-meal-id="${x.id}"><span class="meal-favorite-option-icon" aria-hidden="true">▸</span><span class="meal-favorite-option-text">${escapeHtml(x.meal_text)}</span></button>`).join('')
+     :'<div class="meal-favorite-empty">Nessun preferito trovato.</div>';
    modal.innerHTML=`<div class="meal-favorite-modal">
      <div class="section-head"><h3>Richiama preferito</h3><button class="mini" type="button" id="closeMealFavoritePicker">Chiudi</button></div>
-     <div class="meal-favorite-list">${rows.map(x=>`<button type="button" class="meal-favorite-option" data-favorite-meal-id="${x.id}">${escapeHtml(x.meal_text)}</button>`).join('')}</div>
+     <div class="meal-favorite-search-wrap">
+       <span aria-hidden="true">⌕</span>
+       <input id="mealFavoriteSearch" type="search" placeholder="Cerca tra i preferiti…" autocomplete="off">
+     </div>
+     <div class="meal-favorite-list" id="mealFavoriteList">${renderFavoriteRows(rows)}</div>
    </div>`;
    document.body.appendChild(modal);
    document.getElementById('closeMealFavoritePicker').onclick=()=>modal.remove();
+   const searchInput=document.getElementById('mealFavoriteSearch');
+   const favoriteList=document.getElementById('mealFavoriteList');
+   searchInput?.addEventListener('input',()=>{
+     const term=favoriteMealNormalize(searchInput.value||'');
+     const filtered=!term?rows:rows.filter(x=>favoriteMealNormalize(x.meal_text).includes(term));
+     if(favoriteList)favoriteList.innerHTML=renderFavoriteRows(filtered);
+   });
    modal.addEventListener('click',event=>{
      if(event.target===modal)modal.remove();
      const button=event.target.closest?.('[data-favorite-meal-id]');
