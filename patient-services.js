@@ -95,6 +95,36 @@
     throwIf(error, 'Non è stato possibile eliminare la giornata.');
   }
 
+  async function loadFavoriteMeals(mealType = null) {
+    const pathwayId = requireActivePathway();
+    let query = client.from('favorite_meals')
+      .select('id,pathway_id,patient_id,meal_type,meal_text,normalized_text,created_at,updated_at')
+      .eq('pathway_id', pathwayId)
+      .order('created_at', { ascending:false });
+    if(mealType) query = query.eq('meal_type', mealType);
+    const {data,error}=await query;
+    throwIf(error, 'Preferiti pasto non disponibili.');
+    return data || [];
+  }
+
+  async function createFavoriteMeal(patientId, mealType, mealText, normalizedText) {
+    const pathwayId = requireActivePathway();
+    const {data,error}=await client.from('favorite_meals').insert({
+      pathway_id:pathwayId,
+      patient_id:patientId,
+      meal_type:mealType,
+      meal_text:mealText,
+      normalized_text:normalizedText
+    }).select('id,pathway_id,patient_id,meal_type,meal_text,normalized_text,created_at,updated_at').single();
+    throwIf(error, 'Non è stato possibile salvare il pasto preferito.');
+    return data;
+  }
+
+  async function deleteFavoriteMeal(id) {
+    const {error}=await client.from('favorite_meals').delete().eq('id',id);
+    throwIf(error, 'Non è stato possibile rimuovere il pasto preferito.');
+  }
+
   async function loadSelfMeasurements() {
     const pathwayId = requireActivePathway();
     const { data, error } = await client.from('patient_self_measurements').select('*')
@@ -204,7 +234,7 @@
   }
 
   window.nubemoPatientServices=Object.freeze({
-    loadContext,acceptPendingPathway,loadDiary,saveDiaryEntry,deleteDiaryEntry,loadSelfMeasurements,
+    loadContext,acceptPendingPathway,loadDiary,saveDiaryEntry,deleteDiaryEntry,loadFavoriteMeals,createFavoriteMeal,deleteFavoriteMeal,loadSelfMeasurements,
     loadProfessionalMeasurements,saveSelfMeasurement,deleteSelfMeasurement,loadDocuments,uploadPatientDocument,
     openDocument,loadPlans,loadPlanDocuments,loadAppointments,loadPrivacy,acceptPrivacy,saveSettings
   });
