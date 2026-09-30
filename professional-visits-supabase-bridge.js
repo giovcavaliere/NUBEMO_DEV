@@ -54,6 +54,7 @@
       duration,
       title:type==='personal'?(row.notes||'Impegno personale'):'',
       note:type==='personal'?'':(row.notes||''),
+      appointmentLocked:!!row.appointment_locked,
       visitRegistered:!!row.visit_registered,
       visitId:row.visit_id||null,
       visitNote:row.visit_note||'',
@@ -64,8 +65,10 @@
 
   function publish(patientId,rows){
     const id=String(patientId||'');
-    const current=localAppointments().filter(a=>String(a?.patientId||'')!==id);
-    current.push(...(rows||[]).map(row=>toLegacy(row,id)));
+    const incoming=(rows||[]).map(row=>toLegacy(row,id));
+    const incomingIds=new Set(incoming.map(a=>String(a.id)));
+    const current=localAppointments().filter(a=>String(a?.patientId||'')!==id&&!incomingIds.has(String(a?.id||'')));
+    current.push(...incoming);
     saveLocalAppointments(current);
   }
 
@@ -200,7 +203,7 @@
     }
 
     const current=localAppointments().find(a=>String(a?.id||'')===String(editingVisitId))||null;
-    const registered=!!current?.visitRegistered;
+    const registered=!!(current?.appointmentLocked||current?.visitRegistered);
     const correctionMode=document.getElementById('visitDateCorrectionMode')?.value==='yes';
 
     saving=true;
@@ -245,7 +248,7 @@
   async function deleteEditedVisit(){
     if(saving||!editingVisitId)return;
     const current=localAppointments().find(a=>String(a?.id||'')===String(editingVisitId))||null;
-    if(current?.visitRegistered){
+    if(current?.appointmentLocked||current?.visitRegistered){
       alert('Appuntamento non eliminabile: la visita è stata registrata.');
       return;
     }
