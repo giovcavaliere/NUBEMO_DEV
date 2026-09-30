@@ -54,6 +54,10 @@
       duration,
       title:type==='personal'?(row.notes||'Impegno personale'):'',
       note:type==='personal'?'':(row.notes||''),
+      visitRegistered:!!row.visit_registered,
+      visitId:row.visit_id||null,
+      visitNote:row.visit_note||'',
+      visitRegisteredAt:row.visit_registered_at||null,
       _visitLazy:true
     };
   }
@@ -195,24 +199,42 @@
       return;
     }
 
+    const current=localAppointments().find(a=>String(a?.id||'')===String(editingVisitId))||null;
+    const registered=!!current?.visitRegistered;
+    const correctionMode=document.getElementById('visitDateCorrectionMode')?.value==='yes';
+
     saving=true;
     const button=document.getElementById('saveEvent');
     if(button)button.disabled=true;
     const oldPatientId=currentPatientId;
     try{
-      const {error}=await client.from('appointments').update({
-        starts_at:payload.startsAt,
-        ends_at:payload.endsAt,
+      if(registered&&correctionMode){
+        const correction=await client.rpc('correct_registered_visit_datetime',{
+          p_appointment_id:editingVisitId,
+          p_starts_at:payload.startsAt,
+          p_ends_at:payload.endsAt
+        });
+        if(correction.error)throw correction.error;
+      }
+
+      const updatePayload={
         appointment_type:payload.appointmentType,
         status:'scheduled',
         notes:payload.type==='personal'?(payload.title||payload.note||null):(payload.note||null)
-      }).eq('id',editingVisitId);
+      };
+      if(!registered){
+        updatePayload.starts_at=payload.startsAt;
+        updatePayload.ends_at=payload.endsAt;
+      }
+
+      const {error}=await client.from('appointments').update(updatePayload).eq('id',editingVisitId);
       if(error)throw error;
 
-      await updateAppointmentLink(editingVisitId,payload.patientId);
+      if(!registered)await updateAppointmentLink(editingVisitId,payload.patientId);
       if(payload.type==='first'&&payload.patientId)await setStartDateIfEmpty(payload.patientId,payload.date);
       await refreshAfterMutation(oldPatientId,payload.patientId);
       editingVisitId='';
+      window.nubemoVisitDateCorrectionId='';
       document.getElementById('cancelEvent')?.click();
     }finally{
       saving=false;
@@ -222,6 +244,11 @@
 
   async function deleteEditedVisit(){
     if(saving||!editingVisitId)return;
+    const current=localAppointments().find(a=>String(a?.id||'')===String(editingVisitId))||null;
+    if(current?.visitRegistered){
+      alert('Appuntamento non eliminabile: la visita è stata registrata.');
+      return;
+    }
     if(!confirm('Vuoi eliminare questo appuntamento?'))return;
     saving=true;
     const id=editingVisitId;
@@ -235,6 +262,20 @@
     }finally{
       saving=false;
     }
+  }
+
+  async function saveVisitNote(appointmentId,patientId,note){
+    const aid=String(appointmentId||'');
+    const pid=String(patientId||'');
+    if(!aid||!pid)throw new Error('Visita non valida.');
+    const {data,error}=await client.rpc('save_professional_visit',{
+      p_appointment_id:aid,
+      p_patient_id:pid,
+      p_visit_note:String(note??'')
+    });
+    if(error)throw error;
+    await ensurePatient(pid,true);
+    return data;
   }
 
   document.addEventListener('click',event=>{
@@ -271,6 +312,7 @@
   window.nubemoProfessionalVisitsBridge=Object.freeze({
     ready:Promise.resolve(),
     ensurePatient,
-    refresh:patientId=>ensurePatient(patientId||currentPatientId,true)
+    refresh:patientId=>ensurePatient(patientId||currentPatientId,true),
+    saveVisitNote
   });
 })();
