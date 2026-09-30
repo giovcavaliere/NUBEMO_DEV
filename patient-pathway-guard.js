@@ -24,7 +24,7 @@
   }
 
   async function loadPatientApp() {
-    await loadScript('app.js?v=nubemo-runtime-clean1', 'Impossibile avviare l’Area Paziente.');
+    await loadScript('app.js?v=nubemo-favorites-20260930a', 'Impossibile avviare l’Area Paziente.');
   }
 
   function showError(message) {
