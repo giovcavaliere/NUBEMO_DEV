@@ -55,7 +55,7 @@
     const [{data:appointments,error},{data:allLinks,error:ale},{data:visits,error:ve}]=await Promise.all([
       client.from('appointments').select('id,professional_id,starts_at,ends_at,appointment_type,status,notes,created_by_user_id,created_at,updated_at').in('id',ids).is('deleted_at',null).order('starts_at',{ascending:false}),
       client.from('appointment_patients').select('id,appointment_id,patient_id,draft_patient_id,created_at').in('appointment_id',ids),
-      client.from('appointment_visits').select('id,appointment_patient_id,appointment_id,patient_id,visit_note,registered_at,updated_at').eq('patient_id',patientId).in('appointment_id',ids)
+      client.from('appointment_visits').select('id,appointment_patient_id,appointment_id,patient_id,visit_note,registered_at,updated_at').in('appointment_id',ids)
     ]);
     if(error)throw error;
     if(ale)throw ale;
@@ -69,12 +69,13 @@
       if(!current.includes(String(subjectId)))current.push(String(subjectId));
       subjectsByAppointment.set(key,current);
     }
-    const visitByAppointment=new Map((visits||[]).map(v=>[String(v.appointment_id),v]));
     return (appointments||[]).map(row=>{
-      const visit=visitByAppointment.get(String(row.id))||null;
+      const appointmentVisits=(visits||[]).filter(v=>String(v.appointment_id)===String(row.id));
+      const visit=appointmentVisits.find(v=>String(v.patient_id)===String(patientId))||null;
       return {
         ...row,
         patient_ids:subjectsByAppointment.get(String(row.id))||[],
+        appointment_locked:appointmentVisits.length>0,
         visit_registered:!!visit,
         visit_id:visit?.id||null,
         visit_note:visit?.visit_note||'',
