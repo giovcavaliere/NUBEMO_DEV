@@ -2799,7 +2799,7 @@ document.querySelectorAll('[data-delete-pro-plan]').forEach(b=>b.addEventListene
      alert('Non riesco a salvare la visita. Riprova.');
      if(button&&document.body.contains(button)){button.disabled=false;button.textContent='Salva visita';}
    }
- }));
+ });
 
  el('deletePatient')?.addEventListener('click',deleteSelectedPatient);
  el('searchPatient')?.addEventListener('input',e=>{
