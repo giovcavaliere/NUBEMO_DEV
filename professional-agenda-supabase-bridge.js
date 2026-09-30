@@ -13,6 +13,7 @@
 
   let remoteAppointments=[];
   let linksByAppointment=new Map();
+  let registeredAppointmentIds=new Set();
   let queue=Promise.resolve();
   let syncVersion=0;
   let hydrated=false;
@@ -109,7 +110,8 @@
       type,
       duration,
       title:type==='personal'?(row.notes||'Impegno personale'):'',
-      note:type==='personal'?'':(row.notes||'')
+      note:type==='personal'?'':(row.notes||''),
+      visitRegistered:registeredAppointmentIds.has(String(row.id))
     };
   }
 
@@ -132,20 +134,28 @@
     if(error)throw error;
     remoteAppointments=rows||[];
     linksByAppointment=new Map();
+    registeredAppointmentIds=new Set();
     const ids=remoteAppointments.map(row=>row.id);
     if(ids.length){
-      const result=await client.from('appointment_patients')
-        .select('appointment_id,patient_id,draft_patient_id,created_at')
-        .in('appointment_id',ids)
-        .order('created_at');
-      if(result.error)throw result.error;
-      (result.data||[]).forEach(link=>{
+      const [linksResult,visitsResult]=await Promise.all([
+        client.from('appointment_patients')
+          .select('appointment_id,patient_id,draft_patient_id,created_at')
+          .in('appointment_id',ids)
+          .order('created_at'),
+        client.from('appointment_visits')
+          .select('appointment_id')
+          .in('appointment_id',ids)
+      ]);
+      if(linksResult.error)throw linksResult.error;
+      if(visitsResult.error)throw visitsResult.error;
+      (linksResult.data||[]).forEach(link=>{
         const subjectId=link.patient_id||link.draft_patient_id||null;
         if(!subjectId)return;
         const current=linksByAppointment.get(link.appointment_id)||[];
         current.push(String(subjectId));
         linksByAppointment.set(link.appointment_id,uniqueIds(current).slice(0,2));
       });
+      for(const row of visitsResult.data||[])registeredAppointmentIds.add(String(row.appointment_id));
     }
 
     // Prima visita/controllo senza paziente non è un evento valido in NUBEMO.
@@ -226,10 +236,26 @@
   }
 
   async function updateAppointment(remote,a){
-    const result=await client.from('appointments').update(appointmentPayload(a)).eq('id',remote.id);
+    const registered=registeredAppointmentIds.has(String(remote.id));
+    const payload=appointmentPayload(a);
+
+    if(registered&&a?._correctVisitDateTime===true){
+      const correction=await client.rpc('correct_registered_visit_datetime',{
+        p_appointment_id:remote.id,
+        p_starts_at:payload.starts_at,
+        p_ends_at:payload.ends_at
+      });
+      if(correction.error)throw correction.error;
+    }
+
+    const updatePayload=registered
+      ?{appointment_type:payload.appointment_type,status:payload.status,notes:payload.notes}
+      :payload;
+    const result=await client.from('appointments').update(updatePayload).eq('id',remote.id);
     if(result.error)throw result.error;
+
     const subjects=appointmentSubjectIds(a);
-    await replaceLinks(remote.id,a.type==='personal'?[]:subjects);
+    if(!registered)await replaceLinks(remote.id,a.type==='personal'?[]:subjects);
     if(a.type==='first')for(const subjectId of subjects)await setStartDateIfEmpty(subjectId,a.date);
   }
 
