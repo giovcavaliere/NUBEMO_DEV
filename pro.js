@@ -226,6 +226,8 @@ let selectedBmiCategory='';
 let tab='summary';
 let editing=null;
 let eventReturnToPatient=false;
+let visitEditingAppointmentId='';
+window.nubemoVisitDateCorrectionId=window.nubemoVisitDateCorrectionId||'';
 let weekDate=new Date(today()+'T12:00:00');
 let proDrawerOpen=false;
 let drawerPatientExpanded=false;
@@ -1932,13 +1934,54 @@ function tabContent(p){
  }).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).map(a=>{
   const ids=[...new Set((Array.isArray(a.patientIds)&&a.patientIds.length?a.patientIds:[a.patientId]).filter(Boolean).map(String))];
   const couple=ids.length>1;
-  return `<button class="pro3-event ${typeClass(a.type)} pro3-event-clickable" data-edit-visit="${a.id}"><b>${fmt(a.date)} · ${a.time}</b><span>${typeLabel(a.type)} · ${a.duration} min${couple?' <span class="nubemo-couple-visit-badge">COPPIA</span>':''}</span></button>`;
+  const appointmentNote=String(a.note||'').trim();
+  const visitNote=String(a.visitNote||'').trim();
+  return `<div class="pro3-event ${typeClass(a.type)} pro3-visit-card">
+    <div class="pro3-visit-main">
+      <b>${fmt(a.date)} · ${a.time}</b>
+      <span>${typeLabel(a.type)} · ${a.duration} min${couple?' <span class="nubemo-couple-visit-badge">COPPIA</span>':''}${a.visitRegistered?' <span class="pill">Visita registrata</span>':''}</span>
+      <small><strong>Note appuntamento:</strong> ${appointmentNote?esc(appointmentNote):'—'}</small>
+      <small><strong>Nota visita:</strong> ${visitNote?esc(visitNote):'—'}</small>
+    </div>
+    <div class="pro3-visit-actions">
+      <button class="mini" type="button" data-edit-visit="${a.id}">Appuntamento</button>
+      <button class="mini" type="button" data-open-visit="${a.id}">${a.visitRegistered?'Apri visita':'Registra visita'}</button>
+    </div>
+  </div>`;
  }).join('')||'<p class="muted">Nessuna visita.</p>';
  const notes=load(NOTES_KEY,{});
  return `<textarea id="noteText" rows="7" placeholder="Note professionista">${esc(notes[p.id]||'')}</textarea><button class="primary" id="saveNote">Salva nota</button>`;
 }
 
 
+
+function visitForm(){
+ const a=appointments().find(x=>String(x.id)===String(visitEditingAppointmentId));
+ const p=patient(selected);
+ if(!a||!p)return `${top('Visita non trovata')}<section class="card"><p class="muted">La visita non è disponibile.</p></section>`;
+ return `${top(a.visitRegistered?'Visita registrata':'Registra visita')}
+ <section class="card">
+   <div class="section-head">
+     <h2>${esc(p.name||'Paziente')}</h2>
+     ${a.visitRegistered?'<span class="pill">Visita registrata</span>':'<span class="pill">Da registrare</span>'}
+   </div>
+   <div class="patient-summary-grid">
+     <div><span>Data</span><b>${fmt(a.date)}</b></div>
+     <div><span>Ora</span><b>${esc(a.time||'—')}</b></div>
+     <div><span>Tipo</span><b>${esc(typeLabel(a.type))}</b></div>
+     <div><span>Durata</span><b>${Number(a.duration)||30} min</b></div>
+   </div>
+   <label>Note appuntamento</label>
+   <textarea rows="3" readonly>${esc(a.note||'')}</textarea>
+   <label>Nota visita</label>
+   <textarea id="visitNoteText" rows="7" placeholder="Inserisci le note relative alla visita">${esc(a.visitNote||'')}</textarea>
+   <p class="muted">Il primo salvataggio registra formalmente la visita e rende l'appuntamento non eliminabile.</p>
+   <div class="pro3-actions">
+     <button class="secondary" id="cancelVisitForm">Annulla</button>
+     <button class="primary" id="saveVisitForm">Salva visita</button>
+   </div>
+ </section>`;
+}
 
 function newPatientForm(){
  return `${top('Nuovo paziente')}
@@ -2285,17 +2328,21 @@ function settingsPage(){
 function eventForm(prefill){
  const s=settings();
  const a=editing||{type:'control',patientId:prefill?.patientId||'',date:prefill?.date||today(),time:prefill?.time||'09:00',duration:s.control,title:'Impegno personale',note:''};
+ const registered=!!a.visitRegistered;
+ const correctionMode=registered&&String(window.nubemoVisitDateCorrectionId||'')===String(a.id||'');
+ const lockIdentity=registered;
  return `${top(editing?'Modifica evento':'Nuovo evento')}<section class="card">
- <label>Tipo evento</label><select id="eType"><option value="first" ${a.type==='first'?'selected':''}>Prima visita</option><option value="control" ${a.type==='control'?'selected':''}>Controllo</option><option value="personal" ${a.type==='personal'?'selected':''}>Impegno personale</option></select>
+ ${registered?`<div class="section-head"><h2>Appuntamento</h2><span class="pill">Visita registrata</span></div><p class="muted">L'appuntamento non può essere eliminato. Data, ora e durata sono bloccate salvo correzione esplicita.</p>`:''}
+ <label>Tipo evento</label><select id="eType" ${lockIdentity?'disabled':''}><option value="first" ${a.type==='first'?'selected':''}>Prima visita</option><option value="control" ${a.type==='control'?'selected':''}>Controllo</option><option value="personal" ${a.type==='personal'?'selected':''}>Impegno personale</option></select>
  <div id="patientBox" style="${a.type==='personal'?'display:none':''}">
    <label>Paziente</label>
    <div class="agenda-patient-picker">
-     <input id="ePatientSearch" type="search" placeholder="Cerca paziente per nome o cognome..." autocomplete="off">
+     <input id="ePatientSearch" type="search" placeholder="Cerca paziente per nome o cognome..." autocomplete="off" ${lockIdentity?'disabled':''}>
      <input id="ePatient" type="hidden" value="${esc(a.patientId||'')}">
      <div id="ePatientResults" class="agenda-patient-results">
-       ${patients().map(p=>`<button type="button" class="agenda-patient-option ${p.id===a.patientId?'selected':''}" data-agenda-patient="${p.id}"><span>${esc(p.name)}</span>${p.phone?`<small>${esc(p.phone)}</small>`:''}</button>`).join('')}
+       ${patients().map(p=>`<button type="button" class="agenda-patient-option ${p.id===a.patientId?'selected':''}" data-agenda-patient="${p.id}" ${lockIdentity?'disabled':''}><span>${esc(p.name)}</span>${p.phone?`<small>${esc(p.phone)}</small>`:''}</button>`).join('')}
      </div>
-     <button type="button" class="secondary agenda-new-patient-toggle" id="agendaNewPatientToggle">＋ Nuovo paziente</button>
+     ${lockIdentity?'':'<button type="button" class="secondary agenda-new-patient-toggle" id="agendaNewPatientToggle">＋ Nuovo paziente</button>'}
      <div id="agendaQuickPatient" class="agenda-quick-patient" hidden>
        <div class="section-head"><h3>Nuovo paziente rapido</h3><span class="pill">Agenda</span></div>
        <p class="muted">Inserisci i dati essenziali. La scheda completa potrà essere compilata successivamente.</p>
@@ -2311,12 +2358,18 @@ function eventForm(prefill){
      </div>
    </div>
  </div>
- <div id="titleBox" style="${a.type==='personal'?'':'display:none'}"><label>Titolo</label><input id="eTitle" value="${esc(a.title||'Impegno personale')}"></div>
+ <div id="titleBox" style="${a.type==='personal'?'':'display:none'}"><label>Titolo</label><input id="eTitle" value="${esc(a.title||'Impegno personale')}" ${lockIdentity?'disabled':''}></div>
  <label>Data</label>${proDateControl('eDate',a.date)}
- <label>Ora</label><input id="eTime" type="time" value="${a.time}">
- <label>Durata</label><input id="eDuration" type="number" step="5" value="${a.duration}">
- <label>Note</label><textarea id="eNote" rows="3">${esc(a.note||'')}</textarea>
- <div class="pro3-actions">${editing?'<button class="secondary" id="deleteEvent">Elimina appuntamento</button>':''}<button class="secondary" id="cancelEvent">Annulla</button><button class="primary" id="saveEvent">${editing?'Salva modifiche':'Salva'}</button></div>
+ <label>Ora</label><input id="eTime" type="time" value="${a.time}" ${registered&&!correctionMode?'disabled':''}>
+ <label>Durata</label><input id="eDuration" type="number" step="5" value="${a.duration}" ${registered&&!correctionMode?'disabled':''}>
+ ${correctionMode?'<input id="visitDateCorrectionMode" type="hidden" value="yes">':''}
+ <label>Note appuntamento</label><textarea id="eNote" rows="3">${esc(a.note||'')}</textarea>
+ <div class="pro3-actions">
+   ${editing&&!registered?'<button class="secondary" id="deleteEvent">Elimina appuntamento</button>':''}
+   ${registered&&!correctionMode?'<button class="secondary" id="correctVisitDateTime">Correggi data/ora visita</button>':''}
+   <button class="secondary" id="cancelEvent">Annulla</button>
+   <button class="primary" id="saveEvent">${editing?'Salva modifiche':'Salva'}</button>
+ </div>
  </section>`;
 }
 
@@ -2459,7 +2512,7 @@ function render(){
  syncIPadLayoutClass();
  document.body.dataset.proView=view;
  try{
-  let html=view==='dashboard'?dashboard():view==='patients'?patientsPage():view==='agenda'?agenda():view==='settings'?settingsPage():view==='support'?proSupportPage():view==='details'?details():view==='newPatient'?newPatientForm():view==='editProfile'?editPatientProfileForm():view==='patientMeasure'?patientMeasureForm():view==='labForm'?labForm():view==='labReview'?labReview():view==='diaryDay'?proDiaryDayView():eventForm(window.prefill||null);
+  let html=view==='dashboard'?dashboard():view==='patients'?patientsPage():view==='agenda'?agenda():view==='settings'?settingsPage():view==='support'?proSupportPage():view==='details'?details():view==='newPatient'?newPatientForm():view==='editProfile'?editPatientProfileForm():view==='patientMeasure'?patientMeasureForm():view==='labForm'?labForm():view==='labReview'?labReview():view==='diaryDay'?proDiaryDayView():view==='visitNote'?visitForm():eventForm(window.prefill||null);
   el('proApp').innerHTML=html;
   syncPhoneLandscapeClass();
   if(isPhoneLandscape()){
@@ -2716,6 +2769,37 @@ document.querySelectorAll('[data-delete-pro-plan]').forEach(b=>b.addEventListene
    view='event';
    render();
  }));
+ document.querySelectorAll('[data-open-visit]').forEach(b=>b.addEventListener('click',()=>{
+   visitEditingAppointmentId=String(b.dataset.openVisit||'');
+   view='visitNote';
+   render();
+   scrollTo(0,0);
+ }));
+ el('cancelVisitForm')?.addEventListener('click',()=>{
+   visitEditingAppointmentId='';
+   view='details';
+   tab='visits';
+   render();
+ });
+ el('saveVisitForm')?.addEventListener('click',async()=>{
+   const id=String(visitEditingAppointmentId||'');
+   if(!id)return;
+   const button=el('saveVisitForm');
+   if(button){button.disabled=true;button.textContent='Salvataggio...';}
+   try{
+     const bridge=window.nubemoProfessionalVisitsBridge;
+     if(!bridge?.saveVisitNote)throw new Error('Bridge visite non disponibile.');
+     await bridge.saveVisitNote(id,selected,el('visitNoteText')?.value||'');
+     visitEditingAppointmentId='';
+     view='details';
+     tab='visits';
+     render();
+   }catch(error){
+     console.error('NUBEMO Salva visita:',error);
+     alert('Non riesco a salvare la visita. Riprova.');
+     if(button&&document.body.contains(button)){button.disabled=false;button.textContent='Salva visita';}
+   }
+ }));
 
  el('deletePatient')?.addEventListener('click',deleteSelectedPatient);
  el('searchPatient')?.addEventListener('input',e=>{
@@ -2761,7 +2845,15 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
  // finto mai sincronizzato con Supabase ed e' stato rimosso.
 
  el('eType')?.addEventListener('change',()=>{const t=el('eType').value,s=settings();el('patientBox').style.display=t==='personal'?'none':'block';el('titleBox').style.display=t==='personal'?'block':'none';if(t==='first')el('eDuration').value=s.first;if(t==='control')el('eDuration').value=s.control});
+ el('correctVisitDateTime')?.addEventListener('click',()=>{
+   if(!editing?.id)return;
+   if(!confirm('Vuoi sbloccare data, ora e durata per correggere questa visita registrata?'))return;
+   window.nubemoVisitDateCorrectionId=String(editing.id);
+   render();
+ });
  el('cancelEvent')?.addEventListener('click',()=>{
+   window.nubemoVisitDateCorrectionId='';
+   window.nubemoVisitDateCorrectionId='';
    editing=null;window.prefill=null;
    if(eventReturnToPatient){eventReturnToPatient=false;view='details';tab='visits';}
    else view='agenda';
@@ -2782,7 +2874,7 @@ el('filterUnreadPatients')?.addEventListener('change',e=>{
    const type=el('eType').value;
    const chosenPatient=type==='personal'?null:(el('ePatient')?.value||'');
    if(type!=='personal'&&!chosenPatient)return alert('Seleziona un paziente.');
-   const obj={id:editing?.id||'e'+Date.now(),type,patientId:chosenPatient,date,time:el('eTime').value,duration:+el('eDuration').value||30,title:type==='personal'?(el('eTitle').value||'Impegno personale'):'',note:el('eNote').value};
+   const obj={id:editing?.id||'e'+Date.now(),type,patientId:chosenPatient,date,time:el('eTime').value,duration:+el('eDuration').value||30,title:type==='personal'?(el('eTitle').value||'Impegno personale'):'',note:el('eNote').value,_correctVisitDateTime:!!editing?.visitRegistered&&String(window.nubemoVisitDateCorrectionId||'')===String(editing?.id||'')};
    const c=conflict(obj);if(c)return alert(`Orario già occupato: ${fmt(c.date)} alle ${c.time}. Appuntamento già fissato.`);
    let arr=appointments();const i=arr.findIndex(a=>a.id===obj.id);if(i>=0)arr[i]=obj;else arr.push(obj);save(APPT_KEY,arr);
    if(type==='first'&&chosenPatient)setPatientStartDateIfEmpty(chosenPatient,date);
