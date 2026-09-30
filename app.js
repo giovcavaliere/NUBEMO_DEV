@@ -17,6 +17,8 @@ let historySearch='';
 let showMovingAverage=false;
 let bmiDays=30;
 let measuresCompleteOnly=false;
+let mealFavorites=[];
+let mealFavoritesLoaded=false;
 
 const $=s=>document.querySelector(s);
 const rawExtraPatients=()=>{try{return JSON.parse(window.nubemoPatientRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]')}catch(e){return []}};
@@ -527,6 +529,138 @@ function formDataFromDOM(){
   };
 }
 
+function favoriteMealNormalize(text){
+ return String(text||'')
+  .toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .replace(/[^a-z0-9]+/g,' ')
+  .replace(/\s+/g,' ')
+  .trim();
+}
+function favoriteMealSimilarity(a,b){
+ const x=favoriteMealNormalize(a),y=favoriteMealNormalize(b);
+ if(!x||!y)return 0;
+ if(x===y)return 1;
+ const m=x.length,n=y.length;
+ const prev=Array.from({length:n+1},(_,i)=>i);
+ const curr=new Array(n+1);
+ for(let i=1;i<=m;i++){
+   curr[0]=i;
+   for(let j=1;j<=n;j++){
+     curr[j]=Math.min(curr[j-1]+1,prev[j]+1,prev[j-1]+(x[i-1]===y[j-1]?0:1));
+   }
+   for(let j=0;j<=n;j++)prev[j]=curr[j];
+ }
+ return 1-(prev[n]/Math.max(m,n));
+}
+async function refreshMealFavorites(force=false){
+ if(mealFavoritesLoaded&&!force)return mealFavorites;
+ const services=window.nubemoPatientServices;
+ if(!services?.loadFavoriteMeals)return [];
+ try{
+   mealFavorites=await services.loadFavoriteMeals();
+   mealFavoritesLoaded=true;
+ }catch(error){
+   console.error('NUBEMO preferiti pasto:',error);
+   mealFavorites=[];
+   mealFavoritesLoaded=false;
+ }
+ return mealFavorites;
+}
+function favoriteMealForText(type,text){
+ const normalized=favoriteMealNormalize(text);
+ return normalized?mealFavorites.find(x=>x.meal_type===type&&x.normalized_text===normalized)||null:null;
+}
+function mealFavoriteControls(type){
+ const value=document.getElementById(type)?.value||'';
+ const current=favoriteMealForText(type,value);
+ return `<div class="meal-favorite-actions">
+   <button class="meal-favorite-star ${current?'active':''}" type="button" onclick="toggleMealFavorite('${type}')" title="${current?'Rimuovi dai preferiti':'Salva come preferito'}">${current?'★':'☆'} <span>Preferito</span></button>
+   <button class="meal-favorite-recall" type="button" onclick="openMealFavorites('${type}')">↺ <span>Richiama preferito</span></button>
+ </div>`;
+}
+function mealField(type,label,icon,value){
+ const current=favoriteMealForText(type,value);
+ return `<div class="meal-field" data-meal-field="${type}">
+   <div class="meal-field-head"><label for="${type}">${icon} ${label}</label></div>
+   <textarea id="${type}" placeholder="Scrivi liberamente…">${escapeHtml(value||'')}</textarea>
+   <div class="meal-favorite-actions">
+     <button class="meal-favorite-star ${current?'active':''}" type="button" onclick="toggleMealFavorite('${type}')" title="${current?'Rimuovi dai preferiti':'Salva come preferito'}">${current?'★':'☆'} <span>Preferito</span></button>
+     <button class="meal-favorite-recall" type="button" onclick="openMealFavorites('${type}')">↺ <span>Richiama preferito</span></button>
+   </div>
+ </div>`;
+}
+window.toggleMealFavorite=async type=>{
+ if(readOnlyBlocked())return;
+ const field=document.getElementById(type);
+ const text=String(field?.value||'').trim();
+ if(!text)return alert('Scrivi prima il pasto da salvare tra i preferiti.');
+ const services=window.nubemoPatientServices;
+ const patientId=window.nubemoPatientContext?.patient?.id;
+ if(!services?.createFavoriteMeal||!patientId)return alert('Preferiti pasto non disponibili.');
+ try{
+   await refreshMealFavorites();
+   const normalized=favoriteMealNormalize(text);
+   const exact=mealFavorites.find(x=>x.meal_type===type&&x.normalized_text===normalized);
+   if(exact){
+     if(!confirm('Questo pasto è già tra i preferiti. Vuoi rimuoverlo?'))return;
+     await services.deleteFavoriteMeal(exact.id);
+     await refreshMealFavorites(true);
+     render();
+     return;
+   }
+   const sameType=mealFavorites.filter(x=>x.meal_type===type);
+   const similar=sameType
+     .map(x=>({item:x,score:favoriteMealSimilarity(text,x.meal_text)}))
+     .filter(x=>x.score>=0.82)
+     .sort((a,b)=>b.score-a.score)[0];
+   if(similar){
+     const preview=String(similar.item.meal_text||'').slice(0,180);
+     if(!confirm(`Hai già un preferito simile:\n\n“${preview}”\n\nVuoi salvarlo comunque come nuovo preferito?`))return;
+   }
+   await services.createFavoriteMeal(patientId,type,text,normalized);
+   await refreshMealFavorites(true);
+   render();
+ }catch(error){
+   console.error('NUBEMO salva preferito:',error);
+   alert('Non riesco a salvare il pasto preferito. Riprova.');
+ }
+};
+window.openMealFavorites=async type=>{
+ try{
+   await refreshMealFavorites(true);
+   const rows=mealFavorites.filter(x=>x.meal_type===type);
+   if(!rows.length)return alert('Non hai ancora pasti preferiti per questa tipologia.');
+   document.getElementById('mealFavoritePicker')?.remove();
+   const modal=document.createElement('div');
+   modal.id='mealFavoritePicker';
+   modal.className='meal-favorite-overlay';
+   modal.innerHTML=`<div class="meal-favorite-modal">
+     <div class="section-head"><h3>Richiama preferito</h3><button class="mini" type="button" id="closeMealFavoritePicker">Chiudi</button></div>
+     <div class="meal-favorite-list">${rows.map(x=>`<button type="button" class="meal-favorite-option" data-favorite-meal-id="${x.id}">${escapeHtml(x.meal_text)}</button>`).join('')}</div>
+   </div>`;
+   document.body.appendChild(modal);
+   document.getElementById('closeMealFavoritePicker').onclick=()=>modal.remove();
+   modal.addEventListener('click',event=>{
+     if(event.target===modal)modal.remove();
+     const button=event.target.closest?.('[data-favorite-meal-id]');
+     if(!button)return;
+     const favorite=rows.find(x=>String(x.id)===String(button.dataset.favoriteMealId));
+     if(!favorite)return;
+     const field=document.getElementById(type);
+     if(!field)return modal.remove();
+     if(String(field.value||'').trim()&&!confirm('Il pasto contiene già dei dati. Vuoi sostituirli con il preferito selezionato?'))return;
+     field.value=favorite.meal_text||'';
+     field.dispatchEvent(new Event('input',{bubbles:true}));
+     modal.remove();
+     render();
+   });
+ }catch(error){
+   console.error('NUBEMO richiama preferito:',error);
+   alert('Non riesco a caricare i pasti preferiti. Riprova.');
+ }
+};
+
 function add(){
   let existing=editDate?load().find(x=>x.date===editDate):null;
   let data=duplicateDraft||existing||{};
@@ -560,7 +694,8 @@ function add(){
     <div class="water-entry-field"><label>Acqua bevuta (litri)</label><input id="water" inputmode="decimal" placeholder="es. 1,5" value="${data.water??''}"><small>Facoltativo · indica il totale bevuto nella giornata.</small></div>
   </div>
   <label>Caffè</label><div class="coffee"><button onclick="setCoffee(-1)">−</button><strong id="coffee">${coffee}</strong><button onclick="setCoffee(1)">＋</button></div><label>Zucchero / dolcificante</label><input id="sweetener" value="${escapeHtml(data.sweetener||'')}" placeholder="es. senza zucchero, 1 cucchiaino, stevia…">
-  ${[['breakfast','Colazione','🥐'],['snack1','Spuntino mattina','🍎'],['lunch','Pranzo','🍝'],['snack2','Spuntino pomeriggio','🍎'],['dinner','Cena','🍽️'],['notes','Sport / Note','🏃']].map(([k,l,i])=>`<label>${i} ${l}</label><textarea id="${k}" placeholder="Scrivi liberamente…">${data[k]||''}</textarea>`).join('')}
+  ${[['breakfast','Colazione','🥐'],['snack1','Spuntino mattina','🍎'],['lunch','Pranzo','🍝'],['snack2','Spuntino pomeriggio','🍎'],['dinner','Cena','🍽️']].map(([k,l,i])=>mealField(k,l,i,data[k]||'')).join('')}
+  <label>🏃 Sport / Note</label><textarea id="notes" placeholder="Scrivi liberamente…">${escapeHtml(data.notes||'')}</textarea>
   <div class="form-actions"><button class="primary" onclick="saveDay()" ${targetExists?'disabled':''}>${duplicateDraft?'Salva copia':isEdit?'Aggiorna giornata':'Salva giornata'}</button>${isEdit?`<button class="secondary" onclick="startDuplicate()">⧉ Duplica giornata</button>`:''}</div></section>`;
 }
 
@@ -1195,7 +1330,7 @@ function go(p){
   render();scrollTo(0,0);
 }
 window.go=go;
-window.newDay=()=>{if(readOnlyBlocked())return;editDate=isoToday();duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0)};
+window.newDay=()=>{if(readOnlyBlocked())return;editDate=isoToday();duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0);void refreshMealFavorites(true).then(()=>{if(page==='add')render()})};
 window.cancelEdit=()=>{editDate=null;duplicateDraft=null;duplicateSource=null;page='home';render();scrollTo(0,0)};
 window.setCoffee=n=>{coffee=Math.max(0,coffee+n);$('#coffee').textContent=coffee};
 window.dateChanged=d=>{
@@ -1204,7 +1339,7 @@ window.dateChanged=d=>{
 };
 window.manualDateChanged=v=>{const iso=italianDateToIso(v);if(!iso)return alert('Inserisci la data nel formato GG-MM-AAAA.');dateChanged(iso)};
 window.pickerDateChanged=iso=>dateChanged(iso);
-window.edit=d=>{editDate=d;duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0)};
+window.edit=d=>{editDate=d;duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0);void refreshMealFavorites(true).then(()=>{if(page==='add')render()})};
 
 window.startDuplicate=()=>{if(readOnlyBlocked())return;
   let src=formDataFromDOM();
