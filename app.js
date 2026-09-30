@@ -579,6 +579,18 @@ function mealFavoriteControls(type){
    <button class="meal-favorite-recall" type="button" onclick="openMealFavorites('${type}')">↺ <span>Richiama preferito</span></button>
  </div>`;
 }
+function syncMealFavoriteButton(type){
+ const field=document.getElementById(type);
+ const button=document.querySelector(`[data-meal-field="${type}"] .meal-favorite-star`);
+ if(!field||!button)return;
+ const current=favoriteMealForText(type,field.value||'');
+ button.classList.toggle('active',!!current);
+ button.innerHTML=`${current?'★':'☆'} <span>Preferito</span>`;
+ button.title=current?'Rimuovi dai preferiti':'Salva come preferito';
+}
+function syncAllMealFavoriteButtons(){
+ ['breakfast','snack1','lunch','snack2','dinner'].forEach(syncMealFavoriteButton);
+}
 function mealField(type,label,icon,value){
  const current=favoriteMealForText(type,value);
  return `<div class="meal-field" data-meal-field="${type}">
@@ -606,7 +618,7 @@ window.toggleMealFavorite=async type=>{
      if(!confirm('Questo pasto è già tra i preferiti. Vuoi rimuoverlo?'))return;
      await services.deleteFavoriteMeal(exact.id);
      await refreshMealFavorites(true);
-     render();
+     syncMealFavoriteButton(type);
      return;
    }
    const sameType=mealFavorites.filter(x=>x.meal_type===type);
@@ -620,7 +632,7 @@ window.toggleMealFavorite=async type=>{
    }
    await services.createFavoriteMeal(patientId,type,text,normalized);
    await refreshMealFavorites(true);
-   render();
+   syncMealFavoriteButton(type);
  }catch(error){
    console.error('NUBEMO salva preferito:',error);
    alert('Non riesco a salvare il pasto preferito. Riprova.');
@@ -652,8 +664,8 @@ window.openMealFavorites=async type=>{
      if(String(field.value||'').trim()&&!confirm('Il pasto contiene già dei dati. Vuoi sostituirli con il preferito selezionato?'))return;
      field.value=favorite.meal_text||'';
      field.dispatchEvent(new Event('input',{bubbles:true}));
+     syncMealFavoriteButton(type);
      modal.remove();
-     render();
    });
  }catch(error){
    console.error('NUBEMO richiama preferito:',error);
@@ -1330,7 +1342,7 @@ function go(p){
   render();scrollTo(0,0);
 }
 window.go=go;
-window.newDay=()=>{if(readOnlyBlocked())return;editDate=isoToday();duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0);void refreshMealFavorites(true).then(()=>{if(page==='add')render()})};
+window.newDay=()=>{if(readOnlyBlocked())return;editDate=isoToday();duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0);void refreshMealFavorites(true).then(()=>{if(page==='add')syncAllMealFavoriteButtons()})};
 window.cancelEdit=()=>{editDate=null;duplicateDraft=null;duplicateSource=null;page='home';render();scrollTo(0,0)};
 window.setCoffee=n=>{coffee=Math.max(0,coffee+n);$('#coffee').textContent=coffee};
 window.dateChanged=d=>{
@@ -1339,7 +1351,7 @@ window.dateChanged=d=>{
 };
 window.manualDateChanged=v=>{const iso=italianDateToIso(v);if(!iso)return alert('Inserisci la data nel formato GG-MM-AAAA.');dateChanged(iso)};
 window.pickerDateChanged=iso=>dateChanged(iso);
-window.edit=d=>{editDate=d;duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0);void refreshMealFavorites(true).then(()=>{if(page==='add')render()})};
+window.edit=d=>{editDate=d;duplicateDraft=null;duplicateSource=null;page='add';render();scrollTo(0,0);void refreshMealFavorites(true).then(()=>{if(page==='add')syncAllMealFavoriteButtons()})};
 
 window.startDuplicate=()=>{if(readOnlyBlocked())return;
   let src=formDataFromDOM();
@@ -1365,6 +1377,7 @@ window.updateDiaryCaloriePreview=()=>{
 document.addEventListener('input',e=>{
  if(['breakfast','snack1','lunch','snack2','dinner'].includes(e.target?.id)){
    window.updateDiaryCaloriePreview();
+   syncMealFavoriteButton(e.target.id);
  }
 });
 
