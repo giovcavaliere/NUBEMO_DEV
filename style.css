@@ -3363,3 +3363,16 @@ body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
 @media(max-width:700px){.admin-section-head{display:grid;grid-template-columns:1fr}.admin-invite-toggle{width:100%!important}.admin-professional-row{align-items:flex-start;flex-direction:column;gap:8px}.admin-invite-actions{flex-direction:column}.admin-professionals-section{padding:16px}}
 
 .admin-professional-status-line{color:var(--muted);font-size:12px}.admin-professional-action{width:auto!important;flex:0 0 auto;margin:0!important}
+
+
+/* NUBEMO visits registered 20260930 */
+.pro3-visit-card{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pro3-visit-main{min-width:0;display:flex;flex:1;flex-direction:column;gap:4px}
+.pro3-visit-main small{display:block;line-height:1.4;overflow-wrap:anywhere}
+.pro3-visit-main .pill{display:inline-flex;width:max-content;margin-left:6px;vertical-align:middle}
+.pro3-visit-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:600px){
+  .pro3-visit-card{flex-direction:column}
+  .pro3-visit-actions{width:100%}
+  .pro3-visit-actions button{flex:1}
+}
