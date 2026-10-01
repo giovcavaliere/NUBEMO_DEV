@@ -1924,32 +1924,37 @@ function tabContent(p){
  if(tab==='trend')return proTrendContent(p);
  if(tab==='measures')return `<div class="section-head measure-section-head"><div><h2>Misure</h2><p class="muted">Antropometria e composizione corporea rilevate dal professionista.</p></div><button class="mini" id="newPatientMeasure">＋ Aggiungi misura</button></div>
  <div class="measure-history-list">
- ${(p.measures||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(m=>`<article class="measure-history-card">
+ ${(p.measures||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(m=>`<article class="measure-history-card is-collapsed" data-measure-card="${m.date}">
    <div class="measure-history-head">
-     <div><span class="measure-history-label">Rilevazione</span><b>${fmt(m.date)}</b></div>
+     <button class="measure-toggle" type="button" data-toggle-measure="${m.date}" aria-expanded="false">
+       <span class="measure-toggle-icon" aria-hidden="true">›</span>
+       <b>${fmt(m.date)}</b>
+     </button>
      <button class="mini" data-edit-measure="${m.date}">Modifica</button>
    </div>
-   <div class="measure-history-groups">
-     <div class="measure-history-group">
-       <span class="measure-group-title">Antropometria</span>
-       <div class="measure-values-grid">
-         <div><span>Peso</span><b>${m.professionalWeight!==''&&m.professionalWeight!=null?Number(m.professionalWeight).toFixed(1).replace('.',',')+' kg':'—'}</b></div>
-         <div><span>Vita</span><b>${m.waist!==''&&m.waist!=null?Number(m.waist).toFixed(1).replace('.',',')+' cm':'—'}</b></div>
-         <div><span>Fianchi</span><b>${m.hips!==''&&m.hips!=null?Number(m.hips).toFixed(1).replace('.',',')+' cm':'—'}</b></div>
+   <div class="measure-history-body" data-measure-body="${m.date}" hidden>
+     <div class="measure-history-groups">
+       <div class="measure-history-group">
+         <span class="measure-group-title">Antropometria</span>
+         <div class="measure-values-grid">
+           <div><span>Peso</span><b>${m.professionalWeight!==''&&m.professionalWeight!=null?Number(m.professionalWeight).toFixed(1).replace('.',',')+' kg':'—'}</b></div>
+           <div><span>Vita</span><b>${m.waist!==''&&m.waist!=null?Number(m.waist).toFixed(1).replace('.',',')+' cm':'—'}</b></div>
+           <div><span>Fianchi</span><b>${m.hips!==''&&m.hips!=null?Number(m.hips).toFixed(1).replace('.',',')+' cm':'—'}</b></div>
+         </div>
+       </div>
+       <div class="measure-history-group measure-history-bia">
+         <span class="measure-group-title">Composizione corporea</span>
+         <div class="measure-values-grid">
+           <div><span>FFM</span><b>${m.ffm!==''&&m.ffm!=null?Number(m.ffm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+           <div><span>FM</span><b>${m.fm!==''&&m.fm!=null?Number(m.fm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+           <div><span>MM</span><b>${m.mm!==''&&m.mm!=null?Number(m.mm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+           <div><span>ECM</span><b>${m.ecm!==''&&m.ecm!=null?Number(m.ecm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+           <div><span>BCM</span><b>${m.bcm!==''&&m.bcm!=null?Number(m.bcm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+         </div>
        </div>
      </div>
-     <div class="measure-history-group measure-history-bia">
-       <span class="measure-group-title">Composizione corporea</span>
-       <div class="measure-values-grid">
-         <div><span>FFM</span><b>${m.ffm!==''&&m.ffm!=null?Number(m.ffm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
-         <div><span>FM</span><b>${m.fm!==''&&m.fm!=null?Number(m.fm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
-         <div><span>MM</span><b>${m.mm!==''&&m.mm!=null?Number(m.mm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
-         <div><span>ECM</span><b>${m.ecm!==''&&m.ecm!=null?Number(m.ecm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
-         <div><span>BCM</span><b>${m.bcm!==''&&m.bcm!=null?Number(m.bcm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
-       </div>
-     </div>
+     ${m.notes?`<div class="measure-history-note"><span>Note</span><p>${esc(m.notes)}</p></div>`:''}
    </div>
-   ${m.notes?`<div class="measure-history-note"><span>Note</span><p>${esc(m.notes)}</p></div>`:''}
  </article>`).join('')||'<div class="measure-empty-state"><b>Nessuna misurazione registrata</b><span>Aggiungi la prima rilevazione per iniziare lo storico.</span></div>'}
  </div>`;
  if(tab==='visits')return appointments().filter(a=>{
@@ -2675,6 +2680,15 @@ function bind(){
  el('saveEditProfile')?.addEventListener('click',saveEditedPatientProfile);if(view==='editProfile'){const p=patient(selected),m={Diagnosis:p.diagnosis,TheoreticalWeight:p.theoreticalWeight,Bowel:p.bowel,Metabolism:p.metabolism,Feeg:p.feeg,Impedance:p.impedance,PreviousDiets:p.previousDiets,Allergies:p.allergies,Medications:p.medications,GiIssues:p.giIssues,PastConditions:p.pastConditions,Observations:p.observations,Objectives:p.objectives};Object.entries(m).forEach(([k,v])=>{const x=el('ep'+k);if(x)x.value=v||''});[['FamObesity','famObesity'],['FamDiabetes','famDiabetes'],['FamHypertension','famHypertension'],['FamCardiovascular','famCardiovascular'],['FamDyslipidemia','famDyslipidemia'],['FamThyroid','famThyroid']].forEach(([id,k])=>{const x=el('ep'+id);if(x)x.checked=!!p[k]})}
  el('newPatientMeasure')?.addEventListener('click',()=>{window.editMeasureDate=null;view='patientMeasure';render()});
  document.querySelectorAll('[data-edit-measure]').forEach(b=>b.addEventListener('click',()=>{window.editMeasureDate=b.dataset.editMeasure;view='patientMeasure';render()}));
+ document.querySelectorAll('[data-toggle-measure]').forEach(b=>b.addEventListener('click',()=>{
+   const date=b.dataset.toggleMeasure;
+   const card=document.querySelector(`[data-measure-card="${date}"]`);
+   const body=document.querySelector(`[data-measure-body="${date}"]`);
+   const open=b.getAttribute('aria-expanded')==='true';
+   b.setAttribute('aria-expanded',open?'false':'true');
+   if(body)body.hidden=open;
+   if(card)card.classList.toggle('is-collapsed',open);
+ }));
  el('cancelPatientMeasure')?.addEventListener('click',()=>{window.editMeasureDate=null;view='details';tab='measures';render()});
  el('savePatientMeasure')?.addEventListener('click',savePatientMeasure);
  document.querySelectorAll('[data-date-target]').forEach(p=>{
