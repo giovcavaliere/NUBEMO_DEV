@@ -707,6 +707,7 @@ let patientSearchText='';
 let proTrendDays=30;
 let proBmiDays=30;
 let proShowMovingAverage=true;
+let proBodyTrendVisible={weight:true,fm:true,mm:true};
 
 function proBmiLabel(v){
   if(!Number.isFinite(v))return '';
@@ -936,6 +937,66 @@ function proBiaSnapshot(p){
   </section>`;
 }
 
+function proBodyCompositionTrend(p){
+  const rows=(p.measures||[])
+    .map(m=>({
+      date:m?.date,
+      weight:m?.professionalWeight===''||m?.professionalWeight==null?null:Number(m.professionalWeight),
+      fm:m?.fm===''||m?.fm==null?null:Number(m.fm),
+      mm:m?.mm===''||m?.mm==null?null:Number(m.mm)
+    }))
+    .filter(r=>r.date&&[r.weight,r.fm,r.mm].some(Number.isFinite))
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+
+  if(!rows.length)return `<section class="card chart-card body-trend-card">
+    <div class="section-head"><div><h2>Andamento composizione corporea</h2><p class="muted">Peso, massa grassa e massa muscolare.</p></div></div>
+    <p class="muted">Nessuna misurazione disponibile.</p>
+  </section>`;
+
+  const defs=[
+    {key:'weight',label:'Peso',unit:'kg',cls:'body-trend-weight'},
+    {key:'fm',label:'FM',unit:'%',cls:'body-trend-fm'},
+    {key:'mm',label:'MM',unit:'%',cls:'body-trend-mm'}
+  ];
+  const active=defs.filter(s=>proBodyTrendVisible[s.key]);
+  const values=[];
+  active.forEach(s=>rows.forEach(r=>{if(Number.isFinite(r[s.key]))values.push(r[s.key])}));
+  const maxVal=values.length?Math.max(...values):100;
+  const max=Math.max(10,Math.ceil((maxVal*1.08)/10)*10);
+  const min=0;
+  const range=max-min;
+  const left=34,right=156,top=7,bottom=61,dateY=76;
+  const xFor=i=>rows.length===1?(left+right)/2:left+i/(rows.length-1)*(right-left);
+  const yFor=v=>bottom-((v-min)/range)*(bottom-top);
+  const ticks=Array.from({length:6},(_,i)=>max-(range/5)*i);
+  const grid=ticks.map(v=>{
+    const y=yFor(v);
+    return `<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" class="chart-grid"/><text x="${left-4}" y="${y}" text-anchor="end" dominant-baseline="middle" class="chart-y-label">${Math.round(v)}</text>`;
+  }).join('');
+
+  const paths=active.map(s=>{
+    const pts=rows.map((r,i)=>Number.isFinite(r[s.key])?{i,v:r[s.key],date:r.date}:null).filter(Boolean);
+    if(!pts.length)return '';
+    const poly=pts.map(x=>`${xFor(x.i).toFixed(2)},${yFor(x.v).toFixed(2)}`).join(' ');
+    const circles=pts.map(x=>`<circle cx="${xFor(x.i)}" cy="${yFor(x.v)}" r="1.15" class="body-trend-point ${s.cls}" vector-effect="non-scaling-stroke"><title>${fmt(x.date)} - ${s.label} ${x.v.toFixed(1).replace('.',',')} ${s.unit}</title></circle>`).join('');
+    return `<polyline points="${poly}" class="body-trend-line ${s.cls}" fill="none" vector-effect="non-scaling-stroke"/>${circles}`;
+  }).join('');
+
+  const labels=rows.length<=6
+    ? rows.map((r,i)=>`<text x="${xFor(i)}" y="${dateY}" text-anchor="${i===0?'start':i===rows.length-1?'end':'middle'}" class="chart-x-label">${fmt(r.date).replace(/^[^ ]+ /,'')}</text>`).join('')
+    : `<text x="${left}" y="${dateY}" text-anchor="start" class="chart-x-label">${fmt(rows[0].date).replace(/^[^ ]+ /,'')}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${fmt(rows.at(-1).date).replace(/^[^ ]+ /,'')}</text>`;
+
+  return `<section class="card chart-card body-trend-card">
+    <div class="section-head body-trend-head">
+      <div><h2>Andamento composizione corporea</h2><p class="muted">Storico delle misurazioni professionali.</p></div>
+      <div class="body-trend-toggles" role="group" aria-label="Valori visualizzati">
+        ${defs.map(s=>`<button type="button" class="body-trend-toggle ${s.cls} ${proBodyTrendVisible[s.key]?'is-active':''}" data-body-trend-series="${s.key}" aria-pressed="${proBodyTrendVisible[s.key]?'true':'false'}"><i></i>${s.label}</button>`).join('')}
+      </div>
+    </div>
+    ${active.length?`<div class="chart-wrap body-trend-wrap"><svg class="chart responsive-chart body-trend-svg" viewBox="0 0 160 82" preserveAspectRatio="none">${grid}<line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" class="chart-axis"/><line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/>${paths}${labels}</svg></div>`:'<div class="body-trend-empty">Seleziona almeno un valore per visualizzare il grafico.</div>'}
+  </section>`;
+}
+
 function proTrendContent(p){
   const all=clinicalWeightSeries(p).map(x=>({date:x.date,weight:Number(x.weight)})).filter(x=>Number.isFinite(x.weight)).sort((a,b)=>a.date.localeCompare(b.date));
   const first=all[0],last=all.at(-1),delta=first&&last?last.weight-first.weight:null;
@@ -944,7 +1005,8 @@ function proTrendContent(p){
   return `<section class="card chart-card"><div class="section-head"><h2>Peso</h2><label class="toggle"><input id="proMovingAverage" type="checkbox" ${proShowMovingAverage?'checked':''}><span>Media 7 gg</span></label></div><div class="tabs">${[[7,'7 giorni'],[30,'30 giorni'],[90,'3 mesi'],[0,'Tutto']].map(([n,l])=>`<button data-pro-trend="${n}" class="${proTrendDays===n?'active':''}">${l}</button>`).join('')}</div>${proWeightChart(all,proTrendDays)}</section>
   <section class="card summary"><div class="section-head"><h2>Riepilogo peso</h2><span class="pill">Totale</span></div>${first?`<div class="stats"><div><span>Peso iniziale</span><b>${first.weight.toFixed(1).replace('.',',')} kg</b></div><div><span>Ultimo peso</span><b>${last.weight.toFixed(1).replace('.',',')} kg</b></div><div><span>Variazione</span><b class="${delta<0?'good':delta>0?'up':''}">${delta>0?'+':''}${delta.toFixed(1).replace('.',',')} kg</b></div></div>`:'<p class="muted">Nessun dato.</p>'}</section>
   <section class="card chart-card"><div class="section-head"><h2>BMI</h2>${currentBmi?`<span class="pill">${currentBmi.toFixed(1).replace('.',',')} · ${proBmiLabel(currentBmi)}</span>`:'<span class="pill">Profilo</span>'}</div><div class="tabs">${[[7,'7 giorni'],[30,'30 giorni'],[90,'3 mesi'],[0,'Tutto']].map(([n,l])=>`<button data-pro-bmi="${n}" class="${proBmiDays===n?'active':''}">${l}</button>`).join('')}</div>${proBmiChart(all,proBmiDays,p.height)}</section>
-  ${proBiaSnapshot(p)}`;
+  ${proBiaSnapshot(p)}
+  ${proBodyCompositionTrend(p)}`;
 }
 
 
@@ -2815,6 +2877,12 @@ function bind(){
  document.querySelectorAll('[data-pro-trend]').forEach(b=>b.addEventListener('click',()=>{proTrendDays=Number(b.dataset.proTrend);render()}));
  document.querySelectorAll('[data-pro-bmi]').forEach(b=>b.addEventListener('click',()=>{proBmiDays=Number(b.dataset.proBmi);render()}));
  el('proMovingAverage')?.addEventListener('change',e=>{proShowMovingAverage=e.target.checked;render()});
+ document.querySelectorAll('[data-body-trend-series]').forEach(b=>b.addEventListener('click',()=>{
+   const key=b.dataset.bodyTrendSeries;
+   if(!['weight','fm','mm'].includes(key))return;
+   proBodyTrendVisible={...proBodyTrendVisible,[key]:!proBodyTrendVisible[key]};
+   render();
+ }));
  document.querySelectorAll('[data-event]').forEach(b=>b.onclick=()=>{editing=appointments().find(a=>a.id===b.dataset.event)||null;window.prefill=null;view='event';render()});
  document.querySelectorAll('.pro3-slot').forEach(b=>b.onclick=()=>{editing=null;window.prefill={date:b.dataset.date,time:b.dataset.time};view='event';render()});
  el('goAgenda')?.addEventListener('click',()=>{view='agenda';render()});
