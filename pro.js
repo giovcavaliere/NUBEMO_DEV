@@ -751,6 +751,7 @@ function proWeightChart(items,days){
   let max=Math.ceil((rawMax+pad)*2)/2;
   if(max===min)max=min+1;
   const range=max-min,left=31,right=156,top=7,bottom=60,dateY=75;
+  const axisLeft=left,plotLeft=left;
   const xFor=(date)=>{
     const idx=w.findIndex(x=>x.date===date);
     return w.length===1?(left+right)/2:left+idx/(w.length-1)*(right-left);
@@ -781,6 +782,7 @@ function proBmiChart(items,days,height){
   let max=Math.ceil((rawMax+pad)*2)/2;
   if(max===min)max=min+1;
   const range=max-min,left=31,right=156,top=7,bottom=60,dateY=75;
+  const axisLeft=left,plotLeft=left;
   const xFor=i=>data.length===1?(left+right)/2:left+i/(data.length-1)*(right-left);
   const yFor=v=>bottom-((v-min)/range)*(bottom-top);
   const pts=data.map((x,i)=>`${xFor(i).toFixed(2)},${yFor(x.bmi).toFixed(2)}`).join(' ');
