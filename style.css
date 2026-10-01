@@ -3541,3 +3541,16 @@ body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
  .bia-legend{grid-template-columns:1fr}
  .bia-body-svg{height:255px}
 }
+
+
+/* NUBEMO BIA snapshot refinement 20261001 */
+.bia-rest{background:#f4f6f5;border-top:1px dashed #d9e2dc;min-height:0}
+.bia-human-outline{fill:#f7f9f8;stroke:#d8e2dc;stroke-width:2}
+.bia-fm-layer{fill:#f4c66f;opacity:.9}
+.bia-ffm-layer{fill:#b8d6df;opacity:.96}
+.bia-ecm-layer{fill:#6fb3b8;opacity:.58}
+.bia-bcm-layer{fill:#ef8c67;opacity:.94}
+.bia-callout-fm line{stroke:#b8860b}.bia-callout-fm text{fill:#916300}
+.bia-callout-ffm line{stroke:#2e6f7d}.bia-callout-ffm text{fill:#235763}
+.bia-callout-ecm line{stroke:#3f8f95}.bia-callout-ecm text{fill:#2f747a}
+.bia-callout-bcm line{stroke:#d96e47}.bia-callout-bcm text{fill:#b95332}
