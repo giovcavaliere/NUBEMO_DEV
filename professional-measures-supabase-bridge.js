@@ -89,7 +89,10 @@
       const oldDate=window.editMeasureDate||'';
       const oldRow=oldDate?rows.find(row=>String(row.measured_at)===String(oldDate)):null;
       const targetRow=rows.find(row=>String(row.measured_at)===String(measuredAt)&&row.id!==oldRow?.id)||null;
-      const payload={measuredAt,weightKg:weight,waistCm:waist,hipsCm:hips,ffmPct:ffm,fmPct:fm,mmPct:mm,notes:String(value('pmNotes')||'').trim()||null};
+      const patientRows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
+      const currentPatient=(Array.isArray(patientRows)?patientRows:[]).find(row=>String(row?.id||'')===String(patientId));
+      const pathwayId=oldRow?.pathway_id||currentPatient?.pathwayId||currentPatient?.pathway_id||null;
+      const payload={measuredAt,weightKg:weight,waistCm:waist,hipsCm:hips,ffmPct:ffm,fmPct:fm,mmPct:mm,pathwayId,notes:String(value('pmNotes')||'').trim()||null};
 
       if(oldRow&&targetRow){
         await services().updatePatientMeasurement(targetRow.id,payload);
