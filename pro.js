@@ -603,7 +603,9 @@ function bmiPieCard(){
 }
 
 function dashboard(){
- const ps=patients().filter(p=>p&&p._draft!==true&&p.relationshipStatus!=='draft'&&p.status!=='draft');
+ // Il KPI deve contare solo percorsi realmente ACTIVE: i pazienti in attesa
+ // possono essere presenti nello store condiviso dopo il refresh della lista.
+ const ps=patients().filter(p=>p&&p._draft!==true&&p.relationshipStatus==='active'&&p.status==='active');
  const todays=appointments().filter(a=>a.date===today());
  const first=todays.filter(a=>a.type==='first').length;
  const controls=todays.filter(a=>a.type==='control').length;
