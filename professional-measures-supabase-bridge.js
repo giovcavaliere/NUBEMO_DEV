@@ -21,6 +21,9 @@
       professionalWeight:row.weight_kg??'',
       waist:row.waist_cm??'',
       hips:row.hips_cm??'',
+      ffm:row.ffm_pct??'',
+      fm:row.fm_pct??'',
+      mm:row.mm_pct??'',
       notes:row.notes||''
     };
   }
@@ -70,9 +73,13 @@
     const weight=numberOrNull(value('pmProfessionalWeight'));
     const waist=numberOrNull(value('pmWaist'));
     const hips=numberOrNull(value('pmHips'));
+    const ffm=numberOrNull(value('pmFfm'));
+    const fm=numberOrNull(value('pmFm'));
+    const mm=numberOrNull(value('pmMm'));
     if(weight!==null&&(weight<30||weight>300)){alert('Controlla il peso rilevato.');return;}
     if(waist!==null&&(waist<20||waist>300)){alert('Controlla il valore vita.');return;}
     if(hips!==null&&(hips<20||hips>300)){alert('Controlla il valore fianchi.');return;}
+    for(const [label,v] of [['FFM',ffm],['FM',fm],['MM',mm]])if(v!==null&&(v<0||v>100)){alert(`Controlla il valore ${label}: deve essere compreso tra 0 e 100%.`);return;}
 
     saving=true;
     const button=document.getElementById('savePatientMeasure');
@@ -82,7 +89,7 @@
       const oldDate=window.editMeasureDate||'';
       const oldRow=oldDate?rows.find(row=>String(row.measured_at)===String(oldDate)):null;
       const targetRow=rows.find(row=>String(row.measured_at)===String(measuredAt)&&row.id!==oldRow?.id)||null;
-      const payload={measuredAt,weightKg:weight,waistCm:waist,hipsCm:hips,notes:String(value('pmNotes')||'').trim()||null};
+      const payload={measuredAt,weightKg:weight,waistCm:waist,hipsCm:hips,ffmPct:ffm,fmPct:fm,mmPct:mm,notes:String(value('pmNotes')||'').trim()||null};
 
       if(oldRow&&targetRow){
         await services().updatePatientMeasurement(targetRow.id,payload);
