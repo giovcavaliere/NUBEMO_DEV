@@ -3,7 +3,7 @@
   'use strict';
   const client=window.nubemoSupabase;if(!client)return;
   const ANAMNESIS_COLUMNS=['patient_id','goal_weight_kg','min_weight_kg','max_weight_kg','reasonable_weight_kg','theoretical_weight_kg','work','activity','activity_factor','smoking','alcohol','diagnosis','bowel','metabolism','feeg','impedance','family_obesity','family_diabetes','family_hypertension','family_cardiovascular','family_dyslipidemia','family_thyroid','previous_diets','allergies','medications','gi_issues','past_conditions','observations','objectives'].join(',');
-  const MEASUREMENT_COLUMNS='id,patient_id,measured_at,weight_kg,waist_cm,hips_cm,notes,created_by_user_id,created_at,updated_at';
+  const MEASUREMENT_COLUMNS='id,patient_id,measured_at,weight_kg,waist_cm,hips_cm,ffm_pct,fm_pct,mm_pct,notes,created_by_user_id,created_at,updated_at';
   const DOCUMENT_COLUMNS='id,patient_id,category,sub_category,title,document_date,document_number,valid_from,professional_note,original_filename,mime_type,size_bytes,storage_bucket,storage_path,uploaded_by_user_id,created_at,updated_at';
   const DIARY_COLUMNS='id,patient_id,entry_date,weight_kg,water,coffee,sweetener,breakfast,morning_snack,lunch,afternoon_snack,dinner,sport,notes,created_by_user_id,created_at,updated_at';
   const NOTE_COLUMNS='id,patient_id,professional_id,content,created_at,updated_at';
@@ -22,7 +22,7 @@
   async function savePatientAnamnesis(patientId,v){const existing=await loadPatientClinicalProfile(patientId),payload=anamnesisPayload(v);const q=existing?client.from('patient_clinical_profiles').update(payload).eq('patient_id',patientId):client.from('patient_clinical_profiles').insert({patient_id:patientId,...payload});const {data,error}=await q.select(ANAMNESIS_COLUMNS).single();if(error)throw error;return data;}
 
   async function loadPatientMeasurements(patientId){const {data,error}=await client.from('patient_measurements').select(MEASUREMENT_COLUMNS).eq('patient_id',patientId).is('deleted_at',null).order('measured_at',{ascending:false});if(error)throw error;return data||[];}
-  const measurementPayload=v=>({measured_at:v.measuredAt,weight_kg:v.weightKg,waist_cm:v.waistCm,hips_cm:v.hipsCm,notes:v.notes});
+  const measurementPayload=v=>({measured_at:v.measuredAt,weight_kg:v.weightKg,waist_cm:v.waistCm,hips_cm:v.hipsCm,ffm_pct:v.ffmPct,fm_pct:v.fmPct,mm_pct:v.mmPct,notes:v.notes});
   async function createPatientMeasurement(patientId,v,createdByUserId=null){const uid=createdByUserId||await authUserId();const {data,error}=await client.from('patient_measurements').insert({patient_id:patientId,created_by_user_id:uid,...measurementPayload(v)}).select(MEASUREMENT_COLUMNS).single();if(error)throw error;return data;}
   async function updatePatientMeasurement(id,v){const {data,error}=await client.from('patient_measurements').update(measurementPayload(v)).eq('id',id).select(MEASUREMENT_COLUMNS).single();if(error)throw error;return data;}
 
