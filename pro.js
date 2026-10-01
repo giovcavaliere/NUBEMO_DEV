@@ -761,11 +761,11 @@ function proWeightChart(items,days){
   const ticks=Array.from({length:5},(_,i)=>max-(range/4)*i);
   const grid=ticks.map(v=>{
     const y=yFor(v);
-    return `<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" class="chart-grid"/><text x="${left-4}" y="${y}" text-anchor="end" dominant-baseline="middle" class="chart-y-label">${v.toFixed(1).replace('.',',')}</text>`;
+    return `<line x1="${axisLeft}" y1="${y}" x2="${right}" y2="${y}" class="chart-grid"/><text x="${axisLeft-4}" y="${y}" text-anchor="end" dominant-baseline="middle" class="chart-y-label">${v.toFixed(1).replace('.',',')}</text>`;
   }).join('');
   const startLabel=fmt(w[0].date).replace(/^[^ ]+ /,'');
   const endLabel=fmt(w.at(-1).date).replace(/^[^ ]+ /,'');
-  return `<div class="chart-wrap"><svg class="chart responsive-chart" viewBox="0 0 160 80" preserveAspectRatio="none">${grid}<line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" class="chart-axis"/><line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/><polyline points="${pts}" class="chart-line" fill="none" vector-effect="non-scaling-stroke"/>${w.map(x=>`<circle cx="${xFor(x.date)}" cy="${yFor(+x.weight)}" r="0.8" class="chart-point" vector-effect="non-scaling-stroke"/>`).join('')}${proShowMovingAverage&&avgPts?`<polyline points="${avgPts}" class="chart-average" fill="none" vector-effect="non-scaling-stroke"/>`:''}<text x="${left}" y="${dateY}" text-anchor="start" class="chart-x-label">${startLabel}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${endLabel}</text></svg><span class="chart-unit-fixed">kg</span></div>`;
+  return `<div class="chart-wrap"><svg class="chart responsive-chart" viewBox="0 0 160 80" preserveAspectRatio="none">${grid}<line x1="${axisLeft}" y1="${top}" x2="${axisLeft}" y2="${bottom}" class="chart-axis"/><line x1="${axisLeft}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/><polyline points="${pts}" class="chart-line" fill="none" vector-effect="non-scaling-stroke"/>${w.map(x=>`<circle cx="${xFor(x.date)}" cy="${yFor(+x.weight)}" r="0.8" class="chart-point" vector-effect="non-scaling-stroke"/>`).join('')}${proShowMovingAverage&&avgPts?`<polyline points="${avgPts}" class="chart-average" fill="none" vector-effect="non-scaling-stroke"/>`:''}<text x="${plotLeft}" y="${dateY}" text-anchor="start" class="chart-x-label">${startLabel}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${endLabel}</text></svg><span class="chart-unit-fixed">kg</span></div>`;
 }
 
 function proBmiChart(items,days,height){
@@ -787,11 +787,11 @@ function proBmiChart(items,days,height){
   const ticks=Array.from({length:5},(_,i)=>max-(range/4)*i);
   const grid=ticks.map(v=>{
     const y=yFor(v);
-    return `<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" class="chart-grid"/><text x="${left-4}" y="${y}" text-anchor="end" dominant-baseline="middle" class="chart-y-label">${v.toFixed(1).replace('.',',')}</text>`;
+    return `<line x1="${axisLeft}" y1="${y}" x2="${right}" y2="${y}" class="chart-grid"/><text x="${axisLeft-4}" y="${y}" text-anchor="end" dominant-baseline="middle" class="chart-y-label">${v.toFixed(1).replace('.',',')}</text>`;
   }).join('');
   const startLabel=fmt(data[0].date).replace(/^[^ ]+ /,'');
   const endLabel=fmt(data.at(-1).date).replace(/^[^ ]+ /,'');
-  return `<div class="chart-wrap"><svg class="chart responsive-chart" viewBox="0 0 160 80" preserveAspectRatio="none">${grid}<line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" class="chart-axis"/><line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/><polyline points="${pts}" class="chart-bmi-line" fill="none" vector-effect="non-scaling-stroke"/>${data.map((x,i)=>`<circle cx="${xFor(i)}" cy="${yFor(x.bmi)}" r="0.8" class="chart-bmi-point" vector-effect="non-scaling-stroke"/>`).join('')}<text x="${left}" y="${dateY}" text-anchor="start" class="chart-x-label">${startLabel}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${endLabel}</text></svg><span class="chart-unit-fixed">BMI</span></div>`;
+  return `<div class="chart-wrap"><svg class="chart responsive-chart" viewBox="0 0 160 80" preserveAspectRatio="none">${grid}<line x1="${axisLeft}" y1="${top}" x2="${axisLeft}" y2="${bottom}" class="chart-axis"/><line x1="${axisLeft}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/><polyline points="${pts}" class="chart-bmi-line" fill="none" vector-effect="non-scaling-stroke"/>${data.map((x,i)=>`<circle cx="${xFor(i)}" cy="${yFor(x.bmi)}" r="0.8" class="chart-bmi-point" vector-effect="non-scaling-stroke"/>`).join('')}<text x="${plotLeft}" y="${dateY}" text-anchor="start" class="chart-x-label">${startLabel}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${endLabel}</text></svg><span class="chart-unit-fixed">BMI</span></div>`;
 }
 
 function latestCompleteBiaMeasure(p){
@@ -965,13 +965,13 @@ function proBodyCompositionTrend(p){
   const max=Math.max(10,Math.ceil((maxVal*1.08)/10)*10);
   const min=0;
   const range=max-min;
-  const left=34,right=156,top=7,bottom=61,dateY=76;
-  const xFor=i=>rows.length===1?(left+right)/2:left+i/(rows.length-1)*(right-left);
+  const axisLeft=34,plotLeft=40,right=154,top=7,bottom=61,dateY=76;
+  const xFor=i=>rows.length===1?(plotLeft+right)/2:plotLeft+i/(rows.length-1)*(right-plotLeft);
   const yFor=v=>bottom-((v-min)/range)*(bottom-top);
   const ticks=Array.from({length:6},(_,i)=>max-(range/5)*i);
   const grid=ticks.map(v=>{
     const y=yFor(v);
-    return `<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" class="chart-grid"/><text x="${left-4}" y="${y}" text-anchor="end" dominant-baseline="middle" class="chart-y-label">${Math.round(v)}</text>`;
+    return `<line x1="${axisLeft}" y1="${y}" x2="${right}" y2="${y}" class="chart-grid"/><text x="${axisLeft-4}" y="${y}" text-anchor="end" dominant-baseline="middle" class="chart-y-label">${Math.round(v)}</text>`;
   }).join('');
 
   const paths=active.map(s=>{
@@ -984,7 +984,7 @@ function proBodyCompositionTrend(p){
 
   const labels=rows.length<=6
     ? rows.map((r,i)=>`<text x="${xFor(i)}" y="${dateY}" text-anchor="${i===0?'start':i===rows.length-1?'end':'middle'}" class="chart-x-label">${fmt(r.date).replace(/^[^ ]+ /,'')}</text>`).join('')
-    : `<text x="${left}" y="${dateY}" text-anchor="start" class="chart-x-label">${fmt(rows[0].date).replace(/^[^ ]+ /,'')}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${fmt(rows.at(-1).date).replace(/^[^ ]+ /,'')}</text>`;
+    : `<text x="${plotLeft}" y="${dateY}" text-anchor="start" class="chart-x-label">${fmt(rows[0].date).replace(/^[^ ]+ /,'')}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${fmt(rows.at(-1).date).replace(/^[^ ]+ /,'')}</text>`;
 
   return `<section class="card chart-card body-trend-card">
     <div class="section-head body-trend-head">
@@ -993,7 +993,7 @@ function proBodyCompositionTrend(p){
         ${defs.map(s=>`<button type="button" class="body-trend-toggle ${s.cls} ${proBodyTrendVisible[s.key]?'is-active':''}" data-body-trend-series="${s.key}" aria-pressed="${proBodyTrendVisible[s.key]?'true':'false'}"><i></i>${s.label}</button>`).join('')}
       </div>
     </div>
-    ${active.length?`<div class="chart-wrap body-trend-wrap"><svg class="chart responsive-chart body-trend-svg" viewBox="0 0 160 82" preserveAspectRatio="none">${grid}<line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" class="chart-axis"/><line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/>${paths}${labels}</svg></div>`:'<div class="body-trend-empty">Seleziona almeno un valore per visualizzare il grafico.</div>'}
+    ${active.length?`<div class="chart-wrap body-trend-wrap"><svg class="chart responsive-chart body-trend-svg" viewBox="0 0 160 82" preserveAspectRatio="none">${grid}<line x1="${axisLeft}" y1="${top}" x2="${axisLeft}" y2="${bottom}" class="chart-axis"/><line x1="${axisLeft}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/>${paths}${labels}</svg></div>`:'<div class="body-trend-empty">Seleziona almeno un valore per visualizzare il grafico.</div>'}
   </section>`;
 }
 
