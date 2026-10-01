@@ -803,10 +803,15 @@ function latestCompleteBiaMeasure(p){
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0]||null;
 }
 function biaPct(value){return Number(value).toFixed(1).replace('.',',')+'%'}
+function biaClampPct(value){
+  const v=Number(value);
+  if(!Number.isFinite(v))return 0;
+  return Math.max(0,Math.min(100,v));
+}
 function biaPairHeights(a,b){
-  const av=Math.max(0,Number(a)||0),bv=Math.max(0,Number(b)||0),total=av+bv;
-  if(!total)return [50,50];
-  return [av/total*100,bv/total*100];
+  const av=biaClampPct(a),bv=biaClampPct(b);
+  const total=Math.min(100,av+bv);
+  return [av,bv,Math.max(0,100-total)];
 }
 function proBiaSnapshot(p){
   const m=latestCompleteBiaMeasure(p);
@@ -815,8 +820,8 @@ function proBiaSnapshot(p){
     <div class="bia-empty"><b>Nessuna misurazione completa disponibile</b><span>Per visualizzare questo grafico servono FFM, FM, ECM e BCM nella stessa rilevazione.</span></div>
   </section>`;
 
-  const [ffmH,fmH]=biaPairHeights(m.ffm,m.fm);
-  const [bcmH,ecmH]=biaPairHeights(m.bcm,m.ecm);
+  const [ffmH,fmH,ffmRest]=biaPairHeights(m.ffm,m.fm);
+  const [bcmH,ecmH,bcmRest]=biaPairHeights(m.bcm,m.ecm);
   return `<section class="card bia-snapshot-card">
     <div class="section-head bia-snapshot-head">
       <div><h2>Stato nutrizionale</h2><p class="muted">Ultima misurazione completa del professionista.</p></div>
@@ -825,12 +830,13 @@ function proBiaSnapshot(p){
 
     <div class="bia-snapshot-grid">
       <div class="bia-bars-panel">
-        <div class="bia-panel-title"><b>Distribuzione delle masse</b><span>Valori percentuali</span></div>
+        <div class="bia-panel-title"><b>Distribuzione delle masse</b><span>Scala 0–100%</span></div>
         <div class="bia-bars-stage">
           <div class="bia-stack-wrap">
             <div class="bia-stack" aria-label="FFM ${biaPct(m.ffm)}, FM ${biaPct(m.fm)}">
               <div class="bia-segment bia-ffm" style="height:${ffmH.toFixed(2)}%"><span>FFM <b>${biaPct(m.ffm)}</b></span></div>
               <div class="bia-segment bia-fm" style="height:${fmH.toFixed(2)}%"><span>FM <b>${biaPct(m.fm)}</b></span></div>
+              <div class="bia-segment bia-rest" style="height:${ffmRest.toFixed(2)}%"></div>
             </div>
             <strong>FFM / FM</strong>
           </div>
@@ -838,6 +844,7 @@ function proBiaSnapshot(p){
             <div class="bia-stack" aria-label="BCM ${biaPct(m.bcm)}, ECM ${biaPct(m.ecm)}">
               <div class="bia-segment bia-bcm" style="height:${bcmH.toFixed(2)}%"><span>BCM <b>${biaPct(m.bcm)}</b></span></div>
               <div class="bia-segment bia-ecm" style="height:${ecmH.toFixed(2)}%"><span>ECM <b>${biaPct(m.ecm)}</b></span></div>
+              <div class="bia-segment bia-rest" style="height:${bcmRest.toFixed(2)}%"></div>
             </div>
             <strong>BCM / ECM</strong>
           </div>
@@ -851,45 +858,68 @@ function proBiaSnapshot(p){
       </div>
 
       <div class="bia-body-panel">
-        <div class="bia-panel-title"><b>Distribuzione cellulare</b><span>ECM e BCM</span></div>
-        <svg class="bia-body-svg" viewBox="0 0 420 330" role="img" aria-label="Rappresentazione ECM ${biaPct(m.ecm)} e BCM ${biaPct(m.bcm)}">
+        <div class="bia-panel-title"><b>Distribuzione corporea</b><span>FM · FFM · ECM · BCM</span></div>
+        <svg class="bia-body-svg" viewBox="0 0 460 360" role="img" aria-label="Rappresentazione FM ${biaPct(m.fm)}, FFM ${biaPct(m.ffm)}, ECM ${biaPct(m.ecm)} e BCM ${biaPct(m.bcm)}">
           <defs>
-            <filter id="biaSoft" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="6"/>
-            </filter>
             <marker id="biaArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
               <path d="M0,0 L7,3.5 L0,7 Z" class="bia-arrow-head"/>
             </marker>
           </defs>
 
-          <g class="bia-ecm-aura" filter="url(#biaSoft)">
-            <ellipse cx="210" cy="67" rx="42" ry="42"/>
-            <path d="M160 112 C132 126 118 157 121 196 C123 225 135 255 151 291 L178 286 C171 254 168 227 170 199 L170 300 L250 300 L250 199 C252 227 249 254 242 286 L269 291 C285 255 297 225 299 196 C302 157 288 126 260 112 C245 104 229 102 210 102 C191 102 175 104 160 112 Z"/>
+          <g class="bia-human-outline">
+            <circle cx="230" cy="62" r="30"/>
+            <path d="M192 108 C171 121 163 145 166 175 L180 228 L194 224 L190 173 L201 156 L201 316 L222 316 L226 224 L234 224 L238 316 L259 316 L259 156 L270 173 L266 224 L280 228 L294 175 C297 145 289 121 268 108 C257 101 244 98 230 98 C216 98 203 101 192 108 Z"/>
           </g>
 
-          <g class="bia-body-core">
-            <circle cx="210" cy="64" r="28"/>
-            <path d="M176 108 C158 118 150 139 153 166 L165 218 L177 216 L172 168 L181 153 L181 292 L201 292 L206 214 L214 214 L219 292 L239 292 L239 153 L248 168 L243 216 L255 218 L267 166 C270 139 262 118 244 108 C234 102 222 100 210 100 C198 100 186 102 176 108 Z"/>
+          <g class="bia-fm-layer">
+            <circle cx="230" cy="62" r="27"/>
+            <path d="M197 111 C179 123 172 144 175 170 L188 219 L198 216 L195 171 L205 156 L205 306 L223 306 L227 221 L233 221 L237 306 L255 306 L255 156 L265 171 L262 216 L272 219 L285 170 C288 144 281 123 263 111 C254 105 243 103 230 103 C217 103 206 105 197 111 Z"/>
           </g>
 
-          <g class="bia-body-highlight">
-            <ellipse cx="210" cy="151" rx="24" ry="46"/>
-            <ellipse cx="196" cy="233" rx="10" ry="45"/>
-            <ellipse cx="224" cy="233" rx="10" ry="45"/>
+          <g class="bia-ffm-layer">
+            <circle cx="230" cy="62" r="23"/>
+            <path d="M202 114 C188 124 182 142 184 162 L194 206 L204 204 L201 168 L209 156 L209 300 L224 300 L228 222 L232 222 L236 300 L251 300 L251 156 L259 168 L256 204 L266 206 L276 162 C278 142 272 124 258 114 C250 109 241 107 230 107 C219 107 210 109 202 114 Z"/>
           </g>
 
+          <g class="bia-ecm-layer">
+            <ellipse cx="230" cy="155" rx="31" ry="53"/>
+            <ellipse cx="214" cy="237" rx="12" ry="48"/>
+            <ellipse cx="246" cy="237" rx="12" ry="48"/>
+          </g>
+
+          <g class="bia-bcm-layer">
+            <ellipse cx="230" cy="155" rx="20" ry="43"/>
+            <ellipse cx="218" cy="237" rx="8" ry="40"/>
+            <ellipse cx="242" cy="237" rx="8" ry="40"/>
+          </g>
+
+          <g class="bia-callout bia-callout-fm">
+            <line x1="82" y1="80" x2="194" y2="80" marker-end="url(#biaArrow)"/>
+            <text x="24" y="72">FM</text>
+            <text x="24" y="94" class="bia-callout-value">${biaPct(m.fm)}</text>
+          </g>
+          <g class="bia-callout bia-callout-ffm">
+            <line x1="82" y1="134" x2="197" y2="134" marker-end="url(#biaArrow)"/>
+            <text x="24" y="126">FFM</text>
+            <text x="24" y="148" class="bia-callout-value">${biaPct(m.ffm)}</text>
+          </g>
           <g class="bia-callout bia-callout-ecm">
-            <line x1="78" y1="142" x2="154" y2="142" marker-end="url(#biaArrow)"/>
-            <text x="24" y="132">ECM</text>
-            <text x="24" y="153" class="bia-callout-value">${biaPct(m.ecm)}</text>
+            <line x1="378" y1="146" x2="270" y2="146" marker-end="url(#biaArrow)"/>
+            <text x="386" y="138">ECM</text>
+            <text x="386" y="160" class="bia-callout-value">${biaPct(m.ecm)}</text>
           </g>
           <g class="bia-callout bia-callout-bcm">
-            <line x1="342" y1="190" x2="260" y2="190" marker-end="url(#biaArrow)"/>
-            <text x="350" y="180">BCM</text>
-            <text x="350" y="201" class="bia-callout-value">${biaPct(m.bcm)}</text>
+            <line x1="378" y1="202" x2="257" y2="202" marker-end="url(#biaArrow)"/>
+            <text x="386" y="194">BCM</text>
+            <text x="386" y="216" class="bia-callout-value">${biaPct(m.bcm)}</text>
           </g>
         </svg>
-        <div class="bia-body-caption"><span><i class="bia-dot bia-ecm"></i>ECM · comparto extracellulare</span><span><i class="bia-dot bia-bcm"></i>BCM · massa cellulare</span></div>
+        <div class="bia-body-caption">
+          <span><i class="bia-dot bia-fm"></i>FM · massa grassa</span>
+          <span><i class="bia-dot bia-ffm"></i>FFM · massa magra</span>
+          <span><i class="bia-dot bia-ecm"></i>ECM · comparto extracellulare</span>
+          <span><i class="bia-dot bia-bcm"></i>BCM · massa cellulare</span>
+        </div>
       </div>
     </div>
   </section>`;
