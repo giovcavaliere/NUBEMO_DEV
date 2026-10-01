@@ -1944,6 +1944,8 @@ function tabContent(p){
          <div><span>FFM</span><b>${m.ffm!==''&&m.ffm!=null?Number(m.ffm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
          <div><span>FM</span><b>${m.fm!==''&&m.fm!=null?Number(m.fm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
          <div><span>MM</span><b>${m.mm!==''&&m.mm!=null?Number(m.mm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+         <div><span>ECM</span><b>${m.ecm!==''&&m.ecm!=null?Number(m.ecm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+         <div><span>BCM</span><b>${m.bcm!==''&&m.bcm!=null?Number(m.bcm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
        </div>
      </div>
    </div>
@@ -2244,6 +2246,8 @@ function patientMeasureForm(){
        <label class="measure-field"><span>FFM (%)</span><input id="pmFfm" type="number" min="0" max="100" step="0.01" value="${existing?.ffm??''}" placeholder="es. 82,91"></label>
        <label class="measure-field"><span>FM (%)</span><input id="pmFm" type="number" min="0" max="100" step="0.01" value="${existing?.fm??''}" placeholder="es. 17,08"></label>
        <label class="measure-field"><span>MM (%)</span><input id="pmMm" type="number" min="0" max="100" step="0.01" value="${existing?.mm??''}" placeholder="es. 53,08"></label>
+       <label class="measure-field"><span>ECM (%)</span><input id="pmEcm" type="number" min="0" max="100" step="0.01" value="${existing?.ecm??''}" placeholder="es. 42,00"></label>
+       <label class="measure-field"><span>BCM (%)</span><input id="pmBcm" type="number" min="0" max="100" step="0.01" value="${existing?.bcm??''}" placeholder="es. 58,00"></label>
      </div>
    </div>
    <div class="measure-form-section">
@@ -2256,11 +2260,11 @@ function savePatientMeasure(){
  const p=patient(selected); if(!p)return;
  const date=readProDate('pmDate',true); if(!date)return;
  const num=id=>{const v=(el(id)?.value||'').trim().replace(',','.');return v===''?'':Number(v)};
- const professionalWeight=num('pmProfessionalWeight'),waist=num('pmWaist'),hips=num('pmHips'),ffm=num('pmFfm'),fm=num('pmFm'),mm=num('pmMm');
+ const professionalWeight=num('pmProfessionalWeight'),waist=num('pmWaist'),hips=num('pmHips'),ffm=num('pmFfm'),fm=num('pmFm'),mm=num('pmMm'),ecm=num('pmEcm'),bcm=num('pmBcm');
  if(professionalWeight!==''&&(!Number.isFinite(professionalWeight)||professionalWeight<30||professionalWeight>300))return alert('Controlla il peso rilevato.');
  for(const [label,v] of [['vita',waist],['fianchi',hips]])if(v!==''&&(!Number.isFinite(v)||v<20||v>300))return alert(`Controlla il valore ${label}.`);
- for(const [label,v] of [['FFM',ffm],['FM',fm],['MM',mm]])if(v!==''&&(!Number.isFinite(v)||v<0||v>100))return alert(`Controlla il valore ${label}: deve essere compreso tra 0 e 100%.`);
- const obj={date,professionalWeight,waist,hips,ffm,fm,mm,notes:(el('pmNotes')?.value||'').trim()};
+ for(const [label,v] of [['FFM',ffm],['FM',fm],['MM',mm],['ECM',ecm],['BCM',bcm]])if(v!==''&&(!Number.isFinite(v)||v<0||v>100))return alert(`Controlla il valore ${label}: deve essere compreso tra 0 e 100%.`);
+ const obj={date,professionalWeight,waist,hips,ffm,fm,mm,ecm,bcm,notes:(el('pmNotes')?.value||'').trim()};
  const oldDate=window.editMeasureDate;
 
  if(selected==='main'){
