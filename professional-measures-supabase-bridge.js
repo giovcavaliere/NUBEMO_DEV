@@ -24,6 +24,8 @@
       ffm:row.ffm_pct??'',
       fm:row.fm_pct??'',
       mm:row.mm_pct??'',
+      ecm:row.ecm_pct??'',
+      bcm:row.bcm_pct??'',
       notes:row.notes||''
     };
   }
@@ -76,10 +78,12 @@
     const ffm=numberOrNull(value('pmFfm'));
     const fm=numberOrNull(value('pmFm'));
     const mm=numberOrNull(value('pmMm'));
+    const ecm=numberOrNull(value('pmEcm'));
+    const bcm=numberOrNull(value('pmBcm'));
     if(weight!==null&&(weight<30||weight>300)){alert('Controlla il peso rilevato.');return;}
     if(waist!==null&&(waist<20||waist>300)){alert('Controlla il valore vita.');return;}
     if(hips!==null&&(hips<20||hips>300)){alert('Controlla il valore fianchi.');return;}
-    for(const [label,v] of [['FFM',ffm],['FM',fm],['MM',mm]])if(v!==null&&(v<0||v>100)){alert(`Controlla il valore ${label}: deve essere compreso tra 0 e 100%.`);return;}
+    for(const [label,v] of [['FFM',ffm],['FM',fm],['MM',mm],['ECM',ecm],['BCM',bcm]])if(v!==null&&(v<0||v>100)){alert(`Controlla il valore ${label}: deve essere compreso tra 0 e 100%.`);return;}
 
     saving=true;
     const button=document.getElementById('savePatientMeasure');
@@ -92,7 +96,7 @@
       const patientRows=parse(window.nubemoProfessionalRuntimeStore.storage.getItem(EXTRA_PATIENTS_KEY)||'[]',[]);
       const currentPatient=(Array.isArray(patientRows)?patientRows:[]).find(row=>String(row?.id||'')===String(patientId));
       const pathwayId=oldRow?.pathway_id||currentPatient?.pathwayId||currentPatient?.pathway_id||null;
-      const payload={measuredAt,weightKg:weight,waistCm:waist,hipsCm:hips,ffmPct:ffm,fmPct:fm,mmPct:mm,pathwayId,notes:String(value('pmNotes')||'').trim()||null};
+      const payload={measuredAt,weightKg:weight,waistCm:waist,hipsCm:hips,ffmPct:ffm,fmPct:fm,mmPct:mm,ecmPct:ecm,bcmPct:bcm,pathwayId,notes:String(value('pmNotes')||'').trim()||null};
 
       if(oldRow&&targetRow){
         await services().updatePatientMeasurement(targetRow.id,payload);
