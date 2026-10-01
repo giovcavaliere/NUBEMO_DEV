@@ -803,15 +803,13 @@ function latestCompleteBiaMeasure(p){
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0]||null;
 }
 function biaPct(value){return Number(value).toFixed(1).replace('.',',')+'%'}
-function biaClampPct(value){
+function biaPositive(value){
   const v=Number(value);
-  if(!Number.isFinite(v))return 0;
-  return Math.max(0,Math.min(100,v));
+  return Number.isFinite(v)?Math.max(0,v):0;
 }
-function biaPairHeights(a,b){
-  const av=biaClampPct(a),bv=biaClampPct(b);
-  const total=Math.min(100,av+bv);
-  return [av,bv,Math.max(0,100-total)];
+function biaScale100(a,b){
+  const av=biaPositive(a),bv=biaPositive(b);
+  return [av,bv,Math.max(0,100-(av+bv))];
 }
 function proBiaSnapshot(p){
   const m=latestCompleteBiaMeasure(p);
@@ -820,8 +818,26 @@ function proBiaSnapshot(p){
     <div class="bia-empty"><b>Nessuna misurazione completa disponibile</b><span>Per visualizzare questo grafico servono FFM, FM, ECM e BCM nella stessa rilevazione.</span></div>
   </section>`;
 
-  const [ffmH,fmH,ffmRest]=biaPairHeights(m.ffm,m.fm);
-  const [bcmH,ecmH,bcmRest]=biaPairHeights(m.bcm,m.ecm);
+  const ffm=biaPositive(m.ffm),fm=biaPositive(m.fm),ecm=biaPositive(m.ecm),bcm=biaPositive(m.bcm);
+  const [ffmH,fmH,ffmRest]=biaScale100(ffm,fm);
+  const [bcmH,ecmH,bcmRest]=biaScale100(bcm,ecm);
+
+  const bodyTotal=bcm+ecm+fm;
+  const bodyTop=36,bodyBottom=316,bodyHeight=bodyBottom-bodyTop;
+  const bcmRatio=bodyTotal?bcm/bodyTotal:0;
+  const ecmRatio=bodyTotal?ecm/bodyTotal:0;
+  const fmRatio=bodyTotal?fm/bodyTotal:0;
+  const bcmBand=bodyHeight*bcmRatio;
+  const ecmBand=bodyHeight*ecmRatio;
+  const fmBand=bodyHeight*fmRatio;
+  const bcmTop=bodyBottom-bcmBand;
+  const ecmTop=bcmTop-ecmBand;
+  const fmTop=ecmTop-fmBand;
+  const bcmMid=(bcmTop+bodyBottom)/2;
+  const ecmMid=(ecmTop+bcmTop)/2;
+  const fmMid=(fmTop+ecmTop)/2;
+  const ffmBoundary=ecmTop;
+
   return `<section class="card bia-snapshot-card">
     <div class="section-head bia-snapshot-head">
       <div><h2>Stato nutrizionale</h2><p class="muted">Ultima misurazione completa del professionista.</p></div>
@@ -830,96 +846,89 @@ function proBiaSnapshot(p){
 
     <div class="bia-snapshot-grid">
       <div class="bia-bars-panel">
-        <div class="bia-panel-title"><b>Distribuzione delle masse</b><span>Scala 0–100%</span></div>
-        <div class="bia-bars-stage">
-          <div class="bia-stack-wrap">
-            <div class="bia-stack" aria-label="FFM ${biaPct(m.ffm)}, FM ${biaPct(m.fm)}">
-              <div class="bia-segment bia-ffm" style="height:${ffmH.toFixed(2)}%"><span>FFM <b>${biaPct(m.ffm)}</b></span></div>
-              <div class="bia-segment bia-fm" style="height:${fmH.toFixed(2)}%"><span>FM <b>${biaPct(m.fm)}</b></span></div>
-              <div class="bia-segment bia-rest" style="height:${ffmRest.toFixed(2)}%"></div>
-            </div>
-            <strong>FFM / FM</strong>
+        <div class="bia-panel-title"><b>Distribuzione delle masse</b><span>Scala assoluta 0–100%</span></div>
+        <div class="bia-bars-scale">
+          <div class="bia-scale-axis" aria-hidden="true">
+            <span style="bottom:100%">100</span><span style="bottom:75%">75</span><span style="bottom:50%">50</span><span style="bottom:25%">25</span><span style="bottom:0%">0</span>
           </div>
-          <div class="bia-stack-wrap">
-            <div class="bia-stack" aria-label="BCM ${biaPct(m.bcm)}, ECM ${biaPct(m.ecm)}">
-              <div class="bia-segment bia-bcm" style="height:${bcmH.toFixed(2)}%"><span>BCM <b>${biaPct(m.bcm)}</b></span></div>
-              <div class="bia-segment bia-ecm" style="height:${ecmH.toFixed(2)}%"><span>ECM <b>${biaPct(m.ecm)}</b></span></div>
-              <div class="bia-segment bia-rest" style="height:${bcmRest.toFixed(2)}%"></div>
+          <div class="bia-bars-stage">
+            <div class="bia-stack-wrap">
+              <div class="bia-stack" aria-label="FFM ${biaPct(ffm)}, FM ${biaPct(fm)}">
+                <div class="bia-segment bia-ffm" style="height:${ffmH.toFixed(2)}%"><span>FFM <b>${biaPct(ffm)}</b></span></div>
+                <div class="bia-segment bia-fm" style="height:${fmH.toFixed(2)}%"><span>FM <b>${biaPct(fm)}</b></span></div>
+                <div class="bia-segment bia-rest" style="height:${ffmRest.toFixed(2)}%"></div>
+              </div>
+              <strong>FFM / FM</strong>
             </div>
-            <strong>BCM / ECM</strong>
+            <div class="bia-stack-wrap">
+              <div class="bia-stack" aria-label="BCM ${biaPct(bcm)}, ECM ${biaPct(ecm)}">
+                <div class="bia-segment bia-bcm" style="height:${bcmH.toFixed(2)}%"><span>BCM <b>${biaPct(bcm)}</b></span></div>
+                <div class="bia-segment bia-ecm" style="height:${ecmH.toFixed(2)}%"><span>ECM <b>${biaPct(ecm)}</b></span></div>
+                <div class="bia-segment bia-rest" style="height:${bcmRest.toFixed(2)}%"></div>
+              </div>
+              <strong>BCM / ECM</strong>
+            </div>
           </div>
         </div>
         <div class="bia-legend" aria-label="Legenda">
-          <span><i class="bia-dot bia-ffm"></i>FFM <b>${biaPct(m.ffm)}</b></span>
-          <span><i class="bia-dot bia-fm"></i>FM <b>${biaPct(m.fm)}</b></span>
-          <span><i class="bia-dot bia-bcm"></i>BCM <b>${biaPct(m.bcm)}</b></span>
-          <span><i class="bia-dot bia-ecm"></i>ECM <b>${biaPct(m.ecm)}</b></span>
+          <span><i class="bia-dot bia-ffm"></i>FFM <b>${biaPct(ffm)}</b></span>
+          <span><i class="bia-dot bia-fm"></i>FM <b>${biaPct(fm)}</b></span>
+          <span><i class="bia-dot bia-bcm"></i>BCM <b>${biaPct(bcm)}</b></span>
+          <span><i class="bia-dot bia-ecm"></i>ECM <b>${biaPct(ecm)}</b></span>
         </div>
       </div>
 
       <div class="bia-body-panel">
-        <div class="bia-panel-title"><b>Distribuzione corporea</b><span>FM · FFM · ECM · BCM</span></div>
-        <svg class="bia-body-svg" viewBox="0 0 460 360" role="img" aria-label="Rappresentazione FM ${biaPct(m.fm)}, FFM ${biaPct(m.ffm)}, ECM ${biaPct(m.ecm)} e BCM ${biaPct(m.bcm)}">
+        <div class="bia-panel-title"><b>Distribuzione corporea</b><span>Proporzione sul totale BCM + ECM + FM</span></div>
+        <svg class="bia-body-svg" viewBox="0 0 460 350" role="img" aria-label="Distribuzione corporea proporzionale: FM ${biaPct(fm)}, FFM ${biaPct(ffm)}, ECM ${biaPct(ecm)}, BCM ${biaPct(bcm)}">
           <defs>
+            <clipPath id="biaHumanClip">
+              <circle cx="230" cy="64" r="29"/>
+              <path d="M192 108 C171 121 163 145 166 175 L180 228 L194 224 L190 173 L201 156 L201 316 L222 316 L226 224 L234 224 L238 316 L259 316 L259 156 L270 173 L266 224 L280 228 L294 175 C297 145 289 121 268 108 C257 101 244 98 230 98 C216 98 203 101 192 108 Z"/>
+            </clipPath>
             <marker id="biaArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
               <path d="M0,0 L7,3.5 L0,7 Z" class="bia-arrow-head"/>
             </marker>
           </defs>
 
-          <g class="bia-human-outline">
-            <circle cx="230" cy="62" r="30"/>
+          <g clip-path="url(#biaHumanClip)">
+            <rect x="155" y="${fmTop.toFixed(1)}" width="150" height="${fmBand.toFixed(1)}" class="bia-human-fm"/>
+            <rect x="155" y="${ecmTop.toFixed(1)}" width="150" height="${ecmBand.toFixed(1)}" class="bia-human-ecm"/>
+            <rect x="155" y="${bcmTop.toFixed(1)}" width="150" height="${bcmBand.toFixed(1)}" class="bia-human-bcm"/>
+          </g>
+
+          <g class="bia-human-stroke">
+            <circle cx="230" cy="64" r="29"/>
             <path d="M192 108 C171 121 163 145 166 175 L180 228 L194 224 L190 173 L201 156 L201 316 L222 316 L226 224 L234 224 L238 316 L259 316 L259 156 L270 173 L266 224 L280 228 L294 175 C297 145 289 121 268 108 C257 101 244 98 230 98 C216 98 203 101 192 108 Z"/>
           </g>
 
-          <g class="bia-fm-layer">
-            <circle cx="230" cy="62" r="27"/>
-            <path d="M197 111 C179 123 172 144 175 170 L188 219 L198 216 L195 171 L205 156 L205 306 L223 306 L227 221 L233 221 L237 306 L255 306 L255 156 L265 171 L262 216 L272 219 L285 170 C288 144 281 123 263 111 C254 105 243 103 230 103 C217 103 206 105 197 111 Z"/>
-          </g>
-
-          <g class="bia-ffm-layer">
-            <circle cx="230" cy="62" r="23"/>
-            <path d="M202 114 C188 124 182 142 184 162 L194 206 L204 204 L201 168 L209 156 L209 300 L224 300 L228 222 L232 222 L236 300 L251 300 L251 156 L259 168 L256 204 L266 206 L276 162 C278 142 272 124 258 114 C250 109 241 107 230 107 C219 107 210 109 202 114 Z"/>
-          </g>
-
-          <g class="bia-ecm-layer">
-            <ellipse cx="230" cy="155" rx="31" ry="53"/>
-            <ellipse cx="214" cy="237" rx="12" ry="48"/>
-            <ellipse cx="246" cy="237" rx="12" ry="48"/>
-          </g>
-
-          <g class="bia-bcm-layer">
-            <ellipse cx="230" cy="155" rx="20" ry="43"/>
-            <ellipse cx="218" cy="237" rx="8" ry="40"/>
-            <ellipse cx="242" cy="237" rx="8" ry="40"/>
-          </g>
-
           <g class="bia-callout bia-callout-fm">
-            <line x1="82" y1="80" x2="194" y2="80" marker-end="url(#biaArrow)"/>
-            <text x="24" y="72">FM</text>
-            <text x="24" y="94" class="bia-callout-value">${biaPct(m.fm)}</text>
+            <line x1="82" y1="${fmMid.toFixed(1)}" x2="191" y2="${fmMid.toFixed(1)}" marker-end="url(#biaArrow)"/>
+            <text x="24" y="${(fmMid-8).toFixed(1)}">FM</text>
+            <text x="24" y="${(fmMid+14).toFixed(1)}" class="bia-callout-value">${biaPct(fm)}</text>
           </g>
           <g class="bia-callout bia-callout-ffm">
-            <line x1="82" y1="134" x2="197" y2="134" marker-end="url(#biaArrow)"/>
-            <text x="24" y="126">FFM</text>
-            <text x="24" y="148" class="bia-callout-value">${biaPct(m.ffm)}</text>
+            <line x1="82" y1="${ffmBoundary.toFixed(1)}" x2="191" y2="${ffmBoundary.toFixed(1)}" marker-end="url(#biaArrow)"/>
+            <text x="24" y="${(ffmBoundary-9).toFixed(1)}">FFM</text>
+            <text x="24" y="${(ffmBoundary+13).toFixed(1)}" class="bia-callout-value">${biaPct(ffm)}</text>
           </g>
           <g class="bia-callout bia-callout-ecm">
-            <line x1="378" y1="146" x2="270" y2="146" marker-end="url(#biaArrow)"/>
-            <text x="386" y="138">ECM</text>
-            <text x="386" y="160" class="bia-callout-value">${biaPct(m.ecm)}</text>
+            <line x1="378" y1="${ecmMid.toFixed(1)}" x2="270" y2="${ecmMid.toFixed(1)}" marker-end="url(#biaArrow)"/>
+            <text x="386" y="${(ecmMid-8).toFixed(1)}">ECM</text>
+            <text x="386" y="${(ecmMid+14).toFixed(1)}" class="bia-callout-value">${biaPct(ecm)}</text>
           </g>
           <g class="bia-callout bia-callout-bcm">
-            <line x1="378" y1="202" x2="257" y2="202" marker-end="url(#biaArrow)"/>
-            <text x="386" y="194">BCM</text>
-            <text x="386" y="216" class="bia-callout-value">${biaPct(m.bcm)}</text>
+            <line x1="378" y1="${bcmMid.toFixed(1)}" x2="270" y2="${bcmMid.toFixed(1)}" marker-end="url(#biaArrow)"/>
+            <text x="386" y="${(bcmMid-8).toFixed(1)}">BCM</text>
+            <text x="386" y="${(bcmMid+14).toFixed(1)}" class="bia-callout-value">${biaPct(bcm)}</text>
           </g>
         </svg>
         <div class="bia-body-caption">
           <span><i class="bia-dot bia-fm"></i>FM · massa grassa</span>
-          <span><i class="bia-dot bia-ffm"></i>FFM · massa magra</span>
           <span><i class="bia-dot bia-ecm"></i>ECM · comparto extracellulare</span>
           <span><i class="bia-dot bia-bcm"></i>BCM · massa cellulare</span>
         </div>
+        <div class="bia-ffm-note"><b>FFM ${biaPct(ffm)}</b><span>Valore riportato separatamente: rappresenta la massa magra complessiva.</span></div>
       </div>
     </div>
   </section>`;
