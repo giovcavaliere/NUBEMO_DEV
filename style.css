@@ -3569,3 +3569,35 @@ body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
 .bia-ffm-note{margin-top:12px;padding:11px 12px;border-radius:12px;background:#f7faf8;border:1px solid #e3ebe6;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .bia-ffm-note b{color:#235763}
 .bia-ffm-note span{font-size:12px;color:#64756e}
+
+
+/* NUBEMO Andamento Peso FM MM 20261001 */
+.body-trend-card{margin-top:16px}
+.body-trend-head{align-items:flex-start;gap:18px}
+.body-trend-head h2{margin-bottom:3px}
+.body-trend-toggles{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.body-trend-toggle{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:7px 11px;border:1px solid #dfe7e2;border-radius:999px;background:#fff;color:#718079;font:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,opacity .16s ease}
+.body-trend-toggle i{width:9px;height:9px;border-radius:50%;display:block;opacity:.32}
+.body-trend-toggle.is-active{background:#f8faf9;color:#263e36;border-color:#cfdad4}
+.body-trend-toggle.is-active i{opacity:1}
+.body-trend-toggle.body-trend-weight i{background:#355f82}
+.body-trend-toggle.body-trend-fm i{background:#d99532}
+.body-trend-toggle.body-trend-mm i{background:#4d8f75}
+.body-trend-wrap{margin-top:10px;min-height:300px}
+.body-trend-svg{height:310px}
+.body-trend-line{stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.body-trend-point{stroke-width:1.4;stroke:#fff}
+.body-trend-line.body-trend-weight{stroke:#355f82}
+.body-trend-point.body-trend-weight{fill:#355f82}
+.body-trend-line.body-trend-fm{stroke:#d99532}
+.body-trend-point.body-trend-fm{fill:#d99532}
+.body-trend-line.body-trend-mm{stroke:#4d8f75}
+.body-trend-point.body-trend-mm{fill:#4d8f75}
+.body-trend-empty{margin-top:12px;padding:24px 16px;border:1px dashed #dbe4df;border-radius:14px;background:#fafcfb;color:#718079;text-align:center;font-size:13px}
+@media(max-width:640px){
+ .body-trend-head{display:block}
+ .body-trend-toggles{justify-content:flex-start;margin-top:12px}
+ .body-trend-wrap{min-height:245px}
+ .body-trend-svg{height:255px}
+ .body-trend-toggle{min-height:40px;padding:8px 12px}
+}
