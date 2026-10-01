@@ -2136,7 +2136,10 @@ function tabContent(p){
        <span class="measure-toggle-icon" aria-hidden="true">›</span>
        <b>${fmt(m.date)}</b>
      </button>
-     <button class="mini" data-edit-measure="${m.date}">Modifica</button>
+     <div class="measure-history-actions">
+       <button class="mini" data-edit-measure="${m.date}">Modifica</button>
+       <button class="mini danger-soft" data-delete-measure="${m.date}">Elimina</button>
+     </div>
    </div>
    <div class="measure-history-body" data-measure-body="${m.date}" hidden>
      <div class="measure-history-groups">
