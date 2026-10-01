@@ -1323,6 +1323,108 @@ function clinicalPdfChart(series,valueFn,title,unit,x,y,w,h){
  return c;
 }
 
+
+function clinicalBiaPageSvgData(measures){
+ const rows=(measures||[]).filter(m=>m&&m.date).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ if(!rows.length)return '';
+ const finite=v=>v!==''&&v!==null&&v!==undefined&&Number.isFinite(Number(v));
+ const latest=rows.slice().reverse().find(m=>finite(m.fm)&&finite(m.ecm)&&finite(m.bcm));
+ if(!latest)return '';
+ const value=v=>finite(v)?Number(v):null;
+ const pct=v=>v==null?'—':v.toFixed(1).replace('.',',')+'%';
+ const ffm=value(latest.ffm),fm=value(latest.fm),mm=value(latest.mm),ecm=value(latest.ecm),bcm=value(latest.bcm);
+ const clamp100=v=>Math.max(0,Math.min(100,v==null?0:v));
+ const barBottom=450,barScale=3;
+ const ffmH=clamp100(ffm)*barScale,fmH=clamp100(fm)*barScale,bcmH=clamp100(bcm)*barScale,ecmH=clamp100(ecm)*barScale;
+ const total=Math.max(0,(fm||0)+(ecm||0)+(bcm||0));
+ const bodyTop=36,bodyBottom=316,bodySpan=bodyBottom-bodyTop;
+ const fmBand=total?bodySpan*(fm||0)/total:0,ecmBand=total?bodySpan*(ecm||0)/total:0,bcmBand=Math.max(0,bodySpan-fmBand-ecmBand);
+ const fmTop=bodyTop,ecmTop=fmTop+fmBand,bcmTop=ecmTop+ecmBand;
+ const fmMid=fmTop+fmBand/2,ecmMid=ecmTop+ecmBand/2,bcmMid=bcmTop+bcmBand/2;
+
+ const trendRows=rows.map(m=>({
+   date:String(m.date||''),
+   weight:value(m.professionalWeight),
+   fm:value(m.fm),
+   mm:value(m.mm)
+ })).filter(x=>x.date&&[x.weight,x.fm,x.mm].some(Number.isFinite));
+ const trendVals=[];
+ trendRows.forEach(x=>{if(Number.isFinite(x.weight))trendVals.push(x.weight);if(Number.isFinite(x.fm))trendVals.push(x.fm);if(Number.isFinite(x.mm))trendVals.push(x.mm)});
+ const trendMax=Math.max(10,Math.ceil(((trendVals.length?Math.max(...trendVals):100)*1.08)/10)*10);
+ const tx0=110,tx1=930,tyTop=790,tyBottom=1150;
+ const tx=i=>trendRows.length===1?(tx0+tx1)/2:tx0+i/(trendRows.length-1)*(tx1-tx0);
+ const ty=v=>tyBottom-(v/trendMax)*(tyBottom-tyTop);
+ const pathFor=key=>{
+   const pts=trendRows.map((x,i)=>Number.isFinite(x[key])?[tx(i),ty(x[key])]:null).filter(Boolean);
+   if(!pts.length)return '';
+   return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+ };
+ const dotsFor=(key,color)=>trendRows.map((x,i)=>Number.isFinite(x[key])?'<circle cx="'+tx(i).toFixed(1)+'" cy="'+ty(x[key]).toFixed(1)+'" r="5" fill="'+color+'" stroke="#fff" stroke-width="2"/>':'').join('');
+ const shortDate=d=>{
+   const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+   return m?m[3]+'/'+m[2]+'/'+m[1]:'';
+ };
+ const firstDate=trendRows.length?shortDate(trendRows[0].date):'',lastDate=trendRows.length?shortDate(trendRows.at(-1).date):'';
+ const tickSvg=Array.from({length:6},(_,i)=>{
+   const v=trendMax-(trendMax/5)*i,y=ty(v);
+   return '<line x1="'+tx0+'" y1="'+y.toFixed(1)+'" x2="'+tx1+'" y2="'+y.toFixed(1)+'" stroke="#e1e8e4" stroke-width="1"/><text x="'+(tx0-14)+'" y="'+(y+5).toFixed(1)+'" text-anchor="end" font-size="18" fill="#718079">'+Math.round(v)+'</text>';
+ }).join('');
+
+ const svg=
+ '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1300" viewBox="0 0 1000 1300">'+
+ '<rect width="1000" height="1300" fill="#ffffff"/>'+
+ '<style>text{font-family:Arial,Helvetica,sans-serif}.title{font-size:28px;font-weight:700;fill:#17372e}.sub{font-size:17px;fill:#687a73}.small{font-size:16px;fill:#60726b}.value{font-size:24px;font-weight:700;fill:#203a32}.label{font-size:17px;font-weight:700;fill:#30473f}</style>'+
+ '<rect x="40" y="25" width="440" height="560" rx="22" fill="#fbfcfb" stroke="#dfe8e3" stroke-width="2"/>'+
+ '<text x="66" y="70" class="title">Distribuzione delle masse</text>'+
+ '<text x="66" y="98" class="sub">Scala assoluta 0–100%</text>'+
+ '<defs>'+
+   '<clipPath id="pdfBar1"><rect x="150" y="150" width="105" height="300" rx="12"/></clipPath>'+
+   '<clipPath id="pdfBar2"><rect x="315" y="150" width="105" height="300" rx="12"/></clipPath>'+
+   '<clipPath id="pdfHumanClip"><circle cx="230" cy="64" r="29"/><path d="M192 108 C171 121 163 145 166 175 L180 228 L194 224 L190 173 L201 156 L201 316 L222 316 L226 224 L234 224 L238 316 L259 316 L259 156 L270 173 L266 224 L280 228 L294 175 C297 145 289 121 268 108 C257 101 244 98 230 98 C216 98 203 101 192 108 Z"/></clipPath>'+
+   '<marker id="pdfArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#52655e"/></marker>'+
+ '</defs>'+
+ [0,25,50,75,100].map(v=>{const y=barBottom-v*barScale;return '<line x1="118" y1="'+y+'" x2="438" y2="'+y+'" stroke="#e4ebe7" stroke-width="1"/><text x="104" y="'+(y+5)+'" text-anchor="end" font-size="15" fill="#7a8983">'+v+'</text>';}).join('')+
+ '<rect x="150" y="150" width="105" height="300" rx="12" fill="#f1f4f2" stroke="#dce5e0"/>'+
+ '<g clip-path="url(#pdfBar1)"><rect x="150" y="'+(barBottom-ffmH)+'" width="105" height="'+ffmH+'" fill="#b8d6df"/><rect x="150" y="'+(barBottom-ffmH-fmH)+'" width="105" height="'+fmH+'" fill="#f4c66f"/></g>'+
+ '<rect x="315" y="150" width="105" height="300" rx="12" fill="#f1f4f2" stroke="#dce5e0"/>'+
+ '<g clip-path="url(#pdfBar2)"><rect x="315" y="'+(barBottom-bcmH)+'" width="105" height="'+bcmH+'" fill="#ef8c67"/><rect x="315" y="'+(barBottom-bcmH-ecmH)+'" width="105" height="'+ecmH+'" fill="#6fb3b8"/></g>'+
+ '<text x="202" y="478" text-anchor="middle" class="label">FFM / FM</text><text x="368" y="478" text-anchor="middle" class="label">BCM / ECM</text>'+
+ '<circle cx="78" cy="520" r="7" fill="#b8d6df"/><text x="94" y="526" class="small">FFM '+pct(ffm)+'</text>'+
+ '<circle cx="240" cy="520" r="7" fill="#f4c66f"/><text x="256" y="526" class="small">FM '+pct(fm)+'</text>'+
+ '<circle cx="78" cy="554" r="7" fill="#ef8c67"/><text x="94" y="560" class="small">BCM '+pct(bcm)+'</text>'+
+ '<circle cx="240" cy="554" r="7" fill="#6fb3b8"/><text x="256" y="560" class="small">ECM '+pct(ecm)+'</text>'+
+
+ '<rect x="520" y="25" width="440" height="560" rx="22" fill="#fbfcfb" stroke="#dfe8e3" stroke-width="2"/>'+
+ '<text x="546" y="70" class="title">Distribuzione corporea</text>'+
+ '<text x="546" y="98" class="sub">Rilevazione '+shortDate(latest.date)+'</text>'+
+ '<g transform="translate(500 115)">'+
+   '<g clip-path="url(#pdfHumanClip)"><rect x="155" y="'+fmTop.toFixed(1)+'" width="150" height="'+fmBand.toFixed(1)+'" fill="#f4c66f"/><rect x="155" y="'+ecmTop.toFixed(1)+'" width="150" height="'+ecmBand.toFixed(1)+'" fill="#6fb3b8"/><rect x="155" y="'+bcmTop.toFixed(1)+'" width="150" height="'+bcmBand.toFixed(1)+'" fill="#ef8c67"/></g>'+
+   '<circle cx="230" cy="64" r="29" fill="none" stroke="#d1dcd6" stroke-width="2"/>'+
+   '<path d="M192 108 C171 121 163 145 166 175 L180 228 L194 224 L190 173 L201 156 L201 316 L222 316 L226 224 L234 224 L238 316 L259 316 L259 156 L270 173 L266 224 L280 228 L294 175 C297 145 289 121 268 108 C257 101 244 98 230 98 C216 98 203 101 192 108 Z" fill="none" stroke="#d1dcd6" stroke-width="2"/>'+
+   '<line x1="82" y1="'+fmMid.toFixed(1)+'" x2="191" y2="'+fmMid.toFixed(1)+'" stroke="#c49338" stroke-width="2" marker-end="url(#pdfArrow)"/><text x="24" y="'+(fmMid-7).toFixed(1)+'" font-size="17" font-weight="700" fill="#7c5b17">FM</text><text x="24" y="'+(fmMid+17).toFixed(1)+'" font-size="20" font-weight="700" fill="#7c5b17">'+pct(fm)+'</text>'+
+   '<line x1="378" y1="'+ecmMid.toFixed(1)+'" x2="270" y2="'+ecmMid.toFixed(1)+'" stroke="#3f8f95" stroke-width="2" marker-end="url(#pdfArrow)"/><text x="386" y="'+(ecmMid-7).toFixed(1)+'" font-size="17" font-weight="700" fill="#2f747a">ECM</text><text x="386" y="'+(ecmMid+17).toFixed(1)+'" font-size="20" font-weight="700" fill="#2f747a">'+pct(ecm)+'</text>'+
+   '<line x1="378" y1="'+bcmMid.toFixed(1)+'" x2="270" y2="'+bcmMid.toFixed(1)+'" stroke="#d96e47" stroke-width="2" marker-end="url(#pdfArrow)"/><text x="386" y="'+(bcmMid-7).toFixed(1)+'" font-size="17" font-weight="700" fill="#b95332">BCM</text><text x="386" y="'+(bcmMid+17).toFixed(1)+'" font-size="20" font-weight="700" fill="#b95332">'+pct(bcm)+'</text>'+
+ '</g>'+
+ '<rect x="548" y="510" width="384" height="52" rx="12" fill="#f5f8f6" stroke="#dde7e1"/><text x="568" y="542" class="label">FFM '+pct(ffm)+'</text><text x="720" y="542" class="small">massa magra complessiva</text>'+
+
+ '<rect x="40" y="625" width="920" height="625" rx="22" fill="#fbfcfb" stroke="#dfe8e3" stroke-width="2"/>'+
+ '<text x="66" y="674" class="title">Andamento composizione corporea</text>'+
+ '<text x="66" y="702" class="sub">Storico delle misurazioni professionali</text>'+
+ '<circle cx="596" cy="690" r="7" fill="#355f82"/><text x="612" y="696" class="small">Peso</text>'+
+ '<circle cx="695" cy="690" r="7" fill="#d99532"/><text x="711" y="696" class="small">FM</text>'+
+ '<circle cx="780" cy="690" r="7" fill="#4d8f75"/><text x="796" y="696" class="small">MM</text>'+
+ tickSvg+
+ '<line x1="'+tx0+'" y1="'+tyTop+'" x2="'+tx0+'" y2="'+tyBottom+'" stroke="#95a49d" stroke-width="1.2"/><line x1="'+tx0+'" y1="'+tyBottom+'" x2="'+tx1+'" y2="'+tyBottom+'" stroke="#95a49d" stroke-width="1.2"/>'+
+ (pathFor('weight')?'<path d="'+pathFor('weight')+'" fill="none" stroke="#355f82" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
+ (pathFor('fm')?'<path d="'+pathFor('fm')+'" fill="none" stroke="#d99532" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
+ (pathFor('mm')?'<path d="'+pathFor('mm')+'" fill="none" stroke="#4d8f75" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
+ dotsFor('weight','#355f82')+dotsFor('fm','#d99532')+dotsFor('mm','#4d8f75')+
+ '<text x="'+tx0+'" y="1193" text-anchor="start" font-size="18" fill="#718079">'+firstDate+'</text><text x="'+tx1+'" y="1193" text-anchor="end" font-size="18" fill="#718079">'+lastDate+'</text>'+
+ '<text x="66" y="1227" class="small">Ultima misura: FFM '+pct(ffm)+' · FM '+pct(fm)+' · MM '+pct(mm)+' · ECM '+pct(ecm)+' · BCM '+pct(bcm)+'</text>'+
+ '</svg>';
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
 async function clinicalJpegAsset(src,maxSide=900){
  if(!src)return null;
  return new Promise((resolve,reject)=>{
@@ -1626,7 +1728,9 @@ async function exportClinicalPdf(p,opts={}){
  const nubemo=await clinicalJpegAsset(NUBEMO_PDF_BRAND,1200).catch(()=>null);
  const nubemoIcon=await clinicalJpegAsset(NUBEMO_PDF_ICON,400).catch(()=>null);
  const professional=s.logoData?await clinicalJpegAsset(s.logoData,800).catch(()=>null):null;
- const pages=[],images={Nubemo:nubemo,NubemoIcon:nubemoIcon,ProLogo:professional};
+ const biaSvg=clinicalBiaPageSvgData(p.measures||[]);
+ const biaPage=biaSvg?await clinicalJpegAsset(biaSvg,1800).catch(()=>null):null;
+ const pages=[],images={Nubemo:nubemo,NubemoIcon:nubemoIcon,ProLogo:professional,BiaPage:biaPage};
 
  const age=ageFromBirth(p.birth);
  const current=weights.at(-1),first=weights[0];
@@ -1772,9 +1876,14 @@ async function exportClinicalPdf(p,opts={}){
    fmt(m.date),clinicalNumberText(m.professionalWeight,'kg'),
    clinicalHasValue(m.waist)?String(m.waist)+' cm':'',
    clinicalHasValue(m.hips)?String(m.hips)+' cm':'',
+   clinicalHasValue(m.ffm)?clinicalNumberText(m.ffm,'%'):'',
+   clinicalHasValue(m.fm)?clinicalNumberText(m.fm,'%'):'',
+   clinicalHasValue(m.mm)?clinicalNumberText(m.mm,'%'):'',
+   clinicalHasValue(m.ecm)?clinicalNumberText(m.ecm,'%'):'',
+   clinicalHasValue(m.bcm)?clinicalNumberText(m.bcm,'%'):'',
    clinicalHasValue(m.notes)?String(m.notes):''
- ]):[['—','—','—','—','—']];
- mf=clinicalFlowGridTable(mf,pages,'Antropometria e misure',['Data','Peso rilevato','Vita','Fianchi','Note'],measureRows,[76,96,70,70,199]);
+ ]):[['—','—','—','—','—','—','—','—','—','—']];
+ mf=clinicalFlowGridTable(mf,pages,'Antropometria e misure',['Data','Peso','Vita','Fianchi','FFM','FM','MM','ECM','BCM','Note'],measureRows,[52,52,45,45,43,43,43,43,43,102]);
 
  const allLabs=labsFor(p.id).slice().filter(x=>x&&x.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
  const labFields=[
@@ -1815,6 +1924,15 @@ async function exportClinicalPdf(p,opts={}){
    }
    chartRanges.forEach((r,i)=>pc+=clinicalPdfChart(clinicalFilterDays(weights,r[1]),x=>x.weight,r[0],'kg',42,470-i*185,511,155));
    pages.push(pc);
+ }
+
+ // -----------------------------------------------------------
+ // 6. BIA — sempre dopo andamento peso e prima dell'eventuale diario
+ // -----------------------------------------------------------
+ if(biaPage){
+   let bp=clinicalInnerHeader('Analisi BIA','Composizione corporea e andamento');
+   bp+=clinicalImageCmd('BiaPage',biaPage,42,78,511,690);
+   pages.push(bp);
  }
 
 
