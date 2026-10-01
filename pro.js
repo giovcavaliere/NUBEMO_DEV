@@ -2895,6 +2895,10 @@ function bind(){
  el('saveEditProfile')?.addEventListener('click',saveEditedPatientProfile);if(view==='editProfile'){const p=patient(selected),m={Diagnosis:p.diagnosis,TheoreticalWeight:p.theoreticalWeight,Bowel:p.bowel,Metabolism:p.metabolism,Feeg:p.feeg,Impedance:p.impedance,PreviousDiets:p.previousDiets,Allergies:p.allergies,Medications:p.medications,GiIssues:p.giIssues,PastConditions:p.pastConditions,Observations:p.observations,Objectives:p.objectives};Object.entries(m).forEach(([k,v])=>{const x=el('ep'+k);if(x)x.value=v||''});[['FamObesity','famObesity'],['FamDiabetes','famDiabetes'],['FamHypertension','famHypertension'],['FamCardiovascular','famCardiovascular'],['FamDyslipidemia','famDyslipidemia'],['FamThyroid','famThyroid']].forEach(([id,k])=>{const x=el('ep'+id);if(x)x.checked=!!p[k]})}
  el('newPatientMeasure')?.addEventListener('click',()=>{window.editMeasureDate=null;view='patientMeasure';render()});
  document.querySelectorAll('[data-edit-measure]').forEach(b=>b.addEventListener('click',()=>{window.editMeasureDate=b.dataset.editMeasure;view='patientMeasure';render()}));
+ document.addEventListener('nubemo:measure-deleted',e=>{
+   if(String(e.detail?.patientId||'')!==String(selected||''))return;
+   if(view==='details'&&(tab==='measures'||tab==='trend'))render();
+ },{once:true});
  document.querySelectorAll('[data-toggle-measure]').forEach(b=>b.addEventListener('click',()=>{
    const date=b.dataset.toggleMeasure;
    const card=document.querySelector(`[data-measure-card="${date}"]`);
