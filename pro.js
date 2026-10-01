@@ -1922,13 +1922,34 @@ function tabContent(p){
  if(tab==='account')return proAccount(p);
  if(tab==='diary')return proDiaryHistory(p);
  if(tab==='trend')return proTrendContent(p);
- if(tab==='measures')return `<div class="section-head"><h2>Misure</h2><button class="mini" id="newPatientMeasure">＋ Aggiungi misura</button></div>
- <div class="measure-table-wrap"><table class="measure-table"><thead><tr><th>Data</th><th>Peso rilevato</th><th>Vita</th><th>Fianchi</th><th>Note</th><th></th></tr></thead><tbody>
- ${(p.measures||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(m=>`<tr>
-   <td>${fmt(m.date)}</td><td>${m.professionalWeight!==''&&m.professionalWeight!=null?Number(m.professionalWeight).toFixed(1).replace('.',',')+' kg':'—'}</td><td>${m.waist!==''&&m.waist!=null?m.waist:'—'}</td><td>${m.hips!==''&&m.hips!=null?m.hips:'—'}</td><td>${esc(m.notes||'')}</td>
-   <td><button class="mini" data-edit-measure="${m.date}">Modifica</button></td>
- </tr>`).join('')||'<tr><td colspan="6">Nessuna misura.</td></tr>'}
- </tbody></table></div>`;
+ if(tab==='measures')return `<div class="section-head measure-section-head"><div><h2>Misure</h2><p class="muted">Antropometria e composizione corporea rilevate dal professionista.</p></div><button class="mini" id="newPatientMeasure">＋ Aggiungi misura</button></div>
+ <div class="measure-history-list">
+ ${(p.measures||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(m=>`<article class="measure-history-card">
+   <div class="measure-history-head">
+     <div><span class="measure-history-label">Rilevazione</span><b>${fmt(m.date)}</b></div>
+     <button class="mini" data-edit-measure="${m.date}">Modifica</button>
+   </div>
+   <div class="measure-history-groups">
+     <div class="measure-history-group">
+       <span class="measure-group-title">Antropometria</span>
+       <div class="measure-values-grid">
+         <div><span>Peso</span><b>${m.professionalWeight!==''&&m.professionalWeight!=null?Number(m.professionalWeight).toFixed(1).replace('.',',')+' kg':'—'}</b></div>
+         <div><span>Vita</span><b>${m.waist!==''&&m.waist!=null?Number(m.waist).toFixed(1).replace('.',',')+' cm':'—'}</b></div>
+         <div><span>Fianchi</span><b>${m.hips!==''&&m.hips!=null?Number(m.hips).toFixed(1).replace('.',',')+' cm':'—'}</b></div>
+       </div>
+     </div>
+     <div class="measure-history-group measure-history-bia">
+       <span class="measure-group-title">Composizione corporea</span>
+       <div class="measure-values-grid">
+         <div><span>FFM</span><b>${m.ffm!==''&&m.ffm!=null?Number(m.ffm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+         <div><span>FM</span><b>${m.fm!==''&&m.fm!=null?Number(m.fm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+         <div><span>MM</span><b>${m.mm!==''&&m.mm!=null?Number(m.mm).toFixed(1).replace('.',',')+'%':'—'}</b></div>
+       </div>
+     </div>
+   </div>
+   ${m.notes?`<div class="measure-history-note"><span>Note</span><p>${esc(m.notes)}</p></div>`:''}
+ </article>`).join('')||'<div class="measure-empty-state"><b>Nessuna misurazione registrata</b><span>Aggiungi la prima rilevazione per iniziare lo storico.</span></div>'}
+ </div>`;
  if(tab==='visits')return appointments().filter(a=>{
   if(a.type==='personal')return false;
   const ids=[...new Set((Array.isArray(a.patientIds)&&a.patientIds.length?a.patientIds:[a.patientId]).filter(Boolean).map(String))];
@@ -2203,12 +2224,31 @@ function patientMeasureForm(){
  if(!p)return `${top('Paziente non trovato')}`;
  const existing=window.editMeasureDate?(p.measures||[]).find(x=>x.date===window.editMeasureDate):null;
  return `${top(existing?'Modifica misurazione':'Nuova misurazione')}
- <section class="card">
-   <label>Data</label>${proDateControl('pmDate',existing?.date||today())}
-   <label>Peso rilevato dal professionista (kg)</label><input id="pmProfessionalWeight" type="number" min="30" max="300" step="0.1" value="${existing?.professionalWeight??''}" placeholder="Facoltativo">
-   <label>Circonferenza vita (cm)</label><input id="pmWaist" type="number" min="20" max="300" step="0.1" value="${existing?.waist??''}">
-   <label>Circonferenza fianchi (cm)</label><input id="pmHips" type="number" min="20" max="300" step="0.1" value="${existing?.hips??''}">
-   <label>Note</label><textarea id="pmNotes" rows="3">${esc(existing?.notes||'')}</textarea>
+ <section class="card measure-form-card">
+   <div class="measure-form-intro">
+     <div><div class="eyebrow">RILEVAZIONE</div><h2>${existing?'Modifica i dati registrati':'Nuova misurazione'}</h2></div>
+     <p class="muted">Inserisci solo i valori disponibili. I dati di composizione corporea sono espressi in percentuale.</p>
+   </div>
+   <div class="measure-form-section">
+     <h3>Dati rilevazione</h3>
+     <div class="measure-form-grid">
+       <label class="measure-field measure-field-date"><span>Data</span>${proDateControl('pmDate',existing?.date||today())}</label>
+       <label class="measure-field"><span>Peso rilevato (kg)</span><input id="pmProfessionalWeight" type="number" min="30" max="300" step="0.1" value="${existing?.professionalWeight??''}" placeholder="Facoltativo"></label>
+       <label class="measure-field"><span>Circonferenza vita (cm)</span><input id="pmWaist" type="number" min="20" max="300" step="0.1" value="${existing?.waist??''}" placeholder="Facoltativo"></label>
+       <label class="measure-field"><span>Circonferenza fianchi (cm)</span><input id="pmHips" type="number" min="20" max="300" step="0.1" value="${existing?.hips??''}" placeholder="Facoltativo"></label>
+     </div>
+   </div>
+   <div class="measure-form-section measure-form-bia">
+     <div class="measure-form-section-title"><div><h3>Composizione corporea</h3><p class="muted">Valori BIA espressi in percentuale.</p></div><span class="pill">%</span></div>
+     <div class="measure-form-grid measure-form-grid-bia">
+       <label class="measure-field"><span>FFM (%)</span><input id="pmFfm" type="number" min="0" max="100" step="0.01" value="${existing?.ffm??''}" placeholder="es. 82,91"></label>
+       <label class="measure-field"><span>FM (%)</span><input id="pmFm" type="number" min="0" max="100" step="0.01" value="${existing?.fm??''}" placeholder="es. 17,08"></label>
+       <label class="measure-field"><span>MM (%)</span><input id="pmMm" type="number" min="0" max="100" step="0.01" value="${existing?.mm??''}" placeholder="es. 53,08"></label>
+     </div>
+   </div>
+   <div class="measure-form-section">
+     <label class="measure-field measure-field-note"><span>Note</span><textarea id="pmNotes" rows="4" placeholder="Annotazioni sulla rilevazione">${esc(existing?.notes||'')}</textarea></label>
+   </div>
    <div class="pro3-actions"><button class="secondary" id="cancelPatientMeasure">Annulla</button><button class="primary" id="savePatientMeasure">${existing?'Salva modifiche':'Salva misura'}</button></div>
  </section>`;
 }
@@ -2216,10 +2256,11 @@ function savePatientMeasure(){
  const p=patient(selected); if(!p)return;
  const date=readProDate('pmDate',true); if(!date)return;
  const num=id=>{const v=(el(id)?.value||'').trim().replace(',','.');return v===''?'':Number(v)};
- const professionalWeight=num('pmProfessionalWeight'),waist=num('pmWaist'),hips=num('pmHips');
+ const professionalWeight=num('pmProfessionalWeight'),waist=num('pmWaist'),hips=num('pmHips'),ffm=num('pmFfm'),fm=num('pmFm'),mm=num('pmMm');
  if(professionalWeight!==''&&(!Number.isFinite(professionalWeight)||professionalWeight<30||professionalWeight>300))return alert('Controlla il peso rilevato.');
  for(const [label,v] of [['vita',waist],['fianchi',hips]])if(v!==''&&(!Number.isFinite(v)||v<20||v>300))return alert(`Controlla il valore ${label}.`);
- const obj={date,professionalWeight,waist,hips,notes:(el('pmNotes')?.value||'').trim()};
+ for(const [label,v] of [['FFM',ffm],['FM',fm],['MM',mm]])if(v!==''&&(!Number.isFinite(v)||v<0||v>100))return alert(`Controlla il valore ${label}: deve essere compreso tra 0 e 100%.`);
+ const obj={date,professionalWeight,waist,hips,ffm,fm,mm,notes:(el('pmNotes')?.value||'').trim()};
  const oldDate=window.editMeasureDate;
 
  if(selected==='main'){
