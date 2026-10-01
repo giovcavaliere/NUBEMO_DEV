@@ -260,7 +260,7 @@
       ensureSelectedPatientContext(patientId);
       if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
-      if(!hasScript('professional-measures-supabase-bridge.js'))await loadScript('professional-measures-supabase-bridge.js?v=nubemo-bia-snapshot-20261001a','Impossibile preparare le misure del paziente.');
+      if(!hasScript('professional-measures-supabase-bridge.js'))await loadScript('professional-measures-supabase-bridge.js?v=nubemo-measure-delete-20261001a','Impossibile preparare le misure del paziente.');
       await window.nubemoProfessionalMeasuresBridge?.ready;
       if(!window.nubemoProfessionalMeasuresBridge)throw new Error('Bridge Misure non inizializzato.');
       await window.nubemoProfessionalMeasuresBridge.ensurePatient(patientId);
@@ -405,7 +405,7 @@
       timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo-measures-20261001b','Impossibile preparare la Dashboard.');perfEnd(timer);
       timer=perfStart('Dashboard payload');await window.nubemoProfessionalDashboardBootstrap?.init?.(window.nubemoProfessionalContext);perfEnd(timer);
       if(logoutButton)logoutButton.style.display='inline-flex';
-      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo-bodytrend-20261001b','Impossibile caricare l’Area Professionista.');perfEnd(timer);
+      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo-measure-delete-20261001a','Impossibile caricare l’Area Professionista.');perfEnd(timer);
       installLazyRuntimeGate();perfEnd(totalTimer);
     }catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}
   }
