@@ -3464,3 +3464,20 @@ body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
  .measure-form-grid,.measure-form-grid-bia{grid-template-columns:1fr}
  .measure-form-section{padding:13px}
 }
+
+
+/* NUBEMO Misure accordion 20261001 */
+.measure-history-card.is-collapsed{padding:0;overflow:hidden}
+.measure-history-card.is-collapsed .measure-history-head{padding:12px 14px;border-bottom:0}
+.measure-history-card:not(.is-collapsed) .measure-history-head{padding:0 0 12px}
+.measure-toggle{display:flex;align-items:center;gap:9px;min-width:0;padding:0;border:0;background:transparent;color:#1d342e;text-align:left;cursor:pointer}
+.measure-toggle b{font-size:16px;line-height:1.2}
+.measure-toggle-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;border:1px solid #dfe7e1;background:#f8fbf8;color:#466158;font-size:20px;line-height:1;transition:transform .18s ease,background .18s ease}
+.measure-toggle[aria-expanded="true"] .measure-toggle-icon{transform:rotate(90deg);background:#eef6e8}
+.measure-history-body{padding-top:0}
+.measure-history-body[hidden]{display:none!important}
+.measure-history-card:not(.is-collapsed) .measure-history-body{display:block}
+@media(max-width:480px){
+ .measure-history-card.is-collapsed .measure-history-head{padding:11px 12px}
+ .measure-toggle b{font-size:15px}
+}
