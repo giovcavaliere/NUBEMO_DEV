@@ -136,7 +136,7 @@
     if(Number.isFinite(first))weights.push([String(row.pathway_start_date||'1900-01-01'),first]);
     if(Number.isFinite(last)&&(weights.length===0||last!==first))weights.push([today(),last]);
     return {
-      id:String(row.id),profileId:row.profile_id||null,createdAt:row.patient_created_at||'',
+      id:String(row.id),profileId:row.profile_id||null,pathwayId:row.pathway_id||null,createdAt:row.patient_created_at||'',
       name:String(row.name||'Paziente'),firstName:String(row.first_name||''),surname:String(row.last_name||''),
       phone:String(row.phone||''),email:String(row.email||''),birth:row.birth_date||'',sex:row.sex||'',height:row.height_cm??'',
       startDate:row.pathway_start_date||String(row.started_at||'').slice(0,10),
