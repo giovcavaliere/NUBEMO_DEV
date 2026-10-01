@@ -83,7 +83,7 @@
       perfEnd(timer);
 
       timer=perfStart('Services + elenco pazienti lazy');
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       const services=window.nubemoProfessionalServices;if(!services)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       const loaded=await services.loadPatients(ctx.professional.id);
       window.nubemoProfessionalContext={...window.nubemoProfessionalContext,patients:loaded.activePatients,endedPatients:loaded.endedPatients};
@@ -172,7 +172,7 @@
     if(labsTabPromise)return labsTabPromise.then(async()=>{await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);await window.nubemoProfessionalLabsBridge?.ensurePatient?.(patientId);});
     labsTabPromise=(async()=>{const timer=perfStart('Esami tab lazy');try{
       ensureSelectedPatientContext(patientId);
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       if(!hasScript('professional-documents-supabase-bridge.js'))await loadScript('professional-documents-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare i referti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);
       if(!hasScript('professional-document-read-supabase-bridge.js'))await loadScript('professional-document-read-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare lo stato di lettura dei referti.');await window.nubemoProfessionalDocumentReadBridge?.ready;
@@ -185,7 +185,7 @@
     if(planTabPromise)return planTabPromise.then(async()=>{window.nubemoProfessionalPlansBridge?.setCurrentPatient?.(patientId);await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);await window.nubemoProfessionalPlansBridge?.ensurePatient?.(patientId);});
     planTabPromise=(async()=>{const timer=perfStart('Piano tab lazy');try{
       ensureSelectedPatientContext(patientId);
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       if(!hasScript('professional-documents-supabase-bridge.js'))await loadScript('professional-documents-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare i documenti del piano.');await window.nubemoProfessionalDocumentsBridge?.ready;await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);
       if(!hasScript('professional-plans-supabase-bridge.js'))await loadScript('professional-plans-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare i piani alimentari.');await window.nubemoProfessionalPlansBridge?.ready;window.nubemoProfessionalPlansBridge?.setCurrentPatient?.(patientId);await window.nubemoProfessionalPlansBridge?.ensurePatient?.(patientId);
     }finally{perfEnd(timer);}})().catch(error=>{planTabPromise=null;throw error;});return planTabPromise;
@@ -196,7 +196,7 @@
     if(documentsTabPromise)return documentsTabPromise.then(async()=>{await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);});
     documentsTabPromise=(async()=>{const timer=perfStart('Documenti tab lazy');try{
       ensureSelectedPatientContext(patientId);
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       if(!hasScript('professional-documents-supabase-bridge.js'))await loadScript('professional-documents-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare i documenti del paziente.');await window.nubemoProfessionalDocumentsBridge?.ready;await window.nubemoProfessionalDocumentsBridge?.ensurePatient?.(patientId);
       if(!hasScript('professional-document-read-supabase-bridge.js'))await loadScript('professional-document-read-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare lo stato di lettura dei documenti.');await window.nubemoProfessionalDocumentReadBridge?.ready;
     }finally{perfEnd(timer);}})().catch(error=>{documentsTabPromise=null;throw error;});return documentsTabPromise;
@@ -206,7 +206,7 @@
     if(!patientId)throw new Error('Paziente non disponibile.');
     if(privacyTabPromise)return privacyTabPromise.then(async()=>{await ensurePatientAccessContext(patientId);window.nubemoProfessionalAccessPrivacyBridge?.setCurrentPatient?.(patientId);});
     privacyTabPromise=(async()=>{const timer=perfStart('Privacy tab lazy');try{
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       await ensurePatientAccessContext(patientId);
       if(!hasScript('professional-access-privacy-supabase-bridge.js'))await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare la privacy del paziente.');if(!window.nubemoProfessionalAccessPrivacyBridge)throw new Error('Bridge Privacy non inizializzato.');window.nubemoProfessionalAccessPrivacyBridge.setCurrentPatient?.(patientId);
     }finally{perfEnd(timer);}})().catch(error=>{privacyTabPromise=null;throw error;});return privacyTabPromise;
@@ -216,7 +216,7 @@
     if(!patientId)throw new Error('Paziente non disponibile.');
     if(accountTabPromise)return accountTabPromise.then(async()=>{await ensurePatientAccessContext(patientId);window.nubemoProfessionalAccessPrivacyBridge?.setCurrentPatient?.(patientId);});
     accountTabPromise=(async()=>{const timer=perfStart('Account tab lazy');try{
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       await ensurePatientAccessContext(patientId);
       if(!hasScript('professional-access-privacy-supabase-bridge.js'))await loadScript('professional-access-privacy-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare l’account del paziente.');if(!window.nubemoProfessionalAccessPrivacyBridge)throw new Error('Bridge Account non inizializzato.');window.nubemoProfessionalAccessPrivacyBridge.setCurrentPatient?.(patientId);
     }finally{perfEnd(timer);}})().catch(error=>{accountTabPromise=null;throw error;});return accountTabPromise;
@@ -227,7 +227,7 @@
     if(diaryTabPromise)return diaryTabPromise.then(async()=>{await window.nubemoProfessionalPatientDiaryLazy?.load?.(patientId,30);window.nubemoProfessionalDiaryCaloriesBridge?.installRuntimeHelpers?.();});
     diaryTabPromise=(async()=>{const timer=perfStart('Diario tab lazy · 30 giorni');try{
       ensureSelectedPatientContext(patientId);
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       if(!hasScript('professional-diary-calorie-supabase-bridge.js'))await loadScript('professional-diary-calorie-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare le calorie persistite del Diario.');
       if(!hasScript('professional-patient-diary-lazy.js'))await loadScript('professional-patient-diary-lazy.js?v=nubemo40clean04','Impossibile preparare il Diario del paziente.');
@@ -258,9 +258,9 @@
     if(measuresTabPromise)return measuresTabPromise.then(async()=>{await window.nubemoProfessionalMeasuresBridge?.ensurePatient?.(patientId);});
     measuresTabPromise=(async()=>{const timer=perfStart('Misure tab lazy');try{
       ensureSelectedPatientContext(patientId);
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
-      if(!hasScript('professional-measures-supabase-bridge.js'))await loadScript('professional-measures-supabase-bridge.js?v=nubemo-measures-20261001c','Impossibile preparare le misure del paziente.');
+      if(!hasScript('professional-measures-supabase-bridge.js'))await loadScript('professional-measures-supabase-bridge.js?v=nubemo-bia-snapshot-20261001a','Impossibile preparare le misure del paziente.');
       await window.nubemoProfessionalMeasuresBridge?.ready;
       if(!window.nubemoProfessionalMeasuresBridge)throw new Error('Bridge Misure non inizializzato.');
       await window.nubemoProfessionalMeasuresBridge.ensurePatient(patientId);
@@ -273,7 +273,7 @@
     if(visitsTabPromise)return visitsTabPromise.then(async()=>{await window.nubemoProfessionalVisitsBridge?.ensurePatient?.(patientId);});
     visitsTabPromise=(async()=>{const timer=perfStart('Visite tab lazy');try{
       ensureSelectedPatientContext(patientId);
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       if(!hasScript('professional-visits-supabase-bridge.js'))await loadScript('professional-visits-supabase-bridge.js?v=nubemo-visits-20260930a','Impossibile preparare le visite del paziente.');
       await window.nubemoProfessionalVisitsBridge?.ready;
@@ -288,7 +288,7 @@
     if(notesTabPromise)return notesTabPromise.then(async()=>{await window.nubemoProfessionalNotesBridge?.ensurePatient?.(patientId);});
     notesTabPromise=(async()=>{const timer=perfStart('Note tab lazy');try{
       ensureSelectedPatientContext(patientId);
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       if(!hasScript('professional-notes-supabase-bridge.js'))await loadScript('professional-notes-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare le note del paziente.');
       await window.nubemoProfessionalNotesBridge?.ready;
@@ -304,7 +304,7 @@
       const dashboard=window.nubemoProfessionalDashboardBootstrap;
       if(!dashboard)throw new Error('Dashboard bridge non disponibile.');
       await dashboard.loadPatientsList();
-      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-measures-20261001c','Impossibile caricare i servizi Supabase dell’Area Professionista.');
+      if(!hasScript('professional-services.js'))await loadScript('professional-services.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare i servizi Supabase dell’Area Professionista.');
       if(!window.nubemoProfessionalServices)throw new Error('Servizi Supabase Area Professionista non inizializzati.');
       if(!hasScript('professional-settings-supabase-bridge.js'))await loadScript('professional-settings-supabase-bridge.js?v=nubemo40clean04','Impossibile preparare le impostazioni dell’Agenda.');
       await window.nubemoProfessionalSettingsBridge?.ready;
@@ -405,7 +405,7 @@
       timer=perfStart('Dashboard bridge');await loadScript('professional-dashboard-bootstrap.js?v=nubemo-measures-20261001b','Impossibile preparare la Dashboard.');perfEnd(timer);
       timer=perfStart('Dashboard payload');await window.nubemoProfessionalDashboardBootstrap?.init?.(window.nubemoProfessionalContext);perfEnd(timer);
       if(logoutButton)logoutButton.style.display='inline-flex';
-      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo-measures-20261001d','Impossibile caricare l’Area Professionista.');perfEnd(timer);
+      timer=perfStart('pro.js');await loadScript('pro.js?v=nubemo-bia-snapshot-20261001a','Impossibile caricare l’Area Professionista.');perfEnd(timer);
       installLazyRuntimeGate();perfEnd(totalTimer);
     }catch(error){console.error('NUBEMO Professional guard:',error);showGuardError('Non è stato possibile verificare l’accesso. Torna al login e riprova.');}
   }
