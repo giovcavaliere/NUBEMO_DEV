@@ -245,7 +245,10 @@
       ensureSelectedPatientContext(patientId);
       if(!hasScript('professional-patient-trend-lazy.js'))await loadScript('professional-patient-trend-lazy.js?v=nubemo40clean04','Impossibile preparare l’andamento del paziente.');
       if(!window.nubemoProfessionalPatientTrendLazy)throw new Error('Loader Andamento non inizializzato.');
-      await window.nubemoProfessionalPatientTrendLazy.load(patientId);
+      await Promise.all([
+        window.nubemoProfessionalPatientTrendLazy.load(patientId),
+        ensureMeasuresTab(patientId)
+      ]);
     }finally{perfEnd(timer);}})().catch(error=>{trendTabPromise=null;throw error;});
     return trendTabPromise;
   }
