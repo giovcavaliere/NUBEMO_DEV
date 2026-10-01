@@ -122,6 +122,35 @@
   }
 
   document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('[data-delete-measure]');
+    if(!button)return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const patientId=currentPatientId;
+    const measuredAt=String(button.dataset.deleteMeasure||'');
+    if(!patientId||!measuredAt)return;
+    const confirmed=window.confirm(`Eliminare la misurazione del ${new Date(measuredAt+'T12:00:00').toLocaleDateString('it-IT')}?\n\nLa misurazione verrà rimossa dallo storico e dai grafici.`);
+    if(!confirmed)return;
+    button.disabled=true;
+    void (async()=>{
+      let rows=rowsByPatient.get(patientId)||await ensurePatient(patientId);
+      const row=rows.find(item=>String(item.measured_at)===measuredAt);
+      if(!row?.id)throw new Error('Misurazione non trovata.');
+      const deleted=await client.rpc('soft_delete_associated_patient_measurement',{p_measurement_id:row.id});
+      if(deleted.error)throw deleted.error;
+      rows=await services().loadPatientMeasurements(patientId);
+      rowsByPatient.set(patientId,rows);
+      publish(patientId,rows);
+      window.editMeasureDate=null;
+      document.dispatchEvent(new CustomEvent('nubemo:measure-deleted',{detail:{patientId,measuredAt}}));
+    })().catch(error=>{
+      console.error('NUBEMO Misure delete lazy:',error);
+      alert('Non riesco a eliminare la misurazione. Riprova.');
+      if(document.body.contains(button))button.disabled=false;
+    });
+  },true);
+
+  document.addEventListener('click',event=>{
     const button=event.target?.closest?.('#savePatientMeasure');
     if(!button)return;
     event.preventDefault();
