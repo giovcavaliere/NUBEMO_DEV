@@ -837,6 +837,8 @@ function proBiaSnapshot(p){
   const ecmMid=(ecmTop+bcmTop)/2;
   const fmMid=(fmTop+ecmTop)/2;
   const ffmBoundary=ecmTop;
+  const fmCallY=Math.max(72,Math.min(108,fmMid));
+  const ffmCallY=Math.max(fmCallY+54,Math.min(168,ffmBoundary));
 
   return `<section class="card bia-snapshot-card">
     <div class="section-head bia-snapshot-head">
@@ -879,7 +881,7 @@ function proBiaSnapshot(p){
       </div>
 
       <div class="bia-body-panel">
-        <div class="bia-panel-title"><b>Distribuzione corporea</b><span>Proporzione sul totale BCM + ECM + FM</span></div>
+        <div class="bia-panel-title"><b>Distribuzione corporea</b></div>
         <svg class="bia-body-svg" viewBox="0 0 460 350" role="img" aria-label="Distribuzione corporea proporzionale: FM ${biaPct(fm)}, FFM ${biaPct(ffm)}, ECM ${biaPct(ecm)}, BCM ${biaPct(bcm)}">
           <defs>
             <clipPath id="biaHumanClip">
@@ -903,14 +905,14 @@ function proBiaSnapshot(p){
           </g>
 
           <g class="bia-callout bia-callout-fm">
-            <line x1="82" y1="${fmMid.toFixed(1)}" x2="191" y2="${fmMid.toFixed(1)}" marker-end="url(#biaArrow)"/>
-            <text x="24" y="${(fmMid-8).toFixed(1)}">FM</text>
-            <text x="24" y="${(fmMid+14).toFixed(1)}" class="bia-callout-value">${biaPct(fm)}</text>
+            <line x1="82" y1="${fmCallY.toFixed(1)}" x2="191" y2="${fmCallY.toFixed(1)}" marker-end="url(#biaArrow)"/>
+            <text x="24" y="${(fmCallY-8).toFixed(1)}">FM</text>
+            <text x="24" y="${(fmCallY+14).toFixed(1)}" class="bia-callout-value">${biaPct(fm)}</text>
           </g>
           <g class="bia-callout bia-callout-ffm">
-            <line x1="82" y1="${ffmBoundary.toFixed(1)}" x2="191" y2="${ffmBoundary.toFixed(1)}" marker-end="url(#biaArrow)"/>
-            <text x="24" y="${(ffmBoundary-9).toFixed(1)}">FFM</text>
-            <text x="24" y="${(ffmBoundary+13).toFixed(1)}" class="bia-callout-value">${biaPct(ffm)}</text>
+            <line x1="82" y1="${ffmCallY.toFixed(1)}" x2="197" y2="${ffmCallY.toFixed(1)}" marker-end="url(#biaArrow)"/>
+            <text x="24" y="${(ffmCallY-9).toFixed(1)}">FFM</text>
+            <text x="24" y="${(ffmCallY+13).toFixed(1)}" class="bia-callout-value">${biaPct(ffm)}</text>
           </g>
           <g class="bia-callout bia-callout-ecm">
             <line x1="378" y1="${ecmMid.toFixed(1)}" x2="270" y2="${ecmMid.toFixed(1)}" marker-end="url(#biaArrow)"/>
