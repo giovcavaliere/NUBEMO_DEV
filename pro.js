@@ -841,7 +841,6 @@ function proBiaSnapshot(p){
   const fmMid=(fmTop+ecmTop)/2;
   const ffmBoundary=ecmTop;
   const fmCallY=Math.max(72,Math.min(108,fmMid));
-  const ffmCallY=Math.max(fmCallY+54,Math.min(168,ffmBoundary));
 
   return `<section class="card bia-snapshot-card">
     <div class="section-head bia-snapshot-head">
@@ -911,11 +910,6 @@ function proBiaSnapshot(p){
             <line x1="82" y1="${fmCallY.toFixed(1)}" x2="191" y2="${fmCallY.toFixed(1)}" marker-end="url(#biaArrow)"/>
             <text x="24" y="${(fmCallY-8).toFixed(1)}">FM</text>
             <text x="24" y="${(fmCallY+14).toFixed(1)}" class="bia-callout-value">${biaPct(fm)}</text>
-          </g>
-          <g class="bia-callout bia-callout-ffm">
-            <line x1="82" y1="${ffmCallY.toFixed(1)}" x2="197" y2="${ffmCallY.toFixed(1)}" marker-end="url(#biaArrow)"/>
-            <text x="24" y="${(ffmCallY-9).toFixed(1)}">FFM</text>
-            <text x="24" y="${(ffmCallY+13).toFixed(1)}" class="bia-callout-value">${biaPct(ffm)}</text>
           </g>
           <g class="bia-callout bia-callout-ecm">
             <line x1="378" y1="${ecmMid.toFixed(1)}" x2="270" y2="${ecmMid.toFixed(1)}" marker-end="url(#biaArrow)"/>
