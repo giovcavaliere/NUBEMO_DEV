@@ -3601,3 +3601,13 @@ body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
  .body-trend-svg{height:255px}
  .body-trend-toggle{min-height:40px;padding:8px 12px}
 }
+
+
+/* NUBEMO Misure delete action 20261001 */
+.measure-history-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.measure-history-actions .danger-soft{color:#a24737;border-color:#ead2cc;background:#fff8f6}
+.measure-history-actions .danger-soft:hover{background:#fff1ed}
+@media(max-width:480px){
+ .measure-history-actions{gap:6px}
+ .measure-history-actions .mini{padding-left:9px;padding-right:9px}
+}
