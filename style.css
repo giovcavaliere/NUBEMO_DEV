@@ -3554,3 +3554,18 @@ body.android-phone-landscape:not(.landing-body):not(.pro-body) .card{
 .bia-callout-ffm line{stroke:#2e6f7d}.bia-callout-ffm text{fill:#235763}
 .bia-callout-ecm line{stroke:#3f8f95}.bia-callout-ecm text{fill:#2f747a}
 .bia-callout-bcm line{stroke:#d96e47}.bia-callout-bcm text{fill:#b95332}
+
+
+/* NUBEMO BIA proportional human 20261001 */
+.bia-bars-scale{position:relative;padding-left:34px}
+.bia-scale-axis{position:absolute;left:0;top:12px;bottom:38px;width:28px;color:#7a8a84;font-size:10px}
+.bia-scale-axis span{position:absolute;right:0;transform:translateY(50%)}
+.bia-stack{overflow:visible}
+.bia-segment{flex-shrink:0}
+.bia-human-fm{fill:#f4c66f}
+.bia-human-ecm{fill:#6fb3b8}
+.bia-human-bcm{fill:#ef8c67}
+.bia-human-stroke{fill:none;stroke:#d1dcd6;stroke-width:2}
+.bia-ffm-note{margin-top:12px;padding:11px 12px;border-radius:12px;background:#f7faf8;border:1px solid #e3ebe6;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.bia-ffm-note b{color:#235763}
+.bia-ffm-note span{font-size:12px;color:#64756e}
