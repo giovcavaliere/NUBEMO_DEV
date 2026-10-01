@@ -69,6 +69,11 @@
       waist:numberOrBlank(row?.waist_cm),
       hips:numberOrBlank(row?.hips_cm),
       height:numberOrBlank(row?.height_cm),
+      ffm:numberOrBlank(row?.ffm_pct),
+      fm:numberOrBlank(row?.fm_pct),
+      mm:numberOrBlank(row?.mm_pct),
+      ecm:numberOrBlank(row?.ecm_pct),
+      bcm:numberOrBlank(row?.bcm_pct),
       notes:row?.notes||''
     };
   }
