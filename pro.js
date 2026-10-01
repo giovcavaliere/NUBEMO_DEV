@@ -793,6 +793,108 @@ function proBmiChart(items,days,height){
   return `<div class="chart-wrap"><svg class="chart responsive-chart" viewBox="0 0 160 80" preserveAspectRatio="none">${grid}<line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" class="chart-axis"/><line x1="${left}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/><polyline points="${pts}" class="chart-bmi-line" fill="none" vector-effect="non-scaling-stroke"/>${data.map((x,i)=>`<circle cx="${xFor(i)}" cy="${yFor(x.bmi)}" r="0.8" class="chart-bmi-point" vector-effect="non-scaling-stroke"/>`).join('')}<text x="${left}" y="${dateY}" text-anchor="start" class="chart-x-label">${startLabel}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${endLabel}</text></svg><span class="chart-unit-fixed">BMI</span></div>`;
 }
 
+function latestCompleteBiaMeasure(p){
+  return (p.measures||[])
+    .filter(m=>{
+      const vals=[m?.ffm,m?.fm,m?.ecm,m?.bcm].map(Number);
+      return m?.date&&vals.every(Number.isFinite);
+    })
+    .slice()
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0]||null;
+}
+function biaPct(value){return Number(value).toFixed(1).replace('.',',')+'%'}
+function biaPairHeights(a,b){
+  const av=Math.max(0,Number(a)||0),bv=Math.max(0,Number(b)||0),total=av+bv;
+  if(!total)return [50,50];
+  return [av/total*100,bv/total*100];
+}
+function proBiaSnapshot(p){
+  const m=latestCompleteBiaMeasure(p);
+  if(!m)return `<section class="card bia-snapshot-card">
+    <div class="section-head"><div><h2>Stato nutrizionale</h2><p class="muted">Ultima misurazione completa del professionista.</p></div></div>
+    <div class="bia-empty"><b>Nessuna misurazione completa disponibile</b><span>Per visualizzare questo grafico servono FFM, FM, ECM e BCM nella stessa rilevazione.</span></div>
+  </section>`;
+
+  const [ffmH,fmH]=biaPairHeights(m.ffm,m.fm);
+  const [bcmH,ecmH]=biaPairHeights(m.bcm,m.ecm);
+  return `<section class="card bia-snapshot-card">
+    <div class="section-head bia-snapshot-head">
+      <div><h2>Stato nutrizionale</h2><p class="muted">Ultima misurazione completa del professionista.</p></div>
+      <span class="pill">Rilevazione ${fmt(m.date)}</span>
+    </div>
+
+    <div class="bia-snapshot-grid">
+      <div class="bia-bars-panel">
+        <div class="bia-panel-title"><b>Distribuzione delle masse</b><span>Valori percentuali</span></div>
+        <div class="bia-bars-stage">
+          <div class="bia-stack-wrap">
+            <div class="bia-stack" aria-label="FFM ${biaPct(m.ffm)}, FM ${biaPct(m.fm)}">
+              <div class="bia-segment bia-ffm" style="height:${ffmH.toFixed(2)}%"><span>FFM <b>${biaPct(m.ffm)}</b></span></div>
+              <div class="bia-segment bia-fm" style="height:${fmH.toFixed(2)}%"><span>FM <b>${biaPct(m.fm)}</b></span></div>
+            </div>
+            <strong>FFM / FM</strong>
+          </div>
+          <div class="bia-stack-wrap">
+            <div class="bia-stack" aria-label="BCM ${biaPct(m.bcm)}, ECM ${biaPct(m.ecm)}">
+              <div class="bia-segment bia-bcm" style="height:${bcmH.toFixed(2)}%"><span>BCM <b>${biaPct(m.bcm)}</b></span></div>
+              <div class="bia-segment bia-ecm" style="height:${ecmH.toFixed(2)}%"><span>ECM <b>${biaPct(m.ecm)}</b></span></div>
+            </div>
+            <strong>BCM / ECM</strong>
+          </div>
+        </div>
+        <div class="bia-legend" aria-label="Legenda">
+          <span><i class="bia-dot bia-ffm"></i>FFM <b>${biaPct(m.ffm)}</b></span>
+          <span><i class="bia-dot bia-fm"></i>FM <b>${biaPct(m.fm)}</b></span>
+          <span><i class="bia-dot bia-bcm"></i>BCM <b>${biaPct(m.bcm)}</b></span>
+          <span><i class="bia-dot bia-ecm"></i>ECM <b>${biaPct(m.ecm)}</b></span>
+        </div>
+      </div>
+
+      <div class="bia-body-panel">
+        <div class="bia-panel-title"><b>Distribuzione cellulare</b><span>ECM e BCM</span></div>
+        <svg class="bia-body-svg" viewBox="0 0 420 330" role="img" aria-label="Rappresentazione ECM ${biaPct(m.ecm)} e BCM ${biaPct(m.bcm)}">
+          <defs>
+            <filter id="biaSoft" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="6"/>
+            </filter>
+            <marker id="biaArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" class="bia-arrow-head"/>
+            </marker>
+          </defs>
+
+          <g class="bia-ecm-aura" filter="url(#biaSoft)">
+            <ellipse cx="210" cy="67" rx="42" ry="42"/>
+            <path d="M160 112 C132 126 118 157 121 196 C123 225 135 255 151 291 L178 286 C171 254 168 227 170 199 L170 300 L250 300 L250 199 C252 227 249 254 242 286 L269 291 C285 255 297 225 299 196 C302 157 288 126 260 112 C245 104 229 102 210 102 C191 102 175 104 160 112 Z"/>
+          </g>
+
+          <g class="bia-body-core">
+            <circle cx="210" cy="64" r="28"/>
+            <path d="M176 108 C158 118 150 139 153 166 L165 218 L177 216 L172 168 L181 153 L181 292 L201 292 L206 214 L214 214 L219 292 L239 292 L239 153 L248 168 L243 216 L255 218 L267 166 C270 139 262 118 244 108 C234 102 222 100 210 100 C198 100 186 102 176 108 Z"/>
+          </g>
+
+          <g class="bia-body-highlight">
+            <ellipse cx="210" cy="151" rx="24" ry="46"/>
+            <ellipse cx="196" cy="233" rx="10" ry="45"/>
+            <ellipse cx="224" cy="233" rx="10" ry="45"/>
+          </g>
+
+          <g class="bia-callout bia-callout-ecm">
+            <line x1="78" y1="142" x2="154" y2="142" marker-end="url(#biaArrow)"/>
+            <text x="24" y="132">ECM</text>
+            <text x="24" y="153" class="bia-callout-value">${biaPct(m.ecm)}</text>
+          </g>
+          <g class="bia-callout bia-callout-bcm">
+            <line x1="342" y1="190" x2="260" y2="190" marker-end="url(#biaArrow)"/>
+            <text x="350" y="180">BCM</text>
+            <text x="350" y="201" class="bia-callout-value">${biaPct(m.bcm)}</text>
+          </g>
+        </svg>
+        <div class="bia-body-caption"><span><i class="bia-dot bia-ecm"></i>ECM · comparto extracellulare</span><span><i class="bia-dot bia-bcm"></i>BCM · massa cellulare</span></div>
+      </div>
+    </div>
+  </section>`;
+}
+
 function proTrendContent(p){
   const all=clinicalWeightSeries(p).map(x=>({date:x.date,weight:Number(x.weight)})).filter(x=>Number.isFinite(x.weight)).sort((a,b)=>a.date.localeCompare(b.date));
   const first=all[0],last=all.at(-1),delta=first&&last?last.weight-first.weight:null;
@@ -800,7 +902,8 @@ function proTrendContent(p){
 
   return `<section class="card chart-card"><div class="section-head"><h2>Peso</h2><label class="toggle"><input id="proMovingAverage" type="checkbox" ${proShowMovingAverage?'checked':''}><span>Media 7 gg</span></label></div><div class="tabs">${[[7,'7 giorni'],[30,'30 giorni'],[90,'3 mesi'],[0,'Tutto']].map(([n,l])=>`<button data-pro-trend="${n}" class="${proTrendDays===n?'active':''}">${l}</button>`).join('')}</div>${proWeightChart(all,proTrendDays)}</section>
   <section class="card summary"><div class="section-head"><h2>Riepilogo peso</h2><span class="pill">Totale</span></div>${first?`<div class="stats"><div><span>Peso iniziale</span><b>${first.weight.toFixed(1).replace('.',',')} kg</b></div><div><span>Ultimo peso</span><b>${last.weight.toFixed(1).replace('.',',')} kg</b></div><div><span>Variazione</span><b class="${delta<0?'good':delta>0?'up':''}">${delta>0?'+':''}${delta.toFixed(1).replace('.',',')} kg</b></div></div>`:'<p class="muted">Nessun dato.</p>'}</section>
-  <section class="card chart-card"><div class="section-head"><h2>BMI</h2>${currentBmi?`<span class="pill">${currentBmi.toFixed(1).replace('.',',')} · ${proBmiLabel(currentBmi)}</span>`:'<span class="pill">Profilo</span>'}</div><div class="tabs">${[[7,'7 giorni'],[30,'30 giorni'],[90,'3 mesi'],[0,'Tutto']].map(([n,l])=>`<button data-pro-bmi="${n}" class="${proBmiDays===n?'active':''}">${l}</button>`).join('')}</div>${proBmiChart(all,proBmiDays,p.height)}</section>`;
+  <section class="card chart-card"><div class="section-head"><h2>BMI</h2>${currentBmi?`<span class="pill">${currentBmi.toFixed(1).replace('.',',')} · ${proBmiLabel(currentBmi)}</span>`:'<span class="pill">Profilo</span>'}</div><div class="tabs">${[[7,'7 giorni'],[30,'30 giorni'],[90,'3 mesi'],[0,'Tutto']].map(([n,l])=>`<button data-pro-bmi="${n}" class="${proBmiDays===n?'active':''}">${l}</button>`).join('')}</div>${proBmiChart(all,proBmiDays,p.height)}</section>
+  ${proBiaSnapshot(p)}`;
 }
 
 
