@@ -796,12 +796,13 @@ function proBmiChart(items,days,height){
   return `<div class="chart-wrap"><svg class="chart responsive-chart" viewBox="0 0 160 80" preserveAspectRatio="none">${grid}<line x1="${axisLeft}" y1="${top}" x2="${axisLeft}" y2="${bottom}" class="chart-axis"/><line x1="${axisLeft}" y1="${bottom}" x2="${right}" y2="${bottom}" class="chart-axis"/><polyline points="${pts}" class="chart-bmi-line" fill="none" vector-effect="non-scaling-stroke"/>${data.map((x,i)=>`<circle cx="${xFor(i)}" cy="${yFor(x.bmi)}" r="0.8" class="chart-bmi-point" vector-effect="non-scaling-stroke"/>`).join('')}<text x="${plotLeft}" y="${dateY}" text-anchor="start" class="chart-x-label">${startLabel}</text><text x="${right}" y="${dateY}" text-anchor="end" class="chart-x-label">${endLabel}</text></svg><span class="chart-unit-fixed">BMI</span></div>`;
 }
 
+function biaHasNumericValue(value){
+  if(value===''||value===null||value===undefined)return false;
+  return Number.isFinite(Number(value));
+}
 function latestCompleteBiaMeasure(p){
   return (p.measures||[])
-    .filter(m=>{
-      const vals=[m?.ffm,m?.fm,m?.ecm,m?.bcm].map(Number);
-      return m?.date&&vals.every(Number.isFinite);
-    })
+    .filter(m=>m?.date&&[m?.ffm,m?.fm,m?.ecm,m?.bcm].every(biaHasNumericValue))
     .slice()
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0]||null;
 }
@@ -822,6 +823,13 @@ function proBiaSnapshot(p){
   </section>`;
 
   const ffm=biaPositive(m.ffm),fm=biaPositive(m.fm),ecm=biaPositive(m.ecm),bcm=biaPositive(m.bcm);
+  if(ffm===0&&fm===0&&ecm===0&&bcm===0)return `<section class="card bia-snapshot-card">
+    <div class="section-head bia-snapshot-head">
+      <div><h2>Stato nutrizionale</h2><p class="muted">Ultima misurazione completa del professionista.</p></div>
+      <span class="pill">Rilevazione ${fmt(m.date)}</span>
+    </div>
+    <div class="bia-empty"><b>Dati BIA non valorizzati</b><span>La rilevazione del ${fmt(m.date)} non contiene valori utili per la rappresentazione grafica.</span></div>
+  </section>`;
   const [ffmH,fmH,ffmRest]=biaScale100(ffm,fm);
   const [bcmH,ecmH,bcmRest]=biaScale100(bcm,ecm);
 
@@ -2770,12 +2778,19 @@ async function ensureProPatientHydrated(patientId){
  if(!patientId||!adapter?.ensurePatientHydrated)return;
  await adapter.ensurePatientHydrated(patientId);
 }
+async function ensureProfessionalMeasuresLoaded(patientId){
+ const bridge=window.nubemoProfessionalMeasuresBridge;
+ if(!patientId||!bridge?.ensurePatient)return;
+ await bridge.ensurePatient(patientId);
+}
 async function openPatientDetails(patientId,targetTab='summary'){
  if(!patientId)return;
  try{
    await ensureProPatientHydrated(patientId);
+   const nextTab=targetTab||'summary';
+   if(nextTab==='trend'||nextTab==='measures')await ensureProfessionalMeasuresLoaded(patientId);
    selected=patientId;
-   tab=targetTab||'summary';
+   tab=nextTab;
    view='details';
    render();
    scrollTo(0,0);
@@ -2970,8 +2985,15 @@ function bind(){
    if(!wrap)el('patientMoreMenu')?.classList.remove('open');
  },{once:true});
 
- document.querySelectorAll('[data-patient-tab]').forEach(b=>b.addEventListener('click',()=>{
-   tab=b.dataset.patientTab; view='details'; render(); scrollTo(0,0);
+ document.querySelectorAll('[data-patient-tab]').forEach(b=>b.addEventListener('click',async()=>{
+   const nextTab=b.dataset.patientTab;
+   try{
+     if(nextTab==='trend'||nextTab==='measures')await ensureProfessionalMeasuresLoaded(selected);
+     tab=nextTab; view='details'; render(); scrollTo(0,0);
+   }catch(error){
+     console.error('NUBEMO patient measures lazy load:',error);
+     alert('Non riesco a caricare le misurazioni. Riprova.');
+   }
  }));
 
  el('desktopClinicalPdf')?.addEventListener('click',clinicalDialog);
