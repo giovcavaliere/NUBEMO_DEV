@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0c5449">
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
-  <link rel="stylesheet" href="professional-v2/home-design.css?v=pro2-rotation-fix-20261003">
+  <link rel="stylesheet" href="professional-v2/home-design.css?v=pro2-patients-step1-20261003">
+  <link rel="stylesheet" href="professional-v2/patients.css?v=pro2-patients-step1-20261003">
   <title>NUBEMO Professional 2.0</title>
 </head>
 <body>
@@ -42,8 +43,8 @@
           </div>
 
           <nav class="side-nav" aria-label="Navigazione principale">
-            <a class="active" href="#" aria-current="page"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-home"/></svg><span>Dashboard</span></a>
-            <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-patients"/></svg><span>Pazienti</span></a>
+            <a class="active" href="#dashboard" data-route-link="dashboard" aria-current="page"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-home"/></svg><span>Dashboard</span></a>
+            <a href="#patients" data-route-link="patients"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-patients"/></svg><span>Pazienti</span></a>
             <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg><span>Agenda</span></a>
             <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chart"/></svg><span>Analisi</span></a>
             <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-support"/></svg><span>Assistenza</span></a>
@@ -86,6 +87,7 @@
             </button>
           </div>
 
+          <div id="dashboardView" data-view="dashboard">
           <div class="search-row">
             <label class="patient-search">
               <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-search"/></svg>
@@ -242,12 +244,17 @@
               </div>
             </article>
           </section>
+          </div>
+
+          <section id="patientsView" class="patients-view" data-view="patients" hidden aria-live="polite"></section>
+
+          <section id="patientDetailView" class="patients-view" data-view="patient-detail" hidden aria-live="polite"></section>
 
         </div>
       </main>
     </div>
 
-    <section class="warm-banner">
+    <section class="warm-banner" id="homeBanner">
       <div class="warm-photo" aria-hidden="true"></div>
       <div class="warm-copy">
         <span class="leaf-mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-leaf"/></svg></span>
@@ -260,12 +267,13 @@
   </div>
 
   <nav class="mobile-nav" aria-label="Navigazione mobile">
-    <a class="active" aria-current="page" href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-home"/></svg>Dashboard</a>
-    <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-patients"/></svg>Pazienti</a>
+    <a class="active" aria-current="page" href="#dashboard" data-route-link="dashboard"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-home"/></svg>Dashboard</a>
+    <a href="#patients" data-route-link="patients"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-patients"/></svg>Pazienti</a>
     <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg>Agenda</a>
     <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chart"/></svg>Analisi</a>
     <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-support"/></svg>Assistenza</a>
     <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-profile"/></svg>Profilo</a>
   </nav>
+  <script type="module" src="professional-v2/pro2-app.js?v=pro2-patients-step1-20261003"></script>
 </body>
 </html>
