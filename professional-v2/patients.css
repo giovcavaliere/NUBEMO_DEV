@@ -262,10 +262,24 @@
 
 @media (max-width:1100px){
   .patient-counts{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .patient-row{
-    grid-template-columns:44px minmax(0,1fr) minmax(130px,.7fr) 24px;
-  }
+}
+
+@media (min-width:721px) and (max-width:1100px) and (orientation:portrait){
+  .patient-row{grid-template-columns:44px minmax(0,1fr) minmax(130px,.7fr) 24px}
   .patient-row .patient-meta:nth-of-type(3){display:none}
+  .patient-mobile-meta{display:block;margin-top:5px!important}
+  .patient-mobile-meta b,.patient-mobile-meta em{display:none}
+  .patient-mobile-meta i{display:block;color:var(--muted);font-size:9px;font-style:normal}
+}
+
+@media (min-width:721px) and (max-width:1100px) and (orientation:landscape){
+  .patient-row{
+    grid-template-columns:44px minmax(0,1fr) minmax(105px,.55fr) minmax(112px,.6fr) 22px;
+    gap:10px;
+  }
+  .patient-mobile-meta{display:none}
+  .patient-row .patient-meta{display:block}
+  .patient-weight{display:grid!important}
 }
 
 @media (max-width:720px){
@@ -291,36 +305,8 @@
     gap:10px;
   }
   .patient-avatar{width:40px;height:40px;border-radius:12px}
-  .patient-row .patient-meta{display:none}
   .patient-main strong{font-size:12px}
   .patient-main .patient-age{font-size:9px}
-  .patient-mobile-meta{
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    gap:5px 8px;
-    margin-top:5px!important;
-    color:var(--muted);
-    line-height:1.3;
-  }
-  .patient-mobile-meta b{
-    color:var(--text);
-    font-size:10px;
-    font-weight:650;
-  }
-  .patient-mobile-meta em{
-    font-size:9px;
-    font-style:normal;
-    font-weight:650;
-  }
-  .patient-mobile-meta em.down{color:var(--green-700)}
-  .patient-mobile-meta em.up{color:#a85e42}
-  .patient-mobile-meta i{
-    flex-basis:100%;
-    color:var(--muted);
-    font-size:9px;
-    font-style:normal;
-  }
   .patient-detail-card{padding:18px}
 }
 
@@ -454,4 +440,17 @@
     top:50px;
     width:100%;
   }
+}
+
+@media (max-width:720px) and (orientation:portrait){
+  .patient-row .patient-meta{display:none}
+  .patient-mobile-meta{
+    display:flex;flex-wrap:wrap;align-items:center;gap:5px 8px;
+    margin-top:5px!important;color:var(--muted);line-height:1.3
+  }
+  .patient-mobile-meta b{color:var(--text);font-size:10px;font-weight:650}
+  .patient-mobile-meta em{font-size:9px;font-style:normal;font-weight:650}
+  .patient-mobile-meta em.down{color:var(--green-700)}
+  .patient-mobile-meta em.up{color:#a85e42}
+  .patient-mobile-meta i{flex-basis:100%;color:var(--muted);font-size:9px;font-style:normal}
 }
