@@ -361,7 +361,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
   .side{display:none}
   .work{
     padding:20px var(--work-pad) 14px;
-    overflow:visible;
+    overflow:hidden;
   }
   .work-inner{width:100%}
   .compact-brand{
@@ -430,7 +430,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
   .side{display:none}
   .work{
     padding:18px 16px 14px;
-    overflow:visible;
+    overflow:hidden;
   }
   .work-inner{width:100%}
   .compact-brand{
