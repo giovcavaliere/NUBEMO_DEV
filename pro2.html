@@ -9,6 +9,26 @@
   <title>NUBEMO Professional 2.0</title>
 </head>
 <body>
+  <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+      <symbol id="icon-patients" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 4v3"/></symbol>
+      <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18m-13 4h2m4 0h2m-8 3h2"/></symbol>
+      <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 4v16h17M8 14l4-5 4 3 4-6"/></symbol>
+      <symbol id="icon-support" viewBox="0 0 24 24"><path d="M12 3 3 7v6c0 4 5 7 9 9 4-2 9-5 9-9V7z"/><path d="M9.8 9a2.3 2.3 0 0 1 4.4.9c0 1.5-2.2 1.7-2.2 3.1m0 3h.01"/></symbol>
+      <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></symbol>
+      <symbol id="icon-logout" viewBox="0 0 24 24"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5m5-13 5 5-5 5M8 12h12"/></symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="m8 12 3 3 5-7"/></symbol>
+      <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+      <symbol id="icon-document" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8zm0 0v5h5M8 12h8m-8 4h6"/></symbol>
+      <symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></symbol>
+      <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14z"/></symbol>
+      <symbol id="icon-cup" viewBox="0 0 24 24"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zm12 1h2a3 3 0 0 1 0 6h-2M3 22h16M7 3v2m5-2v2"/></symbol>
+      <symbol id="icon-leaf" viewBox="0 0 24 24"><path d="M12 21V11M12 16C5 16 3 12 3 6c6 0 9 4 9 10Zm0-4c0-6 3-9 9-9 0 6-3 9-9 9ZM6 9l6 7m6-10-6 6"/></symbol>
+    </defs>
+  </svg>
   <div class="pro2">
     <aside class="side">
       <div class="side-brand">
@@ -20,30 +40,41 @@
       </div>
 
       <nav class="side-nav" aria-label="Navigazione principale">
-        <a class="active" href="#"><span class="ico">⌂</span><span>Dashboard</span></a>
-        <a href="#"><span class="ico">♙</span><span>Pazienti</span></a>
-        <a href="#"><span class="ico">▣</span><span>Agenda</span></a>
-        <a href="#"><span class="ico">⌁</span><span>Analisi</span></a>
-        <a href="#"><span class="ico">◇</span><span>Assistenza</span></a>
-        <a href="#"><span class="ico">♧</span><span>Profilo</span></a>
+        <a class="active" href="#" aria-current="page"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-home"/></svg><span>Dashboard</span></a>
+        <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-patients"/></svg><span>Pazienti</span></a>
+        <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg><span>Agenda</span></a>
+        <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chart"/></svg><span>Analisi</span></a>
+        <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-support"/></svg><span>Assistenza</span></a>
+        <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-profile"/></svg><span>Profilo</span></a>
       </nav>
 
       <div class="side-user">
-        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;w=120&amp;q=80" alt="">
         <div>
           <strong>Dott.ssa Rossi</strong>
           <span>Nutrizionista</span>
         </div>
-        <span class="exit">↗</span>
+        <button class="exit" type="button" aria-label="Esci" title="Esci"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-logout"/></svg></button>
       </div>
     </aside>
 
     <main class="work">
+      <svg class="botanical-haze" viewBox="0 0 480 640" aria-hidden="true" focusable="false">
+        <g fill="currentColor">
+          <path d="M246 547C145 520 116 452 134 383c92 23 124 85 112 164Z"/>
+          <path d="M257 451c-13-88 29-145 113-168 6 79-33 139-113 168Z"/>
+          <path d="M244 365C156 350 110 293 112 225c88 10 135 61 132 140Z"/>
+          <path d="M236 277c-7-91 33-143 115-164 7 80-32 139-115 164Z"/>
+          <path d="M225 193C145 172 117 117 131 57c80 15 108 62 94 136Z"/>
+          <path d="M231 145C216 76 241 26 300 0c23 63-4 117-69 145Z"/>
+        </g>
+        <path d="M218 623c89-175-38-316 28-524" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      </svg>
       <div class="work-inner">
 
         <div class="search-row">
           <label class="patient-search">
-            <span>⌕</span>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-search"/></svg>
             <input type="search" placeholder="Cerca paziente..." aria-label="Cerca paziente">
           </label>
         </div>
@@ -51,13 +82,13 @@
         <header class="welcome">
           <div>
             <h1>Buongiorno, Dott.ssa Rossi <span class="wave">👋</span></h1>
-            <p>Venerdì 3 ottobre 2026 <span>·</span> Ecco la panoramica del tuo studio</p>
+            <p>Sabato 3 ottobre 2026 <span>·</span> Ecco la panoramica del tuo studio</p>
           </div>
         </header>
 
         <section class="kpi-grid">
           <article class="kpi-card">
-            <div class="kpi-icon green">♙</div>
+            <div class="kpi-icon green"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-patients"/></svg></div>
             <div class="kpi-copy">
               <span>Pazienti attivi</span>
               <strong>24</strong>
@@ -66,7 +97,7 @@
           </article>
 
           <article class="kpi-card">
-            <div class="kpi-icon peach">＋</div>
+            <div class="kpi-icon peach"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-plus"/></svg></div>
             <div class="kpi-copy">
               <span>Nuovi pazienti del mese</span>
               <strong>4</strong>
@@ -75,7 +106,7 @@
           </article>
 
           <article class="kpi-card">
-            <div class="kpi-icon green">▣</div>
+            <div class="kpi-icon green"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg></div>
             <div class="kpi-copy">
               <span>Prime visite oggi</span>
               <strong>2</strong>
@@ -84,7 +115,7 @@
           </article>
 
           <article class="kpi-card">
-            <div class="kpi-icon peach">✓</div>
+            <div class="kpi-icon peach"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-check"/></svg></div>
             <div class="kpi-copy">
               <span>Controlli oggi</span>
               <strong>6</strong>
@@ -97,7 +128,7 @@
           <article class="module agenda">
             <div class="module-head">
               <div class="module-title">
-                <span class="module-icon peach">▣</span>
+                <span class="module-icon peach"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg></span>
                 <h2>Agenda di oggi</h2>
               </div>
               <button class="link-button">Apri agenda →</button>
@@ -108,7 +139,7 @@
             <div class="agenda-list">
               <div class="agenda-row">
                 <div class="agenda-time">09:00</div>
-                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=90&q=80" alt="">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&amp;fit=crop&amp;w=90&amp;q=80" alt="">
                 <div class="agenda-info">
                   <strong>Giovanni Cavaliere</strong>
                   <span>Controllo · 30 min</span>
@@ -118,7 +149,7 @@
 
               <div class="agenda-row">
                 <div class="agenda-time">10:15</div>
-                <div class="personal-avatar">☕</div>
+                <div class="personal-avatar"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-cup"/></svg></div>
                 <div class="agenda-info">
                   <strong>Impegno personale</strong>
                   <span>Fuori studio · 30 min</span>
@@ -128,7 +159,7 @@
 
               <div class="agenda-row">
                 <div class="agenda-time">11:00</div>
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=90&q=80" alt="">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=90&amp;q=80" alt="">
                 <div class="agenda-info">
                   <strong>Elisa Manco</strong>
                   <span>Prima visita · 60 min</span>
@@ -138,7 +169,7 @@
 
               <div class="agenda-row">
                 <div class="agenda-time">11:30</div>
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=90&q=80" alt="">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&amp;fit=crop&amp;w=90&amp;q=80" alt="">
                 <div class="agenda-info">
                   <strong>Marco Bianchi</strong>
                   <span>Controllo · 30 min</span>
@@ -153,14 +184,14 @@
           <article class="module priorities">
             <div class="module-head">
               <div class="module-title">
-                <span class="module-icon peach">♟</span>
+                <span class="module-icon peach"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-bell"/></svg></span>
                 <h2>Priorità</h2>
               </div>
             </div>
 
             <div class="priority-list">
               <button class="priority-row">
-                <span class="priority-icon green">▤</span>
+                <span class="priority-icon green"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-document"/></svg></span>
                 <span class="priority-text">
                   <strong>Referti da leggere</strong>
                   <small>Nuovi referti caricati</small>
@@ -169,16 +200,16 @@
               </button>
 
               <button class="priority-row">
-                <span class="priority-icon peach">↗</span>
+                <span class="priority-icon peach"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chart"/></svg></span>
                 <span class="priority-text">
-                  <strong>Pazienti senza diario da 7 gg</strong>
+                  <strong>Diario senza pasti da 7 giorni</strong>
                   <small>Pazienti attivi NUBEMO</small>
                 </span>
                 <b>5</b>
               </button>
 
               <button class="priority-row">
-                <span class="priority-icon peach">✉</span>
+                <span class="priority-icon peach"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-mail"/></svg></span>
                 <span class="priority-text">
                   <strong>Inviti in attesa</strong>
                   <small>Inviti non ancora accettati</small>
@@ -187,7 +218,7 @@
               </button>
 
               <button class="priority-row">
-                <span class="priority-icon peach">✎</span>
+                <span class="priority-icon peach"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-edit"/></svg></span>
                 <span class="priority-text">
                   <strong>Bozze da completare</strong>
                   <small>Anagrafiche e note in bozza</small>
@@ -199,12 +230,14 @@
         </section>
 
         <section class="warm-banner">
+          <!-- Asset definitivo da fornire: assets/nubemo-pro2-breakfast.webp.
+               In sua assenza resta la base crema; nessuna foto sostitutiva. -->
           <div class="warm-photo" aria-hidden="true"></div>
           <div class="warm-copy">
-            <span class="leaf-mark">❧</span>
+            <span class="leaf-mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-leaf"/></svg></span>
             <div>
               <strong>Ogni percorso è unico</strong>
-              <p>I tuoi pazienti non sono solo numeri, ma storie di benessere.<br>NUBEMO ti aiuta a dedicare più tempo a ciò che conta davvero.</p>
+              <p>I tuoi pazienti non sono solo numeri, ma storie di benessere.<br> NUBEMO ti aiuta a dedicare più tempo a ciò che conta davvero.</p>
             </div>
           </div>
         </section>
@@ -213,12 +246,13 @@
     </main>
   </div>
 
-  <nav class="mobile-nav">
-    <a class="active" href="#"><span>⌂</span>Home</a>
-    <a href="#"><span>♙</span>Pazienti</a>
-    <a href="#"><span>▣</span>Agenda</a>
-    <a href="#"><span>◇</span>Assistenza</a>
-    <a href="#"><span>•••</span>Altro</a>
+  <nav class="mobile-nav" aria-label="Navigazione mobile">
+    <a class="active" aria-current="page" href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-home"/></svg>Dashboard</a>
+    <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-patients"/></svg>Pazienti</a>
+    <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg>Agenda</a>
+    <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chart"/></svg>Analisi</a>
+    <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-support"/></svg>Assistenza</a>
+    <a href="#"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-profile"/></svg>Profilo</a>
   </nav>
 </body>
 </html>
