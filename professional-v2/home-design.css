@@ -208,7 +208,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
   .warm-copy p br{display:none}
 }
 
-@media(max-width:900px) and (orientation:portrait){
+@media(max-width:1100px) and (orientation:portrait){
   body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   .pro2{min-height:0;padding-bottom:24px}
   .home-layout{display:block}
