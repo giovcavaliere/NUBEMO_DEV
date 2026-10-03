@@ -1,9 +1,11 @@
 import {patientRecords} from "./patients-data.js";
 import {renderPatientsPage,renderPatientPlaceholder} from "./patients-view.js";
+import {renderSupportPage,sendSupport} from "./support-view.js";
 
 const dashboardView=document.getElementById("dashboardView");
 const patientsView=document.getElementById("patientsView");
 const patientDetailView=document.getElementById("patientDetailView");
+const supportView=document.getElementById("supportView");
 const homeBanner=document.getElementById("homeBanner");
 
 const patientState={status:"active",query:"",documentsOnly:false};
@@ -14,6 +16,7 @@ const dashboardSearchResults=document.querySelector("[data-dashboard-search-resu
 function currentRoute(){
   const hash=(location.hash||"#dashboard").slice(1);
   if(hash==="patients") return {name:"patients"};
+  if(hash==="support") return {name:"support"};
   if(hash.startsWith("patient/")) return {name:"patient-detail",id:hash.split("/")[1]};
   return {name:"dashboard"};
 }
@@ -32,6 +35,7 @@ function showView(route){
   dashboardView.hidden=route.name!=="dashboard";
   patientsView.hidden=route.name!=="patients";
   patientDetailView.hidden=route.name!=="patient-detail";
+  supportView.hidden=route.name!=="support";
   homeBanner.hidden=route.name!=="dashboard";
   setNavActive(route.name);
   if(route.name!=="dashboard"){
@@ -41,6 +45,9 @@ function showView(route){
 
   if(route.name==="patients"){
     renderPatients();
+  }else if(route.name==="support"){
+    renderSupportPage(supportView);
+    supportView.querySelector("#sendSupport")?.addEventListener("click",()=>{void sendSupport(supportView)});
   }else if(route.name==="patient-detail"){
     const patient=patientRecords.find(item=>item.id===route.id);
     if(!patient){
