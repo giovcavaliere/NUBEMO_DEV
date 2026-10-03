@@ -28,14 +28,19 @@ a,button,input{-webkit-tap-highlight-color:transparent}
 a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-offset:4px}
 .icon-defs{position:absolute;width:0;height:0;overflow:hidden}
 .icon{width:22px;height:22px;display:block;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.pro2{display:grid;grid-template-columns:var(--side) minmax(0,1fr);width:min(100%,1680px);margin:0 auto;min-height:100vh;align-items:start}
+.pro2{width:min(100%,1680px);margin:0 auto;min-height:100vh;padding-bottom:32px}
+/* La riga superiore contiene lo sticky; il banner successivo attraversa tutta l'app. */
+.home-layout{display:grid;grid-template-columns:var(--side) minmax(0,1fr);align-items:stretch}
 
-/* Sidebar raccolta: il profilo chiude il pannello, senza estenderlo su monitor alti. */
+/* La colonna verde raccorda il banner; il contenuto conserva altezza e sticky. */
 .side{
-  position:sticky;top:0;height:min(100vh,780px);height:min(100svh,780px);overflow-y:auto;
   background:radial-gradient(ellipse at 0% 40%,rgba(47,109,87,.26),transparent 75%),
     linear-gradient(160deg,#0b3d35,#0a302c);
-  color:#fff;padding:24px 14px 20px;border-radius:0 0 18px 18px;
+  color:#fff;min-width:0;
+}
+.side-inner{
+  position:sticky;top:0;height:min(100vh,780px);height:min(100svh,780px);overflow-y:auto;
+  padding:24px 14px 20px;
   display:flex;flex-direction:column;
 }
 .side-brand{display:flex;align-items:center;gap:11px;padding:0 9px 23px}
@@ -63,7 +68,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
 .exit .icon{width:20px;height:20px;stroke-width:1.6}
 .exit:hover{background:rgba(255,255,255,.08)}
 
-.work{position:relative;isolation:isolate;min-width:0;padding:26px clamp(24px,2.7vw,44px) 32px;overflow:hidden}
+.work{position:relative;isolation:isolate;min-width:0;padding:26px clamp(24px,2.7vw,44px) 16px;overflow:hidden}
 .work-inner{position:relative;z-index:1;width:min(100%,1280px);margin:0 auto}
 /* Una sola presenza botanica, ai margini: niente pattern né intercettazione dei click. */
 .botanical-haze{
@@ -143,16 +148,16 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
 .priority-row b{font-size:17px;font-weight:600;text-align:right}
 
 .warm-banner{
-  /* Percorso relativo a questo CSS. L'asset definitivo sarà fornito separatamente. */
+  /* Asset approvato: crop gestito solo nel CSS, senza alterare l'immagine. */
   --breakfast-image:url("../assets/nubemo-pro2-breakfast.webp");
-  --breakfast-position:50% 55%;
-  margin-top:16px;min-height:138px;border-radius:20px;overflow:hidden;
+  --breakfast-position:55% 58%;
+  margin:0;min-height:160px;border-radius:0 20px 20px 20px;overflow:hidden;
   background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);
   display:grid;grid-template-columns:minmax(220px,30%) minmax(0,1fr);
 }
 .warm-photo{
-  min-height:138px;background-color:#efe4d3;
-  background-image:linear-gradient(90deg,rgba(252,248,241,0) 48%,var(--surface) 100%),var(--breakfast-image);
+  min-height:160px;background-color:#efe4d3;
+  background-image:linear-gradient(90deg,rgba(252,248,241,0) 70%,var(--surface) 100%),var(--breakfast-image);
   background-size:100% 100%,cover;background-position:center,var(--breakfast-position);background-repeat:no-repeat;
 }
 .warm-copy{display:flex;align-items:center;gap:17px;padding:22px 24px 22px 12px}
@@ -164,11 +169,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
 
 @media(max-width:1200px){
   :root{--side:204px}
-  .side{padding-inline:12px}
+  .side-inner{padding-inline:12px}
   .side-brand{padding-inline:5px;gap:9px}
   .side-brand img{width:43px;height:43px}
   .side-user{gap:6px;padding-inline:3px}
-  .work{padding:24px}
+  .work{padding:24px 24px 16px}
   .kpi-card{padding:16px 13px;gap:10px}
   .kpi-icon{width:36px;height:36px;border-radius:12px}
   .kpi-icon .icon{width:20px;height:20px}
@@ -193,15 +198,16 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
   .agenda-row .pill{grid-column:auto;margin-top:0}
   .agenda-bottom{padding-left:108px}
   .priority-list{margin-top:12px}
-  .warm-banner{grid-template-columns:minmax(170px,30%) minmax(0,1fr)}
+  .warm-banner{--breakfast-position:62% 58%;grid-template-columns:minmax(250px,38%) minmax(0,1fr)}
   .warm-copy{gap:12px;padding:20px 18px 20px 8px}
   .warm-copy p br{display:none}
 }
 @media(max-width:720px){
   body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-  .pro2{display:block;min-height:0}
+  .pro2{min-height:0;padding-bottom:24px}
+  .home-layout{display:block}
   .side{display:none}
-  .work{padding:20px 16px 24px}
+  .work{padding:20px 16px 14px}
   .botanical-haze{right:-190px;top:25px;opacity:.045;width:420px;height:570px}
   .search-row{margin-bottom:22px}
   .patient-search{width:100%;height:44px}
@@ -229,11 +235,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
   .agenda-bottom{padding-left:97px;font-size:10px}
   .priority-row{grid-template-columns:40px minmax(0,1fr) 22px;gap:12px;padding:14px 0}
   .priority-icon{width:40px;height:40px}
-  .warm-banner{grid-template-columns:1fr;min-height:0}
+  .warm-banner{grid-template-columns:1fr;min-height:0;margin:0 16px;border-radius:20px}
   .warm-photo{
-    min-height:0;height:145px;
-    background-image:linear-gradient(180deg,rgba(252,248,241,0) 42%,var(--surface) 100%),var(--breakfast-image);
-    background-position:center,50% 55%;
+    min-height:0;height:clamp(145px,36vw,220px);
+    background-image:linear-gradient(180deg,rgba(252,248,241,0) 70%,var(--surface) 100%),var(--breakfast-image);
+    background-position:center,55% 62%;
   }
   .warm-copy{padding:8px 18px 22px;gap:13px}
   .warm-copy strong{font-size:15px}
@@ -249,6 +255,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
 }
 @media(max-width:380px){
   .work{padding-inline:12px}
+  .warm-banner{margin-inline:12px}
   .kpi-card{display:block;padding:13px}
   .kpi-icon{margin-bottom:10px}
   .module{padding:14px}
