@@ -182,6 +182,8 @@
   color:var(--muted);
   font-size:10px;
 }
+.patient-mobile-meta{display:none}
+
 .patient-meta{
   min-width:0;
 }
@@ -291,16 +293,42 @@
   .patient-avatar{width:40px;height:40px;border-radius:12px}
   .patient-row .patient-meta{display:none}
   .patient-main strong{font-size:12px}
-  .patient-main span{font-size:9px}
+  .patient-main .patient-age{font-size:9px}
+  .patient-mobile-meta{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:5px 8px;
+    margin-top:5px!important;
+    color:var(--muted);
+    line-height:1.3;
+  }
+  .patient-mobile-meta b{
+    color:var(--text);
+    font-size:10px;
+    font-weight:650;
+  }
+  .patient-mobile-meta em{
+    font-size:9px;
+    font-style:normal;
+    font-weight:650;
+  }
+  .patient-mobile-meta em.down{color:var(--green-700)}
+  .patient-mobile-meta em.up{color:#a85e42}
+  .patient-mobile-meta i{
+    flex-basis:100%;
+    color:var(--muted);
+    font-size:9px;
+    font-style:normal;
+  }
   .patient-detail-card{padding:18px}
 }
 
 .patient-doc-filter{
   min-height:42px;
-  padding:0 13px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:rgba(255,253,249,.85);
+  padding:0 4px;
+  border:0;
+  background:transparent;
   color:var(--muted);
   display:inline-flex;
   align-items:center;
@@ -309,13 +337,29 @@
   font-weight:600;
   cursor:pointer;
 }
-.patient-doc-filter .icon{width:17px;height:17px}
-.patient-doc-filter:hover{border-color:#cfd8d2;color:var(--green-800)}
-.patient-doc-filter.active{
-  background:var(--green-soft-2);
-  border-color:#cadbd2;
-  color:var(--green-800);
+.patient-doc-toggle{
+  width:34px;
+  height:20px;
+  padding:2px;
+  border-radius:999px;
+  background:#d8ddd8;
+  display:flex;
+  align-items:center;
+  transition:background .18s ease;
 }
+.patient-doc-toggle span{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.16);
+  transform:translateX(0);
+  transition:transform .18s ease;
+}
+.patient-doc-filter.active{color:var(--green-800)}
+.patient-doc-filter.active .patient-doc-toggle{background:var(--green-700)}
+.patient-doc-filter.active .patient-doc-toggle span{transform:translateX(14px)}
+.patient-doc-filter:hover{color:var(--green-800)}
 .patient-weight{
   display:grid;
   grid-template-columns:auto auto;
@@ -332,6 +376,11 @@
 .patient-weight em.up{color:#a85e42}
 
 @media (max-width:720px){
-  .patient-tools{align-items:stretch}
-  .patient-doc-filter{width:100%;justify-content:center}
+  .patient-tools{align-items:flex-start}
+  .patient-doc-filter{
+    width:auto;
+    min-height:30px;
+    justify-content:flex-start;
+    padding-left:1px;
+  }
 }

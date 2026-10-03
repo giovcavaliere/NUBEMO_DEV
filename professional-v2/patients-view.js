@@ -80,8 +80,8 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
             <input type="search" value="${escapeHtml(query)}" placeholder="Cerca per nome e cognome..." aria-label="Cerca paziente per nome e cognome" data-patient-search>
           </label>
           <button type="button" class="patient-doc-filter ${documentsOnly?"active":""}" data-documents-filter aria-pressed="${documentsOnly}">
-            <svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg>
-            Documenti da leggere
+            <span class="patient-doc-toggle" aria-hidden="true"><span></span></span>
+            <span>Solo da leggere</span>
           </button>
         </div>
 
@@ -91,7 +91,12 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
               <img class="patient-avatar" src="${escapeHtml(patient.avatar)}" alt="">
               <span class="patient-main">
                 <strong>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</strong>
-                <span>${escapeHtml(String(patient.age))} anni</span>
+                <span class="patient-age">${escapeHtml(String(patient.age))} anni</span>
+                <span class="patient-mobile-meta">
+                  <b>${escapeHtml(patient.weight)}</b>
+                  ${patient.weightDelta && patient.weightDelta!=="—" ? `<em class="${String(patient.weightDelta).startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta)}</em>` : ""}
+                  ${status==="active" ? `<i>Prossima: ${escapeHtml(patient.nextVisit || "—")}</i>` : ""}
+                </span>
               </span>
               <span class="patient-meta patient-weight">
                 <small>Peso attuale</small>
