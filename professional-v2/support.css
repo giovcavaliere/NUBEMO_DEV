@@ -1,0 +1,78 @@
+/* NUBEMO Professional 2.0 — Assistenza */
+.support-view[hidden]{display:none!important}
+.support-view{width:100%}
+.support-page{display:grid;gap:18px}
+.support-head h1{
+  margin:0;font-size:clamp(27px,2.1vw,32px);line-height:1.15;
+  letter-spacing:-.025em;font-weight:650
+}
+.support-head p{
+  margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.55
+}
+.support-card{
+  width:min(100%,860px);
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:linear-gradient(145deg,#fffdfa,#fcf8f2);
+  box-shadow:var(--shadow);
+  padding:24px;
+}
+.support-eyebrow{
+  color:var(--green-700);font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase
+}
+.support-card h2{
+  margin:7px 0 0;font-size:22px;letter-spacing:-.02em;font-weight:650
+}
+.support-intro{
+  margin:8px 0 0;color:var(--muted);font-size:12px;line-height:1.6
+}
+.support-tech{
+  margin:20px 0;
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  gap:0;
+  border:1px solid var(--line);
+  border-radius:15px;
+  overflow:hidden;
+  background:rgba(255,253,249,.72)
+}
+.support-tech span,.support-tech b{
+  min-height:42px;padding:11px 13px;border-top:1px solid var(--line);
+  display:flex;align-items:center;font-size:11px
+}
+.support-tech span:nth-child(-n+2),.support-tech b:nth-child(-n+2){border-top:0}
+.support-tech span{color:var(--muted);background:rgba(237,242,233,.48)}
+.support-tech b{font-weight:600;color:var(--text)}
+.support-field{display:grid;gap:7px;margin-top:16px}
+.support-field label{font-size:11px;font-weight:600;color:var(--text)}
+.support-field select,.support-field textarea{
+  width:100%;border:1px solid var(--line);border-radius:13px;
+  background:rgba(255,253,249,.88);color:var(--text);outline:0
+}
+.support-field select{height:44px;padding:0 12px}
+.support-field textarea{
+  min-height:150px;padding:12px 13px;resize:vertical;line-height:1.5
+}
+.support-field select:focus,.support-field textarea:focus{
+  border-color:#b8cbc1;box-shadow:0 0 0 3px rgba(41,106,86,.08)
+}
+.support-actions{margin-top:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.support-send{
+  min-height:44px;padding:0 17px;border:0;border-radius:12px;
+  background:var(--green-800);color:#fff;font-weight:600;cursor:pointer
+}
+.support-send:hover{background:var(--green-900)}
+.support-send:disabled{opacity:.6;cursor:wait}
+.support-privacy{
+  margin:15px 0 0;color:var(--muted);font-size:10px;line-height:1.55
+}
+
+@media (max-width:720px){
+  .support-page{gap:14px}
+  .support-head h1{font-size:26px}
+  .support-card{padding:17px;border-radius:18px}
+  .support-tech{grid-template-columns:92px minmax(0,1fr)}
+  .support-tech span,.support-tech b{font-size:10px;padding:10px}
+  .support-send{width:100%}
+}
