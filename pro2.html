@@ -3,229 +3,222 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#174f45">
+  <meta name="theme-color" content="#0c5449">
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
   <link rel="stylesheet" href="professional-v2/home-design.css">
   <title>NUBEMO Professional 2.0</title>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <div class="brand">
+  <div class="pro2">
+    <aside class="side">
+      <div class="side-brand">
         <img src="assets/nubemo-brand-clean-v2.png" alt="NUBEMO Modena">
+        <div>
+          <strong>NUBEMO</strong>
+          <span>Professional 2.0</span>
+        </div>
       </div>
 
-      <nav class="nav">
-        <a class="nav-item active" href="#">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5v8a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg></span>
-          <span>Dashboard</span>
-        </a>
-        <a class="nav-item" href="#">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M8.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM15.5 12a3 3 0 1 0 0-6m-12 14c.4-4.2 2.4-6.2 5-6.2s4.6 2 5 6.2m2.5-5c2.6.4 4.2 2.2 4.5 5"/></svg></span>
-          <span>Pazienti</span>
-        </a>
-        <a class="nav-item" href="#">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M5 4v3m14-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v13H4V7a1 1 0 0 1 1-1Z"/></svg></span>
-          <span>Agenda</span>
-        </a>
-        <a class="nav-item" href="#">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M5 19V9m7 10V5m7 14v-7"/></svg></span>
-          <span>Analisi</span>
-        </a>
-        <div class="nav-separator"></div>
-        <a class="nav-item" href="#">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v.01M12 11v5"/></svg></span>
-          <span>Assistenza</span>
-        </a>
+      <nav class="side-nav" aria-label="Navigazione principale">
+        <a class="active" href="#"><span class="ico">⌂</span><span>Dashboard</span></a>
+        <a href="#"><span class="ico">♙</span><span>Pazienti</span></a>
+        <a href="#"><span class="ico">▣</span><span>Agenda</span></a>
+        <a href="#"><span class="ico">⌁</span><span>Analisi</span></a>
+        <a href="#"><span class="ico">◇</span><span>Assistenza</span></a>
+        <a href="#"><span class="ico">♧</span><span>Profilo</span></a>
       </nav>
 
-      <div class="profile-card">
-        <div class="avatar">DR</div>
-        <div class="profile-copy">
+      <div class="side-user">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="">
+        <div>
           <strong>Dott.ssa Rossi</strong>
           <span>Nutrizionista</span>
         </div>
-        <button class="profile-more" aria-label="Apri profilo">•••</button>
+        <span class="exit">↗</span>
       </div>
     </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">VENERDÌ 3 OTTOBRE</p>
-          <h1>Buongiorno, Dott.ssa Rossi</h1>
-          <p class="subtitle">Ecco una sintesi della tua giornata.</p>
+    <main class="work">
+      <div class="work-inner">
+
+        <div class="search-row">
+          <label class="patient-search">
+            <span>⌕</span>
+            <input type="search" placeholder="Cerca paziente..." aria-label="Cerca paziente">
+          </label>
         </div>
 
-        <label class="search-box">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
-          <input type="search" placeholder="Cerca paziente..." aria-label="Cerca paziente">
-        </label>
-      </header>
-
-      <section class="kpis">
-        <article class="kpi">
-          <div class="kpi-top">
-            <span class="kpi-icon">
-              <svg viewBox="0 0 24 24"><path d="M8.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM15.5 12a3 3 0 1 0 0-6m-12 14c.4-4.2 2.4-6.2 5-6.2s4.6 2 5 6.2m2.5-5c2.6.4 4.2 2.2 4.5 5"/></svg>
-            </span>
-            <span class="kpi-label">Pazienti attivi</span>
+        <header class="welcome">
+          <div>
+            <h1>Buongiorno, Dott.ssa Rossi <span class="wave">👋</span></h1>
+            <p>Venerdì 3 ottobre 2026 <span>·</span> Ecco la panoramica del tuo studio</p>
           </div>
-          <strong>18</strong>
-          <span class="kpi-note">percorsi in corso</span>
-        </article>
+        </header>
 
-        <article class="kpi">
-          <div class="kpi-top">
-            <span class="kpi-icon peach">
-              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            </span>
-            <span class="kpi-label">Nuovi pazienti del mese</span>
-          </div>
-          <strong>4</strong>
-          <span class="kpi-note">nuove anagrafiche</span>
-        </article>
-
-        <article class="kpi">
-          <div class="kpi-top">
-            <span class="kpi-icon">
-              <svg viewBox="0 0 24 24"><path d="M5 4v3m14-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v13H4V7a1 1 0 0 1 1-1Z"/></svg>
-            </span>
-            <span class="kpi-label">Prime visite oggi</span>
-          </div>
-          <strong>2</strong>
-          <span class="kpi-note">su 8 appuntamenti</span>
-        </article>
-
-        <article class="kpi">
-          <div class="kpi-top">
-            <span class="kpi-icon peach">
-              <svg viewBox="0 0 24 24"><path d="M8 12h8M12 8v8M5 4v3m14-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v13H4V7a1 1 0 0 1 1-1Z"/></svg>
-            </span>
-            <span class="kpi-label">Controlli oggi</span>
-          </div>
-          <strong>6</strong>
-          <span class="kpi-note">agenda di oggi</span>
-        </article>
-      </section>
-
-      <section class="content-grid">
-        <article class="card agenda-card">
-          <div class="card-head">
-            <div>
-              <span class="section-kicker">OGGI</span>
-              <h2>Prossimi appuntamenti</h2>
-              <p>Mostrati in base alle prossime 2 ore.</p>
+        <section class="kpi-grid">
+          <article class="kpi-card">
+            <div class="kpi-icon green">♙</div>
+            <div class="kpi-copy">
+              <span>Pazienti attivi</span>
+              <strong>24</strong>
+              <small>percorsi in corso</small>
             </div>
-            <button class="soft-action">Apri agenda</button>
-          </div>
+          </article>
 
-          <div class="timeline">
-            <div class="timeline-row">
-              <div class="time">09:30</div>
-              <div class="timeline-line"><span></span></div>
-              <div class="appointment">
-                <div>
-                  <strong>Martina Rossi</strong>
-                  <span>Controllo nutrizionale</span>
-                </div>
-                <span class="tag">Controllo</span>
+          <article class="kpi-card">
+            <div class="kpi-icon peach">＋</div>
+            <div class="kpi-copy">
+              <span>Nuovi pazienti del mese</span>
+              <strong>4</strong>
+              <small>nuove anagrafiche</small>
+            </div>
+          </article>
+
+          <article class="kpi-card">
+            <div class="kpi-icon green">▣</div>
+            <div class="kpi-copy">
+              <span>Prime visite oggi</span>
+              <strong>2</strong>
+              <small>su 8 appuntamenti</small>
+            </div>
+          </article>
+
+          <article class="kpi-card">
+            <div class="kpi-icon peach">✓</div>
+            <div class="kpi-copy">
+              <span>Controlli oggi</span>
+              <strong>6</strong>
+              <small>agenda di oggi</small>
+            </div>
+          </article>
+        </section>
+
+        <section class="home-grid">
+          <article class="module agenda">
+            <div class="module-head">
+              <div class="module-title">
+                <span class="module-icon peach">▣</span>
+                <h2>Agenda di oggi</h2>
               </div>
+              <button class="link-button">Apri agenda →</button>
             </div>
 
-            <div class="timeline-row">
-              <div class="time">10:15</div>
-              <div class="timeline-line peach"><span></span></div>
-              <div class="appointment personal">
-                <div>
+            <div class="agenda-note">Prossimi appuntamenti nelle 2 ore</div>
+
+            <div class="agenda-list">
+              <div class="agenda-row">
+                <div class="agenda-time">09:00</div>
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=90&q=80" alt="">
+                <div class="agenda-info">
+                  <strong>Giovanni Cavaliere</strong>
+                  <span>Controllo · 30 min</span>
+                </div>
+                <span class="pill green">Controllo</span>
+              </div>
+
+              <div class="agenda-row">
+                <div class="agenda-time">10:15</div>
+                <div class="personal-avatar">☕</div>
+                <div class="agenda-info">
                   <strong>Impegno personale</strong>
-                  <span>Fuori studio</span>
+                  <span>Fuori studio · 30 min</span>
                 </div>
-                <span class="tag personal">Personale</span>
+                <span class="pill peach">Personale</span>
+              </div>
+
+              <div class="agenda-row">
+                <div class="agenda-time">11:00</div>
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=90&q=80" alt="">
+                <div class="agenda-info">
+                  <strong>Elisa Manco</strong>
+                  <span>Prima visita · 60 min</span>
+                </div>
+                <span class="pill peach">Prima visita</span>
+              </div>
+
+              <div class="agenda-row">
+                <div class="agenda-time">11:30</div>
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=90&q=80" alt="">
+                <div class="agenda-info">
+                  <strong>Marco Bianchi</strong>
+                  <span>Controllo · 30 min</span>
+                </div>
+                <span class="pill green">Controllo</span>
               </div>
             </div>
 
-            <div class="timeline-row">
-              <div class="time">11:00</div>
-              <div class="timeline-line"><span></span></div>
-              <div class="appointment">
-                <div>
-                  <strong>Luca Bianchi</strong>
-                  <span>Prima visita</span>
-                </div>
-                <span class="tag first">Prima visita</span>
+            <div class="agenda-bottom">Altri 4 appuntamenti oggi</div>
+          </article>
+
+          <article class="module priorities">
+            <div class="module-head">
+              <div class="module-title">
+                <span class="module-icon peach">♟</span>
+                <h2>Priorità</h2>
               </div>
             </div>
 
-            <div class="timeline-row">
-              <div class="time">11:30</div>
-              <div class="timeline-line"><span></span></div>
-              <div class="appointment">
-                <div>
-                  <strong>Elena Verdi</strong>
-                  <span>Controllo nutrizionale</span>
-                </div>
-                <span class="tag">Controllo</span>
-              </div>
+            <div class="priority-list">
+              <button class="priority-row">
+                <span class="priority-icon green">▤</span>
+                <span class="priority-text">
+                  <strong>Referti da leggere</strong>
+                  <small>Nuovi referti caricati</small>
+                </span>
+                <b>3</b>
+              </button>
+
+              <button class="priority-row">
+                <span class="priority-icon peach">↗</span>
+                <span class="priority-text">
+                  <strong>Pazienti senza diario da 7 gg</strong>
+                  <small>Pazienti attivi NUBEMO</small>
+                </span>
+                <b>5</b>
+              </button>
+
+              <button class="priority-row">
+                <span class="priority-icon peach">✉</span>
+                <span class="priority-text">
+                  <strong>Inviti in attesa</strong>
+                  <small>Inviti non ancora accettati</small>
+                </span>
+                <b>2</b>
+              </button>
+
+              <button class="priority-row">
+                <span class="priority-icon peach">✎</span>
+                <span class="priority-text">
+                  <strong>Bozze da completare</strong>
+                  <small>Anagrafiche e note in bozza</small>
+                </span>
+                <b>1</b>
+              </button>
             </div>
-          </div>
+          </article>
+        </section>
 
-          <div class="agenda-footer">Altri 4 appuntamenti oggi</div>
-        </article>
-
-        <article class="card priorities-card">
-          <div class="card-head compact">
+        <section class="warm-banner">
+          <div class="warm-photo" aria-hidden="true"></div>
+          <div class="warm-copy">
+            <span class="leaf-mark">❧</span>
             <div>
-              <span class="section-kicker">ATTENZIONE</span>
-              <h2>Priorità</h2>
-              <p>Quello che richiede un tuo intervento.</p>
+              <strong>Ogni percorso è unico</strong>
+              <p>I tuoi pazienti non sono solo numeri, ma storie di benessere.<br>NUBEMO ti aiuta a dedicare più tempo a ciò che conta davvero.</p>
             </div>
           </div>
+        </section>
 
-          <div class="priority-list">
-            <button class="priority-row">
-              <span class="priority-symbol"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span>
-              <span class="priority-copy"><strong>Referti da leggere</strong><small>Nuovi documenti caricati</small></span>
-              <span class="priority-number">3</span>
-            </button>
-
-            <button class="priority-row">
-              <span class="priority-symbol peach"><svg viewBox="0 0 24 24"><path d="M5 19c4-1 7-4 8-8 2 4 4 6 6 8M8 5c1 3 3 5 6 6"/></svg></span>
-              <span class="priority-copy"><strong>Senza diario da 7 gg</strong><small>Pazienti attivi NUBEMO</small></span>
-              <span class="priority-number">5</span>
-            </button>
-
-            <button class="priority-row">
-              <span class="priority-symbol"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></span>
-              <span class="priority-copy"><strong>Inviti in attesa</strong><small>Non ancora accettati</small></span>
-              <span class="priority-number">2</span>
-            </button>
-
-            <button class="priority-row">
-              <span class="priority-symbol peach"><svg viewBox="0 0 24 24"><path d="M5 19h14M7 16l9-9 2 2-9 9H7z"/></svg></span>
-              <span class="priority-copy"><strong>Bozze da completare</strong><small>Anagrafiche non concluse</small></span>
-              <span class="priority-number">1</span>
-            </button>
-          </div>
-        </article>
-      </section>
-
-      <section class="wellbeing-banner">
-        <div class="banner-image" role="img" aria-label="Colazione e momento di benessere"></div>
-        <div class="banner-copy">
-          <span>IL TUO PERCORSO, OGNI GIORNO.</span>
-          <h3>Ogni percorso è fatto di giorni.</h3>
-          <p>Tra una visita e l'altra, NUBEMO mantiene il filo del percorso e lascia più spazio alla relazione.</p>
-        </div>
-      </section>
+      </div>
     </main>
   </div>
 
-  <nav class="mobile-nav" aria-label="Navigazione mobile">
-    <a class="active" href="#"><span>⌂</span>Dashboard</a>
-    <a href="#"><span>◉</span>Pazienti</a>
-    <a href="#"><span>□</span>Agenda</a>
-    <a href="#"><span>⌁</span>Analisi</a>
+  <nav class="mobile-nav">
+    <a class="active" href="#"><span>⌂</span>Home</a>
+    <a href="#"><span>♙</span>Pazienti</a>
+    <a href="#"><span>▣</span>Agenda</a>
+    <a href="#"><span>◇</span>Assistenza</a>
+    <a href="#"><span>•••</span>Altro</a>
   </nav>
 </body>
 </html>
