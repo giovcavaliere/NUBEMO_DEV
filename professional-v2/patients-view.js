@@ -81,7 +81,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
           </label>
           <button type="button" class="patient-doc-filter ${documentsOnly?"active":""}" data-documents-filter aria-pressed="${documentsOnly}">
             <span class="patient-doc-toggle" aria-hidden="true"><span></span></span>
-            <span>Solo da leggere</span>
+            <span>Solo con documenti da leggere</span>
           </button>
         </div>
 
