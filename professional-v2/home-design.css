@@ -283,7 +283,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
 .warm-banner{
   --breakfast-image:url("../assets/nubemo-pro2-breakfast.webp");
   --breakfast-position:55% 58%;
-  margin-top:-1px;
+  margin-top:14px;
   margin-left:0;
   margin-right:max(var(--work-pad),calc((100% - var(--side) - 1280px)/2));
   min-height:160px;
