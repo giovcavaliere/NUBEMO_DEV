@@ -95,7 +95,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
                 <span class="patient-mobile-meta">
                   <b>${escapeHtml(patient.weight)}</b>
                   ${patient.weightDelta && patient.weightDelta!=="—" ? `<em class="${String(patient.weightDelta).startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta)}</em>` : ""}
-                  ${status==="active" ? `<i>Prossima: ${escapeHtml(patient.nextVisit || "—")}</i>` : ""}
+                  ${status==="active" ? `<i>Prossima visita: ${escapeHtml(patient.nextVisit || "—")}</i>` : ""}
                 </span>
               </span>
               <span class="patient-meta patient-weight">
