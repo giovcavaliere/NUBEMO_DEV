@@ -33,12 +33,13 @@ export function getPatientsForStatus(records,status){
   return result;
 }
 
-export function renderPatientsPage(root,{records,status="active",query=""}){
+export function renderPatientsPage(root,{records,status="active",query="",documentsOnly=false}){
   const counts=getCounts(records);
   const normalized=query.trim().toLocaleLowerCase("it");
   const rows=getPatientsForStatus(records,status).filter(patient=>{
-    if(!normalized) return true;
-    return `${patient.first_name} ${patient.last_name}`.toLocaleLowerCase("it").includes(normalized);
+    const matchesName=!normalized || `${patient.first_name} ${patient.last_name}`.toLocaleLowerCase("it").includes(normalized);
+    const matchesDocuments=!documentsOnly || Number(patient.unreadDocuments||0)>0;
+    return matchesName && matchesDocuments;
   });
 
   root.innerHTML=`
@@ -78,6 +79,10 @@ export function renderPatientsPage(root,{records,status="active",query=""}){
             <svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg>
             <input type="search" value="${escapeHtml(query)}" placeholder="Cerca per nome e cognome..." aria-label="Cerca paziente per nome e cognome" data-patient-search>
           </label>
+          <button type="button" class="patient-doc-filter ${documentsOnly?"active":""}" data-documents-filter aria-pressed="${documentsOnly}">
+            <svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg>
+            Documenti da leggere
+          </button>
         </div>
 
         <div class="patient-list">
@@ -86,15 +91,16 @@ export function renderPatientsPage(root,{records,status="active",query=""}){
               <img class="patient-avatar" src="${escapeHtml(patient.avatar)}" alt="">
               <span class="patient-main">
                 <strong>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</strong>
-                <span>${escapeHtml(String(patient.age))} anni · ${escapeHtml(patient.code)}</span>
+                <span>${escapeHtml(String(patient.age))} anni</span>
               </span>
-              <span class="patient-meta">
+              <span class="patient-meta patient-weight">
                 <small>Peso attuale</small>
                 <strong>${escapeHtml(patient.weight)}</strong>
+                <em class="${String(patient.weightDelta).startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta || "—")}</em>
               </span>
               <span class="patient-meta">
-                <small>${status==="active"?"Ultima / prossima visita":"Stato percorso"}</small>
-                <strong>${status==="active"?escapeHtml(patient.lastVisit+" · "+patient.nextVisit):escapeHtml(STATUS_LABELS[patient.status])}</strong>
+                <small>${status==="active"?"Prossima visita":"Stato percorso"}</small>
+                <strong>${status==="active"?escapeHtml(patient.nextVisit || "—"):escapeHtml(STATUS_LABELS[patient.status])}</strong>
               </span>
               <span class="patient-arrow">›</span>
             </button>
@@ -113,7 +119,7 @@ export function renderPatientPlaceholder(root,patient){
         <img src="${escapeHtml(patient.avatar)}" alt="">
         <div>
           <h1>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</h1>
-          <p>${escapeHtml(String(patient.age))} anni · ${escapeHtml(patient.code)}</p>
+          <p>${escapeHtml(String(patient.age))} anni</p>
         </div>
       </div>
       <div class="patient-placeholder">Scheda paziente: la progetteremo nel prossimo step.</div>

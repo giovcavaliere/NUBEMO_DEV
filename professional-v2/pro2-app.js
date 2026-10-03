@@ -6,7 +6,7 @@ const patientsView=document.getElementById("patientsView");
 const patientDetailView=document.getElementById("patientDetailView");
 const homeBanner=document.getElementById("homeBanner");
 
-const patientState={status:"active",query:""};
+const patientState={status:"active",query:"",documentsOnly:false};
 
 function currentRoute(){
   const hash=(location.hash||"#dashboard").slice(1);
@@ -49,13 +49,15 @@ function renderPatients(){
   renderPatientsPage(patientsView,{
     records:patientRecords,
     status:patientState.status,
-    query:patientState.query
+    query:patientState.query,
+    documentsOnly:patientState.documentsOnly
   });
 
   patientsView.querySelectorAll("[data-patient-status]").forEach(button=>{
     button.addEventListener("click",()=>{
       patientState.status=button.dataset.patientStatus;
       patientState.query="";
+      patientState.documentsOnly=false;
       renderPatients();
     });
   });
@@ -67,6 +69,11 @@ function renderPatients(){
     const next=patientsView.querySelector("[data-patient-search]");
     next?.focus();
     if(next) next.setSelectionRange(next.value.length,next.value.length);
+  });
+
+  patientsView.querySelector("[data-documents-filter]")?.addEventListener("click",()=>{
+    patientState.documentsOnly=!patientState.documentsOnly;
+    renderPatients();
   });
 
   patientsView.querySelectorAll("[data-patient-id]").forEach(row=>{
