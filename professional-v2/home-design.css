@@ -208,40 +208,50 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
   .warm-copy p br{display:none}
 }
 
-@media(max-width:1100px) and (orientation:portrait){
-  body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-  .pro2{min-height:0;padding-bottom:24px}
-  .home-layout{display:block}
-  .side{display:none}
-  .work{padding:20px 22px 14px}
+
+
+@media(min-width:721px) and (max-width:1100px){
+  :root{--side:82px;--work-pad:22px}
+  .pro2{min-height:100vh;padding-bottom:26px}
+  .home-layout{display:grid;grid-template-columns:var(--side) minmax(0,1fr);align-items:start}
+  .side{display:block;min-height:100%}
+  .side-inner{
+    position:sticky;top:0;height:100vh;height:100svh;overflow:visible;
+    padding:14px 8px 16px;display:flex;flex-direction:column
+  }
+  .side-brand{justify-content:center;padding:0 0 16px}
+  .side-brand img{width:46px;height:46px;border-radius:12px}
+  .side-brand>div{display:none}
+  .side-nav{gap:6px}
+  .side-nav a{
+    min-height:48px;padding:0;border-radius:12px;justify-content:center
+  }
+  .side-nav a span{display:none}
+  .side-nav .icon{width:22px;height:22px}
+  .side-user{
+    margin-top:auto;padding:14px 0 0;display:flex;flex-direction:column;gap:8px;justify-content:center
+  }
+  .side-user img{width:38px;height:38px}
+  .side-user>div{display:none}
+  .side-user .exit{width:38px;height:38px}
   .compact-brand{
-    display:flex;align-items:center;gap:10px;margin:0 0 18px;
-    color:var(--green-950)
+    display:flex;align-items:center;gap:10px;margin:0 0 18px;color:var(--green-950)
   }
   .compact-brand img{
-    width:42px;height:42px;border-radius:11px;object-fit:cover;background:#fff;
-    border:1px solid rgba(10,52,46,.1)
+    width:40px;height:40px;border-radius:10px;object-fit:cover;background:#fff;border:1px solid rgba(10,52,46,.1)
   }
   .compact-brand strong{display:block;font-size:14px;letter-spacing:.02em}
   .compact-brand span{display:block;margin-top:2px;font-size:10px;color:var(--muted)}
+  .work{padding:20px var(--work-pad) 14px}
   .botanical-haze{right:-170px;top:35px;opacity:.04;width:440px;height:590px}
   .warm-banner{
-    margin:0 22px;
-    border:1px solid var(--line);
-    border-radius:20px;
+    margin-top:-1px;
+    margin-left:0;
+    margin-right:var(--work-pad);
+    border-left:0;
+    border-radius:0 20px 20px 20px;
   }
-  .mobile-nav{
-    position:fixed;z-index:50;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom,0px));height:64px;
-    display:flex;justify-content:space-around;align-items:center;
-    background:rgba(255,252,247,.97);border:1px solid var(--line);border-radius:19px;
-    box-shadow:0 6px 24px rgba(57,47,36,.1);backdrop-filter:blur(14px);
-  }
-  .mobile-nav a{
-    min-width:52px;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-    text-decoration:none;color:var(--muted);font-size:9px;font-weight:500
-  }
-  .mobile-nav .icon{width:21px;height:21px}
-  .mobile-nav a.active{color:var(--green-800);font-weight:650}
+  .mobile-nav{display:none}
 }
 
 @media(max-width:720px){
