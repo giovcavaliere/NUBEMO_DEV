@@ -87,28 +87,46 @@
 .agenda-day-head.today{background:var(--green-soft-2)}
 .agenda-day-head.today strong{color:var(--green-800)}
 
-.agenda-hour{
-  min-height:70px;padding:10px 7px;border-right:1px solid var(--line);
-  border-bottom:1px solid var(--line);color:var(--muted);font-size:9px;
-  text-align:right;background:rgba(255,253,249,.55)
+.agenda-time-axis,.agenda-day-column{
+  position:relative;
+  height:var(--agenda-height);
 }
-.agenda-slot{
-  position:relative;min-height:70px;border-right:1px solid var(--line);
-  border-bottom:1px solid var(--line);padding:5px;background:rgba(255,253,249,.36)
+.agenda-time-axis{
+  border-right:1px solid var(--line);
+  background:rgba(255,253,249,.55)
 }
-.agenda-slot:last-child{border-right:0}
+.agenda-time-label{
+  position:absolute;right:7px;transform:translateY(-50%);
+  color:var(--muted);font-size:9px;line-height:1
+}
+.agenda-day-column{
+  border-right:1px solid var(--line);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,253,249,.36) 0,
+      rgba(255,253,249,.36) 34px,
+      var(--line) 34px,
+      var(--line) 35px
+    )
+}
+.agenda-day-column:last-child{border-right:0}
 .agenda-event{
-  width:100%;min-height:58px;padding:7px 8px;border:0;border-radius:10px;
+  position:absolute;left:5px;right:5px;
+  top:calc(var(--event-top) * 1px + 3px);
+  height:calc(var(--event-height) * 1px - 6px);
+  min-height:0;padding:5px 7px;border:0;border-radius:9px;
   display:block;text-align:left;overflow:hidden
 }
 .agenda-event strong{
-  display:block;font-size:10px;line-height:1.25;font-weight:700;
+  display:block;font-size:10px;line-height:1.15;font-weight:700;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
 .agenda-event span{
-  display:block;margin-top:3px;font-size:8px;line-height:1.25;
+  display:block;margin-top:2px;font-size:8px;line-height:1.15;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
+.agenda-event.short span{display:none}
 .agenda-event.first{background:var(--peach-soft);color:#8f4d25}
 .agenda-event.control{background:var(--green-soft);color:var(--green-800)}
 .agenda-event.personal{background:#eceeea;color:#65716b}
@@ -124,6 +142,11 @@
 
 @media (max-width:1100px){
   .agenda-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .agenda-toolbar{align-items:stretch}
+  .agenda-period-nav{width:100%;justify-content:space-between}
+  .agenda-period-label{min-width:0;flex:1}
+  .agenda-view-switch{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
+  .agenda-view-switch button{width:100%}
 }
 
 @media (max-width:720px){
@@ -134,11 +157,7 @@
   .agenda-kpis{gap:9px}
   .agenda-kpi{min-height:94px;padding:14px}
   .agenda-kpi strong{font-size:25px}
-  .agenda-toolbar{padding:10px 12px;align-items:stretch}
-  .agenda-period-nav{width:100%;justify-content:space-between}
-  .agenda-period-label{min-width:0;flex:1}
-  .agenda-view-switch{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
-  .agenda-view-switch button{width:100%}
+  .agenda-toolbar{padding:10px 12px}
   .agenda-grid{--agenda-day-width:128px}
   .agenda-legend{padding:11px 12px}
 }
