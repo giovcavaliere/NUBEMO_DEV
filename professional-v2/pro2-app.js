@@ -2,12 +2,14 @@ import {patientRecords} from "./patients-data.js";
 import {renderPatientsPage,renderPatientPlaceholder} from "./patients-view.js";
 import {renderSupportPage,sendSupport} from "./support-view.js";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
+import {renderAgendaPage} from "./agenda-view.js";
 
 const dashboardView=document.getElementById("dashboardView");
 const patientsView=document.getElementById("patientsView");
 const patientDetailView=document.getElementById("patientDetailView");
 const supportView=document.getElementById("supportView");
 const profileView=document.getElementById("profileView");
+const agendaView=document.getElementById("agendaView");
 const homeBanner=document.getElementById("homeBanner");
 
 const patientState={status:"active",query:"",documentsOnly:false};
@@ -34,6 +36,7 @@ function updateProfessionalIdentity(profile=professionalProfile){
 function currentRoute(){
   const hash=(location.hash||"#dashboard").slice(1);
   if(hash==="patients") return {name:"patients"};
+  if(hash==="agenda") return {name:"agenda"};
   if(hash==="support") return {name:"support"};
   if(hash==="profile") return {name:"profile"};
   if(hash.startsWith("patient/")) return {name:"patient-detail",id:hash.split("/")[1]};
@@ -53,6 +56,7 @@ function setNavActive(routeName){
 function showView(route){
   dashboardView.hidden=route.name!=="dashboard";
   patientsView.hidden=route.name!=="patients";
+  agendaView.hidden=route.name!=="agenda";
   patientDetailView.hidden=route.name!=="patient-detail";
   supportView.hidden=route.name!=="support";
   profileView.hidden=route.name!=="profile";
@@ -65,12 +69,17 @@ function showView(route){
 
   if(route.name==="patients"){
     renderPatients();
+  }else if(route.name==="agenda"){
+    renderAgendaPage(agendaView,{profile:professionalProfile});
+    agendaView.querySelector("[data-agenda-new]")?.addEventListener("click",()=>{
+      alert("Nuovo appuntamento: funzione da definire nel prossimo step.");
+    });
   }else if(route.name==="support"){
     renderSupportPage(supportView);
     supportView.querySelector("#sendSupport")?.addEventListener("click",()=>{void sendSupport(supportView)});
   }else if(route.name==="profile"){
     renderProfilePage(profileView,professionalProfile);
-    bindProfilePage(profileView,{profile:professionalProfile,onChange:updateProfessionalIdentity});
+    bindProfilePage(profileView,{profile:professionalProfile,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
     const patient=patientRecords.find(item=>item.id===route.id);
     if(!patient){
