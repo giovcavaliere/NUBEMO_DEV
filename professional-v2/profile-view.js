@@ -13,7 +13,7 @@ export const professionalProfile={
   city:"Modena",
   province:"MO",
   email:"maria.rossi@example.it",
-  phone:"+39 333 123 4567",
+  phone:"+39 333 123 4567",\n  studios:[\n    {id:"studio-main",name:"Studio principale",address:"Via Emilia Centro 120",zip:"41121",city:"Modena",province:"MO",primary:true},\n    {id:"studio-secondary",name:"Studio secondario",address:"Via Giardini 80",zip:"41124",city:"Modena",province:"MO",primary:false}\n  ],
   firstVisit:60,
   controlVisit:30,
   dayStart:"08:00",
@@ -95,14 +95,32 @@ export function renderProfilePage(root,profile=professionalProfile){
         </section>
 
         <section class="profile-card wide">
-          <div class="profile-card-head"><h2>Studio e recapiti</h2></div>
+          <div class="profile-card-head"><h2>Recapiti professionali</h2></div>
           <div class="profile-fields">
-            <div class="profile-field full"><label>Indirizzo</label><input data-profile-field="address" value="${esc(profile.address)}"></div>
-            <div class="profile-field"><label>CAP</label><input data-profile-field="zip" value="${esc(profile.zip)}"></div>
-            <div class="profile-field"><label>Comune</label><input data-profile-field="city" value="${esc(profile.city)}"></div>
-            <div class="profile-field"><label>Provincia</label><input data-profile-field="province" value="${esc(profile.province)}"></div>
             <div class="profile-field"><label>E-mail</label><input data-profile-field="email" type="email" value="${esc(profile.email)}" readonly></div>
             <div class="profile-field"><label>Telefono</label><input data-profile-field="phone" value="${esc(profile.phone)}"></div>
+          </div>
+        </section>
+
+        <section class="profile-card wide">
+          <div class="profile-card-head"><div><h2>Sedi studio</h2><p class="profile-card-subtitle">Gli studi configurati qui alimentano il campo Luogo / Studio dei nuovi appuntamenti.</p></div><button class="profile-secondary" type="button" data-studio-add>+ Aggiungi studio</button></div>
+          <div class="profile-studios">
+            ${(Array.isArray(profile.studios)?profile.studios:[]).map((studio,index)=>`
+              <article class="profile-studio-row ${studio.primary?"primary":""}" data-studio-row="${index}">
+                <div class="profile-studio-title">
+                  <strong>${esc(studio.name||`Studio ${index+1}`)}</strong>
+                  ${studio.primary?'<span class="profile-badge">Principale</span>':`<button type="button" class="profile-studio-primary" data-studio-primary="${index}">Imposta principale</button>`}
+                </div>
+                <div class="profile-fields studio-fields">
+                  <div class="profile-field"><label>Nome sede</label><input data-studio-index="${index}" data-studio-field="name" value="${esc(studio.name)}" placeholder="es. Studio principale"></div>
+                  <div class="profile-field"><label>Indirizzo</label><input data-studio-index="${index}" data-studio-field="address" value="${esc(studio.address)}" placeholder="Via e numero civico"></div>
+                  <div class="profile-field"><label>CAP</label><input data-studio-index="${index}" data-studio-field="zip" value="${esc(studio.zip)}"></div>
+                  <div class="profile-field"><label>Comune</label><input data-studio-index="${index}" data-studio-field="city" value="${esc(studio.city)}"></div>
+                  <div class="profile-field"><label>Provincia</label><input data-studio-index="${index}" data-studio-field="province" value="${esc(studio.province)}"></div>
+                </div>
+                <button type="button" class="profile-remove profile-studio-remove" data-studio-remove="${index}" ${profile.studios.length<=1?"disabled":""}>Rimuovi studio</button>
+              </article>
+            `).join("")}
           </div>
         </section>
 
@@ -145,7 +163,7 @@ function readImage(file,onReady){
   reader.readAsDataURL(file);
 }
 
-export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){
+export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){\n  const rerender=()=>{renderProfilePage(root,profile);bindProfilePage(root,{profile,onChange});};\n\n  root.querySelectorAll("[data-studio-field]").forEach(field=>{\n    field.addEventListener("input",()=>{\n      const index=Number(field.dataset.studioIndex);\n      const studio=profile.studios?.[index];\n      if(studio) studio[field.dataset.studioField]=field.value;\n    });\n  });\n  root.querySelector("[data-studio-add]")?.addEventListener("click",()=>{\n    if(!Array.isArray(profile.studios)) profile.studios=[];\n    profile.studios.push({id:`studio-${Date.now()}`,name:`Studio ${profile.studios.length+1}`,address:"",zip:"",city:"",province:"",primary:profile.studios.length===0});\n    rerender();\n  });\n  root.querySelectorAll("[data-studio-primary]").forEach(button=>button.addEventListener("click",()=>{\n    const selected=Number(button.dataset.studioPrimary);\n    profile.studios.forEach((studio,index)=>{studio.primary=index===selected});\n    rerender();\n  }));\n  root.querySelectorAll("[data-studio-remove]").forEach(button=>button.addEventListener("click",()=>{\n    if(profile.studios.length<=1) return;\n    const index=Number(button.dataset.studioRemove);\n    const wasPrimary=!!profile.studios[index]?.primary;\n    profile.studios.splice(index,1);\n    if(wasPrimary&&profile.studios.length) profile.studios[0].primary=true;\n    rerender();\n  }));
   root.querySelector("[data-profile-photo-file]")?.addEventListener("change",event=>{
     readImage(event.target.files?.[0],data=>{
       profile.photoData=data;
@@ -189,7 +207,7 @@ export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){
       return;
     }
 
-    if(!profile.displayName) profile.displayName=[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista";
+    if(!profile.displayName) profile.displayName=[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista";\n    if(!Array.isArray(profile.studios)||!profile.studios.length){alert("Configura almeno uno studio prima di salvare il profilo.");return;}\n    if(!profile.studios.some(studio=>studio.primary)) profile.studios[0].primary=true;
     onChange?.(profile);
     alert("Profilo aggiornato nella demo. Il salvataggio su Supabase verrà collegato nella fase backend.");
   });
