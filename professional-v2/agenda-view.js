@@ -15,7 +15,7 @@ const DEMO_EVENTS=[
   {date:"2026-10-10",start:"09:00",duration:60,type:"first",name:"Nuovo paziente",meta:"Prima visita · 60 min"}
 ];
 
-export const agendaState={
+export function addAgendaEvent(event){\n  if(!event||!event.date||!event.start) return;\n  DEMO_EVENTS.push({...event});\n}\n\nexport const agendaState={
   mode:"week",
   weekStart:WEEK_START,
   dayDate:WEEK_START,
