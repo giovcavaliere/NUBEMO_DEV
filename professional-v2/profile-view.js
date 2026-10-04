@@ -13,7 +13,11 @@ export const professionalProfile={
   city:"Modena",
   province:"MO",
   email:"maria.rossi@example.it",
-  phone:"+39 333 123 4567",\n  studios:[\n    {id:"studio-main",name:"Studio principale",address:"Via Emilia Centro 120",zip:"41121",city:"Modena",province:"MO",primary:true},\n    {id:"studio-secondary",name:"Studio secondario",address:"Via Giardini 80",zip:"41124",city:"Modena",province:"MO",primary:false}\n  ],
+  phone:"+39 333 123 4567",
+  studios:[
+    {id:"studio-main",name:"Studio principale",address:"Via Emilia Centro 120",zip:"41121",city:"Modena",province:"MO",primary:true},
+    {id:"studio-secondary",name:"Studio secondario",address:"Via Giardini 80",zip:"41124",city:"Modena",province:"MO",primary:false}
+  ],
   firstVisit:60,
   controlVisit:30,
   dayStart:"08:00",
@@ -163,7 +167,34 @@ function readImage(file,onReady){
   reader.readAsDataURL(file);
 }
 
-export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){\n  const rerender=()=>{renderProfilePage(root,profile);bindProfilePage(root,{profile,onChange});};\n\n  root.querySelectorAll("[data-studio-field]").forEach(field=>{\n    field.addEventListener("input",()=>{\n      const index=Number(field.dataset.studioIndex);\n      const studio=profile.studios?.[index];\n      if(studio) studio[field.dataset.studioField]=field.value;\n    });\n  });\n  root.querySelector("[data-studio-add]")?.addEventListener("click",()=>{\n    if(!Array.isArray(profile.studios)) profile.studios=[];\n    profile.studios.push({id:`studio-${Date.now()}`,name:`Studio ${profile.studios.length+1}`,address:"",zip:"",city:"",province:"",primary:profile.studios.length===0});\n    rerender();\n  });\n  root.querySelectorAll("[data-studio-primary]").forEach(button=>button.addEventListener("click",()=>{\n    const selected=Number(button.dataset.studioPrimary);\n    profile.studios.forEach((studio,index)=>{studio.primary=index===selected});\n    rerender();\n  }));\n  root.querySelectorAll("[data-studio-remove]").forEach(button=>button.addEventListener("click",()=>{\n    if(profile.studios.length<=1) return;\n    const index=Number(button.dataset.studioRemove);\n    const wasPrimary=!!profile.studios[index]?.primary;\n    profile.studios.splice(index,1);\n    if(wasPrimary&&profile.studios.length) profile.studios[0].primary=true;\n    rerender();\n  }));
+export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){
+  const rerender=()=>{renderProfilePage(root,profile);bindProfilePage(root,{profile,onChange});};
+
+  root.querySelectorAll("[data-studio-field]").forEach(field=>{
+    field.addEventListener("input",()=>{
+      const index=Number(field.dataset.studioIndex);
+      const studio=profile.studios?.[index];
+      if(studio) studio[field.dataset.studioField]=field.value;
+    });
+  });
+  root.querySelector("[data-studio-add]")?.addEventListener("click",()=>{
+    if(!Array.isArray(profile.studios)) profile.studios=[];
+    profile.studios.push({id:`studio-${Date.now()}`,name:`Studio ${profile.studios.length+1}`,address:"",zip:"",city:"",province:"",primary:profile.studios.length===0});
+    rerender();
+  });
+  root.querySelectorAll("[data-studio-primary]").forEach(button=>button.addEventListener("click",()=>{
+    const selected=Number(button.dataset.studioPrimary);
+    profile.studios.forEach((studio,index)=>{studio.primary=index===selected});
+    rerender();
+  }));
+  root.querySelectorAll("[data-studio-remove]").forEach(button=>button.addEventListener("click",()=>{
+    if(profile.studios.length<=1) return;
+    const index=Number(button.dataset.studioRemove);
+    const wasPrimary=!!profile.studios[index]?.primary;
+    profile.studios.splice(index,1);
+    if(wasPrimary&&profile.studios.length) profile.studios[0].primary=true;
+    rerender();
+  }));
   root.querySelector("[data-profile-photo-file]")?.addEventListener("change",event=>{
     readImage(event.target.files?.[0],data=>{
       profile.photoData=data;
@@ -207,7 +238,9 @@ export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){
       return;
     }
 
-    if(!profile.displayName) profile.displayName=[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista";\n    if(!Array.isArray(profile.studios)||!profile.studios.length){alert("Configura almeno uno studio prima di salvare il profilo.");return;}\n    if(!profile.studios.some(studio=>studio.primary)) profile.studios[0].primary=true;
+    if(!profile.displayName) profile.displayName=[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista";
+    if(!Array.isArray(profile.studios)||!profile.studios.length){alert("Configura almeno uno studio prima di salvare il profilo.");return;}
+    if(!profile.studios.some(studio=>studio.primary)) profile.studios[0].primary=true;
     onChange?.(profile);
     alert("Profilo aggiornato nella demo. Il salvataggio su Supabase verrà collegato nella fase backend.");
   });
