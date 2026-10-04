@@ -111,8 +111,8 @@ export function renderProfilePage(root,profile=professionalProfile){
           <div class="profile-fields">
             <div class="profile-field"><label>Durata predefinita prima visita</label><input data-profile-field="firstVisit" type="number" step="15" min="15" value="${esc(profile.firstVisit)}"></div>
             <div class="profile-field"><label>Durata predefinita controllo</label><input data-profile-field="controlVisit" type="number" step="15" min="15" value="${esc(profile.controlVisit)}"></div>
-            <div class="profile-field"><label>Inizio agenda</label><input data-profile-field="dayStart" type="time" value="${esc(profile.dayStart)}"></div>
-            <div class="profile-field"><label>Fine agenda</label><input data-profile-field="dayEnd" type="time" value="${esc(profile.dayEnd)}"></div>
+            <div class="profile-field profile-agenda-time"><label>Inizio agenda</label><input data-profile-field="dayStart" type="time" value="${esc(profile.dayStart)}"></div>
+            <div class="profile-field profile-agenda-time"><label>Fine agenda</label><input data-profile-field="dayEnd" type="time" value="${esc(profile.dayEnd)}"></div>
             <div class="profile-field"><label>Settimana lavorativa</label>
               <select data-profile-field="workDays">
                 <option value="5" ${Number(profile.workDays)===5?"selected":""}>Da lunedì a venerdì</option>
