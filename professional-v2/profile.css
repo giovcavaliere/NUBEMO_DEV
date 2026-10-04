@@ -87,13 +87,30 @@
 }
 
 
-/* Smartphone in orizzontale: i controlli time di Safari hanno una larghezza minima
-   maggiore dei normali input. Li facciamo occupare l'intera riga evitando sovrapposizioni. */
+
+
+
+/* Campi orario Agenda: Safari iOS può imporre una larghezza intrinseca al time input.
+   Il contenitore e il controllo restano sempre entro la colonna della card. */
+.profile-agenda-time{
+  min-width:0;
+  max-width:100%;
+}
+.profile-agenda-time input[type="time"]{
+  display:block;
+  inline-size:100%;
+  width:100%;
+  min-inline-size:0;
+  min-width:0;
+  max-inline-size:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+
+@media (max-width:720px){
+  .profile-agenda-time{grid-column:auto}
+}
+
 @media (max-height:500px) and (orientation:landscape){
   .profile-agenda-time{grid-column:1/-1}
-  .profile-agenda-time input[type="time"]{
-    width:100%;
-    min-width:0;
-    max-width:100%;
-  }
 }
