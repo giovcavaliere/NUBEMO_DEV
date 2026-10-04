@@ -2,14 +2,14 @@ import {patientRecords} from "./patients-data.js";
 import {renderPatientsPage,renderPatientPlaceholder} from "./patients-view.js";
 import {renderSupportPage,sendSupport} from "./support-view.js";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
-import {agendaState,renderAgendaPage,bindAgendaPage} from "./agenda-view.js";
+import {agendaState,renderAgendaPage,bindAgendaPage,addAgendaEvent} from "./agenda-view.js";\nimport {appointmentState,renderAppointmentPage,bindAppointmentPage} from "./appointment-view.js";
 
 const dashboardView=document.getElementById("dashboardView");
 const patientsView=document.getElementById("patientsView");
 const patientDetailView=document.getElementById("patientDetailView");
 const supportView=document.getElementById("supportView");
 const profileView=document.getElementById("profileView");
-const agendaView=document.getElementById("agendaView");
+const agendaView=document.getElementById("agendaView");\nconst appointmentView=document.getElementById("appointmentView");
 const homeBanner=document.getElementById("homeBanner");
 
 const patientState={status:"active",query:"",documentsOnly:false};
@@ -36,7 +36,7 @@ function updateProfessionalIdentity(profile=professionalProfile){
 function currentRoute(){
   const hash=(location.hash||"#dashboard").slice(1);
   if(hash==="patients") return {name:"patients"};
-  if(hash==="agenda") return {name:"agenda"};
+  if(hash==="agenda") return {name:"agenda"};\n  if(hash==="appointment") return {name:"appointment"};
   if(hash==="support") return {name:"support"};
   if(hash==="profile") return {name:"profile"};
   if(hash.startsWith("patient/")) return {name:"patient-detail",id:hash.split("/")[1]};
@@ -44,7 +44,7 @@ function currentRoute(){
 }
 
 function setNavActive(routeName){
-  const navRoute=routeName==="patient-detail"?"patients":routeName;
+  const navRoute=routeName==="patient-detail"?"patients":routeName==="appointment"?"agenda":routeName;
   document.querySelectorAll("[data-route-link]").forEach(link=>{
     const active=link.dataset.routeLink===navRoute;
     link.classList.toggle("active",active);
@@ -56,7 +56,7 @@ function setNavActive(routeName){
 function showView(route){
   dashboardView.hidden=route.name!=="dashboard";
   patientsView.hidden=route.name!=="patients";
-  agendaView.hidden=route.name!=="agenda";
+  agendaView.hidden=route.name!=="agenda";\n  appointmentView.hidden=route.name!=="appointment";
   patientDetailView.hidden=route.name!=="patient-detail";
   supportView.hidden=route.name!=="support";
   profileView.hidden=route.name!=="profile";
@@ -74,9 +74,9 @@ function showView(route){
     bindAgendaPage(agendaView,{
       profile:professionalProfile,
       state:agendaState,
-      onNewAppointment:()=>alert("Nuovo appuntamento: funzione da definire nel prossimo step.")
+      onNewAppointment:()=>{location.hash="#appointment"}
     });
-  }else if(route.name==="support"){
+  }else if(route.name==="appointment"){\n    renderAppointmentPage(appointmentView,{profile:professionalProfile,state:appointmentState});\n    bindAppointmentPage(appointmentView,{\n      profile:professionalProfile,\n      state:appointmentState,\n      onCancel:()=>{location.hash="#agenda"},\n      onSave:event=>{\n        addAgendaEvent(event);\n        alert("Appuntamento aggiunto alla demo NUBEMO 2.0.");\n        location.hash="#agenda";\n      }\n    });\n  }else if(route.name==="support"){
     renderSupportPage(supportView);
     supportView.querySelector("#sendSupport")?.addEventListener("click",()=>{void sendSupport(supportView)});
   }else if(route.name==="profile"){
