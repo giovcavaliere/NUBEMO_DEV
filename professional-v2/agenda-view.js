@@ -17,6 +17,7 @@ const DEMO_EVENTS=[
 
 export const agendaState={
   mode:"week",
+  weekStart:WEEK_START,
   dayDate:WEEK_START,
   periodStart:WEEK_START,
   periodEnd:"2026-10-10"
@@ -68,8 +69,8 @@ function workDaysBetween(startIso,endIso,workDays){
   return result;
 }
 
-function weekDays(profile){
-  const start=parseIso(WEEK_START);
+function weekDays(profile,state){
+  const start=parseIso(state.weekStart)||parseIso(WEEK_START);
   const length=Number(profile?.workDays)===6?6:5;
   return Array.from({length},(_,index)=>formatDay(addDays(start,index)));
 }
@@ -104,7 +105,7 @@ function daysForMode(profile,state){
   if(state.mode==="period"){
     return workDaysBetween(state.periodStart,state.periodEnd,profile?.workDays);
   }
-  return weekDays(profile);
+  return weekDays(profile,state);
 }
 
 function periodLabel(days,state){
@@ -243,7 +244,11 @@ export function bindAgendaPage(root,{profile,state=agendaState,onNewAppointment}
   });
 
   root.querySelector("[data-agenda-prev]")?.addEventListener("click",()=>{
-    if(state.mode==="day"){
+    if(state.mode==="week"){
+      const current=parseIso(state.weekStart)||parseIso(WEEK_START);
+      state.weekStart=iso(addDays(current,-7));
+      rerender();
+    }else if(state.mode==="day"){
       const current=parseIso(state.dayDate)||parseIso(WEEK_START);
       let previous=addDays(current,-1);
       while(!isWorkingDay(previous,profile?.workDays)) previous=addDays(previous,-1);
@@ -253,7 +258,11 @@ export function bindAgendaPage(root,{profile,state=agendaState,onNewAppointment}
   });
 
   root.querySelector("[data-agenda-next]")?.addEventListener("click",()=>{
-    if(state.mode==="day"){
+    if(state.mode==="week"){
+      const current=parseIso(state.weekStart)||parseIso(WEEK_START);
+      state.weekStart=iso(addDays(current,7));
+      rerender();
+    }else if(state.mode==="day"){
       const current=parseIso(state.dayDate)||parseIso(WEEK_START);
       let next=addDays(current,1);
       while(!isWorkingDay(next,profile?.workDays)) next=addDays(next,1);
