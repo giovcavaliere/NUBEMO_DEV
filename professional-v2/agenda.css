@@ -61,6 +61,24 @@
 .agenda-view-switch button.active{
   background:var(--green-soft-2);color:var(--green-800)
 }
+.agenda-period-filter{
+  width:100%;display:flex;align-items:end;gap:10px;flex-wrap:wrap;
+  padding-top:2px
+}
+.agenda-period-filter label{
+  display:grid;gap:5px;color:var(--muted);font-size:9px;font-weight:600
+}
+.agenda-period-filter input{
+  height:36px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--text);padding:0 10px
+}
+.agenda-period-filter button{
+  height:36px;border:0;border-radius:10px;padding:0 13px;
+  background:var(--green-800);color:#fff;font-size:10px;font-weight:650;cursor:pointer
+}
+.agenda-empty{
+  padding:38px 18px;text-align:center;color:var(--muted);font-size:11px
+}
 
 .agenda-scroll{
   width:100%;overflow-x:auto;overscroll-behavior-inline:contain;
@@ -159,5 +177,8 @@
   .agenda-kpi strong{font-size:25px}
   .agenda-toolbar{padding:10px 12px}
   .agenda-grid{--agenda-day-width:128px}
+  .agenda-period-filter{display:grid;grid-template-columns:1fr 1fr}
+  .agenda-period-filter button{grid-column:1/-1}
+  .agenda-period-filter input{width:100%;min-width:0}
   .agenda-legend{padding:11px 12px}
 }
