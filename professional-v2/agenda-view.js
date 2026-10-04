@@ -1,11 +1,4 @@
-const WORK_DAYS=[
-  {name:"Lunedì",label:"5 ott",date:"2026-10-05"},
-  {name:"Martedì",label:"6 ott",date:"2026-10-06"},
-  {name:"Mercoledì",label:"7 ott",date:"2026-10-07"},
-  {name:"Giovedì",label:"8 ott",date:"2026-10-08"},
-  {name:"Venerdì",label:"9 ott",date:"2026-10-09"},
-  {name:"Sabato",label:"10 ott",date:"2026-10-10"}
-];
+const WEEK_START="2026-10-05";
 const PIXELS_PER_HALF_HOUR=35;
 const PIXELS_PER_MINUTE=PIXELS_PER_HALF_HOUR/30;
 
@@ -24,18 +17,66 @@ const DEMO_EVENTS=[
 
 export const agendaState={
   mode:"week",
-  dayIndex:0,
-  periodStart:"2026-10-05",
+  dayDate:WEEK_START,
+  periodStart:WEEK_START,
   periodEnd:"2026-10-10"
 };
+
+function parseIso(value){
+  const match=String(value||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!match) return null;
+  const date=new Date(Number(match[1]),Number(match[2])-1,Number(match[3]),12,0,0,0);
+  return Number.isNaN(date.getTime())?null:date;
+}
+
+function iso(date){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,"0");
+  const d=String(date.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+
+function addDays(date,amount){
+  const next=new Date(date);
+  next.setDate(next.getDate()+amount);
+  return next;
+}
+
+function isWorkingDay(date,workDays){
+  const day=date.getDay();
+  if(day===0) return false;
+  if(Number(workDays)===6) return day>=1&&day<=6;
+  return day>=1&&day<=5;
+}
+
+function formatDay(date){
+  return {
+    date:iso(date),
+    name:date.toLocaleDateString("it-IT",{weekday:"long"}),
+    label:date.toLocaleDateString("it-IT",{day:"numeric",month:"short"})
+  };
+}
+
+function workDaysBetween(startIso,endIso,workDays){
+  const start=parseIso(startIso);
+  const end=parseIso(endIso);
+  if(!start||!end||start>end) return [];
+  const result=[];
+  for(let cursor=new Date(start);cursor<=end;cursor=addDays(cursor,1)){
+    if(isWorkingDay(cursor,workDays)) result.push(formatDay(cursor));
+  }
+  return result;
+}
+
+function weekDays(profile){
+  const start=parseIso(WEEK_START);
+  const length=Number(profile?.workDays)===6?6:5;
+  return Array.from({length},(_,index)=>formatDay(addDays(start,index)));
+}
 
 function clampHour(value,fallback){
   const hour=Number.parseInt(String(value||"").split(":")[0],10);
   return Number.isFinite(hour)?hour:fallback;
-}
-
-function visibleWorkDays(profile){
-  return WORK_DAYS.slice(0,Number(profile?.workDays)===6?6:5);
 }
 
 function minutesFromMidnight(value){
@@ -56,15 +97,14 @@ function eventMarkup(event,startMinutes){
 }
 
 function daysForMode(profile,state){
-  const workDays=visibleWorkDays(profile);
   if(state.mode==="day"){
-    const index=Math.min(Math.max(0,state.dayIndex),workDays.length-1);
-    return [workDays[index]];
+    const day=parseIso(state.dayDate)||parseIso(WEEK_START);
+    return [formatDay(day)];
   }
   if(state.mode==="period"){
-    return workDays.filter(day=>day.date>=state.periodStart&&day.date<=state.periodEnd);
+    return workDaysBetween(state.periodStart,state.periodEnd,profile?.workDays);
   }
-  return workDays;
+  return weekDays(profile);
 }
 
 function periodLabel(days,state){
@@ -76,14 +116,19 @@ function periodLabel(days,state){
     };
   }
   if(state.mode==="period"){
+    const start=parseIso(state.periodStart);
+    const end=parseIso(state.periodEnd);
+    const main=start&&end
+      ? `${start.toLocaleDateString("it-IT",{day:"numeric",month:"short"})} – ${end.toLocaleDateString("it-IT",{day:"numeric",month:"short",year:"numeric"})}`
+      : "Periodo selezionato";
     return {
-      main:"Periodo selezionato",
-      sub:days.length?days.length+" giorni lavorativi":"Nessun giorno lavorativo"
+      main,
+      sub:days.length?`${days.length} giorni lavorativi`:"Nessun giorno lavorativo"
     };
   }
   const first=days[0],last=days.at(-1);
   return {
-    main:first&&last?`${first.label.replace(" ott","")}–${last.label} 2026`:"Settimana",
+    main:first&&last?`${first.label} – ${last.label} 2026`:"Settimana",
     sub:`${days.length} giorni lavorativi`
   };
 }
@@ -193,26 +238,26 @@ export function bindAgendaPage(root,{profile,state=agendaState,onNewAppointment}
   root.querySelectorAll("[data-agenda-mode]").forEach(button=>{
     button.addEventListener("click",()=>{
       state.mode=button.dataset.agendaMode;
-      if(state.mode==="day"){
-        const max=visibleWorkDays(profile).length-1;
-        state.dayIndex=Math.min(Math.max(0,state.dayIndex),max);
-      }
       rerender();
     });
   });
 
   root.querySelector("[data-agenda-prev]")?.addEventListener("click",()=>{
     if(state.mode==="day"){
-      const count=visibleWorkDays(profile).length;
-      state.dayIndex=(state.dayIndex-1+count)%count;
+      const current=parseIso(state.dayDate)||parseIso(WEEK_START);
+      let previous=addDays(current,-1);
+      while(!isWorkingDay(previous,profile?.workDays)) previous=addDays(previous,-1);
+      state.dayDate=iso(previous);
       rerender();
     }
   });
 
   root.querySelector("[data-agenda-next]")?.addEventListener("click",()=>{
     if(state.mode==="day"){
-      const count=visibleWorkDays(profile).length;
-      state.dayIndex=(state.dayIndex+1)%count;
+      const current=parseIso(state.dayDate)||parseIso(WEEK_START);
+      let next=addDays(current,1);
+      while(!isWorkingDay(next,profile?.workDays)) next=addDays(next,1);
+      state.dayDate=iso(next);
       rerender();
     }
   });
