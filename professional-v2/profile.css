@@ -87,30 +87,12 @@
 }
 
 
-
-
-
-/* Campi orario Agenda: Safari iOS può imporre una larghezza intrinseca al time input.
-   Il contenitore e il controllo restano sempre entro la colonna della card. */
-.profile-agenda-time{
-  min-width:0;
-  max-width:100%;
-}
-.profile-agenda-time input[type="time"]{
-  display:block;
-  inline-size:100%;
+/* Safari iOS: il controllo nativo time ha una larghezza intrinseca anomala.
+   Una sola regola dedicata mantiene il type=time e lo forza dentro la colonna. */
+.profile-field input[type="time"]{
+  -webkit-appearance:none;
+  appearance:none;
   width:100%;
-  min-inline-size:0;
   min-width:0;
-  max-inline-size:100%;
   max-width:100%;
-  box-sizing:border-box;
-}
-
-@media (max-width:720px){
-  .profile-agenda-time{grid-column:auto}
-}
-
-@media (max-height:500px) and (orientation:landscape){
-  .profile-agenda-time{grid-column:1/-1}
 }
