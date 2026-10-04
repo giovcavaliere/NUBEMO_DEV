@@ -96,3 +96,16 @@
   min-width:0;
   max-width:100%;
 }
+
+
+/* Sedi studio */
+.profile-card-subtitle{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
+.profile-studios{display:grid;gap:12px;margin-top:16px}
+.profile-studio-row{border:1px solid var(--line);border-radius:15px;padding:14px;background:rgba(255,253,249,.7)}
+.profile-studio-row.primary{border-color:#c6d7ce;background:rgba(237,242,233,.46)}
+.profile-studio-title{display:flex;align-items:center;gap:9px;justify-content:space-between}
+.profile-studio-title strong{font-size:12px}.profile-studio-primary{border:0;background:transparent;color:var(--green-700);font-size:9px;font-weight:700;cursor:pointer}
+.studio-fields{grid-template-columns:1.1fr 1.8fr .7fr 1fr .6fr;margin-top:11px}
+.profile-studio-remove{margin-top:8px;padding-left:0}.profile-studio-remove:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:1000px){.studio-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.profile-card-head{align-items:flex-start;flex-wrap:wrap}.studio-fields{grid-template-columns:1fr}.profile-card-head>[data-studio-add]{width:100%}}
