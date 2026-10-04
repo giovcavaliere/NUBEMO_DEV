@@ -177,8 +177,12 @@
   .agenda-kpi strong{font-size:25px}
   .agenda-toolbar{padding:10px 12px}
   .agenda-grid{--agenda-day-width:128px}
-  .agenda-period-filter{display:grid;grid-template-columns:1fr 1fr}
-  .agenda-period-filter button{grid-column:1/-1}
-  .agenda-period-filter input{width:100%;min-width:0}
+  .agenda-period-filter{display:grid;grid-template-columns:1fr}
+  .agenda-period-filter label{min-width:0}
+  .agenda-period-filter button{grid-column:auto;width:100%}
+  .agenda-period-filter input{
+    width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+    -webkit-appearance:none;appearance:none
+  }
   .agenda-legend{padding:11px 12px}
 }
