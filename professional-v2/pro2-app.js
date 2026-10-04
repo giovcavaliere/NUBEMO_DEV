@@ -2,7 +2,7 @@ import {patientRecords} from "./patients-data.js";
 import {renderPatientsPage,renderPatientPlaceholder} from "./patients-view.js";
 import {renderSupportPage,sendSupport} from "./support-view.js";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
-import {renderAgendaPage} from "./agenda-view.js";
+import {agendaState,renderAgendaPage,bindAgendaPage} from "./agenda-view.js";
 
 const dashboardView=document.getElementById("dashboardView");
 const patientsView=document.getElementById("patientsView");
@@ -70,9 +70,11 @@ function showView(route){
   if(route.name==="patients"){
     renderPatients();
   }else if(route.name==="agenda"){
-    renderAgendaPage(agendaView,{profile:professionalProfile});
-    agendaView.querySelector("[data-agenda-new]")?.addEventListener("click",()=>{
-      alert("Nuovo appuntamento: funzione da definire nel prossimo step.");
+    renderAgendaPage(agendaView,{profile:professionalProfile,state:agendaState});
+    bindAgendaPage(agendaView,{
+      profile:professionalProfile,
+      state:agendaState,
+      onNewAppointment:()=>alert("Nuovo appuntamento: funzione da definire nel prossimo step.")
     });
   }else if(route.name==="support"){
     renderSupportPage(supportView);
