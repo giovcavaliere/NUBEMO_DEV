@@ -115,19 +115,3 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
     </div>
   `;
 }
-
-export function renderPatientPlaceholder(root,patient){
-  root.innerHTML=`
-    <article class="patient-detail-card">
-      <button class="patient-back" type="button" data-patient-back>← Torna all'elenco pazienti</button>
-      <div class="patient-detail-person">
-        <img src="${escapeHtml(patient.avatar)}" alt="">
-        <div>
-          <h1>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</h1>
-          <p>${escapeHtml(String(patient.age))} anni</p>
-        </div>
-      </div>
-      <div class="patient-placeholder">Scheda paziente: la progetteremo nel prossimo step.</div>
-    </article>
-  `;
-}

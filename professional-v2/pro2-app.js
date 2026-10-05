@@ -1,5 +1,8 @@
 import {patientRecords} from "./patients-data.js";
-import {renderPatientsPage,renderPatientPlaceholder} from "./patients-view.js";
+import {renderPatientsPage} from "./patients-view.js";
+import {getPatientData} from "./patient-detail-data.js";
+import {getPatientViewModel} from "./patient-detail-model.js";
+import {renderPatientDetail} from "./patient-detail-view.js";
 import {renderSupportPage,sendSupport} from "./support-view.js";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
 import {agendaState,renderAgendaPage,bindAgendaPage,addAgendaEvent} from "./agenda-view.js";
@@ -56,7 +59,10 @@ function currentRoute(){
   if(hash==="appointment") return {name:"appointment"};
   if(hash==="support") return {name:"support"};
   if(hash==="profile") return {name:"profile"};
-  if(hash.startsWith("patient/")) return {name:"patient-detail",id:hash.split("/")[1]};
+  if(hash.startsWith("patient/")){
+    const [,id,tab="panoramica"]=hash.split("/");
+    return {name:"patient-detail",id,tab};
+  }
   return {name:"dashboard"};
 }
 
@@ -113,13 +119,13 @@ function showView(route){
     renderProfilePage(profileView,professionalProfile);
     bindProfilePage(profileView,{profile:professionalProfile,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
-    const patient=patientRecords.find(item=>item.id===route.id);
-    if(!patient){
+    const data=getPatientData(route.id);
+    if(!data){
       location.hash="#patients";
       return;
     }
-    renderPatientPlaceholder(patientDetailView,patient);
-    patientDetailView.querySelector("[data-patient-back]")?.addEventListener("click",()=>{location.hash="#patients"});
+    const renderDetail=()=>renderPatientDetail(patientDetailView,getPatientViewModel(data),route.tab,renderDetail);
+    renderDetail();
   }
 }
 
