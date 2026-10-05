@@ -164,7 +164,15 @@ export function renderAgendaPage(root,{profile,state=agendaState}={}){
       .filter(event=>event.date===day.date)
       .map(event=>eventMarkup(event,startMinutes))
       .join("");
-    return `<div class="agenda-day-column">${events}</div>`;
+    const slots=[];
+    for(let minute=0;minute<totalMinutes;minute+=30){
+      const absolute=startMinutes+minute;
+      const hour=Math.floor(absolute/60);
+      const mins=absolute%60;
+      const time=`${String(hour).padStart(2,"0")}:${String(mins).padStart(2,"0")}`;
+      slots.push(`<button type="button" class="agenda-slot" style="--slot-top:${minute*PIXELS_PER_MINUTE}px" data-agenda-slot data-date="${day.date}" data-time="${time}" aria-label="Nuovo appuntamento ${day.name} ${day.label} alle ${time}"><span>+</span></button>`);
+    }
+    return `<div class="agenda-day-column">${slots.join("")}${events}</div>`;
   }).join("");
 
   const periodControls=state.mode==="period"?`
@@ -286,6 +294,12 @@ export function bindAgendaPage(root,{profile,state=agendaState,onNewAppointment}
     state.periodStart=start;
     state.periodEnd=end;
     rerender();
+  });
+
+  root.querySelectorAll("[data-agenda-slot]").forEach(slot=>{
+    slot.addEventListener("click",()=>{
+      onNewAppointment?.({date:slot.dataset.date,time:slot.dataset.time});
+    });
   });
 
   root.querySelector("[data-agenda-new]")?.addEventListener("click",()=>onNewAppointment?.());
