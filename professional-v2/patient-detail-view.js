@@ -171,21 +171,21 @@ function openIdentityDialog(root,model,onChange){
   const sexOptions=["","Maschio","Femmina","Altro","Preferisco non indicarlo"];
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog";
-  dialog.innerHTML=\`<form method="dialog"><header><h2>Anagrafica</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifiche demo disponibili fino al ricaricamento della pagina.</p>
+  dialog.innerHTML=`<form method="dialog"><header><h2>Anagrafica</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifiche demo disponibili fino al ricaricamento della pagina.</p>
     <div class="detail-dialog-fields">
-      <label>Nome<input name="firstName" value="\${escapeHtml(identity.firstName||"")}"></label>
-      <label>Cognome<input name="lastName" value="\${escapeHtml(identity.lastName||"")}"></label>
-      <label>Data di nascita<input name="birthDate" type="date" value="\${escapeHtml(identity.birthDate||"")}"></label>
-      <label>Sesso<select name="sex">\${sexOptions.map(option=>\`<option value="\${escapeHtml(option)}" \${identity.sex===option?"selected":""}>\${escapeHtml(option||"Seleziona...")}</option>\`).join("")}</select></label>
-      <label>Codice fiscale<input name="fiscalCode" value="\${escapeHtml(identity.fiscalCode||"")}"></label>
-      <label>Indirizzo<input name="address" value="\${escapeHtml(identity.address||"")}"></label>
-      <label>CAP<input name="postalCode" value="\${escapeHtml(identity.postalCode||"")}"></label>
-      <label>Città<input name="city" value="\${escapeHtml(identity.city||"")}"></label>
-      <label>Provincia<input name="province" value="\${escapeHtml(identity.province||"")}"></label>
-      <label>Telefono<input name="phone" type="tel" value="\${escapeHtml(identity.phone||"")}"></label>
-      <label>Email<input name="email" type="email" value="\${escapeHtml(identity.email||"")}"></label>
+      <label>Nome<input name="firstName" value="${escapeHtml(identity.firstName||"")}"></label>
+      <label>Cognome<input name="lastName" value="${escapeHtml(identity.lastName||"")}"></label>
+      <label>Data di nascita<input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label>
+      <label>Sesso<select name="sex">${sexOptions.map(option=>`<option value="${escapeHtml(option)}" ${identity.sex===option?"selected":""}>${escapeHtml(option||"Seleziona...")}</option>`).join("")}</select></label>
+      <label>Codice fiscale<input name="fiscalCode" value="${escapeHtml(identity.fiscalCode||"")}"></label>
+      <label>Indirizzo<input name="address" value="${escapeHtml(identity.address||"")}"></label>
+      <label>CAP<input name="postalCode" value="${escapeHtml(identity.postalCode||"")}"></label>
+      <label>Città<input name="city" value="${escapeHtml(identity.city||"")}"></label>
+      <label>Provincia<input name="province" value="${escapeHtml(identity.province||"")}"></label>
+      <label>Telefono<input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label>
+      <label>Email<input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label>
     </div>
-    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
   attachDialog(root,dialog,values=>{
     ["firstName","lastName","birthDate","sex","fiscalCode","address","postalCode","city","province","phone","email"].forEach(key=>{
       identity[key]=String(values.get(key)||"").trim();
@@ -201,17 +201,17 @@ function openProfileSectionDialog(root,model,key,onChange){
   const hasItems=key!=="history";
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog";
-  dialog.innerHTML=\`<form method="dialog"><header><h2>\${escapeHtml(titles[key]||"Profilo")}</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifica le informazioni del percorso. I dati restano nella sessione demo fino al ricaricamento.</p>
+  dialog.innerHTML=`<form method="dialog"><header><h2>${escapeHtml(titles[key]||"Profilo")}</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifica le informazioni del percorso. I dati restano nella sessione demo fino al ricaricamento.</p>
     <div class="detail-dialog-fields detail-dialog-fields-single">
-      <label>Sintesi<textarea name="summary" rows="4">\${escapeHtml(section.summary||"")}</textarea></label>
-      \${key==="history"?\`<label>Dettaglio<textarea name="details" rows="6">\${escapeHtml(section.details||"")}</textarea></label>\`:""}
-      \${hasItems?\`<label>Voci <small>Una voce per riga</small><textarea name="items" rows="6">\${escapeHtml((section.items||[]).join("\\n"))}</textarea></label>\`:""}
+      <label>Sintesi<textarea name="summary" rows="4">${escapeHtml(section.summary||"")}</textarea></label>
+      ${key==="history"?`<label>Dettaglio<textarea name="details" rows="6">${escapeHtml(section.details||"")}</textarea></label>`:""}
+      ${hasItems?`<label>Voci <small>Una voce per riga</small><textarea name="items" rows="6">${escapeHtml((section.items||[]).join("\n"))}</textarea></label>`:""}
     </div>
-    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
   attachDialog(root,dialog,values=>{
     section.summary=String(values.get("summary")||"").trim();
     if(key==="history") section.details=String(values.get("details")||"").trim();
-    if(hasItems) section.items=String(values.get("items")||"").split(/\\r?\\n/).map(item=>item.trim()).filter(Boolean);
+    if(hasItems) section.items=String(values.get("items")||"").split(/\r?\n/).map(item=>item.trim()).filter(Boolean);
     onChange();
   });
 }
@@ -220,13 +220,13 @@ function openLifestyleDialog(root,model,onChange){
   const lifestyle=model.data.profile.lifestyle;
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog detail-dialog-wide";
-  dialog.innerHTML=\`<form method="dialog"><header><h2>Stile di vita e abitudini</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Aggiorna la sintesi delle abitudini utili al percorso.</p>
-    <div class="detail-lifestyle-editor">\${lifestyle.map((item,index)=>\`<fieldset><legend>\${escapeHtml(item.label)}</legend><label>Valore sintetico<input name="lifestyle-\${index}-value" value="\${escapeHtml(item.value||"")}"></label><label>Descrizione<textarea name="lifestyle-\${index}-description" rows="2">\${escapeHtml(item.description||"")}</textarea></label></fieldset>\`).join("")}</div>
-    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+  dialog.innerHTML=`<form method="dialog"><header><h2>Stile di vita e abitudini</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Aggiorna la sintesi delle abitudini utili al percorso.</p>
+    <div class="detail-lifestyle-editor">${lifestyle.map((item,index)=>`<fieldset><legend>${escapeHtml(item.label)}</legend><label>Valore sintetico<input name="lifestyle-${index}-value" value="${escapeHtml(item.value||"")}"></label><label>Descrizione<textarea name="lifestyle-${index}-description" rows="2">${escapeHtml(item.description||"")}</textarea></label></fieldset>`).join("")}</div>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
   attachDialog(root,dialog,values=>{
     lifestyle.forEach((item,index)=>{
-      item.value=String(values.get(\`lifestyle-\${index}-value\`)||"").trim();
-      item.description=String(values.get(\`lifestyle-\${index}-description\`)||"").trim();
+      item.value=String(values.get(`lifestyle-${index}-value`)||"").trim();
+      item.description=String(values.get(`lifestyle-${index}-description`)||"").trim();
     });
     onChange();
   });
@@ -237,15 +237,15 @@ function openAdministrationDialog(root,model,onChange){
   const consentStatus=privacy.consent?.status||(privacy.consent?.signedAt?"signed":"missing");
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog";
-  dialog.innerHTML=\`<form method="dialog"><header><h2>Dati amministrativi</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Gestisci consenso e preferenze operative del paziente. NUBEMO 2.0 utilizza solo email.</p>
+  dialog.innerHTML=`<form method="dialog"><header><h2>Dati amministrativi</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Gestisci consenso e preferenze operative del paziente. NUBEMO 2.0 utilizza solo email.</p>
     <div class="detail-dialog-fields detail-dialog-fields-single">
-      <label>Stato consenso privacy<select name="consentStatus"><option value="signed" \${consentStatus==="signed"?"selected":""}>Firmato</option><option value="pending" \${consentStatus==="pending"?"selected":""}>In attesa</option><option value="missing" \${consentStatus==="missing"?"selected":""}>Non registrato</option></select></label>
-      <label>Data firma<input name="consentSignedAt" type="date" value="\${escapeHtml(privacy.consent?.signedAt||"")}"></label>
-      <label class="detail-check-field"><input name="communicationsEmail" type="checkbox" \${privacy.communications?.email?"checked":""}><span>Comunicazioni via email</span></label>
-      <label class="detail-check-field"><input name="remindersEmail" type="checkbox" \${privacy.reminders?.email?"checked":""}><span>Promemoria appuntamenti via email</span></label>
-      <label>Note amministrative<textarea name="administrativeNotes" rows="5">\${escapeHtml(privacy.administrativeNotes||"")}</textarea></label>
+      <label>Stato consenso privacy<select name="consentStatus"><option value="signed" ${consentStatus==="signed"?"selected":""}>Firmato</option><option value="pending" ${consentStatus==="pending"?"selected":""}>In attesa</option><option value="missing" ${consentStatus==="missing"?"selected":""}>Non registrato</option></select></label>
+      <label>Data firma<input name="consentSignedAt" type="date" value="${escapeHtml(privacy.consent?.signedAt||"")}"></label>
+      <label class="detail-check-field"><input name="communicationsEmail" type="checkbox" ${privacy.communications?.email?"checked":""}><span>Comunicazioni via email</span></label>
+      <label class="detail-check-field"><input name="remindersEmail" type="checkbox" ${privacy.reminders?.email?"checked":""}><span>Promemoria appuntamenti via email</span></label>
+      <label>Note amministrative<textarea name="administrativeNotes" rows="5">${escapeHtml(privacy.administrativeNotes||"")}</textarea></label>
     </div>
-    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
   attachDialog(root,dialog,values=>{
     const status=String(values.get("consentStatus")||"missing");
     const signedAt=status==="signed"?String(values.get("consentSignedAt")||"").trim():"";
