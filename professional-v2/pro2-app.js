@@ -19,6 +19,20 @@ const patientState={status:"active",query:"",documentsOnly:false};
 const dashboardSearch=document.querySelector("[data-dashboard-patient-search]");
 const dashboardSearchResults=document.querySelector("[data-dashboard-search-results]");
 
+function openNewAppointment(prefill={}){
+  appointmentState.patientIds=[];
+  appointmentState.type="first";
+  appointmentState.date=prefill.date||appointmentState.date||"2026-10-06";
+  appointmentState.time=prefill.time||"11:00";
+  appointmentState.duration=Number(professionalProfile.firstVisit||60);
+  appointmentState.modality="studio";
+  appointmentState.studioId=(professionalProfile.studios?.find(studio=>studio.primary)||professionalProfile.studios?.[0])?.id||"";
+  appointmentState.notes="";
+  appointmentState.couple=false;
+  appointmentState.reminder=false;
+  location.hash="#appointment";
+}
+
 function updateProfessionalIdentity(profile=professionalProfile){
   const displayName=(profile.displayName||[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista").trim();
   const qualification=(profile.qualification||"Nutrizionista").trim();
@@ -78,7 +92,7 @@ function showView(route){
     bindAgendaPage(agendaView,{
       profile:professionalProfile,
       state:agendaState,
-      onNewAppointment:()=>{location.hash="#appointment"}
+      onNewAppointment:prefill=>{openNewAppointment(prefill||{})}
     });
   }else if(route.name==="appointment"){
     renderAppointmentPage(appointmentView,{profile:professionalProfile,state:appointmentState});
