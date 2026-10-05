@@ -5,7 +5,7 @@ const fullName=p=>[p?.first_name,p?.last_name].filter(Boolean).join(" ");
 const defaultDate=()=>new Date().toISOString().slice(0,10);
 
 export const appointmentState={
-  patientId:"",
+  patientIds:[],
   type:"first",
   date:"2026-10-06",
   time:"11:00",
@@ -21,8 +21,30 @@ function studioLabel(studio){
   if(!studio) return "Nessuno studio configurato";
   return [studio.name,studio.address,studio.city].filter(Boolean).join(" · ");
 }
-function selectedPatient(state){return patientRecords.find(p=>p.id===state.patientId)||null}
+function selectedPatients(state){
+  const ids=Array.isArray(state.patientIds)?state.patientIds:(state.patientId?[state.patientId]:[]);
+  state.patientIds=ids.filter((id,index)=>id&&ids.indexOf(id)===index).slice(0,2);
+  delete state.patientId;
+  return state.patientIds.map(id=>patientRecords.find(p=>p.id===id)).filter(Boolean);
+}
 function effectiveEmail(patient){return String(patient?.email||"").trim()}
+function reminderIsAvailable(state,patients,personal){
+  if(personal) return false;
+  const required=state.couple?2:1;
+  return patients.length===required && patients.every(patient=>!!effectiveEmail(patient));
+}
+function addPatientToState(state,id){
+  const ids=selectedPatients(state).map(patient=>patient.id);
+  if(state.couple){
+    if(!ids.includes(id) && ids.length<2) ids.push(id);
+    state.patientIds=ids.slice(0,2);
+  }else{
+    state.patientIds=[id];
+  }
+}
+function removePatientFromState(state,id){
+  state.patientIds=selectedPatients(state).map(patient=>patient.id).filter(patientId=>patientId!==id);
+}
 function typeInfo(type){
   if(type==="control") return {title:"Controllo",sub:"Visita di follow-up",className:"control"};
   if(type==="personal") return {title:"Impegno personale",sub:"Blocco agenda (senza paziente)",className:"personal"};
