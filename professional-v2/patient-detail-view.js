@@ -448,7 +448,11 @@ function openProfileSectionDialog(root,model,key,onChange){
   if(!section)return;
 
   const familyFields=key==="family"?`<fieldset class="detail-family-editor"><legend>Familiarità</legend>
-    ${[["obesity","Obesità"],["diabetes","Diabete"],["hypertension","Ipertensione"],["cardiovascular","Cardiovascolare"],["dyslipidemia","Dislipidemie"],["thyroid","Tiroide"]].map(([fieldKey,label])=>`<label class="detail-check-field"><input type="checkbox" name="family-${fieldKey}" ${family[fieldKey]?"checked":""}><span>${label}</span></label>`).join("")}
+    <div class="detail-family-options">${[["obesity","Obesità"],["diabetes","Diabete"],["hypertension","Ipertensione"],["cardiovascular","Cardiovascolare"],["dyslipidemia","Dislipidemie"],["thyroid","Tiroide"]].map(([fieldKey,label])=>`
+      <label class="detail-family-option">
+        <input type="checkbox" name="family-${fieldKey}" ${family[fieldKey]?"checked":""}>
+        <span class="detail-family-option-box"><span class="detail-family-option-check">✓</span><strong>${label}</strong></span>
+      </label>`).join("")}</div>
   </fieldset>`:"";
 
   const dialog=document.createElement("dialog");
