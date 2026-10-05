@@ -117,7 +117,7 @@ function renderAccordionSection(key,title,section){
 function renderProfile(model){
   const {identity,profile,privacy}=model.data;
   const lifestyle=profile.lifestyle;
-  const consent=privacy.consent?.signedAt?`Firmato il ${fmtDate(privacy.consent.signedAt)}`:"Non registrato";
+  const consent=privacy.consent?.status==="pending"?"In attesa":privacy.consent?.signedAt?`Firmato il ${fmtDate(privacy.consent.signedAt)}`:"Non registrato";
   return `<div class="detail-profile">
     <section class="detail-panel detail-identity">${sectionHeading("profile","Anagrafica")}
       <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Telefono",identity.phone)}${field("Email",identity.email)}</dl>
