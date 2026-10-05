@@ -17,11 +17,12 @@ function renderComposition(composition){
 
 function renderBody(composition){
   if(!composition) return emptyComposition();
-  const shape='<path d="M100 20C92 20 87 26 87 35L87 43C85 43 85 47 88 51C88 58 91 62 95 65L95 69H105L105 65C109 62 112 58 112 51C115 47 115 43 113 43L113 35C113 26 108 20 100 20Z"/><path d="M95 66C95 71 91 73 84 75L78 77C72 80 69 85 68 93L65 117C64 127 61 136 61 146L60 171C59 181 56 189 55 197L54 208Q54 213 57 216L59 216L59 208L60 213Q62 216 63 213L64 198C65 187 68 180 68 169L70 147L72 128L77 105L77 138C77 149 75 159 74 169C72 183 74 199 77 211L78 238C77 250 80 263 81 277L79 288C77 295 75 297 79 299H89C94 297 94 293 92 290L92 280C92 265 94 254 94 239L97 207Q100 202 103 207L106 239C106 254 108 265 108 280L108 290C106 293 106 297 111 299H121C125 297 123 295 121 288L119 277C120 263 123 250 122 238L123 211C126 199 128 183 126 169C125 159 123 149 123 138L123 105L128 128L130 147L132 169C132 180 135 187 136 198L137 213Q138 216 140 213L141 208L141 216H143Q146 213 146 208L145 197C144 189 141 181 140 171L139 146C139 136 136 127 135 117L132 93C131 85 128 80 122 77L116 75C109 73 105 71 105 66Z"/>';
+  // One continuous, symmetric outline; the existing BIA bands only change its colour.
+  const shape='<path d="M100 20C91 20 87 26 87 34L87 40C84 39 84 45 88 47C89 51 91 54 95 56L95 63C92 67 84 68 76 71C67 74 64 78 63 88C61 102 60 113 59 125C58 137 55 149 54 162L53 175C51 179 50 183 51 188L52 195C53 198 56 198 57 194L57 188C59 191 61 190 60 187C59 181 61 177 63 171L69 146C72 132 74 118 78 104C79 114 80 121 79 130C78 139 75 146 75 155C74 166 75 177 77 187C80 200 81 210 82 221C81 230 81 239 82 248C83 259 86 269 86 279L85 286C83 289 79 291 79 295C79 299 90 301 95 297C97 294 94 291 94 287L94 277C94 263 96 252 95 240L95 222C96 208 97 196 98 183C98 178 99 173 100 170C101 173 102 178 102 183C103 196 104 208 105 222L105 240C104 252 106 263 106 277L106 287C106 291 103 294 105 297C110 301 121 299 121 295C121 291 117 289 115 286L114 279C114 269 117 259 118 248C119 239 119 230 118 221C119 210 120 200 123 187C125 177 126 166 125 155C125 146 122 139 121 130C120 121 121 114 122 104C126 118 128 132 131 146L137 171C139 177 141 181 140 187C139 190 141 191 143 188L143 194C144 198 147 198 148 195L149 188C150 183 149 179 147 175L146 162C145 149 142 137 141 125C140 113 139 102 137 88C136 78 133 74 124 71C116 68 108 67 105 63L105 56C109 54 111 51 112 47C116 45 116 39 113 40L113 34C113 26 109 20 100 20Z"/>';
   return `<div class="measure-body-layout">
-    <svg class="measure-body" viewBox="40 10 120 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Rappresentazione infografica della BIA. ${escapeHtml(composition.note)}">
-      <defs><clipPath id="measure-body-clip">${shape}</clipPath></defs>
-      <g clip-path="url(#measure-body-clip)"><rect x="20" y="20" width="160" height="280" fill="#e5e6df"/>${composition.bands.map(band=>`<rect x="20" y="${band.y}" width="160" height="${band.height}" class="measure-tone-${band.tone}"/>`).join("")}</g>
+    <svg class="measure-body" viewBox="44 14 112 292" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Rappresentazione infografica della BIA. ${escapeHtml(composition.note)}">
+      <defs><clipPath id="measure-body-clip">${shape}</clipPath><linearGradient id="measure-body-light" x1="0" x2="1"><stop stop-color="#fff" stop-opacity=".2"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".1"/></linearGradient></defs>
+      <g clip-path="url(#measure-body-clip)"><rect x="20" y="20" width="160" height="280" fill="#e5e6df"/>${composition.bands.map(band=>`<rect x="20" y="${band.y}" width="160" height="${band.height}" class="measure-tone-${band.tone}"/>`).join("")}<rect x="20" y="20" width="160" height="280" fill="url(#measure-body-light)"/></g>
     </svg>
     <div class="measure-body-values">${composition.components.map(item=>`<div class="measure-body-value measure-value-${item.tone}"><span>${item.label}</span><strong>${escapeHtml(item.text)}</strong></div>`).join("")}<div class="measure-ffm"><span>FFM</span><strong>${escapeHtml(composition.ffmText)}</strong></div></div>
   </div><p class="detail-note">${escapeHtml(composition.note)}</p>${!composition.hasSegments?`<p class="detail-note">FM, ECM e BCM non rilevate; la figura resta neutra.</p>`:""}`;
@@ -30,12 +31,16 @@ function renderBody(composition){
 function renderChart(chart){
   if(!chart) return `<p class="detail-empty">Nessun dato da rappresentare. Registra peso, FM% o MM% per iniziare l’andamento.</p>`;
   return `<div class="measure-trend-chart" role="img" aria-label="${escapeHtml(chart.series.map(item=>item.summary).join(". "))}">
-    <svg viewBox="0 0 500 265" aria-hidden="true">
-      ${chart.hasWeight?'<text x="46" y="16" class="measure-axis">Peso (kg)</text>':""}${chart.hasPercent?'<text x="454" y="16" text-anchor="end" class="measure-axis">Percentuali (%)</text>':""}
-      ${chart.ticks.map(tick=>`<line x1="46" x2="454" y1="${tick.y}" y2="${tick.y}" class="measure-chart-grid"/>${chart.hasWeight?`<text x="38" y="${tick.y}" dominant-baseline="middle" text-anchor="end" class="measure-axis">${tick.weight}</text>`:""}${chart.hasPercent?`<text x="462" y="${tick.y}" dominant-baseline="middle" class="measure-axis">${tick.percent}</text>`:""}`).join("")}
-      ${chart.series.map(series=>`<g style="color:${series.color}"><path d="${series.path}" class="measure-chart-line"/>${series.dots.map(point=>`<circle cx="${point.x}" cy="${point.y}" r="3.5" class="measure-chart-dot"><title>${escapeHtml(point.title)}</title></circle>`).join("")}</g>`).join("")}
-      ${chart.labels.map(label=>`<text x="${label.x}" y="252" text-anchor="${label.edge}" class="measure-axis ${label.interior?"measure-axis-interior":""}">${escapeHtml(label.label)}</text>`).join("")}
-    </svg>
+    ${chart.hasWeight?'<span class="measure-axis-title measure-axis-left">Peso (kg)</span>':""}${chart.hasPercent?'<span class="measure-axis-title measure-axis-right">Percentuali (%)</span>':""}
+    <div class="measure-chart-plot">
+      <svg viewBox="46 34 408 191" preserveAspectRatio="none" aria-hidden="true">
+        ${chart.ticks.map(tick=>`<line x1="46" x2="454" y1="${tick.y}" y2="${tick.y}" class="measure-chart-grid"/>`).join("")}
+        ${chart.series.map(series=>`<path d="${series.path}" style="color:${series.color}" class="measure-chart-line"/>`).join("")}
+      </svg>
+      ${chart.ticks.map(tick=>`<div class="measure-chart-tick" style="--measure-y:${tick.y}">${chart.hasWeight?`<span class="measure-axis measure-axis-left">${tick.weight}</span>`:""}${chart.hasPercent?`<span class="measure-axis measure-axis-right">${tick.percent}</span>`:""}</div>`).join("")}
+      ${chart.series.map(series=>series.dots.map(point=>`<span class="measure-chart-dot" style="--measure-x:${point.x};--measure-y:${point.y};color:${series.color}" title="${escapeHtml(point.title)}"></span>`).join("")).join("")}
+      ${chart.labels.map(label=>`<span class="measure-axis measure-chart-date measure-date-${label.edge} ${label.interior?"measure-axis-interior":""}" style="--measure-x:${label.x}">${escapeHtml(label.label)}</span>`).join("")}
+    </div>
   </div><div class="measure-chart-latest">${chart.series.map(item=>`<span><i class="measure-dot" style="background:${item.color}"></i>${item.label}<strong>${escapeHtml(item.latestText)}</strong></span>`).join("")}</div>`;
 }
 
