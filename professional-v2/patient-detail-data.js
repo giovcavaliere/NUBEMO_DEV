@@ -26,6 +26,10 @@ const patientDetails={
     ],updates:[{id:"du1",date:"2026-10-04",title:"Diario aggiornato",description:"Nuove voci del diario",origin:"Paziente"}]},
     documents:[{id:"d1",date:"2026-09-26",type:"referto",title:"Referto vitamina D",description:"Caricato dal paziente",origin:"Paziente",unread:true}],
     activities:[{id:"e1",date:"2026-09-24",type:"email",title:"Promemoria visita inviato via Email",description:"Consegna richiesta",origin:"Agenda"}],
+    notes:[
+      {id:"n1",createdAt:"2026-10-01T12:05:00+02:00",updatedAt:null,text:"Buona aderenza generale al percorso. Verificare la continuità del diario nei fine settimana."},
+      {id:"n2",createdAt:"2026-09-12T11:30:00+02:00",updatedAt:null,text:"Prima visita completata. Il paziente appare motivato e disponibile a un percorso graduale."}
+    ],
     profile:{
       goals:{summary:"Dimagrimento graduale e sostenibile, con maggiore continuità nel diario alimentare.",items:["Migliorare la regolarità dei pasti","Più continuità nel diario","Gestire meglio i weekend"]},
       history:{summary:"Informazioni generali sul percorso raccolte durante la prima visita.",details:"Anamnesi da completare nelle prossime visite."},
@@ -53,7 +57,7 @@ export function getPatientData(id){
     identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:null,age:record.age,sex:null,phone:record.phone||"",email:record.email||"",fiscalCode:"",address:"",postalCode:"",city:"",province:"",...detail.identity},
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
-    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],activities:detail.activities||[],
+    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],activities:detail.activities||[],notes:detail.notes||[],
     profile:{goals:null,history:null,conditions:null,medication:null,lifestyle:[],...detail.profile},
     privacy:{consent:null,communications:{email:false},reminders:{email:false},administrativeNotes:"",...detail.privacy}
   };
