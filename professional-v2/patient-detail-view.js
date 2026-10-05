@@ -115,7 +115,7 @@ function renderOverview(model){
 
 function profileValue(label,value,unit=""){
   const hasValue=value!==""&&value!==null&&value!==undefined;
-  return \`<div class="detail-clinical-field"><span>\${escapeHtml(label)}</span><strong>\${hasValue?escapeHtml(\`\${value}\${unit}\`):"—"}</strong></div>\`;
+  return `<div class="detail-clinical-field"><span>${escapeHtml(label)}</span><strong>${hasValue?escapeHtml(`${value}${unit}`):"—"}</strong></div>`;
 }
 
 function activityFactorLabel(value){
@@ -123,88 +123,88 @@ function activityFactorLabel(value){
 }
 
 function renderClinicalAccordion(key,title,body){
-  return \`<details class="detail-accordion" data-accordion="\${key}">
-    <summary><span>\${escapeHtml(title)}</span><span class="detail-chevron" aria-hidden="true">⌄</span></summary>
+  return `<details class="detail-accordion" data-accordion="${key}">
+    <summary><span>${escapeHtml(title)}</span><span class="detail-chevron" aria-hidden="true">⌄</span></summary>
     <div class="detail-accordion-body">
-      \${body}
-      <button type="button" class="detail-accordion-edit" data-edit-profile-section="\${key}">\${icon("edit")}<span>Modifica</span></button>
+      ${body}
+      <button type="button" class="detail-accordion-edit" data-edit-profile-section="${key}">${icon("edit")}<span>Modifica</span></button>
     </div>
-  </details>\`;
+  </details>`;
 }
 
 function renderProfile(model){
   const {identity,profile,privacy}=model.data;
   const a=profile.anamnesis||{};
   const family=a.family||{};
-  const consent=privacy.consent?.status==="pending"?"In attesa":privacy.consent?.signedAt?\`Firmato il \${fmtDate(privacy.consent.signedAt)}\`:"Non registrato";
+  const consent=privacy.consent?.status==="pending"?"In attesa":privacy.consent?.signedAt?`Firmato il ${fmtDate(privacy.consent.signedAt)}`:"Non registrato";
 
-  const weightSection=\`<div class="detail-clinical-grid">
-    \${profileValue("Peso obiettivo",a.goalWeight," kg")}
-    \${profileValue("Peso minimo storico",a.minWeight," kg")}
-    \${profileValue("Peso massimo storico",a.maxWeight," kg")}
-    \${profileValue("Peso ragionevole / concordato",a.reasonableWeight," kg")}
-    \${profileValue("Peso teorico",a.theoreticalWeight," kg")}
-    \${profileValue("Obiettivi",a.objectives)}
-  </div>\`;
+  const weightSection=`<div class="detail-clinical-grid">
+    ${profileValue("Peso obiettivo",a.goalWeight," kg")}
+    ${profileValue("Peso minimo storico",a.minWeight," kg")}
+    ${profileValue("Peso massimo storico",a.maxWeight," kg")}
+    ${profileValue("Peso ragionevole / concordato",a.reasonableWeight," kg")}
+    ${profileValue("Peso teorico",a.theoreticalWeight," kg")}
+    ${profileValue("Obiettivi",a.objectives)}
+  </div>`;
 
-  const lifestyleSection=\`<div class="detail-clinical-grid">
-    \${profileValue("Attività lavorativa",a.work)}
-    \${profileValue("Attività fisica abituale",a.activity)}
-    \${profileValue("Livello attività",activityFactorLabel(a.activityFactor))}
-    \${profileValue("Fumo",a.smoking)}
-    \${profileValue("Alcol",a.alcohol)}
-  </div>\`;
+  const lifestyleSection=`<div class="detail-clinical-grid">
+    ${profileValue("Attività lavorativa",a.work)}
+    ${profileValue("Attività fisica abituale",a.activity)}
+    ${profileValue("Livello attività",activityFactorLabel(a.activityFactor))}
+    ${profileValue("Fumo",a.smoking)}
+    ${profileValue("Alcol",a.alcohol)}
+  </div>`;
 
-  const clinicalSection=\`<div class="detail-clinical-grid">
-    \${profileValue("Diagnosi / motivo",a.diagnosis)}
-    \${profileValue("Alvo",a.bowel)}
-    \${profileValue("Metabolismo basale",a.metabolism)}
-    \${profileValue("FEEG / fabbisogno",a.feeg)}
-    \${profileValue("Impedenziometria",a.impedance)}
-  </div>\`;
+  const clinicalSection=`<div class="detail-clinical-grid">
+    ${profileValue("Diagnosi / motivo",a.diagnosis)}
+    ${profileValue("Alvo",a.bowel)}
+    ${profileValue("Metabolismo basale",a.metabolism)}
+    ${profileValue("FEEG / fabbisogno",a.feeg)}
+    ${profileValue("Impedenziometria",a.impedance)}
+  </div>`;
 
-  const familySection=\`<div class="detail-family-grid">
-    \${[["Obesità",family.obesity],["Diabete",family.diabetes],["Ipertensione",family.hypertension],["Cardiovascolare",family.cardiovascular],["Dislipidemie",family.dyslipidemia],["Tiroide",family.thyroid]].map(([label,value])=>\`<div><span>\${escapeHtml(label)}</span><strong class="\${value?"yes":"no"}">\${value?"Sì":"No"}</strong></div>\`).join("")}
-  </div>\`;
+  const familySection=`<div class="detail-family-grid">
+    ${[["Obesità",family.obesity],["Diabete",family.diabetes],["Ipertensione",family.hypertension],["Cardiovascolare",family.cardiovascular],["Dislipidemie",family.dyslipidemia],["Tiroide",family.thyroid]].map(([label,value])=>`<div><span>${escapeHtml(label)}</span><strong class="${value?"yes":"no"}">${value?"Sì":"No"}</strong></div>`).join("")}
+  </div>`;
 
-  const pathologicalSection=\`<div class="detail-clinical-grid detail-clinical-grid-wide">
-    \${profileValue("Diete pregresse",a.previousDiets)}
-    \${profileValue("Allergie / intolleranze",a.allergies)}
-    \${profileValue("Farmaci / integrazione",a.medications)}
-    \${profileValue("Disturbi gastrointestinali",a.giIssues)}
-    \${profileValue("Patologie / interventi pregressi",a.pastConditions)}
-    \${profileValue("Osservazioni",a.observations)}
-  </div>\`;
+  const pathologicalSection=`<div class="detail-clinical-grid detail-clinical-grid-wide">
+    ${profileValue("Diete pregresse",a.previousDiets)}
+    ${profileValue("Allergie / intolleranze",a.allergies)}
+    ${profileValue("Farmaci / integrazione",a.medications)}
+    ${profileValue("Disturbi gastrointestinali",a.giIssues)}
+    ${profileValue("Patologie / interventi pregressi",a.pastConditions)}
+    ${profileValue("Osservazioni",a.observations)}
+  </div>`;
 
-  return \`<div class="detail-profile">
-    <section class="detail-panel detail-identity">\${sectionHeading("profile","Anagrafica")}
-      <dl class="detail-fields">\${field("Nome",identity.firstName)}\${field("Cognome",identity.lastName)}\${field("Data di nascita",fmtDate(identity.birthDate))}\${field("Sesso",identity.sex)}\${field("Telefono",identity.phone)}\${field("Email",identity.email)}</dl>
+  return `<div class="detail-profile">
+    <section class="detail-panel detail-identity">${sectionHeading("profile","Anagrafica")}
+      <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Telefono",identity.phone)}${field("Email",identity.email)}</dl>
       <button type="button" class="detail-inline-action" data-edit-identity>Vedi / Modifica anagrafica <span aria-hidden="true">›</span></button>
     </section>
 
-    <section class="detail-panel detail-history">\${sectionHeading("document","Percorso e anamnesi")}
+    <section class="detail-panel detail-history">${sectionHeading("document","Percorso e anamnesi")}
       <div class="detail-accordions">
-        \${renderClinicalAccordion("weightGoals","Obiettivi e storia del peso",weightSection)}
-        \${renderClinicalAccordion("lifestyle","Stile di vita",lifestyleSection)}
-        \${renderClinicalAccordion("clinical","Dati clinici aggiuntivi",clinicalSection)}
-        \${renderClinicalAccordion("family","Familiarità",familySection)}
-        \${renderClinicalAccordion("pathological","Anamnesi patologica",pathologicalSection)}
+        ${renderClinicalAccordion("weightGoals","Obiettivi e storia del peso",weightSection)}
+        ${renderClinicalAccordion("lifestyle","Stile di vita",lifestyleSection)}
+        ${renderClinicalAccordion("clinical","Dati clinici aggiuntivi",clinicalSection)}
+        ${renderClinicalAccordion("family","Familiarità",familySection)}
+        ${renderClinicalAccordion("pathological","Anamnesi patologica",pathologicalSection)}
       </div>
     </section>
 
-    <section class="detail-panel detail-lifestyle"><div class="detail-heading-action">\${sectionHeading("leaf","Stile di vita e abitudini")}<button type="button" class="detail-edit-button" data-edit-lifestyle>\${icon("edit")}<span>Modifica</span></button></div>
+    <section class="detail-panel detail-lifestyle"><div class="detail-heading-action">${sectionHeading("leaf","Stile di vita e abitudini")}<button type="button" class="detail-edit-button" data-edit-lifestyle>${icon("edit")}<span>Modifica</span></button></div>
       <div class="detail-habits">
-        <div><strong>Attività lavorativa</strong><span>\${escapeHtml(a.work||"—")}</span><small>Profilo occupazionale</small></div>
-        <div><strong>Attività fisica</strong><span>\${escapeHtml(a.activity||"—")}</span><small>\${escapeHtml(activityFactorLabel(a.activityFactor))}</small></div>
-        <div><strong>Fumo</strong><span>\${escapeHtml(a.smoking||"—")}</span><small>Abitudine riferita</small></div>
-        <div><strong>Alcol</strong><span>\${escapeHtml(a.alcohol||"—")}</span><small>Consumo riferito</small></div>
+        <div><strong>Attività lavorativa</strong><span>${escapeHtml(a.work||"—")}</span><small>Profilo occupazionale</small></div>
+        <div><strong>Attività fisica</strong><span>${escapeHtml(a.activity||"—")}</span><small>${escapeHtml(activityFactorLabel(a.activityFactor))}</small></div>
+        <div><strong>Fumo</strong><span>${escapeHtml(a.smoking||"—")}</span><small>Abitudine riferita</small></div>
+        <div><strong>Alcol</strong><span>${escapeHtml(a.alcohol||"—")}</span><small>Consumo riferito</small></div>
       </div>
     </section>
 
-    <section class="detail-panel detail-administration"><div class="detail-heading-action">\${sectionHeading("check","Dati amministrativi")}<button type="button" class="detail-edit-button" data-edit-administration>\${icon("edit")}<span>Modifica</span></button></div>
-      <dl class="detail-fields">\${field("Consenso privacy",consent)}\${field("Comunicazioni",privacy.communications.email?"Email":"Non attive")}\${field("Promemoria appuntamenti",privacy.reminders.email?"Email":"Non attivi")}\${field("Note amministrative",privacy.administrativeNotes||"Nessuna nota")}</dl>
+    <section class="detail-panel detail-administration"><div class="detail-heading-action">${sectionHeading("check","Dati amministrativi")}<button type="button" class="detail-edit-button" data-edit-administration>${icon("edit")}<span>Modifica</span></button></div>
+      <dl class="detail-fields">${field("Consenso privacy",consent)}${field("Comunicazioni",privacy.communications.email?"Email":"Non attive")}${field("Promemoria appuntamenti",privacy.reminders.email?"Email":"Non attivi")}${field("Note amministrative",privacy.administrativeNotes||"Nessuna nota")}</dl>
     </section>
-  </div>\`;
+  </div>`;
 }
 
 function noteTimestamp(note){
@@ -387,12 +387,12 @@ function openIdentityDialog(root,model,onChange){
 
 function anamnesisInput(name,label,value,{type="text",rows=0,step="",options=null}={}){
   if(options){
-    return \`<label>\${escapeHtml(label)}<select name="\${name}">\${options.map(([optionValue,optionLabel])=>\`<option value="\${escapeHtml(optionValue)}" \${String(value||"")===String(optionValue)?"selected":""}>\${escapeHtml(optionLabel)}</option>\`).join("")}</select></label>\`;
+    return `<label>${escapeHtml(label)}<select name="${name}">${options.map(([optionValue,optionLabel])=>`<option value="${escapeHtml(optionValue)}" ${String(value||"")===String(optionValue)?"selected":""}>${escapeHtml(optionLabel)}</option>`).join("")}</select></label>`;
   }
   if(rows){
-    return \`<label>\${escapeHtml(label)}<textarea name="\${name}" rows="\${rows}">\${escapeHtml(value||"")}</textarea></label>\`;
+    return `<label>${escapeHtml(label)}<textarea name="${name}" rows="${rows}">${escapeHtml(value||"")}</textarea></label>`;
   }
-  return \`<label>\${escapeHtml(label)}<input name="\${name}" type="\${type}" \${step?\`step="\${step}"\`:""} value="\${escapeHtml(value??"")}"></label>\`;
+  return `<label>${escapeHtml(label)}<input name="${name}" type="${type}" ${step?`step="${step}"`:""} value="${escapeHtml(value??"")}"></label>`;
 }
 
 function openProfileSectionDialog(root,model,key,onChange){
@@ -447,25 +447,25 @@ function openProfileSectionDialog(root,model,key,onChange){
   const section=sectionMap[key];
   if(!section)return;
 
-  const familyFields=key==="family"?\`<fieldset class="detail-family-editor"><legend>Familiarità</legend>
-    \${[["obesity","Obesità"],["diabetes","Diabete"],["hypertension","Ipertensione"],["cardiovascular","Cardiovascolare"],["dyslipidemia","Dislipidemie"],["thyroid","Tiroide"]].map(([fieldKey,label])=>\`<label class="detail-check-field"><input type="checkbox" name="family-\${fieldKey}" \${family[fieldKey]?"checked":""}><span>\${label}</span></label>\`).join("")}
-  </fieldset>\`:"";
+  const familyFields=key==="family"?`<fieldset class="detail-family-editor"><legend>Familiarità</legend>
+    ${[["obesity","Obesità"],["diabetes","Diabete"],["hypertension","Ipertensione"],["cardiovascular","Cardiovascolare"],["dyslipidemia","Dislipidemie"],["thyroid","Tiroide"]].map(([fieldKey,label])=>`<label class="detail-check-field"><input type="checkbox" name="family-${fieldKey}" ${family[fieldKey]?"checked":""}><span>${label}</span></label>`).join("")}
+  </fieldset>`:"";
 
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog detail-dialog-wide";
-  dialog.innerHTML=\`<form method="dialog"><header><h2>\${escapeHtml(section.title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Aggiorna i dati dell’anamnesi del paziente.</p>
-    <div class="detail-anamnesis-editor">\${section.fields.join("")}\${familyFields}</div>
-    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+  dialog.innerHTML=`<form method="dialog"><header><h2>${escapeHtml(section.title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Aggiorna i dati dell’anamnesi del paziente.</p>
+    <div class="detail-anamnesis-editor">${section.fields.join("")}${familyFields}</div>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
 
   attachDialog(root,dialog,values=>{
     const numericKeys=["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight"];
     section.fields.length&&["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight","objectives","work","activity","activityFactor","smoking","alcohol","diagnosis","bowel","metabolism","feeg","impedance","previousDiets","allergies","medications","giIssues","pastConditions","observations"].forEach(fieldKey=>{
-      if(!dialog.querySelector(\`[name="\${fieldKey}"]\`))return;
+      if(!dialog.querySelector(`[name="${fieldKey}"]`))return;
       const raw=String(values.get(fieldKey)||"").trim();
       a[fieldKey]=numericKeys.includes(fieldKey)?(raw===""?"":Number(raw)):raw;
     });
     if(key==="family"){
-      ["obesity","diabetes","hypertension","cardiovascular","dyslipidemia","thyroid"].forEach(fieldKey=>{family[fieldKey]=values.get(\`family-\${fieldKey}\`)==="on";});
+      ["obesity","diabetes","hypertension","cardiovascular","dyslipidemia","thyroid"].forEach(fieldKey=>{family[fieldKey]=values.get(`family-${fieldKey}`)==="on";});
     }
     onChange();
   });
