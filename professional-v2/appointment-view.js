@@ -87,9 +87,10 @@ function selectedPatientMarkup(patient,index,total){
 }
 
 export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
-  const patient=selectedPatient(state);
+  const patients=selectedPatients(state);
+  const patient=patients[0]||null;
   const personal=state.type==="personal";
-  const reminderAvailable=!personal && !!effectiveEmail(patient);
+  const reminderAvailable=reminderIsAvailable(state,patients,personal);
   if(!reminderAvailable) state.reminder=false;
   const info=typeInfo(state.type);
   const studios=Array.isArray(profile.studios)?profile.studios:[];
@@ -106,10 +107,22 @@ export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
           <div class="appointment-label-row"><label>Paziente <em>*</em></label><button type="button" class="draft-link" data-draft-open ${personal?"disabled":""}>+ Crea Draft rapido</button></div>
           <div class="appointment-search-wrap">
             <svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg>
-            <input type="search" placeholder="Cerca paziente per nome, cognome o codice..." data-appointment-search ${personal?"disabled":""} autocomplete="off">
+            <input type="search" placeholder="${state.couple&&patients.length===1?"Cerca il secondo paziente...":"Cerca paziente per nome, cognome o codice..."}" data-appointment-search ${personal||state.couple&&patients.length>=2?"disabled":""} autocomplete="off">
+          </div>
+          <div class="appointment-patient-tools">
+            <label class="appointment-couple-control ${personal?"is-disabled":""}">
+              <span>
+                <strong>Appuntamento di coppia</strong>
+                <small>${state.couple?(patients.length<2?"Seleziona anche il secondo paziente":"Due pazienti associati"):"Attiva per associare due pazienti"}</small>
+              </span>
+              <input type="checkbox" data-appointment-couple ${state.couple?"checked":""} ${personal?"disabled":""}>
+              <span class="appointment-switch"></span>
+            </label>
           </div>
           <div class="appointment-patient-results" data-appointment-results hidden></div>
-          <div data-selected-patient>${selectedPatientMarkup(patient)}</div>
+          <div class="appointment-selected-patients" data-selected-patient>
+            ${patients.map((item,index)=>selectedPatientMarkup(item,index,patients.length)).join("")}
+          </div>
         </section>
 
         <section class="appointment-section">
