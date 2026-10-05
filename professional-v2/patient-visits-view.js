@@ -196,10 +196,7 @@ function openAppointmentDialog(root,event,data,onChange){
     correctionModeByEvent.add(String(event.id));
     dialog.close();
     onChange();
-    setTimeout(()=>{
-      const refreshed=root.querySelector('[data-edit-appointment="'+CSS.escape(String(event.id))+'"]');
-      refreshed?.click();
-    },0);
+    setTimeout(()=>openAppointmentDialog(root,event,data,onChange),0);
   });
   dialog.querySelector("[data-cancel-correction]")?.addEventListener("click",()=>{
     correctionModeByEvent.delete(String(event.id));
