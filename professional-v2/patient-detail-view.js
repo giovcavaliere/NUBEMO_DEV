@@ -109,9 +109,9 @@ function renderOverview(model){
   </div>`;
 }
 
-function renderAccordionSection(key,title,section,open=false){
+function renderAccordionSection(key,title,section){
   const content=section?`<p>${escapeHtml(section.summary||section.details||"Nessuna informazione inserita.")}</p>${section.details&&section.summary?`<p>${escapeHtml(section.details)}</p>`:""}${section.items?.length?`<ul>${section.items.map(item=>`<li>${escapeHtml(item)}</li>`).join("")}</ul>`:""}`:"<p>Nessuna informazione inserita.</p>";
-  return `<details class="detail-accordion" data-accordion="${key}" ${open?"open":""}><summary><span>${title}</span><span class="detail-chevron" aria-hidden="true">⌄</span></summary><div class="detail-accordion-body">${content}</div></details>`;
+  return `<details class="detail-accordion" data-accordion="${key}"><summary><span>${title}</span><span class="detail-chevron" aria-hidden="true">⌄</span></summary><div class="detail-accordion-body">${content}<button type="button" class="detail-accordion-edit" data-edit-profile-section="${key}">${icon("edit")}<span>Modifica</span></button></div></details>`;
 }
 
 function renderProfile(model){
@@ -124,12 +124,12 @@ function renderProfile(model){
       <button type="button" class="detail-inline-action" data-edit-identity>Vedi / Modifica anagrafica <span aria-hidden="true">›</span></button>
     </section>
     <section class="detail-panel detail-history">${sectionHeading("document","Percorso e anamnesi")}
-      <div class="detail-accordions">${renderAccordionSection("goals","Obiettivi del percorso",profile.goals,true)}${renderAccordionSection("history","Anamnesi generale",profile.history)}${renderAccordionSection("conditions","Condizioni cliniche",profile.conditions)}${renderAccordionSection("medication","Farmaci e integrazione",profile.medication)}</div>
+      <div class="detail-accordions">${renderAccordionSection("goals","Obiettivi del percorso",profile.goals)}${renderAccordionSection("history","Anamnesi generale",profile.history)}${renderAccordionSection("conditions","Condizioni cliniche",profile.conditions)}${renderAccordionSection("medication","Farmaci e integrazione",profile.medication)}</div>
     </section>
-    <section class="detail-panel detail-lifestyle">${sectionHeading("leaf","Stile di vita e abitudini")}
+    <section class="detail-panel detail-lifestyle"><div class="detail-heading-action">${sectionHeading("leaf","Stile di vita e abitudini")}<button type="button" class="detail-edit-button" data-edit-lifestyle>${icon("edit")}<span>Modifica</span></button></div>
       ${lifestyle.length?`<div class="detail-habits">${lifestyle.map(item=>`<div><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.value)}</span><small>${escapeHtml(item.description)}</small></div>`).join("")}</div>`:`<p class="detail-empty">Abitudini non ancora registrate.</p>`}
     </section>
-    <section class="detail-panel detail-administration">${sectionHeading("check","Dati amministrativi")}
+    <section class="detail-panel detail-administration"><div class="detail-heading-action">${sectionHeading("check","Dati amministrativi")}<button type="button" class="detail-edit-button" data-edit-administration>${icon("edit")}<span>Modifica</span></button></div>
       <dl class="detail-fields">${field("Consenso privacy",consent)}${field("Comunicazioni",privacy.communications.email?"Email":"Non attive")}${field("Promemoria appuntamenti",privacy.reminders.email?"Email":"Non attivi")}${field("Note amministrative",privacy.administrativeNotes||"Nessuna nota")}</dl>
     </section>
   </div>`;
@@ -148,23 +148,111 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
     if(details.open) root.querySelectorAll(".detail-accordion").forEach(other=>{if(other!==details) other.open=false});
   }));
   root.querySelector("[data-edit-identity]")?.addEventListener("click",()=>openIdentityDialog(root,model,onIdentityChange));
+  root.querySelectorAll("[data-edit-profile-section]").forEach(button=>button.addEventListener("click",event=>{
+    event.preventDefault();
+    openProfileSectionDialog(root,model,button.dataset.editProfileSection,onIdentityChange);
+  }));
+  root.querySelector("[data-edit-lifestyle]")?.addEventListener("click",()=>openLifestyleDialog(root,model,onIdentityChange));
+  root.querySelector("[data-edit-administration]")?.addEventListener("click",()=>openAdministrationDialog(root,model,onIdentityChange));
 }
 
-function openIdentityDialog(root,model,onIdentityChange){
-  const {identity}=model.data;
-  const fields=[["firstName","Nome"],["lastName","Cognome"],["birthDate","Data di nascita"],["sex","Sesso"],["fiscalCode","Codice fiscale"],["address","Indirizzo"],["postalCode","CAP"],["city","Città"],["province","Provincia"],["phone","Telefono"],["email","Email"]];
-  const dialog=document.createElement("dialog");
-  dialog.className="detail-dialog";
-  dialog.innerHTML=`<form method="dialog"><header><h2>Anagrafica</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifiche demo disponibili fino al ricaricamento della pagina.</p><div class="detail-dialog-fields">${fields.map(([key,label])=>`<label>${label}<input name="${key}" type="${key==="birthDate"?"date":key==="email"?"email":"text"}" value="${escapeHtml(identity[key]||"")}"></label>`).join("")}</div><footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
+function attachDialog(root,dialog,onSave){
   root.append(dialog);
   dialog.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
   dialog.addEventListener("close",()=>{
-    if(dialog.returnValue==="save"){
-      const values=new FormData(dialog.querySelector("form"));
-      fields.forEach(([key])=>{identity[key]=String(values.get(key)||"").trim()});
-      onIdentityChange();
-    }
+    if(dialog.returnValue==="save") onSave?.(new FormData(dialog.querySelector("form")));
     dialog.remove();
   },{once:true});
   dialog.showModal();
+}
+
+function openIdentityDialog(root,model,onChange){
+  const {identity}=model.data;
+  const sexOptions=["","Maschio","Femmina","Altro","Preferisco non indicarlo"];
+  const dialog=document.createElement("dialog");
+  dialog.className="detail-dialog";
+  dialog.innerHTML=\`<form method="dialog"><header><h2>Anagrafica</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifiche demo disponibili fino al ricaricamento della pagina.</p>
+    <div class="detail-dialog-fields">
+      <label>Nome<input name="firstName" value="\${escapeHtml(identity.firstName||"")}"></label>
+      <label>Cognome<input name="lastName" value="\${escapeHtml(identity.lastName||"")}"></label>
+      <label>Data di nascita<input name="birthDate" type="date" value="\${escapeHtml(identity.birthDate||"")}"></label>
+      <label>Sesso<select name="sex">\${sexOptions.map(option=>\`<option value="\${escapeHtml(option)}" \${identity.sex===option?"selected":""}>\${escapeHtml(option||"Seleziona...")}</option>\`).join("")}</select></label>
+      <label>Codice fiscale<input name="fiscalCode" value="\${escapeHtml(identity.fiscalCode||"")}"></label>
+      <label>Indirizzo<input name="address" value="\${escapeHtml(identity.address||"")}"></label>
+      <label>CAP<input name="postalCode" value="\${escapeHtml(identity.postalCode||"")}"></label>
+      <label>Città<input name="city" value="\${escapeHtml(identity.city||"")}"></label>
+      <label>Provincia<input name="province" value="\${escapeHtml(identity.province||"")}"></label>
+      <label>Telefono<input name="phone" type="tel" value="\${escapeHtml(identity.phone||"")}"></label>
+      <label>Email<input name="email" type="email" value="\${escapeHtml(identity.email||"")}"></label>
+    </div>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+  attachDialog(root,dialog,values=>{
+    ["firstName","lastName","birthDate","sex","fiscalCode","address","postalCode","city","province","phone","email"].forEach(key=>{
+      identity[key]=String(values.get(key)||"").trim();
+    });
+    onChange();
+  });
+}
+
+function openProfileSectionDialog(root,model,key,onChange){
+  const section=model.data.profile[key];
+  if(!section) return;
+  const titles={goals:"Obiettivi del percorso",history:"Anamnesi generale",conditions:"Condizioni cliniche",medication:"Farmaci e integrazione"};
+  const hasItems=key!=="history";
+  const dialog=document.createElement("dialog");
+  dialog.className="detail-dialog";
+  dialog.innerHTML=\`<form method="dialog"><header><h2>\${escapeHtml(titles[key]||"Profilo")}</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifica le informazioni del percorso. I dati restano nella sessione demo fino al ricaricamento.</p>
+    <div class="detail-dialog-fields detail-dialog-fields-single">
+      <label>Sintesi<textarea name="summary" rows="4">\${escapeHtml(section.summary||"")}</textarea></label>
+      \${key==="history"?\`<label>Dettaglio<textarea name="details" rows="6">\${escapeHtml(section.details||"")}</textarea></label>\`:""}
+      \${hasItems?\`<label>Voci <small>Una voce per riga</small><textarea name="items" rows="6">\${escapeHtml((section.items||[]).join("\\n"))}</textarea></label>\`:""}
+    </div>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+  attachDialog(root,dialog,values=>{
+    section.summary=String(values.get("summary")||"").trim();
+    if(key==="history") section.details=String(values.get("details")||"").trim();
+    if(hasItems) section.items=String(values.get("items")||"").split(/\\r?\\n/).map(item=>item.trim()).filter(Boolean);
+    onChange();
+  });
+}
+
+function openLifestyleDialog(root,model,onChange){
+  const lifestyle=model.data.profile.lifestyle;
+  const dialog=document.createElement("dialog");
+  dialog.className="detail-dialog detail-dialog-wide";
+  dialog.innerHTML=\`<form method="dialog"><header><h2>Stile di vita e abitudini</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Aggiorna la sintesi delle abitudini utili al percorso.</p>
+    <div class="detail-lifestyle-editor">\${lifestyle.map((item,index)=>\`<fieldset><legend>\${escapeHtml(item.label)}</legend><label>Valore sintetico<input name="lifestyle-\${index}-value" value="\${escapeHtml(item.value||"")}"></label><label>Descrizione<textarea name="lifestyle-\${index}-description" rows="2">\${escapeHtml(item.description||"")}</textarea></label></fieldset>\`).join("")}</div>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+  attachDialog(root,dialog,values=>{
+    lifestyle.forEach((item,index)=>{
+      item.value=String(values.get(\`lifestyle-\${index}-value\`)||"").trim();
+      item.description=String(values.get(\`lifestyle-\${index}-description\`)||"").trim();
+    });
+    onChange();
+  });
+}
+
+function openAdministrationDialog(root,model,onChange){
+  const privacy=model.data.privacy;
+  const consentStatus=privacy.consent?.status||(privacy.consent?.signedAt?"signed":"missing");
+  const dialog=document.createElement("dialog");
+  dialog.className="detail-dialog";
+  dialog.innerHTML=\`<form method="dialog"><header><h2>Dati amministrativi</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Gestisci consenso e preferenze operative del paziente. NUBEMO 2.0 utilizza solo email.</p>
+    <div class="detail-dialog-fields detail-dialog-fields-single">
+      <label>Stato consenso privacy<select name="consentStatus"><option value="signed" \${consentStatus==="signed"?"selected":""}>Firmato</option><option value="pending" \${consentStatus==="pending"?"selected":""}>In attesa</option><option value="missing" \${consentStatus==="missing"?"selected":""}>Non registrato</option></select></label>
+      <label>Data firma<input name="consentSignedAt" type="date" value="\${escapeHtml(privacy.consent?.signedAt||"")}"></label>
+      <label class="detail-check-field"><input name="communicationsEmail" type="checkbox" \${privacy.communications?.email?"checked":""}><span>Comunicazioni via email</span></label>
+      <label class="detail-check-field"><input name="remindersEmail" type="checkbox" \${privacy.reminders?.email?"checked":""}><span>Promemoria appuntamenti via email</span></label>
+      <label>Note amministrative<textarea name="administrativeNotes" rows="5">\${escapeHtml(privacy.administrativeNotes||"")}</textarea></label>
+    </div>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>\`;
+  attachDialog(root,dialog,values=>{
+    const status=String(values.get("consentStatus")||"missing");
+    const signedAt=status==="signed"?String(values.get("consentSignedAt")||"").trim():"";
+    privacy.consent={...(privacy.consent||{}),status,signedAt:signedAt||null,documentId:privacy.consent?.documentId||null};
+    privacy.communications={email:values.get("communicationsEmail")==="on"};
+    privacy.reminders={email:values.get("remindersEmail")==="on"};
+    privacy.administrativeNotes=String(values.get("administrativeNotes")||"").trim();
+    onChange();
+  });
 }
