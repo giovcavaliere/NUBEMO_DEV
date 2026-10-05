@@ -75,7 +75,7 @@
 .visit-form-wide{grid-column:1 / -1}
 .visit-dialog-lock{display:flex;align-items:center;gap:9px;margin:0 0 16px;padding:10px 11px;border:1px solid #dce7dc;border-radius:11px;background:var(--green-soft-2);color:var(--green-800);font-size:9px;line-height:1.45}
 .visit-dialog-lock .icon{width:16px;height:16px;flex:none}
-.visit-dialog-delete{margin-right:auto;color:#a94d47!important;background:#fcf0ed!important;border-color:#f0d9d4!important}
+.visit-dialog-delete{margin-right:auto;color:#a94d47;background:#fcf0ed;border-color:#f0d9d4}
 
 .visit-register-summary{display:grid;grid-template-columns:1.5fr .7fr;gap:10px;margin:16px 0}
 .visit-register-summary>div{padding:11px;border:1px solid var(--line);border-radius:11px;background:rgba(249,247,240,.7)}
@@ -83,8 +83,8 @@
 .visit-register-summary span{font-size:9px;color:var(--muted)}
 .visit-register-summary strong{margin-top:4px;font-size:10px;line-height:1.45;color:var(--text)}
 .visit-register-form{margin:0 0 12px}
-.visit-register-help{margin:0!important;padding:10px 11px;border-radius:10px;background:#f8ead5;color:#8b641f!important;font-size:9px!important;line-height:1.5!important}
-.visit-register-help.registered{background:var(--green-soft-2);color:var(--green-800)!important}
+.visit-register-help{margin:0!important;padding:10px 11px;border-radius:10px;background:#f8ead5;color:#8b641f;font-size:9px!important;line-height:1.5!important}
+.visit-register-help.registered{background:var(--green-soft-2);color:var(--green-800)}
 
 @media(max-width:1100px){
   .visits-layout{grid-template-columns:minmax(250px,.8fr) minmax(0,1.5fr)}
