@@ -385,14 +385,16 @@ function openIdentityDialog(root,model,onChange){
   });
 }
 
-function anamnesisInput(name,label,value,{type="text",rows=0,step="",options=null}={}){
+function anamnesisInput(name,label,value,{type="text",rows=0,step="",options=null,wide=false}={}){
+  const fieldClass=`detail-anamnesis-field${rows?" is-textarea":""}${wide?" is-wide":""}`;
+  const labelMarkup=`<span class="detail-anamnesis-label">${escapeHtml(label)}</span>`;
   if(options){
-    return `<label>${escapeHtml(label)}<select name="${name}">${options.map(([optionValue,optionLabel])=>`<option value="${escapeHtml(optionValue)}" ${String(value||"")===String(optionValue)?"selected":""}>${escapeHtml(optionLabel)}</option>`).join("")}</select></label>`;
+    return `<label class="${fieldClass}">${labelMarkup}<select name="${name}">${options.map(([optionValue,optionLabel])=>`<option value="${escapeHtml(optionValue)}" ${String(value||"")===String(optionValue)?"selected":""}>${escapeHtml(optionLabel)}</option>`).join("")}</select></label>`;
   }
   if(rows){
-    return `<label>${escapeHtml(label)}<textarea name="${name}" rows="${rows}">${escapeHtml(value||"")}</textarea></label>`;
+    return `<label class="${fieldClass}">${labelMarkup}<textarea name="${name}" rows="${rows}">${escapeHtml(value||"")}</textarea></label>`;
   }
-  return `<label>${escapeHtml(label)}<input name="${name}" type="${type}" ${step?`step="${step}"`:""} value="${escapeHtml(value??"")}"></label>`;
+  return `<label class="${fieldClass}">${labelMarkup}<input name="${name}" type="${type}" ${step?`step="${step}"`:""} value="${escapeHtml(value??"")}"></label>`;
 }
 
 function openProfileSectionDialog(root,model,key,onChange){
@@ -408,7 +410,7 @@ function openProfileSectionDialog(root,model,key,onChange){
         anamnesisInput("maxWeight","Peso massimo storico (kg)",a.maxWeight,{type:"number",step:"0.1"}),
         anamnesisInput("reasonableWeight","Peso ragionevole / concordato (kg)",a.reasonableWeight,{type:"number",step:"0.1"}),
         anamnesisInput("theoreticalWeight","Peso teorico (kg)",a.theoreticalWeight,{type:"number",step:"0.1"}),
-        anamnesisInput("objectives","Obiettivi",a.objectives,{rows:5})
+        anamnesisInput("objectives","Obiettivi",a.objectives,{rows:4,wide:true})
       ]
     },
     lifestyle:{
@@ -424,7 +426,7 @@ function openProfileSectionDialog(root,model,key,onChange){
     clinical:{
       title:"Dati clinici aggiuntivi",
       fields:[
-        anamnesisInput("diagnosis","Diagnosi / motivo",a.diagnosis,{rows:4}),
+        anamnesisInput("diagnosis","Diagnosi / motivo",a.diagnosis,{rows:4,wide:true}),
         anamnesisInput("bowel","Alvo",a.bowel),
         anamnesisInput("metabolism","Metabolismo basale",a.metabolism),
         anamnesisInput("feeg","FEEG / fabbisogno",a.feeg),
