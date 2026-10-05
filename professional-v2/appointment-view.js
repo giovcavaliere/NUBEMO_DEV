@@ -76,13 +76,14 @@ function patientResultMarkup(patient){
     <span class="appointment-result-arrow">›</span>
   </button>`;
 }
-function selectedPatientMarkup(patient){
+function selectedPatientMarkup(patient,index,total){
   if(!patient) return "";
-  return `<div class="appointment-selected-patient">
-    <span class="appointment-avatar">${patient.avatar?`<img src="${esc(patient.avatar)}" alt="">`:`<b>${esc((patient.first_name?.[0]||"")+(patient.last_name?.[0]||""))}</b>`}</span>
-    <span><strong>${esc(fullName(patient))}</strong><small>${esc(patient.code||"Draft")}${patient.email?" · "+esc(patient.email):" · Nessuna email"}</small></span>
-    <button type="button" aria-label="Rimuovi paziente" data-appointment-patient-clear>×</button>
-  </div>`;
+  const role=total>1?(index===0?"Paziente 1":"Paziente 2"):"Paziente selezionato";
+  return '<div class="appointment-selected-patient">'
+    +'<span class="appointment-avatar">'+(patient.avatar?'<img src="'+esc(patient.avatar)+'" alt="">':'<b>'+esc((patient.first_name?.[0]||"")+(patient.last_name?.[0]||""))+'</b>')+'</span>'
+    +'<span><small class="appointment-patient-role">'+role+'</small><strong>'+esc(fullName(patient))+'</strong><small>'+esc(patient.code||"Draft")+(patient.email?' · '+esc(patient.email):' · Nessuna email')+'</small></span>'
+    +'<button type="button" aria-label="Rimuovi paziente" data-appointment-patient-clear="'+esc(patient.id)+'">×</button>'
+    +'</div>';
 }
 
 export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
