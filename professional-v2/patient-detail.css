@@ -158,11 +158,14 @@
 .detail-edit-button .icon,.detail-accordion-edit .icon{width:14px;height:14px}
 .detail-accordion-edit{margin-top:9px;min-height:34px;padding:0 10px}
 .detail-dialog-wide{width:min(760px,calc(100% - 28px))}
-.detail-anamnesis-editor{max-height:58vh;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0;padding:1px}
-.detail-anamnesis-editor>label{display:grid;gap:5px;color:var(--muted);font-size:10px;min-width:0}
-.detail-anamnesis-editor input,.detail-anamnesis-editor textarea,.detail-anamnesis-editor select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
-.detail-anamnesis-editor input,.detail-anamnesis-editor select{min-height:41px;padding:8px}
-.detail-anamnesis-editor textarea{padding:9px;resize:vertical;line-height:1.45}
+.detail-anamnesis-editor{max-height:58vh;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;margin:15px 0;padding:1px;align-items:start}
+.detail-anamnesis-field{display:grid;grid-template-rows:28px 42px;gap:5px;min-width:0;align-self:start;color:var(--muted);font-size:10px}
+.detail-anamnesis-field.is-textarea{grid-template-rows:28px auto}
+.detail-anamnesis-field.is-wide{grid-column:1 / -1}
+.detail-anamnesis-label{display:flex;align-items:flex-end;min-width:0;line-height:1.25}
+.detail-anamnesis-editor input,.detail-anamnesis-editor textarea,.detail-anamnesis-editor select{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:0;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
+.detail-anamnesis-editor input,.detail-anamnesis-editor select{height:42px;min-height:42px;max-height:42px;padding:0 10px;align-self:start}
+.detail-anamnesis-editor textarea{height:92px;min-height:92px;padding:9px 10px;resize:vertical;line-height:1.45;align-self:start}
 .detail-family-editor{grid-column:1 / -1;margin:0;padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.32)}
 .detail-family-editor legend{padding:0 6px;color:var(--green-950);font-size:11px;font-weight:700}
 .detail-family-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:4px}
@@ -427,6 +430,7 @@
   .detail-dialog-fields{grid-template-columns:1fr}
   .detail-identity-row,.detail-identity-row-single{grid-template-columns:1fr}
   .detail-anamnesis-editor{grid-template-columns:1fr}
+  .detail-anamnesis-field.is-wide{grid-column:auto}
   .detail-family-options{grid-template-columns:1fr}
   .detail-clinical-grid,.detail-family-grid{grid-template-columns:1fr}
   .detail-heading-action{align-items:center}
