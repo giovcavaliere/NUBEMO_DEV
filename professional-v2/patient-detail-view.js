@@ -137,6 +137,97 @@ function renderProfile(model){
   </div>`;
 }
 
+
+function noteTimestamp(note){
+  return note.updatedAt||note.createdAt;
+}
+
+function renderNotes(model){
+  const notes=[...(model.data.notes||[])].sort((a,b)=>new Date(noteTimestamp(b))-new Date(noteTimestamp(a)));
+  return `<div class="detail-notes">
+    <div class="notes-title-row">
+      <div>
+        <h2>Note</h2>
+        <p>Annotazioni libere del professionista, separate da visite, appuntamenti e dati amministrativi.</p>
+      </div>
+      <button type="button" class="notes-new" data-new-note>${icon("plus")}<span>Nuova nota</span></button>
+    </div>
+    ${notes.length?`<div class="notes-list">${notes.map(note=>`
+      <article class="note-card" data-note-id="${escapeHtml(note.id)}">
+        <div class="note-card-meta">
+          <span class="note-private-badge">Nota professionista</span>
+          <time datetime="${escapeHtml(noteTimestamp(note))}">${fmtDate(noteTimestamp(note),{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}</time>
+          ${note.updatedAt?`<small>Modificata</small>`:""}
+        </div>
+        <p>${escapeHtml(note.text)}</p>
+        <div class="note-card-actions">
+          <button type="button" data-edit-note="${escapeHtml(note.id)}">${icon("edit")}<span>Modifica</span></button>
+          <button type="button" class="note-delete" data-delete-note="${escapeHtml(note.id)}"><span>Elimina</span></button>
+        </div>
+      </article>`).join("")}</div>`:`
+      <section class="detail-panel notes-empty">
+        <span class="detail-symbol">${icon("document")}</span>
+        <div><strong>Nessuna nota inserita</strong><p>Le note generali del professionista compariranno qui.</p></div>
+      </section>`}
+  </div>`;
+}
+
+function openNoteDialog(root,model,onChange,note=null){
+  const dialog=document.createElement("dialog");
+  dialog.className="detail-dialog note-dialog";
+  dialog.innerHTML=`<form method="dialog">
+    <header><h2>${note?"Modifica nota":"Nuova nota"}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>
+    <p>Nota generale del professionista. Non viene collegata automaticamente a una visita o a un appuntamento.</p>
+    <div class="note-form">
+      <label>Nota<textarea name="noteText" rows="8" required placeholder="Scrivi una nota sul percorso...">${escapeHtml(note?.text||"")}</textarea></label>
+    </div>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer>
+  </form>`;
+  attachDialog(root,dialog,values=>{
+    const textValue=String(values.get("noteText")||"").trim();
+    if(!textValue) return;
+    if(note){
+      note.text=textValue;
+      note.updatedAt=new Date().toISOString();
+    }else{
+      model.data.notes.push({
+        id:`note-${Date.now()}`,
+        createdAt:new Date().toISOString(),
+        updatedAt:null,
+        text:textValue
+      });
+    }
+    onChange();
+  });
+}
+
+function openDeleteNoteDialog(root,model,note,onChange){
+  const dialog=document.createElement("dialog");
+  dialog.className="detail-dialog note-delete-dialog";
+  dialog.innerHTML=`<form method="dialog">
+    <header><h2>Elimina nota</h2><button type="button" data-close aria-label="Chiudi">×</button></header>
+    <p>Vuoi eliminare questa nota? In questa demo l'operazione non può essere annullata fino al ricaricamento della pagina.</p>
+    <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Elimina</button></footer>
+  </form>`;
+  attachDialog(root,dialog,()=>{
+    const index=model.data.notes.findIndex(item=>item.id===note.id);
+    if(index>=0) model.data.notes.splice(index,1);
+    onChange();
+  });
+}
+
+function bindNotes(root,model,onChange){
+  root.querySelector("[data-new-note]")?.addEventListener("click",()=>openNoteDialog(root,model,onChange));
+  root.querySelectorAll("[data-edit-note]").forEach(button=>button.addEventListener("click",()=>{
+    const note=model.data.notes.find(item=>item.id===button.dataset.editNote);
+    if(note) openNoteDialog(root,model,onChange,note);
+  }));
+  root.querySelectorAll("[data-delete-note]").forEach(button=>button.addEventListener("click",()=>{
+    const note=model.data.notes.find(item=>item.id===button.dataset.deleteNote);
+    if(note) openDeleteNoteDialog(root,model,note,onChange);
+  }));
+}
+
 export function renderPatientDetail(root,model,activeTab="panoramica",onIdentityChange=()=>{}){
   const {id,firstName,lastName}=model.data.identity;
   const tab=tabs.some(([key])=>key===activeTab)?activeTab:"panoramica";
@@ -144,7 +235,7 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
     <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(firstName)} ${escapeHtml(lastName)}</span></nav>
     ${renderHeader(model)}
     <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>`<a href="${route(id,key)}" class="${tab===key?"active":""}" ${tab===key?'aria-current="page"':""}>${label}</a>`).join("")}</nav>
-    <div class="detail-content">${tab==="panoramica"?renderOverview(model):tab==="profilo"?renderProfile(model):tab==="misure"?renderMeasurements(model.measurements):`<section class="detail-panel detail-placeholder">${sectionHeading("document",tabs.find(([key])=>key===tab)[1])}<p>Questa sezione sarà disponibile nei prossimi step.</p></section>`}</div>
+    <div class="detail-content">${tab==="panoramica"?renderOverview(model):tab==="profilo"?renderProfile(model):tab==="misure"?renderMeasurements(model.measurements):tab==="note"?renderNotes(model):`<section class="detail-panel detail-placeholder">${sectionHeading("document",tabs.find(([key])=>key===tab)[1])}<p>Questa sezione sarà disponibile nei prossimi step.</p></section>`}</div>
   </div>`;
   root.querySelectorAll(".detail-accordion").forEach(details=>details.addEventListener("toggle",()=>{
     if(details.open) root.querySelectorAll(".detail-accordion").forEach(other=>{if(other!==details) other.open=false});
@@ -157,6 +248,7 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
   root.querySelector("[data-edit-lifestyle]")?.addEventListener("click",()=>openLifestyleDialog(root,model,onIdentityChange));
   root.querySelector("[data-edit-administration]")?.addEventListener("click",()=>openAdministrationDialog(root,model,onIdentityChange));
   if(tab==="misure") bindMeasurements(root,model.data,model.measurements,onIdentityChange,attachDialog);
+  if(tab==="note") bindNotes(root,model,onIdentityChange);
 }
 
 function attachDialog(root,dialog,onSave){
