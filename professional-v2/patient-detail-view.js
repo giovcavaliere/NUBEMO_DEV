@@ -172,18 +172,30 @@ function openIdentityDialog(root,model,onChange){
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog";
   dialog.innerHTML=`<form method="dialog"><header><h2>Anagrafica</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifiche demo disponibili fino al ricaricamento della pagina.</p>
-    <div class="detail-dialog-fields">
-      <label>Nome<input name="firstName" value="${escapeHtml(identity.firstName||"")}"></label>
-      <label>Cognome<input name="lastName" value="${escapeHtml(identity.lastName||"")}"></label>
-      <label>Data di nascita<input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label>
-      <label>Sesso<select name="sex">${sexOptions.map(option=>`<option value="${escapeHtml(option)}" ${identity.sex===option?"selected":""}>${escapeHtml(option||"Seleziona...")}</option>`).join("")}</select></label>
-      <label>Codice fiscale<input name="fiscalCode" value="${escapeHtml(identity.fiscalCode||"")}"></label>
-      <label>Indirizzo<input name="address" value="${escapeHtml(identity.address||"")}"></label>
-      <label>CAP<input name="postalCode" value="${escapeHtml(identity.postalCode||"")}"></label>
-      <label>Città<input name="city" value="${escapeHtml(identity.city||"")}"></label>
-      <label>Provincia<input name="province" value="${escapeHtml(identity.province||"")}"></label>
-      <label>Telefono<input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label>
-      <label>Email<input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label>
+    <div class="detail-identity-form">
+      <div class="detail-identity-row">
+        <label><span>Nome</span><input name="firstName" value="${escapeHtml(identity.firstName||"")}"></label>
+        <label><span>Cognome</span><input name="lastName" value="${escapeHtml(identity.lastName||"")}"></label>
+      </div>
+      <div class="detail-identity-row">
+        <label><span>Data di nascita</span><input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label>
+        <label><span>Sesso</span><select name="sex">${sexOptions.map(option=>`<option value="${escapeHtml(option)}" ${identity.sex===option?"selected":""}>${escapeHtml(option||"Seleziona...")}</option>`).join("")}</select></label>
+      </div>
+      <div class="detail-identity-row">
+        <label><span>Codice fiscale</span><input name="fiscalCode" value="${escapeHtml(identity.fiscalCode||"")}"></label>
+        <label><span>Indirizzo</span><input name="address" value="${escapeHtml(identity.address||"")}"></label>
+      </div>
+      <div class="detail-identity-row">
+        <label><span>CAP</span><input name="postalCode" value="${escapeHtml(identity.postalCode||"")}"></label>
+        <label><span>Città</span><input name="city" value="${escapeHtml(identity.city||"")}"></label>
+      </div>
+      <div class="detail-identity-row">
+        <label><span>Provincia</span><input name="province" value="${escapeHtml(identity.province||"")}"></label>
+        <label><span>Telefono</span><input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label>
+      </div>
+      <div class="detail-identity-row detail-identity-row-single">
+        <label><span>Email</span><input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label>
+      </div>
     </div>
     <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
   attachDialog(root,dialog,values=>{
