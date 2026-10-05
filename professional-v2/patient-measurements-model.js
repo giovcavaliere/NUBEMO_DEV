@@ -109,7 +109,19 @@ function buildComposition(measurement){
   const components=definitions.map(([key,label,description,tone])=>({key,label,description,tone,value:nonnegative(measurement[key])?measurement[key]:null,text:valueText(nonnegative(measurement[key])?measurement[key]:null,"%"),barHeight:nonnegative(measurement[key])?measurement[key]:0}));
   const bands=[...components].reverse().map(component=>{const height=(component.value??0)/denominator*280;bodyY-=height;return {tone:component.tone,y:bodyY,height}});
   const row=measurementRow(measurement);
-  return {dateText:row.dateText,type:row.type,components,bands,ffmText:valueText(calculateFFM(measurement),"%"),ffmLabel:nonnegative(measurement.bcm)&&nonnegative(measurement.ecm)?"FFM (BCM + ECM)":"FFM registrata",ffmNote:row.ffmNote,hasSegments:components.some(component=>component.value!==null),
+  const ffm=calculateFFM(measurement);
+  // Absolute stacked geometry: 100% always occupies the reference frame. Excess continues
+  // above it, in a reserved area, without clipping or rescaling any segment.
+  const stacks=[
+    {label:"FFM / FM",segments:[{label:"FFM",tone:"ffm",value:ffm,text:valueText(ffm,"%"),description:"Massa magra"},components[0]]},
+    {label:"BCM / ECM",segments:[components[2],components[1]]}
+  ].map(stack=>{
+    let offset=0;
+    const segments=stack.segments.map(segment=>{const bottom=offset;offset+=segment.value??0;return {...segment,bottom,height:segment.value??0,showLabel:segment.value>=15}});
+    return {...stack,segments,total:offset,totalText:valueText(offset,"%")};
+  });
+  const stackExcess=Math.max(0,...stacks.map(stack=>stack.total-100));
+  return {dateText:row.dateText,type:row.type,components,bands,stacks,stackExcess,ffmText:valueText(ffm,"%"),ffmLabel:nonnegative(measurement.bcm)&&nonnegative(measurement.ecm)?"FFM (BCM + ECM)":"FFM registrata",ffmNote:row.ffmNote,hasSegments:components.some(component=>component.value!==null),
     note:complete?total>100?`Totale FM + ECM + BCM: ${valueText(total,"%")} · figura proporzionale ai valori rilevati.`:"Figura proporzionale ai valori rilevati.":"BIA parziale · la zona neutra indica la parte non rilevata. Nessun valore assente è stimato."};
 }
 
