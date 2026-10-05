@@ -38,7 +38,7 @@ const patientDetails={
         {type:"stress",label:"Stress",value:"Livello moderato",description:"Più alto nei periodi lavorativi"}
       ]
     },
-    privacy:{consent:{signedAt:"2026-09-12"},communications:{email:true},reminders:{email:true},administrativeNotes:""}
+    privacy:{consent:{status:"signed",signedAt:"2026-09-12",documentId:null},communications:{email:true},reminders:{email:true},administrativeNotes:""}
   }
 };
 
