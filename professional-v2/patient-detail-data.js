@@ -30,6 +30,11 @@ const patientDetails={
       {id:"n1",createdAt:"2026-10-01T12:05:00+02:00",updatedAt:null,text:"Buona aderenza generale al percorso. Verificare la continuità del diario nei fine settimana."},
       {id:"n2",createdAt:"2026-09-12T11:30:00+02:00",updatedAt:null,text:"Prima visita completata. Il paziente appare motivato e disponibile a un percorso graduale."}
     ],
+    nutritionPlans:[
+      {id:"np3",title:"Piano dimagrimento – Fase 1",validFrom:"2026-10-01",fileName:"Piano_dimagrimento_Fase_1.pdf",professionalNote:"Piano aggiornato dopo il controllo di fine settembre.",uploadedAt:"2026-10-01T09:30:00+02:00",file:null},
+      {id:"np2",title:"Piano iniziale",validFrom:"2026-09-01",fileName:"Piano_iniziale.pdf",professionalNote:"Prima impostazione del percorso.",uploadedAt:"2026-09-01T10:00:00+02:00",file:null},
+      {id:"np1",title:"Piano riequilibrio",validFrom:"2026-07-01",fileName:"Piano_riequilibrio.pdf",professionalNote:"",uploadedAt:"2026-07-01T10:00:00+02:00",file:null}
+    ],
     profile:{
       goals:{summary:"Dimagrimento graduale e sostenibile, con maggiore continuità nel diario alimentare.",items:["Migliorare la regolarità dei pasti","Più continuità nel diario","Gestire meglio i weekend"]},
       history:{summary:"Informazioni generali sul percorso raccolte durante la prima visita.",details:"Anamnesi da completare nelle prossime visite."},
@@ -57,7 +62,7 @@ export function getPatientData(id){
     identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:null,age:record.age,sex:null,phone:record.phone||"",email:record.email||"",fiscalCode:"",address:"",postalCode:"",city:"",province:"",...detail.identity},
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
-    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],activities:detail.activities||[],notes:detail.notes||[],
+    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
     profile:{goals:null,history:null,conditions:null,medication:null,lifestyle:[],...detail.profile},
     privacy:{consent:null,communications:{email:false},reminders:{email:false},administrativeNotes:"",...detail.privacy}
   };
