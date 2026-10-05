@@ -36,16 +36,22 @@ const patientDetails={
       {id:"np1",title:"Piano riequilibrio",validFrom:"2026-07-01",fileName:"Piano_riequilibrio.pdf",professionalNote:"",uploadedAt:"2026-07-01T10:00:00+02:00",file:null}
     ],
     profile:{
-      goals:{summary:"Dimagrimento graduale e sostenibile, con maggiore continuità nel diario alimentare.",items:["Migliorare la regolarità dei pasti","Più continuità nel diario","Gestire meglio i weekend"]},
-      history:{summary:"Informazioni generali sul percorso raccolte durante la prima visita.",details:"Anamnesi da completare nelle prossime visite."},
-      conditions:{summary:"Condizioni cliniche, allergie e intolleranze note.",items:[]},
-      medication:{summary:"Terapie e integrazione in corso.",items:[]},
-      lifestyle:[
-        {type:"activity",label:"Attività fisica",value:"3–4 volte a settimana",description:"Palestra e camminate"},
-        {type:"food",label:"Alimentazione",value:"Prevalentemente regolare",description:"Da curare la continuità nel weekend"},
-        {type:"sleep",label:"Sonno",value:"6–7 ore a notte",description:"Qualità variabile"},
-        {type:"stress",label:"Stress",value:"Livello moderato",description:"Più alto nei periodi lavorativi"}
-      ]
+      anamnesis:{
+        goalWeight:85,minWeight:92,maxWeight:134,reasonableWeight:95,theoreticalWeight:80,
+        objectives:"Dimagrimento graduale e sostenibile, mantenendo continuità nel diario e nelle abitudini.",
+        work:"Attività lavorativa prevalentemente sedentaria.",
+        activity:"Palestra e camminate 3–4 volte a settimana.",
+        activityFactor:"1.375",smoking:"No",alcohol:"Occasionale",
+        diagnosis:"Percorso nutrizionale per riduzione ponderale.",
+        bowel:"Regolare",metabolism:"",feeg:"",impedance:"",
+        family:{obesity:true,diabetes:false,hypertension:true,cardiovascular:false,dyslipidemia:false,thyroid:false},
+        previousDiets:"Pregressi tentativi di dieta ipocalorica.",
+        allergies:"Nessuna allergia o intolleranza riferita.",
+        medications:"Nessuna integrazione nutrizionale specifica riportata.",
+        giIssues:"Nessun disturbo gastrointestinale rilevante riferito.",
+        pastConditions:"Nessun intervento rilevante riportato ai fini del percorso nutrizionale.",
+        observations:"Monitorare la continuità del diario nei fine settimana."
+      }
     },
     privacy:{consent:{status:"signed",signedAt:"2026-09-12",documentId:null},communications:{email:true},reminders:{email:true},administrativeNotes:""}
   }
@@ -63,7 +69,7 @@ export function getPatientData(id){
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
     diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
-    profile:{goals:null,history:null,conditions:null,medication:null,lifestyle:[],...detail.profile},
+    profile:{anamnesis:{goalWeight:"",minWeight:"",maxWeight:"",reasonableWeight:"",theoreticalWeight:"",objectives:"",work:"",activity:"",activityFactor:"",smoking:"",alcohol:"",diagnosis:"",bowel:"",metabolism:"",feeg:"",impedance:"",family:{obesity:false,diabetes:false,hypertension:false,cardiovascular:false,dyslipidemia:false,thyroid:false},previousDiets:"",allergies:"",medications:"",giIssues:"",pastConditions:"",observations:""},...detail.profile},
     privacy:{consent:null,communications:{email:false},reminders:{email:false},administrativeNotes:"",...detail.privacy}
   };
   demoSession.set(id,data);
