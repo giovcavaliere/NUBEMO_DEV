@@ -165,16 +165,11 @@ export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
           <small><span data-notes-count>${String(state.notes||"").length}</span>/500</small>
         </section>
 
-        <section class="appointment-toggles">
-          <label class="appointment-toggle-row ${personal?"is-disabled":""}">
-            <input type="checkbox" data-appointment-couple ${state.couple?"checked":""} ${personal?"disabled":""}>
-            <span class="appointment-switch"></span>
-            <span><strong>Appuntamento di coppia</strong><small>La durata viene raddoppiata automaticamente</small></span>
-          </label>
-          <label class="appointment-toggle-row ${!reminderAvailable?"is-disabled":""}" title="${!patient&&!personal?"Seleziona un paziente":(!reminderAvailable&&!personal?"Il paziente non ha un indirizzo email":"")}">
+        <section class="appointment-toggles single">
+          <label class="appointment-toggle-row ${!reminderAvailable?"is-disabled":""}" title="${!patients.length&&!personal?"Seleziona un paziente":(!reminderAvailable&&!personal?(state.couple&&patients.length<2?"Seleziona entrambi i pazienti":"Uno o più pazienti non hanno un indirizzo email"):"")}">
             <input type="checkbox" data-appointment-reminder ${state.reminder?"checked":""} ${reminderAvailable?"":"disabled"}>
             <span class="appointment-switch"></span>
-            <span><strong>Invia promemoria via mail</strong><small>${personal?"Non disponibile per impegni personali":(!patient?"Seleziona un paziente":(reminderAvailable?"Invia un promemoria all'indirizzo email del paziente":"Email paziente non disponibile"))}</small></span>
+            <span><strong>Invia promemoria via mail</strong><small>${personal?"Non disponibile per impegni personali":(!patients.length?"Seleziona un paziente":(state.couple&&patients.length<2?"Seleziona anche il secondo paziente":(reminderAvailable?(state.couple?"Invia un promemoria via email a entrambi i pazienti":"Invia un promemoria all'indirizzo email del paziente"):"Email non disponibile per uno o più pazienti")))}</small></span>
           </label>
         </section>
 
@@ -190,7 +185,7 @@ export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
           <span class="appointment-summary-icon">○</span><span><strong>${info.title}</strong><small>${info.sub}</small></span><b>Da confermare</b>
         </div>
         <dl>
-          ${personal?"":`<div><dt>Paziente</dt><dd><strong>${patient?esc(fullName(patient)):"—"}</strong><span>${patient?esc(patient.code||"Draft"):"Seleziona un paziente"}</span></dd></div>`}
+          ${personal?"":`<div><dt>${state.couple?"Pazienti":"Paziente"}</dt><dd>${patients.length?patients.map((item,index)=>`<strong>${state.couple?`${index+1}. `:""}${esc(fullName(item))}</strong><span>${esc(item.code||"Draft")}</span>`).join(""):`<strong>—</strong><span>${state.couple?"Seleziona due pazienti":"Seleziona un paziente"}</span>`}</dd></div>`}
           <div><dt>Data</dt><dd><strong>${esc(formatDate(state.date))}</strong></dd></div>
           <div><dt>Ora</dt><dd><strong>${esc(state.time||"—")}</strong></dd></div>
           <div><dt>Durata</dt><dd><strong>${esc(state.duration)} minuti${state.couple&&!personal?" · coppia":""}</strong></dd></div>
@@ -224,7 +219,7 @@ export function bindAppointmentPage(root,{profile,state=appointmentState,onCance
   root.querySelectorAll("[data-appointment-type]").forEach(button=>button.addEventListener("click",()=>{
     const next=button.dataset.appointmentType;
     state.type=next;
-    if(next==="personal"){state.patientId="";state.couple=false;state.reminder=false;state.duration=30}
+    if(next==="personal"){state.patientIds=[];state.couple=false;state.reminder=false;state.duration=30}
     else state.duration=next==="first"?Number(profile.firstVisit||60):Number(profile.controlVisit||30);
     rerender();
   }));
@@ -245,17 +240,25 @@ export function bindAppointmentPage(root,{profile,state=appointmentState,onCance
     results.innerHTML=matches.length?matches.map(patientResultMarkup).join(""):'<div class="appointment-search-empty">Nessun paziente trovato.</div>';
     results.hidden=false;
     results.querySelectorAll("[data-appointment-patient]").forEach(b=>b.addEventListener("click",()=>{
-      state.patientId=b.dataset.appointmentPatient;
-      state.reminder=!!effectiveEmail(selectedPatient(state));
+      addPatientToState(state,b.dataset.appointmentPatient);
+      state.reminder=reminderIsAvailable(state,selectedPatients(state),false);
       rerender();
     }));
   });
-  root.querySelector("[data-appointment-patient-clear]")?.addEventListener("click",()=>{state.patientId="";state.reminder=false;rerender()});
+  root.querySelectorAll("[data-appointment-patient-clear]").forEach(button=>button.addEventListener("click",()=>{
+    removePatientFromState(state,button.dataset.appointmentPatientClear);
+    state.reminder=reminderIsAvailable(state,selectedPatients(state),false);
+    rerender();
+  }));
   root.querySelector("[data-appointment-couple]")?.addEventListener("change",event=>{
     const checked=event.target.checked;
     if(checked&&!state.couple) state.duration=Math.min(360,Number(state.duration||30)*2);
-    if(!checked&&state.couple) state.duration=Math.max(15,Number(state.duration||30)/2);
+    if(!checked&&state.couple){
+      state.duration=Math.max(15,Number(state.duration||30)/2);
+      state.patientIds=selectedPatients(state).slice(0,1).map(patient=>patient.id);
+    }
     state.couple=checked;
+    state.reminder=reminderIsAvailable(state,selectedPatients(state),false);
     rerender();
   });
   root.querySelector("[data-appointment-reminder]")?.addEventListener("change",event=>{state.reminder=event.target.checked;rerender()});
@@ -270,22 +273,24 @@ export function bindAppointmentPage(root,{profile,state=appointmentState,onCance
     if(email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){alert("Inserisci un indirizzo email valido oppure lascia il campo vuoto.");return}
     const draft={id:`draft-${Date.now()}`,first_name:firstName,last_name:lastName,status:"draft",created_at:new Date().toISOString(),code:`DRAFT-${String(patientRecords.filter(p=>p.status==="draft").length+1).padStart(2,"0")}`,phone,email,avatar:""};
     patientRecords.unshift(draft);
-    state.patientId=draft.id;
-    state.reminder=!!email;
+    addPatientToState(state,draft.id);
+    state.reminder=reminderIsAvailable(state,selectedPatients(state),false);
     rerender();
   });
 
   root.querySelector("[data-appointment-form]")?.addEventListener("submit",event=>{
     event.preventDefault();
-    const patient=selectedPatient(state);
+    const patients=selectedPatients(state);
+    const patient=patients[0]||null;
     if(state.type!=="personal"&&!patient){alert("Seleziona un paziente oppure crea un Draft rapido.");return}
+    if(state.type!=="personal"&&state.couple&&patients.length!==2){alert("Per un appuntamento di coppia devi selezionare due pazienti.");return}
     if(!state.date||!state.time||!state.duration){alert("Compila data, ora e durata.");return}
     onSave?.({
       date:state.date,start:state.time,duration:Number(state.duration),
       type:state.type==="first"?"first":state.type==="control"?"control":"personal",
-      name:state.type==="personal"?"Impegno personale":fullName(patient),
+      name:state.type==="personal"?"Impegno personale":patients.map(fullName).join(" + "),
       meta:state.type==="personal"?`Impegno personale · ${state.duration} min`:`${typeInfo(state.type).title} · ${state.duration} min`,
-      patientId:patient?.id||null,modality:state.type==="personal"?null:state.modality,
+      patientId:patient?.id||null,patientIds:patients.map(item=>item.id),modality:state.type==="personal"?null:state.modality,
       studioId:state.type==="personal"?null:state.studioId,notes:state.notes,couple:!!state.couple,
       reminderEmail:!!state.reminder
     });
