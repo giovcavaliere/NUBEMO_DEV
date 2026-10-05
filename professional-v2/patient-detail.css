@@ -106,6 +106,18 @@
 .detail-accordion[open] .detail-chevron{transform:rotate(0)}
 .detail-accordion-body{padding:0 14px 13px;font-size:11px;color:var(--muted);line-height:1.6}
 .detail-accordion-body p{margin:0 0 6px}.detail-accordion-body ul{margin:8px 0 0;padding-left:18px}
+.detail-clinical-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:2px}
+.detail-clinical-grid-wide{grid-template-columns:1fr}
+.detail-clinical-field{min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.42)}
+.detail-clinical-field span,.detail-clinical-field strong{display:block}
+.detail-clinical-field span{color:var(--muted);font-size:9px}
+.detail-clinical-field strong{margin-top:4px;color:var(--text);font-size:10px;line-height:1.45;font-weight:650;white-space:pre-wrap;overflow-wrap:anywhere}
+.detail-family-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:2px}
+.detail-family-grid>div{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.42)}
+.detail-family-grid span{font-size:9px;color:var(--muted)}
+.detail-family-grid strong{font-size:9px}
+.detail-family-grid strong.yes{color:var(--green-800)}
+.detail-family-grid strong.no{color:var(--muted)}
 .detail-habits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .detail-habits>div{padding:12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.45);min-width:0}
 .detail-habits strong,.detail-habits span,.detail-habits small{display:block;line-height:1.4}
@@ -146,13 +158,13 @@
 .detail-edit-button .icon,.detail-accordion-edit .icon{width:14px;height:14px}
 .detail-accordion-edit{margin-top:9px;min-height:34px;padding:0 10px}
 .detail-dialog-wide{width:min(760px,calc(100% - 28px))}
-.detail-lifestyle-editor{max-height:58vh;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}
-.detail-lifestyle-editor fieldset{min-width:0;margin:0;padding:12px;border:1px solid var(--line);border-radius:12px}
-.detail-lifestyle-editor legend{padding:0 5px;color:var(--green-950);font-size:11px;font-weight:700}
-.detail-lifestyle-editor label{display:grid;gap:5px;margin-top:8px;color:var(--muted);font-size:10px}
-.detail-lifestyle-editor input,.detail-lifestyle-editor textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
-.detail-lifestyle-editor input{min-height:39px;padding:8px}
-.detail-lifestyle-editor textarea{padding:8px;resize:vertical;line-height:1.4}
+.detail-anamnesis-editor{max-height:58vh;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0;padding:1px}
+.detail-anamnesis-editor>label{display:grid;gap:5px;color:var(--muted);font-size:10px;min-width:0}
+.detail-anamnesis-editor input,.detail-anamnesis-editor textarea,.detail-anamnesis-editor select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
+.detail-anamnesis-editor input,.detail-anamnesis-editor select{min-height:41px;padding:8px}
+.detail-anamnesis-editor textarea{padding:9px;resize:vertical;line-height:1.45}
+.detail-family-editor{grid-column:1 / -1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0;padding:12px;border:1px solid var(--line);border-radius:12px}
+.detail-family-editor legend{padding:0 5px;color:var(--green-950);font-size:11px;font-weight:700}
 
 /* Patient professional notes. */
 .detail-notes{display:grid;gap:14px;min-width:0}
@@ -405,7 +417,9 @@
   .detail-field{grid-template-columns:minmax(85px,.7fr) minmax(0,1fr);gap:8px}
   .detail-dialog-fields{grid-template-columns:1fr}
   .detail-identity-row,.detail-identity-row-single{grid-template-columns:1fr}
-  .detail-lifestyle-editor{grid-template-columns:1fr}
+  .detail-anamnesis-editor{grid-template-columns:1fr}
+  .detail-family-editor{grid-template-columns:1fr}
+  .detail-clinical-grid,.detail-family-grid{grid-template-columns:1fr}
   .detail-heading-action{align-items:center}
   .detail-edit-button span{display:none}
   .detail-edit-button{width:34px;padding:0}
