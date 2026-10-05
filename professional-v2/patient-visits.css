@@ -1,0 +1,107 @@
+
+.detail-visits{display:grid;gap:14px;min-width:0}
+.visits-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:2px 0}
+.visits-head-copy{display:flex;align-items:center;gap:11px;min-width:0}
+.visits-head-icon{display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:12px;background:var(--green-soft-2);color:var(--green-800)}
+.visits-head-icon .icon{width:20px;height:20px}
+.visits-head h2{margin:0;color:var(--green-950);font-size:25px;line-height:1.2;letter-spacing:-.025em}
+.visits-head p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+
+.visits-layout{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.7fr);gap:14px;align-items:start}
+.visits-list-panel,.visit-detail-card{border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,rgba(255,253,250,.99),rgba(249,247,240,.96));box-shadow:var(--shadow)}
+.visits-list-panel{overflow:hidden}
+.visits-list-title{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--line)}
+.visits-list-title h3{margin:0;color:var(--green-950);font-size:13px}
+.visits-list-title span{display:grid;place-items:center;min-width:25px;height:25px;padding:0 7px;border-radius:999px;background:var(--green-soft-2);color:var(--green-800);font-size:9px;font-weight:700}
+.visits-list{display:grid}
+.visit-list-item{display:grid;grid-template-columns:52px minmax(0,1fr) auto 14px;align-items:center;gap:11px;width:100%;min-width:0;padding:13px 14px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.visit-list-item:last-child{border-bottom:0}
+.visit-list-item:hover{background:rgba(237,242,233,.48)}
+.visit-list-item.selected{background:var(--green-soft-2)}
+.visit-list-date{display:grid;place-items:center;align-content:center;min-height:58px;border-radius:12px;background:rgba(255,255,255,.74);border:1px solid var(--line)}
+.visit-list-date strong{font-size:20px;line-height:1;color:var(--green-950)}
+.visit-list-date small{margin-top:3px;font-size:8px;font-weight:750;color:var(--green-800)}
+.visit-list-date em{margin-top:2px;font-style:normal;font-size:8px;color:var(--muted)}
+.visit-list-copy{min-width:0}
+.visit-list-copy>strong{display:block;font-size:11px;line-height:1.4}
+.visit-list-copy>small{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
+.visit-couple{display:inline-flex;align-items:center;min-height:18px;padding:0 5px;margin-left:4px;border-radius:999px;background:#f0e7d4;color:#916821;font-size:7px;font-weight:750;vertical-align:1px}
+.visit-status{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:0 7px;border-radius:999px;font-size:8px;font-weight:750;white-space:nowrap}
+.visit-status.registered{background:#dceedd;color:#2f7449}
+.visit-status.pending{background:#f5ead8;color:#9b681f}
+.visit-list-arrow{color:var(--green-800);font-size:20px;line-height:1}
+
+.visit-detail-card{padding:18px;min-width:0}
+.visit-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:15px;border-bottom:1px solid var(--line)}
+.visit-detail-title-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.visit-detail-title-line h3{margin:0;color:var(--green-950);font-size:20px;line-height:1.25}
+.visit-detail-head p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
+.visit-detail-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.visit-detail-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.72);color:var(--green-800);font-size:10px;font-weight:650;cursor:pointer}
+.visit-detail-actions .icon{width:14px;height:14px}
+.visit-detail-actions .visit-primary-action{border-color:var(--green-800);background:var(--green-800);color:#fff}
+
+.visit-notes-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.visit-note-card{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;min-height:108px;padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.5)}
+.visit-note-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px}
+.visit-note-icon.appointment{background:#e8f0f4;color:#3b7081}
+.visit-note-icon.visit{background:var(--green-soft-2);color:var(--green-800)}
+.visit-note-icon .icon{width:17px;height:17px}
+.visit-note-card strong{display:block;color:var(--green-950);font-size:10px}
+.visit-note-card p{margin:6px 0 0;color:var(--text);font-size:10px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+
+.visit-lock-info{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 13px;border:1px solid #dce7dc;border-radius:13px;background:rgba(237,242,233,.7);color:var(--green-800)}
+.visit-lock-info>.icon{width:18px;height:18px;flex:none}
+.visit-lock-info>div{min-width:0;flex:1}
+.visit-lock-info strong{display:block;font-size:10px}
+.visit-lock-info p{margin:3px 0 0;font-size:9px;line-height:1.45;color:var(--muted)}
+.visit-correction-badge{padding:5px 7px;border-radius:999px;background:#f8ead5;color:#9d681f;font-size:8px;font-weight:700;white-space:nowrap}
+
+.visits-empty{display:flex;align-items:center;gap:13px;min-height:125px}
+.visits-empty-icon{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:13px;background:var(--green-soft-2);color:var(--green-800)}
+.visits-empty-icon .icon{width:20px;height:20px}
+.visits-empty strong{display:block;color:var(--green-950);font-size:13px}
+.visits-empty p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.5}
+
+.visit-appointment-dialog,.visit-register-dialog{width:min(650px,calc(100% - 28px))}
+.visit-appointment-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:17px 0}
+.visit-appointment-form label,.visit-register-form label{display:grid;gap:6px;color:var(--muted);font-size:11px;min-width:0}
+.visit-appointment-form input,.visit-appointment-form select,.visit-appointment-form textarea,.visit-register-form textarea{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
+.visit-appointment-form input,.visit-appointment-form select{height:43px;padding:0 10px}
+.visit-appointment-form textarea,.visit-register-form textarea{padding:10px;line-height:1.55;resize:vertical}
+.visit-appointment-form input[type="date"],.visit-appointment-form input[type="time"]{-webkit-appearance:none;appearance:none}
+.visit-appointment-form input::-webkit-date-and-time-value{display:flex;align-items:center;height:43px;line-height:43px;text-align:left}
+.visit-appointment-form :disabled{background:#f2f0ea;color:#848b88}
+.visit-form-wide{grid-column:1 / -1}
+.visit-dialog-lock{display:flex;align-items:center;gap:9px;margin:0 0 16px;padding:10px 11px;border:1px solid #dce7dc;border-radius:11px;background:var(--green-soft-2);color:var(--green-800);font-size:9px;line-height:1.45}
+.visit-dialog-lock .icon{width:16px;height:16px;flex:none}
+.visit-dialog-delete{margin-right:auto;color:#a94d47!important;background:#fcf0ed!important;border-color:#f0d9d4!important}
+
+.visit-register-summary{display:grid;grid-template-columns:1.5fr .7fr;gap:10px;margin:16px 0}
+.visit-register-summary>div{padding:11px;border:1px solid var(--line);border-radius:11px;background:rgba(249,247,240,.7)}
+.visit-register-summary span,.visit-register-summary strong{display:block}
+.visit-register-summary span{font-size:9px;color:var(--muted)}
+.visit-register-summary strong{margin-top:4px;font-size:10px;line-height:1.45;color:var(--text)}
+.visit-register-form{margin:0 0 12px}
+.visit-register-help{margin:0!important;padding:10px 11px;border-radius:10px;background:#f8ead5;color:#8b641f!important;font-size:9px!important;line-height:1.5!important}
+.visit-register-help.registered{background:var(--green-soft-2);color:var(--green-800)!important}
+
+@media(max-width:1100px){
+  .visits-layout{grid-template-columns:minmax(250px,.8fr) minmax(0,1.5fr)}
+  .visit-list-item{grid-template-columns:50px minmax(0,1fr) 14px}
+  .visit-list-item .visit-status{grid-column:2;justify-self:start}
+  .visit-list-arrow{grid-column:3;grid-row:1 / span 2}
+}
+@media(max-width:720px){
+  .visits-layout{grid-template-columns:1fr}
+  .visit-detail-card{order:1;padding:14px}
+  .visits-list-panel{order:2}
+  .visit-detail-head{flex-direction:column}
+  .visit-detail-actions{justify-content:flex-start}
+  .visit-notes-grid{grid-template-columns:1fr}
+  .visit-lock-info{align-items:flex-start;flex-wrap:wrap}
+  .visit-appointment-form{grid-template-columns:1fr}
+  .visit-form-wide{grid-column:auto}
+  .visit-register-summary{grid-template-columns:1fr}
+  .visit-appointment-form input,.visit-appointment-form select,.visit-appointment-form textarea,.visit-register-form textarea{font-size:16px}
+}
