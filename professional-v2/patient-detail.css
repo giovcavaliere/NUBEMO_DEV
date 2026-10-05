@@ -121,8 +121,30 @@
 .detail-dialog button{min-height:42px;border:1px solid var(--line);border-radius:10px;padding:0 14px;background:var(--surface);cursor:pointer}
 .detail-dialog footer button:last-child{background:var(--green-800);color:white}
 .detail-dialog-fields{max-height:55vh;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:15px 0}
-.detail-dialog-fields label{display:grid;gap:5px;font-size:11px;color:var(--muted)}
-.detail-dialog-fields input{width:100%;min-width:0;min-height:40px;padding:8px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--text)}
+.detail-dialog-fields label{display:grid;gap:5px;min-width:0;font-size:11px;color:var(--muted)}
+.detail-dialog-fields input,.detail-dialog-fields select,.detail-dialog-fields textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:white;color:var(--text);font:inherit}
+.detail-dialog-fields input,.detail-dialog-fields select{min-height:40px;padding:8px}
+.detail-dialog-fields textarea{padding:9px;resize:vertical;line-height:1.45}
+.detail-dialog-fields input[type="date"]{text-align:left;direction:ltr}
+.detail-dialog-fields input[type="date"]::-webkit-date-and-time-value{text-align:left}
+.detail-dialog-fields-single{grid-template-columns:1fr}
+.detail-dialog-fields label>small{font-size:9px;color:var(--muted)}
+.detail-check-field{grid-template-columns:22px minmax(0,1fr);align-items:center;min-height:40px}
+.detail-check-field input{width:18px;height:18px;min-height:0;margin:0}
+.detail-heading-action{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.detail-heading-action .detail-section-heading{margin-bottom:15px}
+.detail-edit-button,.detail-accordion-edit{border:1px solid var(--line);background:rgba(255,255,255,.7);color:var(--green-800);border-radius:9px;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:10px;font-weight:650}
+.detail-edit-button{min-height:34px;padding:0 10px;flex:none}
+.detail-edit-button .icon,.detail-accordion-edit .icon{width:14px;height:14px}
+.detail-accordion-edit{margin-top:9px;min-height:34px;padding:0 10px}
+.detail-dialog-wide{width:min(760px,calc(100% - 28px))}
+.detail-lifestyle-editor{max-height:58vh;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}
+.detail-lifestyle-editor fieldset{min-width:0;margin:0;padding:12px;border:1px solid var(--line);border-radius:12px}
+.detail-lifestyle-editor legend{padding:0 5px;color:var(--green-950);font-size:11px;font-weight:700}
+.detail-lifestyle-editor label{display:grid;gap:5px;margin-top:8px;color:var(--muted);font-size:10px}
+.detail-lifestyle-editor input,.detail-lifestyle-editor textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
+.detail-lifestyle-editor input{min-height:39px;padding:8px}
+.detail-lifestyle-editor textarea{padding:8px;resize:vertical;line-height:1.4}
 
 @media(max-width:1300px){
   .detail-overview-lower{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -167,4 +189,8 @@
   .detail-habits{grid-template-columns:1fr}
   .detail-field{grid-template-columns:minmax(85px,.7fr) minmax(0,1fr);gap:8px}
   .detail-dialog-fields{grid-template-columns:1fr}
+  .detail-lifestyle-editor{grid-template-columns:1fr}
+  .detail-heading-action{align-items:center}
+  .detail-edit-button span{display:none}
+  .detail-edit-button{width:34px;padding:0}
 }
