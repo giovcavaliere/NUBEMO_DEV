@@ -220,7 +220,7 @@ export function bindAppointmentPage(root,{profile,state=appointmentState,onCance
     const next=button.dataset.appointmentType;
     state.type=next;
     if(next==="personal"){state.patientIds=[];state.couple=false;state.reminder=false;state.duration=30}
-    else state.duration=next==="first"?Number(profile.firstVisit||60):Number(profile.controlVisit||30);
+    else { const base=next==="first"?Number(profile.firstVisit||60):Number(profile.controlVisit||30); state.duration=state.couple?Math.min(360,base*2):base; }
     rerender();
   }));
   root.querySelectorAll("[data-appointment-field]").forEach(field=>{
