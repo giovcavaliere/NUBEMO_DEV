@@ -3,8 +3,11 @@ const PIXELS_PER_HALF_HOUR=35;
 const PIXELS_PER_MINUTE=PIXELS_PER_HALF_HOUR/30;
 
 const DEMO_EVENTS=[
-  {date:"2026-10-05",start:"09:00",duration:30,type:"control",name:"Giovanni Cavaliere",meta:"Controllo · 30 min"},
-  {date:"2026-10-05",start:"11:00",duration:60,type:"first",name:"Elisa Manco",meta:"Prima visita · 60 min"},
+  {id:"visit-gc-20260912",date:"2026-09-12",start:"10:00",duration:60,type:"first",name:"Giovanni Cavaliere",meta:"Prima visita · 60 min",patientId:"p1",patientIds:["p1"],modality:"studio",studioId:"studio-1",notes:"Prima visita e definizione degli obiettivi.",appointmentLocked:true,visitRecords:{p1:{registered:true,note:"Anamnesi iniziale completata. Definiti obiettivi e impostazione del percorso.",registeredAt:"2026-09-12T11:05:00+02:00"}}},
+  {id:"visit-gc-20260928",date:"2026-09-28",start:"09:40",duration:30,type:"control",name:"Giovanni Cavaliere",meta:"Controllo · 30 min",patientId:"p1",patientIds:["p1"],modality:"studio",studioId:"studio-1",notes:"Controllo peso e composizione corporea.",appointmentLocked:true,visitRecords:{p1:{registered:true,note:"Buona aderenza al percorso. Aggiornata la misurazione BIA.",registeredAt:"2026-09-28T10:15:00+02:00"}}},
+  {id:"visit-gc-20261001",date:"2026-10-01",start:"10:15",duration:30,type:"control",name:"Giovanni Cavaliere",meta:"Controllo · 30 min",patientId:"p1",patientIds:["p1"],modality:"studio",studioId:"studio-1",notes:"Verifica andamento e piano alimentare.",appointmentLocked:true,visitRecords:{p1:{registered:true,note:"Percorso regolare. Mantenere l'impostazione attuale e monitorare il diario nel weekend.",registeredAt:"2026-10-01T10:50:00+02:00"}}},
+  {id:"visit-gc-20261005",date:"2026-10-05",start:"09:00",duration:30,type:"control",name:"Giovanni Cavaliere",meta:"Controllo · 30 min",patientId:"p1",patientIds:["p1"],modality:"studio",studioId:"studio-1",notes:"Controllo peso e andamento piano.",appointmentLocked:false,visitRecords:{}},
+  {id:"event-em-20261005",date:"2026-10-05",start:"11:00",duration:60,type:"first",name:"Elisa Manco",meta:"Prima visita · 60 min"},
   {date:"2026-10-06",start:"10:00",duration:30,type:"personal",name:"Impegno personale",meta:"Fuori studio · 30 min"},
   {date:"2026-10-06",start:"15:00",duration:30,type:"control",name:"Marco Bianchi",meta:"Controllo · 30 min"},
   {date:"2026-10-07",start:"09:00",duration:60,type:"first",name:"Francesca Cavaliere",meta:"Prima visita · 60 min"},
@@ -15,9 +18,11 @@ const DEMO_EVENTS=[
   {date:"2026-10-10",start:"09:00",duration:60,type:"first",name:"Nuovo paziente",meta:"Prima visita · 60 min"}
 ];
 
+export function getAgendaEvents(){return DEMO_EVENTS;}
+
 export function addAgendaEvent(event){
   if(!event||!event.date||!event.start) return;
-  DEMO_EVENTS.push({...event});
+  DEMO_EVENTS.push({id:event.id||`event-${Date.now()}`,visitRecords:{},appointmentLocked:false,...event});
 }
 
 export const agendaState={
