@@ -7,9 +7,9 @@ const patientDetails={
     journey:{startedAt:"2026-09-12",summary:"Buona continuità nel percorso; il diario è presente, con attenzione ai weekend.",plans:[{id:"plan-1",createdAt:"2026-09-14",sharedAt:"2026-09-14",title:"Piano alimentare condiviso"}]},
     appointments:[{id:"a1",startsAt:"2026-10-10T11:00:00+02:00",title:"Controllo nutrizionale",status:"scheduled"}],
     visits:[
-      {id:"v1",date:"2026-09-12",type:"first",status:"completed",title:"Prima visita",description:"Anamnesi, misure e obiettivi definiti"},
-      {id:"v2",date:"2026-09-28",type:"control",status:"completed",title:"Controllo",description:"Verifica progressi e adattamenti"},
-      {id:"v3",date:"2026-10-01",type:"followup",status:"completed",title:"Visita successiva",description:"Percorso e diario aggiornati"}
+      {id:"v1",appointmentId:"visit-gc-20260912",date:"2026-09-12",type:"first",status:"completed",title:"Prima visita",description:"Anamnesi, misure e obiettivi definiti"},
+      {id:"v2",appointmentId:"visit-gc-20260928",date:"2026-09-28",type:"control",status:"completed",title:"Controllo",description:"Verifica progressi e adattamenti"},
+      {id:"v3",appointmentId:"visit-gc-20261001",date:"2026-10-01",type:"control",status:"completed",title:"Visita successiva",description:"Percorso e diario aggiornati"}
     ],
     measurements:[
       {id:"m1",date:"2026-09-12",time:"10:00",weight:109.4,height:180,waist:112,hips:115,arm:35,thigh:62,bodyFat:29.6,muscleMass:40.4,ecm:32.3,bcm:38.1,notes:"Prima rilevazione del percorso."},
