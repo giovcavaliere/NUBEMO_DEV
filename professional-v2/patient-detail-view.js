@@ -145,29 +145,42 @@ function noteTimestamp(note){
 function renderNotes(model){
   const notes=[...(model.data.notes||[])].sort((a,b)=>new Date(noteTimestamp(b))-new Date(noteTimestamp(a)));
   return `<div class="detail-notes">
-    <div class="notes-title-row">
-      <div>
-        <h2>Note</h2>
-        <p>Annotazioni libere del professionista, separate da visite, appuntamenti e dati amministrativi.</p>
+    <header class="notes-head">
+      <div class="notes-head-copy">
+        <span class="notes-head-icon">${icon("edit")}</span>
+        <div>
+          <h2>Note</h2>
+          <p>Annotazioni generali del professionista sul percorso del paziente.</p>
+        </div>
       </div>
       <button type="button" class="notes-new" data-new-note>${icon("plus")}<span>Nuova nota</span></button>
+    </header>
+
+    <div class="notes-context">
+      <span class="notes-context-icon">${icon("document")}</span>
+      <p>Queste note sono indipendenti da <strong>Note visita</strong>, <strong>Note appuntamento</strong> e <strong>Note amministrative</strong>.</p>
     </div>
-    ${notes.length?`<div class="notes-list">${notes.map(note=>`
-      <article class="note-card" data-note-id="${escapeHtml(note.id)}">
-        <div class="note-card-meta">
-          <span class="note-private-badge">Nota professionista</span>
-          <time datetime="${escapeHtml(noteTimestamp(note))}">${fmtDate(noteTimestamp(note),{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}</time>
-          ${note.updatedAt?`<small>Modificata</small>`:""}
+
+    ${notes.length?`<section class="notes-list" aria-label="Note del professionista">${notes.map((note,index)=>`
+      <article class="note-card ${index===0?"note-card-latest":""}" data-note-id="${escapeHtml(note.id)}">
+        <header class="note-card-head">
+          <div class="note-card-meta">
+            <span class="note-private-badge">${icon("edit")}<span>Nota professionista</span></span>
+            <time datetime="${escapeHtml(noteTimestamp(note))}">${fmtDate(noteTimestamp(note),{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}</time>
+            ${note.updatedAt?`<span class="note-edited">Modificata</span>`:""}
+          </div>
+          <div class="note-card-actions" aria-label="Azioni nota">
+            <button type="button" data-edit-note="${escapeHtml(note.id)}" aria-label="Modifica nota">${icon("edit")}<span>Modifica</span></button>
+            <button type="button" class="note-delete" data-delete-note="${escapeHtml(note.id)}" aria-label="Elimina nota"><span>Elimina</span></button>
+          </div>
+        </header>
+        <div class="note-card-body">
+          <p>${escapeHtml(note.text)}</p>
         </div>
-        <p>${escapeHtml(note.text)}</p>
-        <div class="note-card-actions">
-          <button type="button" data-edit-note="${escapeHtml(note.id)}">${icon("edit")}<span>Modifica</span></button>
-          <button type="button" class="note-delete" data-delete-note="${escapeHtml(note.id)}"><span>Elimina</span></button>
-        </div>
-      </article>`).join("")}</div>`:`
+      </article>`).join("")}</section>`:`
       <section class="detail-panel notes-empty">
-        <span class="detail-symbol">${icon("document")}</span>
-        <div><strong>Nessuna nota inserita</strong><p>Le note generali del professionista compariranno qui.</p></div>
+        <span class="notes-empty-icon">${icon("edit")}</span>
+        <div><strong>Nessuna nota del professionista</strong><p>Usa “Nuova nota” per aggiungere un’annotazione generale sul percorso.</p></div>
       </section>`}
   </div>`;
 }
