@@ -12,12 +12,12 @@ const patientDetails={
       {id:"v3",date:"2026-10-01",type:"followup",status:"completed",title:"Visita successiva",description:"Percorso e diario aggiornati"}
     ],
     measurements:[
-      {date:"2026-09-12",weight:109.4,bodyFat:29.6,muscleMass:40.4,bcm:38.1},
-      {date:"2026-09-16",weight:108.9},
-      {date:"2026-09-20",weight:108.1,bodyFat:29.1,muscleMass:40.6,bcm:38.2},
-      {date:"2026-09-24",weight:107.5},
-      {date:"2026-09-28",weight:106.8,bodyFat:28.4,muscleMass:41.2,bcm:38.6},
-      {date:"2026-10-01",weight:106.6}
+      {id:"m1",date:"2026-09-12",time:"10:00",weight:109.4,height:180,waist:112,hips:115,arm:35,thigh:62,bodyFat:29.6,muscleMass:40.4,ecm:32.3,bcm:38.1,notes:"Prima rilevazione del percorso."},
+      {id:"m2",date:"2026-09-16",time:"09:30",weight:108.9,notes:"Rilevazione del solo peso."},
+      {id:"m3",date:"2026-09-20",time:"11:20",weight:108.1,height:180,waist:110,hips:114,bodyFat:29.1,muscleMass:40.6,ecm:32.7,bcm:38.2},
+      {id:"m4",date:"2026-09-24",time:"10:00",weight:107.5},
+      {id:"m5",date:"2026-09-28",time:"09:40",weight:106.8,height:180,waist:108,hips:112,arm:34,thigh:60,bodyFat:28.4,muscleMass:41.2,ecm:33,bcm:38.6,notes:"Misurazione antropometrica completa con BIA."},
+      {id:"m6",date:"2026-10-01",time:"10:15",weight:106.6,height:180,notes:"Controllo del peso. BIA non rilevata in questa occasione."}
     ],
     diary:{days:[
       {date:"2026-09-29",valid:true},{date:"2026-09-30",valid:true},
