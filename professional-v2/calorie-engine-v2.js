@@ -23,9 +23,9 @@ export function normalizeCalorieText(value){
 }
 
 const withoutLeadingQuantity=value=>normalizeCalorieText(value)
-  .replace(/^\s*(?:\d+(?:[.,]\d+)?|un|uno|una|due|tre|quattro|cinque|sei|sette|otto|nove|dieci)\s*(?:g|ml|fetta|fette|cucchiaino|cucchiaini|cucchiaio|cucchiai|vasetto|vasetti|porzione|porzioni|pezzo|pezzi|bicchiere|bicchieri|bottiglia|bottiglie|lattina|lattine|biscotto|biscotti|tazzina|tazzine|tazza|tazze|scatoletta|scatolette)?\s*(?:di\s+)?/,"")
   .replace(/^(?:un|una)\s+(?:po'?|filo|piatto|manciata)\s+(?:di\s+|d')?/,"")
   .replace(/^qualche\s+/,"")
+  .replace(/^\s*(?:\d+(?:[.,]\d+)?|un|uno|una|due|tre|quattro|cinque|sei|sette|otto|nove|dieci)\s*(?:g|ml|fetta|fette|cucchiaino|cucchiaini|cucchiaio|cucchiai|vasetto|vasetti|porzione|porzioni|pezzo|pezzi|bicchiere|bicchieri|bottiglia|bottiglie|lattina|lattine|biscotto|biscotti|tazzina|tazzine|tazza|tazze|scatoletta|scatolette)?\s*(?:di\s+)?/,"")
   .replace(/\s+senza\s+zucchero\b.*$/,"")
   .trim();
 
@@ -266,9 +266,10 @@ function segmentWithCatalog(text,rows,index,options){
     if(!match) return [part];
 
     const left=match[1].trim(),right=match[3].trim();
+    const leftResolved=resolveCalorieFood(left,rows,{...options,index});
     const rightResolved=resolveCalorieFood(right,rows,{...options,index});
     const nestedRight=right.match(/^(.*?)\s+(?:con|e)\s+(.+)$/i);
-    if(!rightResolved.food&&!nestedRight) return [part];
+    if(!leftResolved.food&&!rightResolved.food&&!nestedRight) return [part];
 
     return [...splitNatural(left),...splitNatural(right)];
   };
