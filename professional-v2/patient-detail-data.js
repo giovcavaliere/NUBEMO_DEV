@@ -20,10 +20,99 @@ const patientDetails={
       {id:"m6",date:"2026-10-01",time:"10:15",weight:106.6,height:180,notes:"Controllo del peso. BIA non rilevata in questa occasione."}
     ],
     diary:{days:[
-      {date:"2026-09-29",valid:true},{date:"2026-09-30",valid:true},
-      {date:"2026-10-01",valid:true},{date:"2026-10-02",valid:true},
-      {date:"2026-10-03",valid:false},{date:"2026-10-04",valid:true}
-    ],updates:[{id:"du1",date:"2026-10-04",title:"Diario aggiornato",description:"Nuove voci del diario",origin:"Paziente"}]},
+      {date:"2026-10-04",valid:true,confidence:"high",meals:[
+        {key:"breakfast",time:"07:30",originalText:"150 g yogurt greco + 45 g biscotti",components:[
+          {text:"150 g yogurt greco",kcal:145,confidence:"high"},
+          {text:"45 g biscotti",kcal:205,confidence:"high"}
+        ]},
+        {key:"snack1",time:"10:30",originalText:"1 mela",components:[{text:"1 mela",kcal:80,confidence:"medium"}]},
+        {key:"lunch",time:"13:00",originalText:"80 g pasta al pomodoro + 120 g pollo + insalata + 10 g olio",components:[
+          {text:"80 g pasta al pomodoro",kcal:310,confidence:"high"},
+          {text:"120 g pollo alla griglia",kcal:200,confidence:"high"},
+          {text:"Insalata con pomodori",kcal:60,confidence:"medium"},
+          {text:"10 g olio extravergine di oliva",kcal:90,confidence:"high"}
+        ]},
+        {key:"snack2",time:"16:30",originalText:"10 g mandorle",components:[{text:"10 g mandorle",kcal:58,confidence:"high"}]},
+        {key:"dinner",time:"20:00",originalText:"2 fette pane integrale + 80 g tonno + insalata con olive verdi + 1 cucchiaio olio",components:[
+          {text:"2 fette pane integrale",kcal:150,confidence:"medium"},
+          {text:"80 g tonno al naturale",kcal:93,confidence:"high"},
+          {text:"Insalata con olive verdi",kcal:85,confidence:"medium"},
+          {text:"1 cucchiaio olio extravergine",kcal:90,confidence:"medium"}
+        ]}
+      ]},
+      {date:"2026-10-03",valid:false,confidence:"low",meals:[
+        {key:"breakfast",time:"08:00",originalText:"caffè e brioche",components:[
+          {text:"Caffè",kcal:null,confidence:"low"},
+          {text:"Brioche",kcal:null,confidence:"low",status:"unresolved"}
+        ]},
+        {key:"dinner",time:"20:30",originalText:"aperitivo con amici",components:[
+          {text:"Aperitivo con amici",kcal:null,confidence:"low",status:"unresolved"}
+        ]}
+      ]},
+      {date:"2026-10-02",valid:true,confidence:"medium",meals:[
+        {key:"breakfast",time:"07:40",originalText:"yogurt greco con cereali e banana",components:[
+          {text:"Yogurt greco",kcal:150,confidence:"medium"},
+          {text:"Cereali",kcal:120,confidence:"medium"},
+          {text:"Banana",kcal:105,confidence:"medium"}
+        ]},
+        {key:"lunch",time:"13:15",originalText:"100 g salmone affumicato + 80 g pane integrale",components:[
+          {text:"100 g salmone affumicato",kcal:180,confidence:"high"},
+          {text:"80 g pane integrale",kcal:200,confidence:"high"}
+        ]},
+        {key:"dinner",time:"20:10",originalText:"150 g patate al forno con 10 g olio + verdure",components:[
+          {text:"150 g patate al forno",kcal:220,confidence:"high"},
+          {text:"10 g olio",kcal:90,confidence:"high"},
+          {text:"Verdure",kcal:70,confidence:"medium"}
+        ]}
+      ]},
+      {date:"2026-10-01",valid:true,confidence:"high",meals:[
+        {key:"breakfast",time:"07:25",originalText:"200 ml latte + 40 g cereali",components:[
+          {text:"200 ml latte parzialmente scremato",kcal:92,confidence:"high"},
+          {text:"40 g cereali",kcal:150,confidence:"high"}
+        ]},
+        {key:"lunch",time:"13:00",originalText:"80 g riso basmati + 120 g pollo + 10 g olio",components:[
+          {text:"80 g riso basmati",kcal:282,confidence:"high"},
+          {text:"120 g pollo",kcal:198,confidence:"high"},
+          {text:"10 g olio extravergine",kcal:90,confidence:"high"}
+        ]},
+        {key:"dinner",time:"20:00",originalText:"100 g mozzarella, pomodoro e 60 g pane",components:[
+          {text:"100 g mozzarella",kcal:253,confidence:"high"},
+          {text:"Pomodoro",kcal:35,confidence:"medium"},
+          {text:"60 g pane",kcal:160,confidence:"high"}
+        ]}
+      ]},
+      {date:"2026-09-30",valid:true,confidence:"medium",meals:[
+        {key:"breakfast",time:"07:30",originalText:"2 fette pane + marmellata + caffè",components:[
+          {text:"2 fette pane",kcal:150,confidence:"medium"},
+          {text:"Marmellata",kcal:90,confidence:"medium"},
+          {text:"Caffè",kcal:2,confidence:"medium"}
+        ]},
+        {key:"lunch",time:"13:10",originalText:"pasta al pomodoro con tonno e olive",components:[
+          {text:"Pasta al pomodoro",kcal:390,confidence:"medium"},
+          {text:"Tonno",kcal:160,confidence:"medium"},
+          {text:"Olive",kcal:70,confidence:"low"}
+        ]},
+        {key:"dinner",time:"20:15",originalText:"petto di pollo, verdure grigliate e un filo d'olio",components:[
+          {text:"Petto di pollo",kcal:250,confidence:"medium"},
+          {text:"Verdure grigliate",kcal:110,confidence:"medium"},
+          {text:"Un filo d'olio",kcal:45,confidence:"low"}
+        ]}
+      ]},
+      {date:"2026-09-29",valid:true,confidence:"medium",meals:[
+        {key:"breakfast",time:"07:20",originalText:"1 vasetto di yogurt + banana",components:[
+          {text:"1 vasetto di yogurt",kcal:125,confidence:"medium"},
+          {text:"1 banana",kcal:105,confidence:"medium"}
+        ]},
+        {key:"lunch",time:"12:50",originalText:"80 g pasta + 120 g pollo + salsa della nonna",components:[
+          {text:"80 g pasta",kcal:285,confidence:"high"},
+          {text:"120 g pollo",kcal:198,confidence:"high"},
+          {text:"Salsa della nonna",kcal:null,confidence:"low",status:"unresolved"}
+        ]},
+        {key:"dinner",time:"20:20",originalText:"pizza margherita",components:[
+          {text:"Pizza margherita",kcal:810,confidence:"medium"}
+        ]}
+      ]}
+    ],ui:{selectedDate:"2026-10-04"},updates:[{id:"du1",date:"2026-10-04",title:"Diario aggiornato",description:"Nuove voci del diario",origin:"Paziente"}]},
     documents:[
       {id:"doc-a-oct",date:"2026-10-04",category:"analysis",title:"Analisi sangue ottobre",fileName:"Analisi_sangue_04-10-2026.pdf",uploadedBy:"patient",origin:"Paziente",description:"Caricato dal paziente",unread:true,file:null},
       {id:"doc-r-eco",date:"2026-10-02",category:"report",title:"Referto ecografia addome",fileName:"Ecografia_addome.pdf",uploadedBy:"patient",origin:"Paziente",description:"Caricato dal paziente",unread:true,file:null},
