@@ -12,7 +12,7 @@ const definitions=[
   ...[["waist","Vita"],["hips","Fianchi"],["arm","Braccio"],["thigh","Coscia"]].map(([key,label])=>({key,label,unit:"cm",color:"#296a56"}))
 ];
 export const progressPeriods=[{key:"1",label:"1 mese"},{key:"3",label:"3 mesi"},{key:"6",label:"6 mesi"},{key:"all",label:"Tutto"}];
-export const biaOptions=[{key:"all",label:"Tutti"},{key:"bodyFat",label:"FM"},{key:"muscleMass",label:"MM"},{key:"bcm",label:"BCM"}];
+export const biaOptions=[{key:"all",label:"Tutti"},{key:"weight",label:"Peso"},{key:"bodyFat",label:"FM"},{key:"muscleMass",label:"MM"},{key:"bcm",label:"BCM"}];
 export const circumferenceOptions=definitions.filter(item=>item.unit==="cm");
 
 function metric(records,key,unit){
@@ -61,8 +61,9 @@ export function getProgressViewModel(data,{period="3",circumference="waist",biaS
   const goal=data.profile?.anamnesis?.goalWeight;
   const goalWeight=goal!==""&&goal!=null&&Number.isFinite(Number(goal))&&Number(goal)>0?Number(goal):null;
   const circumferenceSeries=series.filter(item=>item.key===circumference);
-  const biaSeriesData=series.filter(item=>["bodyFat","muscleMass","bcm"].includes(item.key)&&(biaSeries==="all"||item.key===biaSeries));
-  const charts={weight:buildMeasurementChart(series.filter(item=>item.key==="weight"),{axisUnit:"kg",referenceValue:goalWeight}),bia:buildMeasurementChart(biaSeriesData,{axisUnit:"%",compactPercent:true}),circumference:circumferenceSeries[0].points.length>1?buildMeasurementChart(circumferenceSeries,{axisUnit:"cm"}):null};
+  const biaSeriesData=series.filter(item=>["weight","bodyFat","muscleMass","bcm"].includes(item.key)&&(biaSeries==="all"||item.key===biaSeries));
+  const biaChartOptions=biaSeries==="weight"?{axisUnit:"kg"}:biaSeries==="all"?{compactPercent:true}:{axisUnit:"%",compactPercent:true};
+  const charts={weight:buildMeasurementChart(series.filter(item=>item.key==="weight"),{axisUnit:"kg",referenceValue:goalWeight}),bia:buildMeasurementChart(biaSeriesData,biaChartOptions),circumference:circumferenceSeries[0].points.length>1?buildMeasurementChart(circumferenceSeries,{axisUnit:"cm"}):null};
   return {period,circumference,biaSeries,charts,periodNote:records.length?`Periodo fino al ${dateText(records.at(-1).date)}`:"Nessuna rilevazione disponibile",circumferenceLabel:circumferenceOptions.find(item=>item.key===circumference).label,
     summary:[
       ...[["Peso attuale",weight,"chart","kg"],["BMI attuale",bmi,"chart",""],["Vita",waist,"leaf","cm"]].map(([label,item,icon,unit])=>({label,icon,value:text(item.current,unit),delta:formatMeasurementDelta(item.delta,unit).trim(),note:item.last?item.count>1?`Dal ${dateText(item.first.date)} · ultimo ${dateText(item.last.date)}`:`Una rilevazione · ${dateText(item.last.date)}`:"Dato non ancora rilevato"})),
