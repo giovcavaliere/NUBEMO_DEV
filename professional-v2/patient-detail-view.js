@@ -23,13 +23,11 @@ function renderHeader(model){
   const {data,age,kpis,firstVisit,lastControl}=model,{identity,journey}=data;
   const change=kpis.change;
   const status={active:"Attivo",pending:"In attesa",draft:"Bozza",terminated:"Terminato"}[identity.status]||identity.status;
-  const accountStatus={active:"Account NUBEMO attivo",pending:"Invito NUBEMO in attesa",inactive:"Senza account NUBEMO"}[identity.nubemoAccountStatus]||"Senza account NUBEMO";
-  const accountClass={active:"is-active",pending:"is-pending",inactive:"is-inactive"}[identity.nubemoAccountStatus]||"is-inactive";
   return `<header class="detail-hero">
     <div class="detail-person">
       <img class="detail-avatar" src="${escapeHtml(identity.avatar)}" alt="">
       <div class="detail-person-copy">
-        <div class="detail-name-line"><h1>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</h1><span class="detail-status">${escapeHtml(status)}</span><span class="detail-account-status ${accountClass}">${escapeHtml(accountStatus)}</span></div>
+        <div class="detail-name-line"><h1>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</h1><span class="detail-status">${escapeHtml(status)}</span></div>
         <p class="detail-demographics">${age!=null?`${escapeHtml(age)} anni`:"Età non disponibile"}<span>·</span>${escapeHtml(identity.sex||"Sesso non indicato")}<span>·</span>${journey.startedAt?`Dal ${fmtDate(journey.startedAt)}`:"Inizio non registrato"}</p>
         <p class="detail-journey-meta">${firstVisit?`Prima visita ${fmtDate(firstVisit.date)}`:"Prima visita non registrata"}<span>·</span>${lastControl?`Ultimo controllo ${fmtDate(lastControl.date)}`:"Nessun controllo registrato"}</p>
         <p class="detail-summary">${icon("document")}${escapeHtml(journey.summary||"Il percorso non ha ancora una sintesi.")}</p>
@@ -182,24 +180,28 @@ function renderProfile(model){
   </div>`;
 
   return `<div class="detail-profile">
-    <section class="detail-panel detail-identity">${sectionHeading("profile","Anagrafica")}
-      <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Altezza",identity.height!==""&&identity.height!=null?`${identity.height} cm`:"—")}${field("Telefono",identity.phone)}${field("Email",identity.email)}${field("Account NUBEMO",{active:"Attivo",pending:"Invito in attesa",inactive:"Non attivo"}[identity.nubemoAccountStatus]||"Non attivo")}${field("Calorie visibili al paziente",identity.showCaloriesToPatient?"Sì":"No")}</dl>
-      <button type="button" class="detail-inline-action" data-edit-identity>Vedi / Modifica anagrafica <span aria-hidden="true">›</span></button>
-    </section>
+    <div class="detail-profile-column">
+      <section class="detail-panel detail-identity">${sectionHeading("profile","Anagrafica")}
+        <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Altezza",identity.height!==""&&identity.height!=null?`${identity.height} cm`:"—")}${field("Telefono",identity.phone)}${field("Email",identity.email)}${field("Account NUBEMO",{active:"Attivo",pending:"Invito in attesa",inactive:"Non attivo"}[identity.nubemoAccountStatus]||"Non attivo")}${field("Calorie visibili al paziente",identity.showCaloriesToPatient?"Sì":"No")}</dl>
+        <button type="button" class="detail-inline-action" data-edit-identity>Vedi / Modifica anagrafica <span aria-hidden="true">›</span></button>
+      </section>
 
-    <section class="detail-panel detail-history">${sectionHeading("document","Percorso e anamnesi")}
-      <div class="detail-accordions">
-        ${renderClinicalAccordion("weightGoals","Obiettivi e storia del peso",weightSection)}
-        ${renderClinicalAccordion("lifestyle","Stile di vita",lifestyleSection)}
-        ${renderClinicalAccordion("clinical","Dati clinici aggiuntivi",clinicalSection)}
-        ${renderClinicalAccordion("family","Familiarità",familySection)}
-        ${renderClinicalAccordion("pathological","Anamnesi patologica",pathologicalSection)}
-      </div>
-    </section>
+      <section class="detail-panel detail-administration"><div class="detail-heading-action">${sectionHeading("check","Dati amministrativi")}<button type="button" class="detail-edit-button" data-edit-administration>${icon("edit")}<span>Modifica</span></button></div>
+        <dl class="detail-fields">${field("Consenso privacy",consent)}${field("Comunicazioni",privacy.communications.email?"Email":"Non attive")}${field("Promemoria appuntamenti",privacy.reminders.email?"Email":"Non attivi")}${field("Note amministrative",privacy.administrativeNotes||"Nessuna nota")}</dl>
+      </section>
+    </div>
 
-    <section class="detail-panel detail-administration"><div class="detail-heading-action">${sectionHeading("check","Dati amministrativi")}<button type="button" class="detail-edit-button" data-edit-administration>${icon("edit")}<span>Modifica</span></button></div>
-      <dl class="detail-fields">${field("Consenso privacy",consent)}${field("Comunicazioni",privacy.communications.email?"Email":"Non attive")}${field("Promemoria appuntamenti",privacy.reminders.email?"Email":"Non attivi")}${field("Note amministrative",privacy.administrativeNotes||"Nessuna nota")}</dl>
-    </section>
+    <div class="detail-profile-column">
+      <section class="detail-panel detail-history">${sectionHeading("document","Percorso e anamnesi")}
+        <div class="detail-accordions">
+          ${renderClinicalAccordion("weightGoals","Obiettivi e storia del peso",weightSection)}
+          ${renderClinicalAccordion("lifestyle","Stile di vita",lifestyleSection)}
+          ${renderClinicalAccordion("clinical","Dati clinici aggiuntivi",clinicalSection)}
+          ${renderClinicalAccordion("family","Familiarità",familySection)}
+          ${renderClinicalAccordion("pathological","Anamnesi patologica",pathologicalSection)}
+        </div>
+      </section>
+    </div>
   </div>`;
 }
 
@@ -377,7 +379,7 @@ function openIdentityDialog(root,model,onChange){
       </div>
       <div class="detail-identity-row detail-identity-row-single">
         <label><span>Email</span><input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label>
-        <label class="detail-identity-check"><input name="showCaloriesToPatient" type="checkbox" ${identity.showCaloriesToPatient?"checked":""}><span>Calorie visibili al paziente</span></label>
+        <label class="detail-identity-check"><input name="showCaloriesToPatient" type="checkbox" ${identity.showCaloriesToPatient?"checked":""}><span><strong>Calorie visibili al paziente</strong><small>Mostra al paziente la stima calorica nel diario.</small></span></label>
       </div>
     </div>
     <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
