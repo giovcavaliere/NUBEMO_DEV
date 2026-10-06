@@ -9,12 +9,6 @@ const labFields=[
   ["creatinine","Creatinina"],["ggt","GGT"],["tsh","TSH"],["vitaminD","Vitamina D"]
 ];
 
-function fileSize(bytes){
-  if(!Number.isFinite(bytes)||bytes<=0)return "—";
-  if(bytes>=1048576)return `${(bytes/1048576).toFixed(1).replace(".",",")} MB`;
-  return `${Math.max(1,Math.round(bytes/1024))} KB`;
-}
-
 function documentStatus(doc,reports){
   if(doc.category==="analysis"){
     const report=reports.find(item=>item.documentId===doc.id);
@@ -38,12 +32,11 @@ function renderRow(doc,reports){
     </div>
     <span class="patient-document-category category-${escapeHtml(doc.category)}">${categoryLabels[doc.category]||"Altro"}</span>
     <time datetime="${escapeHtml(doc.date||"")}">${fmtDate(doc.date)}</time>
-    <span class="patient-document-size">${fileSize(doc.size)}</span>
     <span class="patient-document-status ${status.tone}">${status.label}</span>
     <div class="patient-document-actions">
-      <button type="button" data-open-document="${escapeHtml(doc.id)}">Apri</button>
-      ${analysis?`<button type="button" class="document-analysis-action" data-edit-lab="${escapeHtml(doc.id)}">${reports.some(item=>item.documentId===doc.id)?"Valori":"Registra valori"}</button>`:""}
-      <button type="button" class="document-delete" data-delete-document="${escapeHtml(doc.id)}">Elimina</button>
+      <button type="button" class="document-icon-action" data-open-document="${escapeHtml(doc.id)}" aria-label="Apri documento" title="Apri">${icon("document")}</button>
+      ${analysis?`<button type="button" class="document-icon-action document-analysis-action" data-edit-lab="${escapeHtml(doc.id)}" aria-label="${reports.some(item=>item.documentId===doc.id)?"Modifica valori analisi":"Registra valori analisi"}" title="${reports.some(item=>item.documentId===doc.id)?"Valori analisi":"Registra valori"}">${icon("edit")}</button>`:""}
+      <button type="button" class="document-icon-action document-delete" data-delete-document="${escapeHtml(doc.id)}" aria-label="Elimina documento" title="Elimina">×</button>
     </div>
   </article>`;
 }
@@ -73,7 +66,7 @@ export function renderDocuments(model){
     </div>
 
     <div class="patient-document-table">
-      <div class="patient-document-table-head"><span>Nome</span><span>Categoria</span><span>Data</span><span>Dimensione</span><span>Stato</span><span>Azioni</span></div>
+      <div class="patient-document-table-head"><span>Nome</span><span>Categoria</span><span>Data</span><span>Stato</span><span>Azioni</span></div>
       <div class="patient-document-list">
         ${filtered.length?filtered.map(doc=>renderRow(doc,data.laboratoryReports||[])).join(""):`<div class="patient-documents-empty">Nessun documento in questa categoria.</div>`}
       </div>
