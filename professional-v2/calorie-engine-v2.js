@@ -26,6 +26,7 @@ const withoutLeadingQuantity=value=>normalizeCalorieText(value)
   .replace(/^\s*(?:\d+(?:[.,]\d+)?|un|uno|una|due|tre|quattro|cinque|sei|sette|otto|nove|dieci)\s*(?:g|ml|fetta|fette|cucchiaino|cucchiaini|cucchiaio|cucchiai|vasetto|vasetti|porzione|porzioni|pezzo|pezzi|bicchiere|bicchieri|bottiglia|bottiglie|lattina|lattine|biscotto|biscotti|tazzina|tazzine|tazza|tazze|scatoletta|scatolette)?\s*(?:di\s+)?/,"")
   .replace(/^(?:un|una)\s+(?:po'?|filo|piatto|manciata)\s+(?:di\s+|d')?/,"")
   .replace(/^qualche\s+/,"")
+  .replace(/\s+senza\s+zucchero\b.*$/,"")
   .trim();
 
 const words={un:1,uno:1,una:1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10};
@@ -75,7 +76,9 @@ export function catalogFoodFromRow(row){
 }
 
 const defaultFamilies=[
-  {key:"olive",aliases:["oliva","olive"],preferred:["olive da tavola conservate"],terms:["olive","oliva"]}
+  {key:"olive",aliases:["oliva","olive"],preferred:["olive da tavola conservate"],terms:["olive","oliva"]},
+  {key:"patatine",aliases:["patatine"],preferred:["patatine fritte"],terms:["patatine"]},
+  {key:"caffe",aliases:["caffe"],preferred:["caffe espresso"],terms:["caffe"]}
 ];
 
 const explicitAliases={
@@ -108,7 +111,12 @@ function uniqueFood(items){
 
 function exactFood(index,key){
   const found=uniqueFood(index.exact.get(key)??[]);
-  return found.length===1?found[0]:null;
+  if(found.length===1) return found[0];
+  if(found.length>1){
+    const sameLabel=found.every(item=>normalizeCalorieText(item.label)===normalizeCalorieText(found[0].label));
+    if(sameLabel) return found.slice().sort((a,b)=>(a.source==="CREA"?0:1)-(b.source==="CREA"?0:1))[0];
+  }
+  return null;
 }
 
 function findByContains(index,key){
@@ -245,6 +253,28 @@ export function segmentCalorieText(text){
   return output;
 }
 
+function segmentWithCatalog(text,rows,index,options){
+  const hardParts=String(text??"").replace(/\r/g,"").split(/\n|;|\s+\+\s+/).map(item=>item.trim()).filter(Boolean);
+  const splitNatural=part=>{
+    const whole=resolveCalorieFood(part,rows,{...options,index});
+    if(whole.food&&["exact","alias"].includes(whole.matchType)) return [part];
+
+    const commaParts=part.split(/\s*,\s*/).map(item=>item.trim()).filter(Boolean);
+    if(commaParts.length>1) return commaParts.flatMap(splitNatural);
+
+    const match=part.match(/^(.*?)\s+(con|e)\s+(.+)$/i);
+    if(!match) return [part];
+
+    const left=match[1].trim(),right=match[3].trim();
+    const rightResolved=resolveCalorieFood(right,rows,{...options,index});
+    const nestedRight=right.match(/^(.*?)\s+(?:con|e)\s+(.+)$/i);
+    if(!rightResolved.food&&!nestedRight) return [part];
+
+    return [...splitNatural(left),...splitNatural(right)];
+  };
+  return hardParts.flatMap(splitNatural);
+}
+
 function totalsFromComponents(components){
   const keys=["kcal","protein_g","carbs_g","fat_g"];
   const totals={};
@@ -267,7 +297,7 @@ function overallConfidence(components){
 
 export function analyzeCalorieText(text,rows,options={}){
   const index=buildIndex(rows,options);
-  const segments=segmentCalorieText(text);
+  const segments=segmentWithCatalog(text,rows,index,options);
   const components=segments.map(originalText=>{
     const resolved=resolveCalorieFood(originalText,rows,{...options,index});
     if(!resolved.food) return {originalText,food:null,quantity:null,nutrients:null,confidence:"unresolved",status:"unresolved"};
