@@ -3,7 +3,7 @@ import {patientRecords} from "./patients-data.js";
 // Demo adapter. A future data loader can return the same shape without changing the views.
 const patientDetails={
   p1:{
-    identity:{birthDate:"1979-03-14",sex:"Maschio",fiscalCode:"",address:"",postalCode:"",city:"",province:""},
+    identity:{birthDate:"1979-03-14",sex:"Maschio",height:180,fiscalCode:"",address:"",postalCode:"",city:"",province:"",showCaloriesToPatient:true,nubemoAccountStatus:"active"},
     journey:{startedAt:"2026-09-12",summary:"Buona continuità nel percorso; il diario è presente, con attenzione ai weekend.",plans:[{id:"plan-1",createdAt:"2026-09-14",sharedAt:"2026-09-14",title:"Piano alimentare condiviso"}]},
     appointments:[{id:"a1",startsAt:"2026-10-10T11:00:00+02:00",title:"Controllo nutrizionale",status:"scheduled"}],
     visits:[
@@ -163,7 +163,7 @@ export function getPatientData(id){
   if(!record) return null;
   const detail=patientDetails[id]||{};
   const data={
-    identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:null,age:record.age,sex:null,phone:record.phone||"",email:record.email||"",fiscalCode:"",address:"",postalCode:"",city:"",province:"",...detail.identity},
+    identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:null,age:record.age,sex:null,height:"",phone:record.phone||"",email:record.email||"",fiscalCode:"",address:"",postalCode:"",city:"",province:"",showCaloriesToPatient:true,nubemoAccountStatus:"inactive",...detail.identity},
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
     diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],laboratoryReports:detail.laboratoryReports||[],documentUi:{filter:"all",unreadOnly:false},activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
