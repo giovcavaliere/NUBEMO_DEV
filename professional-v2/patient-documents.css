@@ -16,7 +16,7 @@
 .patient-document-filters button.active{border-color:var(--green-700);background:var(--green-800);color:#fff}
 .patient-documents-order{flex:none;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.5);color:var(--muted);font-size:10px}
 .patient-document-table{overflow:hidden;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.45)}
-.patient-document-table-head,.patient-document-row{display:grid;grid-template-columns:minmax(240px,2fr) minmax(90px,.7fr) minmax(100px,.7fr) minmax(80px,.55fr) minmax(90px,.65fr) minmax(210px,1.25fr);gap:12px;align-items:center}
+.patient-document-table-head,.patient-document-row{display:grid;grid-template-columns:minmax(260px,2fr) minmax(95px,.75fr) minmax(105px,.75fr) minmax(95px,.7fr) minmax(150px,.9fr);gap:12px;align-items:center}
 .patient-document-table-head{min-height:42px;padding:0 14px;background:rgba(237,242,233,.66);color:var(--green-950);font-size:10px;font-weight:700}
 .patient-document-row{min-height:66px;padding:9px 14px;border-top:1px solid var(--line)}
 .patient-document-row.is-unread{background:#fffaf3}
@@ -33,11 +33,12 @@
 .patient-document-status.warning{background:var(--peach-soft);color:#a15c2c}
 .patient-document-status.success{background:var(--green-soft-2);color:var(--green-800)}
 .patient-document-status.neutral{background:#eceeea;color:#69736e}
-.patient-document-row time,.patient-document-size{font-size:10px;color:var(--muted)}
-.patient-document-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
-.patient-document-actions button{min-height:34px;padding:0 9px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--green-800);font-size:9px;font-weight:650;cursor:pointer;white-space:nowrap}
+.patient-document-row time{font-size:10px;color:var(--muted)}
+.patient-document-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
+.document-icon-action{display:grid;place-items:center;width:36px;height:36px;min-height:36px;padding:0;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--green-800);cursor:pointer}
+.document-icon-action .icon{width:16px;height:16px}
 .patient-document-actions .document-analysis-action{background:var(--green-soft-2)}
-.patient-document-actions .document-delete{color:#a94d47;background:#fcf0ed;border-color:#f0d9d4}
+.patient-document-actions .document-delete{color:#a94d47;background:#fcf0ed;border-color:#f0d9d4;font-size:19px;line-height:1}
 .patient-documents-empty{padding:28px;text-align:center;color:var(--muted);font-size:11px}
 .document-form-grid,.document-lab-grid{max-height:58vh;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0;padding:1px}
 .document-form-grid label,.document-lab-grid label{display:grid;gap:5px;min-width:0;color:var(--muted);font-size:10px}
@@ -52,7 +53,6 @@
   .patient-document-row{grid-template-columns:minmax(0,1fr) auto auto;gap:8px 12px;min-height:0;padding:12px;border:1px solid var(--line);border-radius:12px}
   .patient-document-row:first-child{border-top:1px solid var(--line)}
   .patient-document-main{grid-column:1 / -1}
-  .patient-document-size{display:none}
   .patient-document-actions{grid-column:1 / -1;justify-content:flex-start;padding-top:4px}
 }
 @media(max-width:720px){
