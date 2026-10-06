@@ -379,10 +379,12 @@ function openIdentityDialog(root,model,onChange){
       </div>
       <div class="detail-identity-row detail-identity-row-single">
         <label><span>Email</span><input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label>
-        <div class="detail-identity-calorie">
-          <span class="detail-identity-calorie-label">Calorie visibili al paziente</span>
-          <label class="detail-identity-toggle"><input name="showCaloriesToPatient" type="checkbox" ${identity.showCaloriesToPatient?"checked":""}><strong>Visibili</strong></label>
-          <small>Mostra al paziente la stima calorica nel diario.</small>
+        <div class="detail-identity-option">
+          <span>Calorie visibili al paziente</span>
+          <label class="detail-identity-option-control">
+            <input name="showCaloriesToPatient" type="checkbox" ${identity.showCaloriesToPatient?"checked":""}>
+            <span>Mostra il calcolo delle calorie al paziente</span>
+          </label>
         </div>
       </div>
     </div>
