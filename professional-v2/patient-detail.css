@@ -304,7 +304,9 @@
 .progress-series-missing{opacity:.45}
 .progress-chart{position:relative;height:220px;margin-top:4px}
 .progress-axis-title{position:absolute;top:0;left:40px;color:var(--muted);font-size:10px;line-height:1.3}
+.progress-axis-title-right{left:auto;right:40px;text-align:right}
 .progress-chart-plot{position:absolute;inset:24px 10px 30px 40px}
+.progress-chart-mixed .progress-chart-plot{right:40px}
 .progress-chart-plot>svg{display:block;width:100%;height:100%;overflow:visible}
 .progress-chart-grid{stroke:#e5e3da;stroke-width:1;vector-effect:non-scaling-stroke}
 .progress-chart-grid-vertical{stroke-opacity:.5}
@@ -313,6 +315,7 @@
 .progress-chart-line{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .progress-axis{font-size:10px;color:var(--muted);line-height:1.3}
 .progress-chart-tick{position:absolute;right:calc(100% + 8px);top:calc((var(--progress-y) - 34) / 191 * 100%);transform:translateY(-50%);white-space:nowrap;text-align:right}
+.progress-chart-tick-right{right:auto;left:calc(100% + 8px);text-align:left}
 .progress-chart-dot{position:absolute;left:calc((var(--progress-x) - 46) / 408 * 100%);top:calc((var(--progress-y) - 34) / 191 * 100%);width:7px;height:7px;transform:translate(-50%,-50%);border:2px solid currentColor;border-radius:50%;background:var(--surface-2)}
 .progress-chart-date{position:absolute;top:calc(100% + 14px);left:calc((var(--progress-x) - 46) / 408 * 100%);white-space:nowrap}
 .progress-date-middle{transform:translateX(-50%)}
