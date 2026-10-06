@@ -8,9 +8,12 @@ const empty=message=>`<div class="progress-empty">${icon("chart")}<strong>${mess
 
 function renderChart(chart,label,emptyMessage){
   if(!chart) return empty(emptyMessage);
-  const percent=chart.axisUnit==="%";
-  return `<div class="progress-chart" role="img" aria-label="${escapeHtml(chart.series.map(item=>item.summary).join(". "))}">
-    <span class="progress-axis-title">${label} (${chart.axisUnit})</span>
+  const mixed=chart.hasWeight&&chart.hasPercent;
+  const percentOnly=chart.hasPercent&&!chart.hasWeight;
+  const leftTitle=mixed?"Peso (kg)":`${label} (${chart.axisUnit})`;
+  return `<div class="progress-chart ${mixed?"progress-chart-mixed":""}" role="img" aria-label="${escapeHtml(chart.series.map(item=>item.summary).join(". "))}">
+    <span class="progress-axis-title">${leftTitle}</span>
+    ${mixed?'<span class="progress-axis-title progress-axis-title-right">Percentuale (%)</span>':""}
     <div class="progress-chart-plot">
       <svg viewBox="46 34 408 191" preserveAspectRatio="none" aria-hidden="true">
         ${chart.ticks.map(tick=>`<line x1="46" x2="454" y1="${tick.y}" y2="${tick.y}" class="progress-chart-grid"/>`).join("")}
@@ -18,7 +21,8 @@ function renderChart(chart,label,emptyMessage){
         ${chart.reference?`<line x1="46" x2="454" y1="${chart.reference.y}" y2="${chart.reference.y}" class="progress-chart-goal"/>`:""}
         ${chart.series.map(series=>`${series.area?`<path d="${series.area}" class="progress-chart-area"/>`:""}<path d="${series.path}" style="color:${series.color}" class="progress-chart-line"/>`).join("")}
       </svg>
-      ${chart.ticks.map(tick=>`<span class="progress-axis progress-chart-tick" style="--progress-y:${tick.y}">${percent?tick.percent:tick.weight}</span>`).join("")}
+      ${chart.ticks.map(tick=>`<span class="progress-axis progress-chart-tick" style="--progress-y:${tick.y}">${percentOnly?tick.percent:tick.weight}</span>`).join("")}
+      ${mixed?chart.ticks.map(tick=>`<span class="progress-axis progress-chart-tick progress-chart-tick-right" style="--progress-y:${tick.y}">${tick.percent}</span>`).join(""):""}
       ${chart.series.map(series=>series.dots.map(point=>`<span class="progress-chart-dot" style="--progress-x:${point.x};--progress-y:${point.y};color:${series.color}" title="${escapeHtml(point.title)}"></span>`).join("")).join("")}
       ${chart.labels.map(item=>`<span class="progress-axis progress-chart-date progress-date-${item.edge} ${item.interior?"progress-axis-interior":""}" style="--progress-x:${item.x}">${escapeHtml(item.label)}</span>`).join("")}
     </div>
@@ -39,7 +43,7 @@ export function renderProgress(model){
     <div class="progress-summary">${model.summary.map(item=>`<article class="detail-kpi progress-kpi ${item.bia?"progress-kpi-bia":""}"><span class="progress-kpi-symbol">${icon(item.icon)}</span><div><span class="detail-kpi-label">${item.label}</span><div class="progress-kpi-value"><strong>${item.bia?item.parts.map(part=>`<span>${part.label} ${escapeHtml(part.text)}</span>`).join(""):escapeHtml(item.value)}</strong>${item.delta?`<span class="progress-kpi-delta">${escapeHtml(item.delta)}</span>`:""}</div><small>${escapeHtml(item.note)}</small></div></article>`).join("")}</div>
     <div class="progress-grid">
       <section class="detail-panel progress-weight"><header class="progress-panel-heading">${heading("Andamento peso","Evoluzione del peso corporeo nel tempo.")}${controls(progressPeriods,model.period,"data-progress-period","Periodo dei grafici")}</header><p class="progress-period-note">${escapeHtml(model.periodNote)} · filtro comune ai tre grafici</p>${renderChart(model.charts.weight,"Peso","Nessun peso rilevato nel periodo selezionato")}</section>
-      <section class="detail-panel progress-bia"><header class="progress-panel-heading">${heading("Andamento composizione corporea (BIA)","Evoluzione delle principali componenti corporee.")}${controls(biaOptions,model.biaSeries,"data-progress-bia","Serie BIA visualizzata")}</header>${renderChart(model.charts.bia,"Percentuale","Nessun dato BIA nel periodo selezionato")}<p class="detail-note">Sono collegate solo le rilevazioni in cui il valore selezionato è effettivamente disponibile.</p></section>
+      <section class="detail-panel progress-bia"><header class="progress-panel-heading">${heading("Andamento composizione corporea (BIA)","Evoluzione delle principali componenti corporee.")}${controls(biaOptions,model.biaSeries,"data-progress-bia","Serie BIA visualizzata")}</header>${renderChart(model.charts.bia,model.biaSeries==="weight"?"Peso":"Percentuale","Nessun dato BIA nel periodo selezionato")}<p class="detail-note">Sono collegate solo le rilevazioni in cui il valore selezionato è effettivamente disponibile.</p></section>
       <section class="detail-panel progress-circumference"><header class="progress-panel-heading">${heading("Circonferenze nel tempo","Evoluzione delle circonferenze corporee.")}${controls(circumferenceOptions,model.circumference,"data-progress-circumference","Circonferenza visualizzata")}</header>${renderChart(model.charts.circumference,model.circumferenceLabel,`${model.circumferenceLabel}: servono almeno due rilevazioni nel periodo selezionato`)}</section>
       <section class="detail-panel progress-compare-panel"><header class="progress-panel-heading">${heading("Confronta rilevazioni","Confronto tra due rilevazioni nel tempo.")}</header>${renderComparison(model)}</section>
     </div>
