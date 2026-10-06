@@ -127,3 +127,28 @@ test("multi-food natural phrases keep recognizable parts instead of all-or-nothi
   assert.equal(result.coverage.unresolved,0);
   assert.equal(result.components.at(-1).food.sourceCode,"008820");
 });
+
+
+test("identical exact names from CREA and NUBEMO resolve deterministically to CREA",()=>{
+  const duplicate=[
+    row("Tonno",{code:"CREA-TONNO"}),
+    {...row("Tonno",{code:"NUBEMO-TONNO"}),source:"NUBEMO"}
+  ];
+  const result=analyzeCalorieText("100 g tonno",duplicate,{});
+  assert.equal(result.components[0].food.source,"CREA");
+  assert.equal(result.components[0].food.sourceCode,"CREA-TONNO");
+});
+
+test("catalog-aware analysis preserves an exact composite food before splitting conjunctions",()=>{
+  const composite=[row("toast prosciutto e formaggio",{portion:100}),row("toast"),row("prosciutto"),row("formaggio")];
+  const result=analyzeCalorieText("due toast prosciutto e formaggio",composite,{});
+  assert.equal(result.components.length,1);
+  assert.equal(result.components[0].food.label,"toast prosciutto e formaggio");
+});
+
+test("one unresolved component downgrades the overall confidence without discarding valid totals",()=>{
+  const result=analyzeCalorieText("80 g pasta + 120 g pollo + salsa della nonna",catalog,options);
+  assert.equal(result.confidence,"low");
+  assert.equal(result.coverage.calculated,2);
+  assert.ok(result.totals.kcal>0);
+});
