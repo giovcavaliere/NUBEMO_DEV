@@ -22,8 +22,11 @@ function getStatus(doc,data){
 
 function getVisibleDocuments(data){
   const filter=data.documentUi?.filter||"all";
-  const docs=[...(data.documents||[])].sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
-  return filter==="all"?docs:docs.filter(doc=>doc.category===filter);
+  const unreadOnly=data.documentUi?.unreadOnly===true;
+  let docs=[...(data.documents||[])].sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  if(filter!=="all")docs=docs.filter(doc=>doc.category===filter);
+  if(unreadOnly)docs=docs.filter(doc=>doc.unread);
+  return docs;
 }
 
 function renderDocument(doc,data){
@@ -48,6 +51,7 @@ function renderDocument(doc,data){
 export function renderDocuments(model){
   const data=model.data;
   const filter=data.documentUi?.filter||"all";
+  const unreadOnly=data.documentUi?.unreadOnly===true;
   const docs=getVisibleDocuments(data);
   const unread=(data.documents||[]).filter(doc=>doc.unread).length;
 
@@ -63,9 +67,16 @@ export function renderDocuments(model){
     ${unread?`<div class="docs-unread-note"><span class="docs-unread-dot" aria-hidden="true"></span><div><strong>${unread===1?"1 documento da leggere":`${unread} documenti da leggere`}</strong><p>I documenti caricati dal paziente restano da leggere finché non vengono aperti dal professionista.</p></div></div>`:""}
 
     <div class="docs-toolbar">
-      <nav class="docs-filters" aria-label="Filtra documenti">
-        ${filters.map(([key,label])=>`<button type="button" data-doc-filter="${key}" class="${filter===key?"active":""}" aria-pressed="${filter===key}">${label}</button>`).join("")}
-      </nav>
+      <div class="docs-toolbar-filters">
+        <nav class="docs-filters" aria-label="Filtra documenti">
+          ${filters.map(([key,label])=>`<button type="button" data-doc-filter="${key}" class="${filter===key?"active":""}" aria-pressed="${filter===key}">${label}</button>`).join("")}
+        </nav>
+        <button type="button" class="docs-unread-filter ${unreadOnly?"active":""}" data-doc-unread aria-pressed="${unreadOnly}" title="Mostra solo documenti da leggere">
+          <span class="docs-unread-filter-icon">${icon("document")}${unread?`<i aria-hidden="true"></i>`:""}</span>
+          <span>Da leggere</span>
+          ${unread?`<strong>${unread}</strong>`:""}
+        </button>
+      </div>
       <span class="docs-sort">Data più recente</span>
     </div>
 
@@ -79,7 +90,7 @@ export function renderDocuments(model){
 function makeDialog(root,{title,description,body,saveLabel="Salva",wide=false,onSave}){
   const dialog=document.createElement("dialog");
   dialog.className=`detail-dialog docs-dialog${wide?" docs-dialog-wide":""}`;
-  dialog.innerHTML=`<form method="dialog"><header><div><h2>${title}</h2>${description?`<p>${description}</p>`:""}</div><button type="button" data-close aria-label="Chiudi">×</button></header>${body}<footer><button type="button" data-close>Annulla</button><button type="submit" value="save">${saveLabel}</button></footer></form>`;
+  dialog.innerHTML=`<form method="dialog"><header><div><h2>${title}</h2>${description?`<p>${description}</p>`:""}</div><button type="button" data-close aria-label="Chiudi">×</button></header><div class="docs-dialog-body">${body}</div><footer><button type="button" data-close>Annulla</button><button type="submit" value="save">${saveLabel}</button></footer></form>`;
   root.append(dialog);
   dialog.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
   dialog.addEventListener("close",()=>{if(dialog.returnValue==="save")onSave?.(new FormData(dialog.querySelector("form")),dialog);dialog.remove();},{once:true});
@@ -156,6 +167,10 @@ export function bindDocuments(root,model,onChange){
     model.data.documentUi={...(model.data.documentUi||{}),filter:button.dataset.docFilter};
     onChange();
   }));
+  root.querySelector("[data-doc-unread]")?.addEventListener("click",()=>{
+    model.data.documentUi={...(model.data.documentUi||{}),unreadOnly:!(model.data.documentUi?.unreadOnly===true)};
+    onChange();
+  });
   root.querySelector("[data-upload-doc]")?.addEventListener("click",()=>openUploadDialog(root,model,onChange));
   root.querySelectorAll("[data-open-doc]").forEach(button=>button.addEventListener("click",()=>{
     const doc=model.data.documents.find(item=>item.id===button.dataset.openDoc);if(doc)openDocument(doc,onChange);
