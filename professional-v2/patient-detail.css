@@ -141,12 +141,11 @@
 .detail-identity-row input,.detail-identity-row select{display:block;width:100%;height:42px;min-width:0;max-width:100%;box-sizing:border-box;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;line-height:normal}
 .detail-identity-row input[type="date"]{-webkit-appearance:none;appearance:none;line-height:42px}
 .detail-identity-row input[type="date"]::-webkit-date-and-time-value{display:flex;align-items:center;height:42px;line-height:42px;text-align:left}
-.detail-identity-calorie{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label toggle" "help help";align-items:center;gap:4px 10px;min-width:0}
-.detail-identity-calorie-label{grid-area:label;color:var(--muted);font-size:11px;line-height:1.2}
-.detail-identity-toggle{grid-area:toggle;display:inline-flex;flex-direction:row;align-items:center;gap:7px;min-height:32px;padding:0 9px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);cursor:pointer}
-.detail-identity-toggle input{width:16px;height:16px;min-height:0;padding:0;margin:0;flex:none}
-.detail-identity-toggle strong{font-size:10px;font-weight:650;white-space:nowrap}
-.detail-identity-calorie small{grid-area:help;color:var(--muted);font-size:9px;line-height:1.35}
+.detail-identity-option{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:11px;line-height:1.2;color:var(--muted)}
+.detail-identity-option>span{display:block;height:14px;line-height:14px}
+.detail-identity-row .detail-identity-option-control{display:flex;flex-direction:row;align-items:center;gap:9px;width:100%;height:42px;min-width:0;box-sizing:border-box;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);cursor:pointer}
+.detail-identity-row .detail-identity-option-control input{width:18px;height:18px;min-height:0;max-width:none;margin:0;padding:0;flex:none}
+.detail-identity-row .detail-identity-option-control span{display:block;height:auto;line-height:1.3;color:var(--text);font-size:11px;font-weight:500}
 .detail-dialog-fields-single{grid-template-columns:1fr}
 .detail-dialog-fields label>small{font-size:9px;color:var(--muted)}
 .detail-check-field{grid-template-columns:22px minmax(0,1fr);align-items:center;min-height:40px}
