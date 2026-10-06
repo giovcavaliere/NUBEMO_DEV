@@ -1,4 +1,4 @@
-import {buildMeasurementChart,measurementFromForm,getMeasurementFormPreview,isMeasurementDate} from "./patient-measurements-model.js";
+import {measurementFromForm,getMeasurementFormPreview,isMeasurementDate} from "./patient-measurements-model.js";
 
 const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 const icon=name=>`<svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-${name}"/></svg>`;
@@ -28,22 +28,6 @@ function renderBody(composition){
   </div><p class="detail-note">${escapeHtml(composition.note)}</p>${!composition.hasSegments?`<p class="detail-note">FM, ECM e BCM non rilevate; la figura resta neutra.</p>`:""}`;
 }
 
-function renderChart(chart){
-  if(!chart) return `<p class="detail-empty">Nessun dato da rappresentare. Registra peso, FM% o MM% per iniziare l’andamento.</p>`;
-  return `<div class="measure-trend-chart" role="img" aria-label="${escapeHtml(chart.series.map(item=>item.summary).join(". "))}">
-    ${chart.hasWeight?'<span class="measure-axis-title measure-axis-left">Peso (kg)</span>':""}${chart.hasPercent?'<span class="measure-axis-title measure-axis-right">Percentuali (%)</span>':""}
-    <div class="measure-chart-plot">
-      <svg viewBox="46 34 408 191" preserveAspectRatio="none" aria-hidden="true">
-        ${chart.ticks.map(tick=>`<line x1="46" x2="454" y1="${tick.y}" y2="${tick.y}" class="measure-chart-grid"/>`).join("")}
-        ${chart.series.map(series=>`<path d="${series.path}" style="color:${series.color}" class="measure-chart-line"/>`).join("")}
-      </svg>
-      ${chart.ticks.map(tick=>`<div class="measure-chart-tick" style="--measure-y:${tick.y}">${chart.hasWeight?`<span class="measure-axis measure-axis-left">${tick.weight}</span>`:""}${chart.hasPercent?`<span class="measure-axis measure-axis-right">${tick.percent}</span>`:""}</div>`).join("")}
-      ${chart.series.map(series=>series.dots.map(point=>`<span class="measure-chart-dot" style="--measure-x:${point.x};--measure-y:${point.y};color:${series.color}" title="${escapeHtml(point.title)}"></span>`).join("")).join("")}
-      ${chart.labels.map(label=>`<span class="measure-axis measure-chart-date measure-date-${label.edge} ${label.interior?"measure-axis-interior":""}" style="--measure-x:${label.x}">${escapeHtml(label.label)}</span>`).join("")}
-    </div>
-  </div><div class="measure-chart-latest">${chart.series.map(item=>`<span><i class="measure-dot" style="background:${item.color}"></i>${item.label}<strong>${escapeHtml(item.latestText)}</strong></span>`).join("")}</div>`;
-}
-
 function renderHistory(rows){
   if(!rows.length) return `<p class="detail-empty">Nessuna misurazione registrata. Aggiungi la prima rilevazione per iniziare lo storico.</p>`;
   return `<div class="measure-history">${rows.map(row=>`<article class="measure-history-row" data-measure-row="${escapeHtml(row.id)}">
@@ -56,17 +40,14 @@ function renderHistory(rows){
 }
 
 export function renderMeasurements(model){
-  const {composition,summary,chart,series,rows,deltas}=model;
+  const {composition,summary,rows,deltas}=model;
   return `<section class="detail-measurements" aria-labelledby="measure-title">
     <div class="measure-title-row"><div><h2 id="measure-title">Misure</h2><p>Antropometria e composizione corporea, nel tempo.</p></div><button type="button" class="measure-new" data-measure-new>${icon("plus")}<span>Nuova misurazione</span></button></div>
     <div class="measure-summary" aria-label="Ultima misurazione">${summary.map(item=>`<article class="detail-kpi"><span class="detail-kpi-label">${item.label}</span><strong>${escapeHtml(item.text)}</strong><small>${escapeHtml(item.note)}</small></article>`).join("")}</div>
     <div class="measure-panels">
       <section class="detail-panel measure-composition-panel">${panelHeading("Composizione corporea",composition?.dateText)}${renderComposition(composition)}</section>
       <section class="detail-panel measure-body-panel">${panelHeading("Rappresentazione corporea",composition?.dateText)}${renderBody(composition)}</section>
-      <section class="detail-panel measure-trend-panel">${panelHeading("Andamento nel tempo","Sintesi delle rilevazioni")}
-        <div class="measure-series-controls" aria-label="Serie del grafico">${series.map(item=>`<button type="button" data-measure-series="${item.key}" aria-pressed="${item.points.length>0}" ${item.points.length?"":"disabled"}><i class="measure-dot" style="background:${item.color}"></i>${item.label} (${item.unit})</button>`).join("")}</div>
-        <div data-measure-chart>${renderChart(chart)}</div><p class="detail-note">Peso sull’asse sinistro · percentuali sull’asse destro. Analisi approfondite nella futura tab Andamento.</p>
-      </section>
+
     </div>
     <section class="detail-panel measure-history-panel">${panelHeading("Storico misurazioni",`${rows.length} ${rows.length===1?"rilevazione":"rilevazioni"}`)}
       ${rows.length?`<div class="measure-deltas"><span>Rispetto alla misura precedente</span>${deltas.map(item=>`<span><b>${item.label}</b> ${escapeHtml(item.text)}</span>`).join("")}</div>`:""}${renderHistory(rows)}
@@ -129,13 +110,5 @@ export function bindMeasurements(root,data,model,onChange,attachDialog){
   root.querySelectorAll("[data-measure-delete]").forEach(button=>button.addEventListener("click",()=>openDeleteDialog(root,data,model.rows.find(row=>row.id===button.dataset.measureDelete),onChange,attachDialog)));
   root.querySelectorAll(".measure-history-details").forEach(details=>details.addEventListener("toggle",()=>{
     if(details.open) root.querySelectorAll(".measure-history-details").forEach(other=>{if(other!==details) other.open=false});
-  }));
-  const selected=new Set(model.series.filter(item=>item.points.length).map(item=>item.key));
-  root.querySelectorAll("[data-measure-series]").forEach(button=>button.addEventListener("click",()=>{
-    const key=button.dataset.measureSeries;
-    if(selected.has(key)) selected.delete(key);else selected.add(key);
-    button.setAttribute("aria-pressed",String(selected.has(key)));
-    const chart=buildMeasurementChart(model.series.filter(item=>selected.has(item.key)));
-    root.querySelector("[data-measure-chart]").innerHTML=chart?renderChart(chart):'<p class="detail-empty">Seleziona una serie per visualizzarne l’andamento.</p>';
   }));
 }

@@ -41,39 +41,51 @@ export function formatMeasurementDelta(delta,unit){
   return `${rounded>0?"+":""}${numberText(Object.is(rounded,-0)?0:rounded)} ${unit}`;
 }
 
-export function buildMeasurementSeries(measurements){
+export function buildMeasurementSeries(measurements,definitions=null,{breakOnMissing=false}={}){
   const sorted=sortMeasurements(measurements);
-  return [
+  return (definitions||[
     {key:"weight",label:"Peso",unit:"kg",color:"#296a56"},
     {key:"bodyFat",label:"FM",unit:"%",color:"#df984c"},
     {key:"muscleMass",label:"MM",unit:"%",color:"#8582c5"}
-  ].map(definition=>({...definition,points:sorted.filter(item=>definition.key==="weight"?positive(item.weight):nonnegative(item[definition.key])).map(item=>({date:item.date,time:item.time||"",value:item[definition.key],timestamp:Date.parse(`${item.date}T${item.time||"00:00"}:00Z`)}))}));
+  ]).map(definition=>{
+    const valid=item=>definition.unit==="%"?nonnegative(item[definition.key]):positive(item[definition.key]);
+    return {...definition,points:sorted.flatMap((item,index)=>valid(item)?[{date:item.date,time:item.time||"",value:item[definition.key],timestamp:Date.parse(`${item.date}T${item.time||"00:00"}:00Z`),...(breakOnMissing?{breakBefore:index>0&&!valid(sorted[index-1])}:{})}]:[])};
+  });
 }
 
 // Geometry is part of the view-model: the renderer only prints prepared coordinates.
-export function buildMeasurementChart(series){
+export function buildMeasurementChart(series,{axisUnit=null,compactPercent=false,referenceValue=null}={}){
   const available=series.filter(item=>item.points.length);
   if(!available.length) return null;
   const points=available.flatMap(item=>item.points);
   const start=Math.min(...points.map(p=>p.timestamp)),end=Math.max(...points.map(p=>p.timestamp));
   const left=46,right=454,top=34,bottom=225;
-  const weight=available.find(item=>item.key==="weight")?.points||[];
-  const weightValues=weight.map(p=>p.value),lo=Math.min(...weightValues),hi=Math.max(...weightValues);
+  const weight=axisUnit&&axisUnit!=="%"?available.filter(item=>item.unit===axisUnit).flatMap(item=>item.points):available.find(item=>item.key==="weight")?.points||[];
+  const weightValues=[...weight.map(p=>p.value),...(positive(referenceValue)?[referenceValue]:[])],lo=Math.min(...weightValues),hi=Math.max(...weightValues);
   const pad=Math.max(2,(hi-lo)*.2);
-  const weightMin=weight.length?Math.max(0,Math.floor(lo-pad)):0,weightMax=weight.length?Math.ceil(hi+pad):100;
+  let weightMin=weight.length?Math.max(0,Math.floor(lo-pad)):0,weightMax=weight.length?Math.ceil(hi+pad):100;
+  if(axisUnit&&axisUnit!=="%"&&weight.length){
+    const roughStep=(weightMax-weightMin)/4,power=10**Math.floor(Math.log10(roughStep));
+    const step=[1,2,2.5,5,10].find(item=>item*power>=roughStep)*power;
+    weightMin=Math.max(0,Math.floor(weightMin/step)*step);
+    weightMax=weightMin+Math.ceil((weightMax-weightMin)/step)*step;
+  }
   const pctValues=available.filter(item=>item.unit==="%").flatMap(item=>item.points.map(p=>p.value));
-  const pctMax=Math.max(100,...pctValues);
+  const pctMax=compactPercent?Math.max(10,Math.ceil(Math.max(0,...pctValues)/10)*10+10):Math.max(100,...pctValues);
   const x=timestamp=>start===end?(left+right)/2:left+(timestamp-start)/(end-start)*(right-left);
-  const y=(value,unit)=>bottom-(value-(unit==="kg"?weightMin:0))/(unit==="kg"?weightMax-weightMin:pctMax)*(bottom-top);
+  const y=(value,unit)=>bottom-(value-(unit!=="%"?weightMin:0))/(unit!=="%"?weightMax-weightMin:pctMax)*(bottom-top);
   const dates=[...new Set(points.map(p=>p.timestamp))].sort((a,b)=>a-b);
   const labelIndexes=[...new Set([0,Math.round((dates.length-1)/3),Math.round((dates.length-1)*2/3),dates.length-1])];
   const labelFormatter=new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short",timeZone:"UTC"});
-  return {hasWeight:weight.length>0,hasPercent:pctValues.length>0,
+  return {hasWeight:weight.length>0,hasPercent:pctValues.length>0,axisUnit,reference:positive(referenceValue)&&weight.length?{y:y(referenceValue,axisUnit||"kg"),text:`Obiettivo ${valueText(referenceValue,"kg")}`} :null,
     ticks:Array.from({length:5},(_,i)=>({y:bottom-i*(bottom-top)/4,weight:numberText(weightMin+(weightMax-weightMin)*i/4),percent:numberText(pctMax*i/4)})),
     labels:labelIndexes.map((index,i)=>({x:x(dates[index]),label:labelFormatter.format(new Date(dates[index])),edge:i===0?"start":i===labelIndexes.length-1?"end":"middle",interior:i>0&&i<labelIndexes.length-1})),
     series:available.map(item=>{
       const plotted=item.points.map(p=>({...p,x:x(p.timestamp),y:y(p.value,item.unit),title:`${dateText(p.date)}${p.time?` · ${p.time}`:""}: ${valueText(p.value,item.unit)}`}));
-      return {...item,path:plotted.map((p,i)=>`${i?"L":"M"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" "),dots:plotted.filter((_,i)=>plotted.length<=30||i===0||i===plotted.length-1),latestText:valueText(item.points.at(-1).value,item.unit),summary:`${item.label}: ${item.points.length} rilevazioni, da ${valueText(item.points[0].value,item.unit)} a ${valueText(item.points.at(-1).value,item.unit)}`};
+      const groups=[];
+      plotted.forEach((point,index)=>{if(index===0||point.breakBefore) groups.push([]);groups.at(-1).push(point)});
+      const area=item.unit!=="%"?groups.filter(group=>group.length>1).map(group=>`${group.map((point,index)=>`${index?"L":"M"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ")} L${group.at(-1).x} ${bottom} L${group[0].x} ${bottom} Z`).join(" "):null;
+      return {...item,area,path:plotted.map((p,i)=>`${i&&!p.breakBefore?"L":"M"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" "),dots:plotted.filter((point,i)=>Object.hasOwn(point,"breakBefore")||plotted.length<=30||i===0||i===plotted.length-1),latestText:valueText(item.points.at(-1).value,item.unit),summary:`${item.label}: ${item.points.length} rilevazioni, da ${valueText(item.points[0].value,item.unit)} a ${valueText(item.points.at(-1).value,item.unit)}`};
     })};
 }
 

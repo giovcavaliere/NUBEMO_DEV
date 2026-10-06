@@ -1,3 +1,4 @@
+import {renderProgress,bindProgress} from "./patient-progress-view.js";
 import {renderMeasurements,bindMeasurements} from "./patient-measurements-view.js";
 import {renderPlan,bindPlan} from "./patient-plan-view.js";
 import {renderVisits,bindVisits} from "./patient-visits-view.js";
@@ -318,7 +319,7 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
     <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(firstName)} ${escapeHtml(lastName)}</span></nav>
     ${renderHeader(model)}
     <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>`<a href="${route(id,key)}" class="${tab===key?"active":""}" ${tab===key?'aria-current="page"':""}>${label}</a>`).join("")}</nav>
-    <div class="detail-content">${tab==="panoramica"?renderOverview(model):tab==="profilo"?renderProfile(model):tab==="visite"?renderVisits(model):tab==="misure"?renderMeasurements(model.measurements):tab==="documenti"?renderDocuments(model):tab==="piano"?renderPlan(model):tab==="note"?renderNotes(model):`<section class="detail-panel detail-placeholder">${sectionHeading("document",tabs.find(([key])=>key===tab)[1])}<p>Questa sezione sarà disponibile nei prossimi step.</p></section>`}</div>
+    <div class="detail-content">${tab==="panoramica"?renderOverview(model):tab==="profilo"?renderProfile(model):tab==="visite"?renderVisits(model):tab==="misure"?renderMeasurements(model.measurements):tab==="andamento"?renderProgress(model.progress):tab==="documenti"?renderDocuments(model):tab==="piano"?renderPlan(model):tab==="note"?renderNotes(model):`<section class="detail-panel detail-placeholder">${sectionHeading("document",tabs.find(([key])=>key===tab)[1])}<p>Questa sezione sarà disponibile nei prossimi step.</p></section>`}</div>
   </div>`;
   root.querySelectorAll(".detail-accordion").forEach(details=>details.addEventListener("toggle",()=>{
     if(details.open) root.querySelectorAll(".detail-accordion").forEach(other=>{if(other!==details) other.open=false});
@@ -331,6 +332,7 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
   root.querySelector("[data-edit-lifestyle]")?.addEventListener("click",()=>openLifestyleDialog(root,model,onIdentityChange));
   root.querySelector("[data-edit-administration]")?.addEventListener("click",()=>openAdministrationDialog(root,model,onIdentityChange));
   if(tab==="visite") bindVisits(root,model,onIdentityChange);
+  if(tab==="andamento") bindProgress(root,model.data,model.progress);
   if(tab==="misure") bindMeasurements(root,model.data,model.measurements,onIdentityChange,attachDialog);
   if(tab==="documenti") bindDocuments(root,model,onIdentityChange);
   if(tab==="piano") bindPlan(root,model,onIdentityChange);

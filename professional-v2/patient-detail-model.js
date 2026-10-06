@@ -1,3 +1,4 @@
+import {getProgressViewModel} from "./patient-progress-model.js";
 import {getMeasurementsViewModel} from "./patient-measurements-model.js";
 
 const dayMs=86400000;
@@ -94,5 +95,5 @@ export function getPatientViewModel(data,options={}){
   const journeyDays=validDate(data.journey.startedAt)?Math.max(1,Math.floor((now.getTime()-dateNumber(data.journey.startedAt))/dayMs)+1):null;
   return {data,age,journeyDays,firstVisit:visits.find(visit=>visit.type==="first")??null,
     lastControl:visits.filter(visit=>visit.type==="control").at(-1)??null,
-    kpis,weightSeries:getWeightSeries(data),composition:getLatestComposition(data),measurements:getMeasurementsViewModel(data),timeline:buildJourneyTimeline(data,options),focus:getWeeklyFocus(data,options),activity:getRecentActivity(data)};
+    kpis,weightSeries:getWeightSeries(data),composition:getLatestComposition(data),measurements:getMeasurementsViewModel(data),progress:getProgressViewModel(data),timeline:buildJourneyTimeline(data,options),focus:getWeeklyFocus(data,options),activity:getRecentActivity(data)};
 }

@@ -231,7 +231,7 @@
 .measure-summary .detail-kpi{min-height:100px}
 .measure-summary .detail-kpi strong{font-size:clamp(16px,1.5vw,23px);line-height:1.25}
 .measure-summary .detail-kpi small{font-size:11px}
-.measure-panels{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.65fr);gap:14px;align-items:stretch}
+.measure-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
 .measure-panel-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:17px}
 .measure-panel-heading h3{margin:0;font-size:14px;letter-spacing:-.015em;color:var(--green-950)}
 .measure-panel-heading>span{font-size:10px;color:var(--muted)}
@@ -276,34 +276,74 @@
 .measure-empty-composition>.icon{width:40px;height:40px;color:#91ab97}
 .measure-empty-composition>strong{color:var(--green-800);font-size:13px;line-height:1.5}
 .measure-empty-composition>p{margin:0;font-size:11px;line-height:1.6}
-.measure-trend-panel{display:flex;flex-direction:column;align-self:start}
-.measure-trend-panel>[data-measure-chart]{display:flex;flex:1;flex-direction:column;justify-content:center;min-width:0}
-.measure-trend-panel>.detail-note{margin:12px 0 0;line-height:1.5}
-.measure-series-controls{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
-.measure-series-controls button{display:flex;align-items:center;gap:6px;min-height:34px;border:1px solid var(--line);border-radius:9px;padding:6px 8px;background:#f8f5ee;font-size:10px;cursor:pointer}
-.measure-series-controls button[aria-pressed="true"]{background:#fffdfa;border-color:#b5c9b9}
-.measure-series-controls button[aria-pressed="false"]{opacity:.55}
-.measure-series-controls button:disabled{cursor:default;opacity:.35}
-.measure-trend-chart{position:relative;height:clamp(210px,17vw,242px);margin-top:2px}
-.measure-axis-title{position:absolute;top:0;color:var(--muted);font-size:10px;line-height:1.3}
-.measure-axis-title.measure-axis-left{left:36px}
-.measure-axis-title.measure-axis-right{right:32px;text-align:right}
-.measure-chart-plot{position:absolute;inset:28px 32px 30px 36px}
-.measure-chart-plot>svg{display:block;width:100%;height:100%;overflow:visible}
-.measure-chart-grid{stroke:#e5e3da;stroke-width:1;vector-effect:non-scaling-stroke}
-.measure-chart-line{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
-.measure-chart-tick{position:absolute;left:0;right:0;top:calc((var(--measure-y) - 34) / 191 * 100%);height:0}
-.measure-chart-tick .measure-axis{position:absolute;top:0;transform:translateY(-50%);white-space:nowrap}
-.measure-chart-tick .measure-axis-left{right:calc(100% + 8px);text-align:right}
-.measure-chart-tick .measure-axis-right{left:calc(100% + 8px)}
-.measure-chart-dot{position:absolute;left:calc((var(--measure-x) - 46) / 408 * 100%);top:calc((var(--measure-y) - 34) / 191 * 100%);width:7px;height:7px;transform:translate(-50%,-50%);border:2px solid currentColor;border-radius:50%;background:var(--surface-2)}
-.measure-axis{font-size:10px;color:var(--muted);line-height:1.3}
-.measure-chart-date{position:absolute;top:calc(100% + 14px);left:calc((var(--measure-x) - 46) / 408 * 100%);white-space:nowrap}
-.measure-date-middle{transform:translateX(-50%)}
-.measure-date-end{transform:translateX(-100%)}
-.measure-chart-latest{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px}
-.measure-chart-latest>span{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
-.measure-chart-latest strong{color:var(--text)}
+/* Longitudinal patient measurements. Shares the existing panels and KPI surfaces. */
+.detail-progress{display:grid;gap:16px;min-width:0}
+.progress-title h2{margin:0;color:var(--green-950);font-size:25px;letter-spacing:-.025em}
+.progress-title p{margin:5px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
+.progress-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.progress-kpi{display:flex;align-items:flex-start;gap:12px;padding:15px;min-height:112px}
+.progress-kpi>div{min-width:0;flex:1}
+.progress-kpi-symbol{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;border:1px solid #dce7dc;background:linear-gradient(135deg,#f4faf3,#e6f0e5);color:var(--green-800);flex:none}
+.progress-kpi-symbol .icon{width:22px;height:22px}
+.progress-kpi-value{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:9px 0 6px}
+.progress-kpi-value>strong{margin:0;font-size:21px;line-height:1.3}
+.progress-kpi-delta{padding:4px 7px;border-radius:6px;background:var(--green-soft);color:var(--green-800);font-size:11px;line-height:1.4;font-weight:650}
+.progress-kpi small{font-size:10px;line-height:1.5}
+.progress-kpi-bia .progress-kpi-value>strong{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:15px}
+.progress-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.progress-panel-heading{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.progress-panel-heading>div:first-child{min-width:0}
+.progress-panel-heading h3{margin:0;color:var(--green-950);font-size:15px;line-height:1.35;letter-spacing:-.02em}
+.progress-panel-heading p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.progress-segments{display:flex;flex-wrap:wrap;gap:3px;padding:2px;border:1px solid var(--line);border-radius:9px;background:#faf7f1;max-width:100%}
+.progress-segments button{border:0;border-radius:7px;min-height:34px;padding:6px 11px;background:transparent;font-size:10px;line-height:1.3;cursor:pointer}
+.progress-segments button[aria-pressed="true"]{color:#fff;background:var(--green-800);box-shadow:0 2px 5px rgba(29,92,75,.12)}
+.progress-period-note{margin:0 0 8px;color:var(--muted);font-size:9px;line-height:1.4}
+.progress-legend{display:flex;flex-wrap:wrap;gap:10px;padding-top:5px}
+.progress-legend>span{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:10px;line-height:1.4}
+.progress-series-missing{opacity:.45}
+.progress-chart{position:relative;height:220px;margin-top:4px}
+.progress-axis-title{position:absolute;top:0;left:40px;color:var(--muted);font-size:10px;line-height:1.3}
+.progress-chart-plot{position:absolute;inset:24px 10px 30px 40px}
+.progress-chart-plot>svg{display:block;width:100%;height:100%;overflow:visible}
+.progress-chart-grid{stroke:#e5e3da;stroke-width:1;vector-effect:non-scaling-stroke}
+.progress-chart-grid-vertical{stroke-opacity:.5}
+.progress-chart-goal{stroke:#79a58b;stroke-width:1;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
+.progress-chart-area{fill:#88b69c;fill-opacity:.12}
+.progress-chart-line{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.progress-axis{font-size:10px;color:var(--muted);line-height:1.3}
+.progress-chart-tick{position:absolute;right:calc(100% + 8px);top:calc((var(--progress-y) - 34) / 191 * 100%);transform:translateY(-50%);white-space:nowrap;text-align:right}
+.progress-chart-dot{position:absolute;left:calc((var(--progress-x) - 46) / 408 * 100%);top:calc((var(--progress-y) - 34) / 191 * 100%);width:7px;height:7px;transform:translate(-50%,-50%);border:2px solid currentColor;border-radius:50%;background:var(--surface-2)}
+.progress-chart-date{position:absolute;top:calc(100% + 14px);left:calc((var(--progress-x) - 46) / 408 * 100%);white-space:nowrap}
+.progress-date-middle{transform:translateX(-50%)}
+.progress-date-end{transform:translateX(-100%)}
+.progress-chart-latest{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:8px;min-height:20px}
+.progress-chart-latest>span{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.progress-chart-latest strong{color:var(--text)}
+.progress-chart-latest .progress-goal-label{margin-left:auto;background:var(--green-soft-2);color:var(--green-800);border-radius:5px;padding:4px 7px;font-size:10px}
+.progress-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:230px;padding:20px;border-radius:12px;background:rgba(237,242,233,.4);text-align:center;color:var(--muted)}
+.progress-empty>.icon{width:30px;height:30px;color:#8aa792}
+.progress-empty>strong{color:var(--green-800);font-size:12px;line-height:1.5}
+.progress-empty>span{font-size:10px;line-height:1.5}
+.progress-comparison-controls{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);align-items:center;gap:8px;margin-bottom:13px}
+.progress-comparison-controls>span{text-align:center;color:var(--muted);padding-top:17px}
+.progress-comparison-controls label{display:grid;gap:5px;min-width:0;font-size:10px;color:var(--muted)}
+.progress-comparison-controls select{width:100%;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:7px 9px;background:var(--surface-2);color:var(--text);font:inherit}
+.progress-comparison{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px;line-height:1.45}
+.progress-comparison th,.progress-comparison td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;overflow-wrap:anywhere;vertical-align:middle}
+.progress-comparison thead th{color:var(--muted);font-size:10px;font-weight:500}
+.progress-comparison thead th:first-child{width:32%}
+.progress-comparison tbody th{font-weight:500}
+.progress-comparison tbody th .icon{display:inline-block;width:14px;height:14px;vertical-align:middle;margin-right:6px}
+.progress-comparison-delta{color:var(--green-800);font-weight:650}
+.progress-comparison tr:last-child th,.progress-comparison tr:last-child td{border-bottom:0}
+.progress-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.progress-reading .progress-reading-note{font-size:10px;margin:3px 0 0}
+.progress-observations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.progress-observations article{display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.5);min-width:0}
+.progress-observations article>div{min-width:0}
+.progress-observations h4{margin:0;color:var(--green-950);font-size:12px;line-height:1.45}
+.progress-observations p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
 .measure-deltas{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:0 0 14px;font-size:10px;color:var(--muted);line-height:1.4}
 .measure-deltas>span:first-child{color:var(--green-800);font-weight:650}
 .measure-deltas b{font-weight:600;color:var(--text)}
@@ -353,17 +393,14 @@
   .detail-overview-lower{grid-template-columns:repeat(2,minmax(0,1fr))}
   .detail-overview-lower>:first-child{grid-column:1 / -1}
 }
-@media(max-width:1150px){
-  .measure-panels{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .measure-trend-panel{grid-column:1 / -1}
-}
 @media(max-width:1100px){
   .detail-hero{align-items:stretch;flex-direction:column}
   .detail-hero-kpis{min-width:0;width:100%}
   .detail-overview-top{grid-template-columns:1fr}
   .detail-profile{grid-template-columns:1fr}
   .detail-history,.detail-administration{grid-column:auto;grid-row:auto}
-  .measure-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .measure-summary,.progress-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .progress-observations{grid-template-columns:1fr}
   .measure-history-row{display:block;position:relative;padding:12px}
   .measure-history-details summary{grid-template-columns:1fr;gap:14px}
   .measure-history-date{padding-right:96px;min-height:44px}
@@ -372,6 +409,9 @@
   .measure-history-metric>strong{font-size:12px}
   .measure-history-actions{position:absolute;top:12px;right:12px}
   .measure-history-actions button{width:44px}
+}
+@media(min-width:721px) and (max-width:1100px) and (orientation:portrait){
+  .progress-grid{grid-template-columns:1fr}
 }
 @media(max-width:720px){
   .patient-detail{gap:11px}
@@ -405,7 +445,6 @@
     .measure-title-row{align-items:stretch;flex-direction:column;gap:12px}
   .measure-new{align-self:flex-start}
   .measure-panels{grid-template-columns:1fr}
-  .measure-trend-panel{grid-column:auto}
   .measure-summary{gap:8px}
   .measure-summary .detail-kpi{padding:12px;min-height:112px}
   .measure-summary .detail-kpi strong{font-size:17px}
@@ -415,9 +454,26 @@
   .measure-history-metric>strong{font-size:13px}
   .measure-history-expanded dl{grid-template-columns:repeat(2,minmax(0,1fr))}
   .measure-history-notes{grid-column:1 / -1}
-  .measure-series-controls button{min-height:44px;font-size:11px}
-  .measure-trend-chart{height:224px}
-  .measure-axis-interior{display:none}
+  .progress-grid{grid-template-columns:1fr}
+  .progress-kpi{gap:8px;padding:12px}
+  .progress-kpi-symbol{width:32px;height:32px;border-radius:9px}
+  .progress-kpi-symbol .icon{width:19px;height:19px}
+  .progress-kpi-value>strong{font-size:18px}
+  .progress-kpi-bia .progress-kpi-value>strong{font-size:13px}
+  .progress-kpi .detail-kpi-label{font-size:10px}
+  .progress-segments{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .progress-segments button{min-height:44px;padding:5px 3px;font-size:11px}
+  .progress-axis-interior{display:none}
+  .progress-comparison-controls{gap:5px;grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr)}
+  .progress-comparison-controls select{min-height:44px;padding:6px 4px;font-size:11px}
+  .progress-comparison,.progress-comparison tbody{display:block}
+  .progress-comparison thead{display:none}
+  .progress-comparison tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .progress-comparison th,.progress-comparison td{display:block;padding:0;border:0}
+  .progress-comparison tbody th{grid-column:1 / -1;font-weight:650}
+  .progress-comparison td::before{content:attr(data-label);display:block;margin-bottom:4px;color:var(--muted);font-size:10px;font-weight:400}
+  .progress-comparison-delta{grid-column:1 / -1}
+  .progress-observations article{padding:12px}
   .measure-form-grid input,.measure-form-notes textarea{font-size:16px}
 }
 @media(max-width:380px){
