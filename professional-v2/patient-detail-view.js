@@ -23,11 +23,13 @@ function renderHeader(model){
   const {data,age,kpis,firstVisit,lastControl}=model,{identity,journey}=data;
   const change=kpis.change;
   const status={active:"Attivo",pending:"In attesa",draft:"Bozza",terminated:"Terminato"}[identity.status]||identity.status;
+  const accountStatus={active:"Account NUBEMO attivo",pending:"Invito NUBEMO in attesa",inactive:"Senza account NUBEMO"}[identity.nubemoAccountStatus]||"Senza account NUBEMO";
+  const accountClass={active:"is-active",pending:"is-pending",inactive:"is-inactive"}[identity.nubemoAccountStatus]||"is-inactive";
   return `<header class="detail-hero">
     <div class="detail-person">
       <img class="detail-avatar" src="${escapeHtml(identity.avatar)}" alt="">
       <div class="detail-person-copy">
-        <div class="detail-name-line"><h1>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</h1><span class="detail-status">${escapeHtml(status)}</span></div>
+        <div class="detail-name-line"><h1>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</h1><span class="detail-status">${escapeHtml(status)}</span><span class="detail-account-status ${accountClass}">${escapeHtml(accountStatus)}</span></div>
         <p class="detail-demographics">${age!=null?`${escapeHtml(age)} anni`:"Età non disponibile"}<span>·</span>${escapeHtml(identity.sex||"Sesso non indicato")}<span>·</span>${journey.startedAt?`Dal ${fmtDate(journey.startedAt)}`:"Inizio non registrato"}</p>
         <p class="detail-journey-meta">${firstVisit?`Prima visita ${fmtDate(firstVisit.date)}`:"Prima visita non registrata"}<span>·</span>${lastControl?`Ultimo controllo ${fmtDate(lastControl.date)}`:"Nessun controllo registrato"}</p>
         <p class="detail-summary">${icon("document")}${escapeHtml(journey.summary||"Il percorso non ha ancora una sintesi.")}</p>
@@ -181,7 +183,7 @@ function renderProfile(model){
 
   return `<div class="detail-profile">
     <section class="detail-panel detail-identity">${sectionHeading("profile","Anagrafica")}
-      <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Telefono",identity.phone)}${field("Email",identity.email)}</dl>
+      <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Altezza",identity.height!==""&&identity.height!=null?`${identity.height} cm`:"—")}${field("Telefono",identity.phone)}${field("Email",identity.email)}${field("Account NUBEMO",{active:"Attivo",pending:"Invito in attesa",inactive:"Non attivo"}[identity.nubemoAccountStatus]||"Non attivo")}${field("Calorie visibili al paziente",identity.showCaloriesToPatient?"Sì":"No")}</dl>
       <button type="button" class="detail-inline-action" data-edit-identity>Vedi / Modifica anagrafica <span aria-hidden="true">›</span></button>
     </section>
 
@@ -192,15 +194,6 @@ function renderProfile(model){
         ${renderClinicalAccordion("clinical","Dati clinici aggiuntivi",clinicalSection)}
         ${renderClinicalAccordion("family","Familiarità",familySection)}
         ${renderClinicalAccordion("pathological","Anamnesi patologica",pathologicalSection)}
-      </div>
-    </section>
-
-    <section class="detail-panel detail-lifestyle"><div class="detail-heading-action">${sectionHeading("leaf","Stile di vita e abitudini")}<button type="button" class="detail-edit-button" data-edit-lifestyle>${icon("edit")}<span>Modifica</span></button></div>
-      <div class="detail-habits">
-        <div><strong>Attività lavorativa</strong><span>${escapeHtml(a.work||"—")}</span><small>Profilo occupazionale</small></div>
-        <div><strong>Attività fisica</strong><span>${escapeHtml(a.activity||"—")}</span><small>${escapeHtml(activityFactorLabel(a.activityFactor))}</small></div>
-        <div><strong>Fumo</strong><span>${escapeHtml(a.smoking||"—")}</span><small>Abitudine riferita</small></div>
-        <div><strong>Alcol</strong><span>${escapeHtml(a.alcohol||"—")}</span><small>Consumo riferito</small></div>
       </div>
     </section>
 
@@ -330,7 +323,6 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
     event.preventDefault();
     openProfileSectionDialog(root,model,button.dataset.editProfileSection,onIdentityChange);
   }));
-  root.querySelector("[data-edit-lifestyle]")?.addEventListener("click",()=>openLifestyleDialog(root,model,onIdentityChange));
   root.querySelector("[data-edit-administration]")?.addEventListener("click",()=>openAdministrationDialog(root,model,onIdentityChange));
   if(tab==="visite") bindVisits(root,model,onIdentityChange);
   if(tab==="andamento") bindProgress(root,model.data,model.progress);
@@ -354,6 +346,7 @@ function attachDialog(root,dialog,onSave){
 function openIdentityDialog(root,model,onChange){
   const {identity}=model.data;
   const sexOptions=["","Maschio","Femmina","Altro","Preferisco non indicarlo"];
+  const accountOptions=[["inactive","Non attivo"],["pending","Invito in attesa"],["active","Attivo"]];
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog";
   dialog.innerHTML=`<form method="dialog"><header><h2>Anagrafica</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Modifiche demo disponibili fino al ricaricamento della pagina.</p>
@@ -365,6 +358,10 @@ function openIdentityDialog(root,model,onChange){
       <div class="detail-identity-row">
         <label><span>Data di nascita</span><input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label>
         <label><span>Sesso</span><select name="sex">${sexOptions.map(option=>`<option value="${escapeHtml(option)}" ${identity.sex===option?"selected":""}>${escapeHtml(option||"Seleziona...")}</option>`).join("")}</select></label>
+      </div>
+      <div class="detail-identity-row">
+        <label><span>Altezza (cm)</span><input name="height" type="number" min="50" max="250" step="0.1" value="${escapeHtml(identity.height??"")}"></label>
+        <label><span>Account NUBEMO</span><select name="nubemoAccountStatus">${accountOptions.map(([value,label])=>`<option value="${value}" ${identity.nubemoAccountStatus===value?"selected":""}>${label}</option>`).join("")}</select></label>
       </div>
       <div class="detail-identity-row">
         <label><span>Codice fiscale</span><input name="fiscalCode" value="${escapeHtml(identity.fiscalCode||"")}"></label>
@@ -380,6 +377,7 @@ function openIdentityDialog(root,model,onChange){
       </div>
       <div class="detail-identity-row detail-identity-row-single">
         <label><span>Email</span><input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label>
+        <label class="detail-identity-check"><input name="showCaloriesToPatient" type="checkbox" ${identity.showCaloriesToPatient?"checked":""}><span>Calorie visibili al paziente</span></label>
       </div>
     </div>
     <footer><button type="button" data-close>Annulla</button><button type="submit" value="save">Salva</button></footer></form>`;
@@ -387,6 +385,10 @@ function openIdentityDialog(root,model,onChange){
     ["firstName","lastName","birthDate","sex","fiscalCode","address","postalCode","city","province","phone","email"].forEach(key=>{
       identity[key]=String(values.get(key)||"").trim();
     });
+    const heightRaw=String(values.get("height")||"").trim();
+    identity.height=heightRaw===""?"":Number(heightRaw);
+    identity.nubemoAccountStatus=String(values.get("nubemoAccountStatus")||"inactive");
+    identity.showCaloriesToPatient=values.get("showCaloriesToPatient")==="on";
     onChange();
   });
 }
@@ -481,10 +483,6 @@ function openProfileSectionDialog(root,model,key,onChange){
     }
     onChange();
   });
-}
-
-function openLifestyleDialog(root,model,onChange){
-  openProfileSectionDialog(root,model,"lifestyle",onChange);
 }
 
 function openAdministrationDialog(root,model,onChange){
