@@ -24,16 +24,7 @@ const patientDetails={
       {date:"2026-10-01",valid:true},{date:"2026-10-02",valid:true},
       {date:"2026-10-03",valid:false},{date:"2026-10-04",valid:true}
     ],updates:[{id:"du1",date:"2026-10-04",title:"Diario aggiornato",description:"Nuove voci del diario",origin:"Paziente"}]},
-    documents:[
-      {id:"doc-a-oct",date:"2026-10-04",category:"analysis",title:"Analisi sangue ottobre",fileName:"Analisi_sangue_04-10-2026.pdf",uploadedBy:"patient",origin:"Paziente",description:"Caricato dal paziente",unread:true,file:null},
-      {id:"doc-r-eco",date:"2026-10-02",category:"report",title:"Referto ecografia addome",fileName:"Ecografia_addome.pdf",uploadedBy:"patient",origin:"Paziente",description:"Caricato dal paziente",unread:true,file:null},
-      {id:"doc-a-sep",date:"2026-09-12",category:"analysis",title:"Analisi sangue settembre",fileName:"Analisi_sangue_12-09-2026.pdf",uploadedBy:"patient",origin:"Paziente",description:"Caricato dal paziente",unread:false,file:null},
-      {id:"doc-r-hema",date:"2026-09-05",category:"report",title:"Referto ematochimico",fileName:"Referto_ematochimico.pdf",uploadedBy:"professional",origin:"Professionista",description:"Caricato dal professionista",unread:false,file:null},
-      {id:"doc-o-q",date:"2026-08-18",category:"other",title:"Questionario iniziale",fileName:"Questionario_iniziale.pdf",uploadedBy:"professional",origin:"Professionista",description:"Caricato dal professionista",unread:false,file:null}
-    ],
-    laboratoryReports:[
-      {id:"lab-sep",documentId:"doc-a-sep",reportDate:"2026-09-12",status:"confirmed",values:{glucose:"92",cholesterol:"187",hdl:"52",ldl:"111",triglycerides:"120",got:"24",gpt:"29",uricAcid:"5.8",creatinine:"0.96",ggt:"31",tsh:"2.1",vitaminD:"28"},notes:"Valori registrati dal referto di settembre.",updatedAt:"2026-09-12T11:00:00+02:00"}
-    ],
+    documents:[{id:"d1",date:"2026-09-26",type:"referto",title:"Referto vitamina D",description:"Caricato dal paziente",origin:"Paziente",unread:true}],
     activities:[{id:"e1",date:"2026-09-24",type:"email",title:"Promemoria visita inviato via Email",description:"Consegna richiesta",origin:"Agenda"}],
     notes:[
       {id:"n1",createdAt:"2026-10-01T12:05:00+02:00",updatedAt:null,text:"Buona aderenza generale al percorso. Verificare la continuità del diario nei fine settimana."},
@@ -77,7 +68,7 @@ export function getPatientData(id){
     identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:null,age:record.age,sex:null,phone:record.phone||"",email:record.email||"",fiscalCode:"",address:"",postalCode:"",city:"",province:"",...detail.identity},
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
-    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],laboratoryReports:detail.laboratoryReports||[],documentUi:{filter:"all"},activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
+    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
     profile:{anamnesis:{goalWeight:"",minWeight:"",maxWeight:"",reasonableWeight:"",theoreticalWeight:"",objectives:"",work:"",activity:"",activityFactor:"",smoking:"",alcohol:"",diagnosis:"",bowel:"",metabolism:"",feeg:"",impedance:"",family:{obesity:false,diabetes:false,hypertension:false,cardiovascular:false,dyslipidemia:false,thyroid:false},previousDiets:"",allergies:"",medications:"",giIssues:"",pastConditions:"",observations:""},...detail.profile},
     privacy:{consent:null,communications:{email:false},reminders:{email:false},administrativeNotes:"",...detail.privacy}
   };
