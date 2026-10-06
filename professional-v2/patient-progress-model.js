@@ -12,6 +12,7 @@ const definitions=[
   ...[["waist","Vita"],["hips","Fianchi"],["arm","Braccio"],["thigh","Coscia"]].map(([key,label])=>({key,label,unit:"cm",color:"#296a56"}))
 ];
 export const progressPeriods=[{key:"1",label:"1 mese"},{key:"3",label:"3 mesi"},{key:"6",label:"6 mesi"},{key:"all",label:"Tutto"}];
+export const biaOptions=[{key:"all",label:"Tutti"},{key:"bodyFat",label:"FM"},{key:"muscleMass",label:"MM"},{key:"bcm",label:"BCM"}];
 export const circumferenceOptions=definitions.filter(item=>item.unit==="cm");
 
 function metric(records,key,unit){
@@ -49,18 +50,20 @@ function observations(weight,waist,fm,mm){
   return items;
 }
 
-export function getProgressViewModel(data,{period="3",circumference="waist",firstId,lastId}={}){
+export function getProgressViewModel(data,{period="3",circumference="waist",biaSeries="all",firstId,lastId}={}){
   period=progressPeriods.some(item=>item.key===period)?period:"3";
   circumference=circumferenceOptions.some(item=>item.key===circumference)?circumference:"waist";
+  biaSeries=biaOptions.some(item=>item.key===biaSeries)?biaSeries:"all";
   const records=sortMeasurements(data.measurements),filtered=filterProgressMeasurements(records,period);
-  const series=buildMeasurementSeries(filtered,definitions,{breakOnMissing:true});
+  const series=buildMeasurementSeries(filtered,definitions);
   const weight=metric(records,"weight","kg"),waist=metric(records,"waist","cm"),fm=metric(records,"bodyFat","%"),mm=metric(records,"muscleMass","%");
   const bmi=metric(records.map(item=>({...item,bmi:calculateBMI(item.weight,item.height)})),"bmi","");
   const goal=data.profile?.anamnesis?.goalWeight;
   const goalWeight=goal!==""&&goal!=null&&Number.isFinite(Number(goal))&&Number(goal)>0?Number(goal):null;
   const circumferenceSeries=series.filter(item=>item.key===circumference);
-  const charts={weight:buildMeasurementChart(series.filter(item=>item.key==="weight"),{axisUnit:"kg",referenceValue:goalWeight}),bia:buildMeasurementChart(series.filter(item=>["bodyFat","muscleMass","bcm"].includes(item.key)),{axisUnit:"%",compactPercent:true}),circumference:circumferenceSeries[0].points.length>1?buildMeasurementChart(circumferenceSeries,{axisUnit:"cm"}):null};
-  return {period,circumference,charts,periodNote:records.length?`Periodo fino al ${dateText(records.at(-1).date)}`:"Nessuna rilevazione disponibile",circumferenceLabel:circumferenceOptions.find(item=>item.key===circumference).label,
+  const biaSeriesData=series.filter(item=>["bodyFat","muscleMass","bcm"].includes(item.key)&&(biaSeries==="all"||item.key===biaSeries));
+  const charts={weight:buildMeasurementChart(series.filter(item=>item.key==="weight"),{axisUnit:"kg",referenceValue:goalWeight}),bia:buildMeasurementChart(biaSeriesData,{axisUnit:"%",compactPercent:true}),circumference:circumferenceSeries[0].points.length>1?buildMeasurementChart(circumferenceSeries,{axisUnit:"cm"}):null};
+  return {period,circumference,biaSeries,charts,periodNote:records.length?`Periodo fino al ${dateText(records.at(-1).date)}`:"Nessuna rilevazione disponibile",circumferenceLabel:circumferenceOptions.find(item=>item.key===circumference).label,
     summary:[
       ...[["Peso attuale",weight,"chart","kg"],["BMI attuale",bmi,"chart",""],["Vita",waist,"leaf","cm"]].map(([label,item,icon,unit])=>({label,icon,value:text(item.current,unit),delta:formatMeasurementDelta(item.delta,unit).trim(),note:item.last?item.count>1?`Dal ${dateText(item.first.date)} · ultimo ${dateText(item.last.date)}`:`Una rilevazione · ${dateText(item.last.date)}`:"Dato non ancora rilevato"})),
       {label:"Sintesi BIA",icon:"profile",value:`FM ${formatMeasurementDelta(fm.delta,"pp")} · MM ${formatMeasurementDelta(mm.delta,"pp")}`,parts:[{label:"FM",text:fm.delta===null?"—":formatMeasurementDelta(fm.delta,"pp")},{label:"MM",text:mm.delta===null?"—":formatMeasurementDelta(mm.delta,"pp")}],note:fm.delta===null&&mm.delta===null?"Nessun confronto BIA disponibile":"Dalla prima rilevazione valida di ogni serie",bia:true}
