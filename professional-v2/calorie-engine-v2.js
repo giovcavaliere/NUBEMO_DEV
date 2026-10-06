@@ -258,6 +258,7 @@ function totalsFromComponents(components){
 function overallConfidence(components){
   if(!components.length||components.every(item=>item.confidence==="unresolved")) return "none";
   const resolved=components.filter(item=>item.confidence!=="unresolved");
+  if(components.some(item=>item.confidence==="unresolved")) return "low";
   if(resolved.some(item=>item.confidence==="low")) return "low";
   if(resolved.some(item=>item.confidence==="medium")) return "medium";
   if(resolved.every(item=>item.confidence==="high")) return "high";
