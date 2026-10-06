@@ -1,0 +1,902 @@
+{
+  "version": "1.0",
+  "purpose": "Benchmark funzionale Calorie Engine v2. I valori nutrizionali numerici non sono fissati qui: devono provenire dal catalogo NUBEMO/CREA al momento del test.",
+  "cases": [
+    {
+      "id": "C01",
+      "text": "80 g pasta",
+      "expect": [
+        {
+          "food": "pasta",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C02",
+      "text": "120 g petto di pollo",
+      "expect": [
+        {
+          "food": "petto di pollo",
+          "quantity": {
+            "grams": 120,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C03",
+      "text": "10 g olio extravergine di oliva",
+      "expect": [
+        {
+          "food": "olio extravergine di oliva",
+          "quantity": {
+            "grams": 10,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C04",
+      "text": "30 g olive verdi",
+      "expect": [
+        {
+          "food": "olive verdi",
+          "quantity": {
+            "grams": 30,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C05",
+      "text": "30gr olive verdi",
+      "expect": [
+        {
+          "food": "olive verdi",
+          "quantity": {
+            "grams": 30,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C06",
+      "text": "30 grammi di olive nere",
+      "expect": [
+        {
+          "food": "olive nere",
+          "quantity": {
+            "grams": 30,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C07",
+      "text": "30 g olive",
+      "expect": [
+        {
+          "food": "olive",
+          "matchType": "family",
+          "quantity": {
+            "grams": 30,
+            "origin": "explicit"
+          },
+          "confidence": "low"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C08",
+      "text": "olive",
+      "expect": [
+        {
+          "food": "olive",
+          "matchType": "family",
+          "quantity": null,
+          "confidence": "low"
+        }
+      ],
+      "coverage": "recognized-no-quantity"
+    },
+    {
+      "id": "C09",
+      "text": "olive verdi in salamoia 30 g",
+      "expect": [
+        {
+          "food": "olive verdi in salamoia",
+          "quantity": {
+            "grams": 30,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C10",
+      "text": "150 g yogurt greco + 45 g biscotti",
+      "expect": [
+        {
+          "food": "yogurt greco",
+          "quantity": {
+            "grams": 150,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        },
+        {
+          "food": "biscotti",
+          "quantity": {
+            "grams": 45,
+            "origin": "explicit"
+          },
+          "confidence": "high"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C11",
+      "text": "80 g pasta + 120 g pollo + 10 g olio + 30 g olive",
+      "expect": [
+        {
+          "food": "pasta",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "pollo",
+          "quantity": {
+            "grams": 120,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "olio",
+          "quantity": {
+            "grams": 10,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "olive",
+          "matchType": "family",
+          "quantity": {
+            "grams": 30,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C12",
+      "text": "80 g pasta, 120 g pollo, 10 g olio",
+      "expect": [
+        {
+          "food": "pasta",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "pollo",
+          "quantity": {
+            "grams": 120,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "olio",
+          "quantity": {
+            "grams": 10,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C13",
+      "text": "80 g pasta e 120 g pollo",
+      "expect": [
+        {
+          "food": "pasta",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "pollo",
+          "quantity": {
+            "grams": 120,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C14",
+      "text": "pasta al pomodoro con tonno e olive",
+      "expect": [
+        {
+          "food": "pasta al pomodoro",
+          "quantity": null
+        },
+        {
+          "food": "tonno",
+          "quantity": null
+        },
+        {
+          "food": "olive",
+          "matchType": "family",
+          "quantity": null
+        }
+      ],
+      "coverage": "recognized-no-quantity"
+    },
+    {
+      "id": "C15",
+      "text": "insalata con pollo, pomodori e olive",
+      "expect": [
+        {
+          "food": "insalata",
+          "quantity": null
+        },
+        {
+          "food": "pollo",
+          "quantity": null
+        },
+        {
+          "food": "pomodori",
+          "quantity": null
+        },
+        {
+          "food": "olive",
+          "matchType": "family",
+          "quantity": null
+        }
+      ],
+      "coverage": "recognized-no-quantity"
+    },
+    {
+      "id": "C16",
+      "text": "1 cucchiaio di olio extravergine",
+      "expect": [
+        {
+          "food": "olio extravergine",
+          "quantity": {
+            "origin": "conversion"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C17",
+      "text": "2 fette di pane",
+      "expect": [
+        {
+          "food": "pane",
+          "quantity": {
+            "origin": "conversion"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C18",
+      "text": "1 vasetto di yogurt",
+      "expect": [
+        {
+          "food": "yogurt",
+          "quantity": {
+            "origin": "conversion"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C19",
+      "text": "1 scatoletta di tonno",
+      "expect": [
+        {
+          "food": "tonno",
+          "quantity": {
+            "origin": "standard"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C20",
+      "text": "2 uova",
+      "expect": [
+        {
+          "food": "uova",
+          "quantity": {
+            "origin": "standard"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C21",
+      "text": "1 banana",
+      "expect": [
+        {
+          "food": "banana",
+          "quantity": {
+            "origin": "standard"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C22",
+      "text": "10 olive",
+      "expect": [
+        {
+          "food": "olive",
+          "matchType": "family",
+          "quantity": {
+            "origin": "standard"
+          },
+          "confidence": "low"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C23",
+      "text": "una manciata di mandorle",
+      "expect": [
+        {
+          "food": "mandorle",
+          "quantity": {
+            "origin": "estimated"
+          },
+          "confidence": "low"
+        }
+      ],
+      "coverage": "estimated"
+    },
+    {
+      "id": "C24",
+      "text": "qualche oliva",
+      "expect": [
+        {
+          "food": "olive",
+          "matchType": "family",
+          "quantity": {
+            "origin": "estimated"
+          },
+          "confidence": "low"
+        }
+      ],
+      "coverage": "estimated"
+    },
+    {
+      "id": "C25",
+      "text": "un filo d'olio",
+      "expect": [
+        {
+          "food": "olio",
+          "quantity": {
+            "origin": "estimated"
+          },
+          "confidence": "low"
+        }
+      ],
+      "coverage": "estimated"
+    },
+    {
+      "id": "C26",
+      "text": "un piatto di pasta al pomodoro",
+      "expect": [
+        {
+          "food": "pasta al pomodoro",
+          "quantity": {
+            "origin": "estimated"
+          },
+          "confidence": "low"
+        }
+      ],
+      "coverage": "estimated"
+    },
+    {
+      "id": "C27",
+      "text": "pizza margherita",
+      "expect": [
+        {
+          "food": "pizza margherita",
+          "quantity": {
+            "origin": "standard"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C28",
+      "text": "pizza margherita con salsiccia",
+      "expect": [
+        {
+          "food": "pizza margherita",
+          "quantity": {
+            "origin": "standard"
+          }
+        },
+        {
+          "food": "salsiccia",
+          "quantity": {
+            "origin": "standard"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C29",
+      "text": "pizza margherita + salsiccia",
+      "expect": [
+        {
+          "food": "pizza margherita",
+          "quantity": {
+            "origin": "standard"
+          }
+        },
+        {
+          "food": "salsiccia",
+          "quantity": {
+            "origin": "standard"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C30",
+      "text": "80 g pasta + 120 g pollo + salsa della nonna",
+      "expect": [
+        {
+          "food": "pasta",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "pollo",
+          "quantity": {
+            "grams": 120,
+            "origin": "explicit"
+          }
+        },
+        {
+          "unresolved": "salsa della nonna"
+        }
+      ],
+      "coverage": "partial"
+    },
+    {
+      "id": "C31",
+      "text": "yogurt greco con cereali e banana",
+      "expect": [
+        {
+          "food": "yogurt greco",
+          "quantity": null
+        },
+        {
+          "food": "cereali",
+          "quantity": null
+        },
+        {
+          "food": "banana",
+          "quantity": null
+        }
+      ],
+      "coverage": "recognized-no-quantity"
+    },
+    {
+      "id": "C32",
+      "text": "due toast prosciutto e formaggio",
+      "expect": [
+        {
+          "food": "toast",
+          "quantity": {
+            "origin": "standard"
+          }
+        },
+        {
+          "food": "prosciutto",
+          "quantity": null
+        },
+        {
+          "food": "formaggio",
+          "quantity": null
+        }
+      ],
+      "coverage": "partial"
+    },
+    {
+      "id": "C33",
+      "text": "aperitivo con patatine e qualche stuzzichino",
+      "expect": [
+        {
+          "food": "patatine",
+          "quantity": null
+        },
+        {
+          "unresolved": "stuzzichino"
+        }
+      ],
+      "coverage": "partial"
+    },
+    {
+      "id": "C34",
+      "text": "aperitivo con amici",
+      "expect": [
+        {
+          "unresolved": "aperitivo con amici"
+        }
+      ],
+      "coverage": "none"
+    },
+    {
+      "id": "C35",
+      "text": "un po' di riso e verdure",
+      "expect": [
+        {
+          "food": "riso",
+          "quantity": {
+            "origin": "estimated"
+          }
+        },
+        {
+          "food": "verdure",
+          "quantity": {
+            "origin": "estimated"
+          }
+        }
+      ],
+      "coverage": "estimated"
+    },
+    {
+      "id": "C36",
+      "text": "200ml latte",
+      "expect": [
+        {
+          "food": "latte",
+          "quantity": {
+            "grams": 200,
+            "origin": "explicit"
+          },
+          "unit": "ml"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C37",
+      "text": "250 ml di latte parzialmente scremato",
+      "expect": [
+        {
+          "food": "latte parzialmente scremato",
+          "quantity": {
+            "grams": 250,
+            "origin": "explicit"
+          },
+          "unit": "ml"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C38",
+      "text": "50 g pane; 80 g bresaola; 20 g parmigiano",
+      "expect": [
+        {
+          "food": "pane",
+          "quantity": {
+            "grams": 50,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "bresaola",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "parmigiano",
+          "quantity": {
+            "grams": 20,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C39",
+      "text": "50 g pane\n80 g bresaola\n20 g parmigiano",
+      "expect": [
+        {
+          "food": "pane",
+          "quantity": {
+            "grams": 50,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "bresaola",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "parmigiano",
+          "quantity": {
+            "grams": 20,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C40",
+      "text": "insalata con 100 g tonno, pomodori, 10 g olio e 30 g olive verdi",
+      "expect": [
+        {
+          "food": "insalata",
+          "quantity": null
+        },
+        {
+          "food": "tonno",
+          "quantity": {
+            "grams": 100,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "pomodori",
+          "quantity": null
+        },
+        {
+          "food": "olio",
+          "quantity": {
+            "grams": 10,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "olive verdi",
+          "quantity": {
+            "grams": 30,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "partial"
+    },
+    {
+      "id": "C41",
+      "text": "100 g salmone affumicato e 80 g pane integrale",
+      "expect": [
+        {
+          "food": "salmone affumicato",
+          "quantity": {
+            "grams": 100,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "pane integrale",
+          "quantity": {
+            "grams": 80,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C42",
+      "text": "150 g patate al forno con 10 g olio",
+      "expect": [
+        {
+          "food": "patate al forno",
+          "quantity": {
+            "grams": 150,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "olio",
+          "quantity": {
+            "grams": 10,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C43",
+      "text": "100 g mozzarella, pomodoro e basilico",
+      "expect": [
+        {
+          "food": "mozzarella",
+          "quantity": {
+            "grams": 100,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "pomodoro",
+          "quantity": null
+        },
+        {
+          "food": "basilico",
+          "quantity": null
+        }
+      ],
+      "coverage": "partial"
+    },
+    {
+      "id": "C44",
+      "text": "caffè senza zucchero",
+      "expect": [
+        {
+          "food": "caffè",
+          "quantity": {
+            "origin": "standard"
+          },
+          "confidence": "medium"
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C45",
+      "text": "caffè con 1 cucchiaino di zucchero",
+      "expect": [
+        {
+          "food": "caffè",
+          "quantity": {
+            "origin": "standard"
+          }
+        },
+        {
+          "food": "zucchero",
+          "quantity": {
+            "origin": "conversion"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C46",
+      "text": "100 g mela",
+      "expect": [
+        {
+          "food": "mela",
+          "quantity": {
+            "grams": 100,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C47",
+      "text": "100 g mele",
+      "expect": [
+        {
+          "food": "mela",
+          "matchType": "alias",
+          "quantity": {
+            "grams": 100,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C48",
+      "text": "100 g pomodori",
+      "expect": [
+        {
+          "food": "pomodoro",
+          "matchType": "alias",
+          "quantity": {
+            "grams": 100,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C49",
+      "text": "100 g pomodoro",
+      "expect": [
+        {
+          "food": "pomodoro",
+          "quantity": {
+            "grams": 100,
+            "origin": "explicit"
+          }
+        }
+      ],
+      "coverage": "full"
+    },
+    {
+      "id": "C50",
+      "text": "150 g riso basmati + verdure saltate",
+      "expect": [
+        {
+          "food": "riso basmati",
+          "quantity": {
+            "grams": 150,
+            "origin": "explicit"
+          }
+        },
+        {
+          "food": "verdure saltate",
+          "quantity": null
+        }
+      ],
+      "coverage": "partial"
+    }
+  ]
+}
