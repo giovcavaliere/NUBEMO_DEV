@@ -24,16 +24,7 @@ const patientDetails={
       {date:"2026-10-01",valid:true},{date:"2026-10-02",valid:true},
       {date:"2026-10-03",valid:false},{date:"2026-10-04",valid:true}
     ],updates:[{id:"du1",date:"2026-10-04",title:"Diario aggiornato",description:"Nuove voci del diario",origin:"Paziente"}]},
-    documents:[
-      {id:"doc-analysis-new",date:"2026-10-04",type:"document",category:"analysis",title:"Analisi sangue ottobre",description:"Caricato dal paziente",origin:"Paziente",uploadedBy:"patient",fileName:"Analisi_sangue_04-10-2026.pdf",mimeType:"application/pdf",size:702464,unread:true,file:null},
-      {id:"doc-report-new",date:"2026-10-02",type:"document",category:"report",title:"Referto ecografia addome",description:"Caricato dal paziente",origin:"Paziente",uploadedBy:"patient",fileName:"Ecografia_addome.pdf",mimeType:"application/pdf",size:1245184,unread:true,file:null},
-      {id:"doc-analysis-old",date:"2026-09-12",type:"document",category:"analysis",title:"Analisi sangue settembre",description:"Caricato dal paziente",origin:"Paziente",uploadedBy:"patient",fileName:"Analisi_sangue_12-09-2026.pdf",mimeType:"application/pdf",size:684032,unread:false,file:null},
-      {id:"doc-report-pro",date:"2026-09-05",type:"document",category:"report",title:"Referto ematochimico",description:"Caricato dal professionista",origin:"Professionista",uploadedBy:"professional",fileName:"Referto_ematochimico.pdf",mimeType:"application/pdf",size:512000,unread:false,file:null},
-      {id:"doc-other-pro",date:"2026-08-18",type:"document",category:"other",title:"Questionario iniziale",description:"Caricato dal professionista",origin:"Professionista",uploadedBy:"professional",fileName:"Questionario_iniziale.pdf",mimeType:"application/pdf",size:524288,unread:false,file:null}
-    ],
-    laboratoryReports:[
-      {id:"lab-sept",documentId:"doc-analysis-old",reportDate:"2026-09-12",status:"confirmed",values:{glucose:"92",cholesterol:"187",hdl:"52",ldl:"111",triglycerides:"120",got:"24",gpt:"29",uricAcid:"5.8",creatinine:"0.96",ggt:"31",tsh:"2.1",vitaminD:"28"},notes:"Valori registrati dal referto di settembre.",updatedAt:"2026-09-12T11:00:00+02:00"}
-    ],
+    documents:[{id:"d1",date:"2026-09-26",type:"referto",title:"Referto vitamina D",description:"Caricato dal paziente",origin:"Paziente",unread:true}],
     activities:[{id:"e1",date:"2026-09-24",type:"email",title:"Promemoria visita inviato via Email",description:"Consegna richiesta",origin:"Agenda"}],
     notes:[
       {id:"n1",createdAt:"2026-10-01T12:05:00+02:00",updatedAt:null,text:"Buona aderenza generale al percorso. Verificare la continuità del diario nei fine settimana."},
@@ -77,7 +68,7 @@ export function getPatientData(id){
     identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:null,age:record.age,sex:null,phone:record.phone||"",email:record.email||"",fiscalCode:"",address:"",postalCode:"",city:"",province:"",...detail.identity},
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
-    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],laboratoryReports:detail.laboratoryReports||[],documentUi:{filter:"all"},activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
+    diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
     profile:{anamnesis:{goalWeight:"",minWeight:"",maxWeight:"",reasonableWeight:"",theoreticalWeight:"",objectives:"",work:"",activity:"",activityFactor:"",smoking:"",alcohol:"",diagnosis:"",bowel:"",metabolism:"",feeg:"",impedance:"",family:{obesity:false,diabetes:false,hypertension:false,cardiovascular:false,dyslipidemia:false,thyroid:false},previousDiets:"",allergies:"",medications:"",giIssues:"",pastConditions:"",observations:""},...detail.profile},
     privacy:{consent:null,communications:{email:false},reminders:{email:false},administrativeNotes:"",...detail.privacy}
   };
