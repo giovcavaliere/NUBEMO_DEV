@@ -119,6 +119,8 @@ function openUploadDialog(root,model,onChange){
 
 function openAnalysisDialog(root,model,doc,onChange){
   const existing=reportFor(model.data,doc.id);
+  const wasUnread=doc.unread===true;
+  let saved=false;
   const dialog=document.createElement("dialog");
   dialog.className="documents-analysis-dialog";
   dialog.innerHTML=`<form method="dialog" class="documents-analysis-shell">
@@ -142,7 +144,10 @@ function openAnalysisDialog(root,model,doc,onChange){
   </form>`;
   root.append(dialog);
   dialog.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
-  dialog.querySelector("[data-open-analysis-pdf]")?.addEventListener("click",()=>openDocument(doc,onChange));
+  dialog.querySelector("[data-open-analysis-pdf]")?.addEventListener("click",()=>{
+    doc.unread=false;
+    openDocumentFile(doc);
+  });
   dialog.addEventListener("close",()=>{
     if(dialog.returnValue==="save"){
       const values=new FormData(dialog.querySelector("form"));
@@ -150,15 +155,16 @@ function openAnalysisDialog(root,model,doc,onChange){
       const record={id:existing?.id||`lab-${Date.now()}`,documentId:doc.id,reportDate:String(values.get("reportDate")||doc.date||""),status:"confirmed",values:Object.fromEntries(labFields.map(([key])=>[key,String(values.get(key)||"").trim()])),notes:String(values.get("notes")||"").trim(),updatedAt:new Date().toISOString()};
       if(existing)Object.assign(existing,record);else reports.push(record);
       doc.unread=false;
+      saved=true;
       onChange();
     }
+    if(!saved&&wasUnread&&!doc.unread)onChange();
     dialog.remove();
   },{once:true});
   dialog.showModal();
 }
 
-function openDocument(doc,onChange){
-  doc.unread=false;
+function openDocumentFile(doc){
   if(doc.file instanceof File){
     const url=URL.createObjectURL(doc.file);
     window.open(url,"_blank","noopener");
@@ -166,6 +172,11 @@ function openDocument(doc,onChange){
   }else{
     alert("Il PDF demo non è disponibile. I documenti caricati durante la sessione si aprono normalmente.");
   }
+}
+
+function openDocument(doc,onChange){
+  doc.unread=false;
+  openDocumentFile(doc);
   onChange();
 }
 
