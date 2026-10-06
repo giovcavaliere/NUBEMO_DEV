@@ -1,4 +1,4 @@
-import {getProgressViewModel,progressPeriods,circumferenceOptions} from "./patient-progress-model.js";
+import {getProgressViewModel,progressPeriods,circumferenceOptions,biaOptions} from "./patient-progress-model.js";
 
 const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 const icon=name=>`<svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-${name}"/></svg>`;
@@ -39,7 +39,7 @@ export function renderProgress(model){
     <div class="progress-summary">${model.summary.map(item=>`<article class="detail-kpi progress-kpi ${item.bia?"progress-kpi-bia":""}"><span class="progress-kpi-symbol">${icon(item.icon)}</span><div><span class="detail-kpi-label">${item.label}</span><div class="progress-kpi-value"><strong>${item.bia?item.parts.map(part=>`<span>${part.label} ${escapeHtml(part.text)}</span>`).join(""):escapeHtml(item.value)}</strong>${item.delta?`<span class="progress-kpi-delta">${escapeHtml(item.delta)}</span>`:""}</div><small>${escapeHtml(item.note)}</small></div></article>`).join("")}</div>
     <div class="progress-grid">
       <section class="detail-panel progress-weight"><header class="progress-panel-heading">${heading("Andamento peso","Evoluzione del peso corporeo nel tempo.")}${controls(progressPeriods,model.period,"data-progress-period","Periodo dei grafici")}</header><p class="progress-period-note">${escapeHtml(model.periodNote)} · filtro comune ai tre grafici</p>${renderChart(model.charts.weight,"Peso","Nessun peso rilevato nel periodo selezionato")}</section>
-      <section class="detail-panel progress-bia"><header class="progress-panel-heading">${heading("Andamento composizione corporea (BIA)","Evoluzione delle principali componenti corporee.")}<div class="progress-legend">${model.biaLegend.map(item=>`<span class="${item.available?"":"progress-series-missing"}"><i class="measure-dot" style="background:${item.color}"></i>${item.label} (%)</span>`).join("")}</div></header>${renderChart(model.charts.bia,"Percentuale","Nessun dato BIA nel periodo selezionato")}<p class="detail-note">Solo rilevazioni disponibili; le interruzioni indicano dati mancanti.</p></section>
+      <section class="detail-panel progress-bia"><header class="progress-panel-heading">${heading("Andamento composizione corporea (BIA)","Evoluzione delle principali componenti corporee.")}${controls(biaOptions,model.biaSeries,"data-progress-bia","Serie BIA visualizzata")}</header>${renderChart(model.charts.bia,"Percentuale","Nessun dato BIA nel periodo selezionato")}<p class="detail-note">Sono collegate solo le rilevazioni in cui il valore selezionato è effettivamente disponibile.</p></section>
       <section class="detail-panel progress-circumference"><header class="progress-panel-heading">${heading("Circonferenze nel tempo","Evoluzione delle circonferenze corporee.")}${controls(circumferenceOptions,model.circumference,"data-progress-circumference","Circonferenza visualizzata")}</header>${renderChart(model.charts.circumference,model.circumferenceLabel,`${model.circumferenceLabel}: servono almeno due rilevazioni nel periodo selezionato`)}</section>
       <section class="detail-panel progress-compare-panel"><header class="progress-panel-heading">${heading("Confronta rilevazioni","Confronto tra due rilevazioni nel tempo.")}</header>${renderComparison(model)}</section>
     </div>
@@ -50,16 +50,17 @@ export function renderProgress(model){
 export function bindProgress(root,data,initialModel){
   let model=initialModel;
   const update=(changes,selector)=>{
-    model=getProgressViewModel(data,{period:model.period,circumference:model.circumference,firstId:model.comparison.firstId,lastId:model.comparison.lastId,...changes});
+    model=getProgressViewModel(data,{period:model.period,circumference:model.circumference,biaSeries:model.biaSeries,firstId:model.comparison.firstId,lastId:model.comparison.lastId,...changes});
     root.querySelector(".detail-progress").outerHTML=renderProgress(model);
     root.querySelector(selector)?.focus({preventScroll:true});
   };
   // Delegation stays on the tab content: replacing its view never duplicates listeners.
   const content=root.querySelector(".detail-content");
   content.addEventListener("click",event=>{
-    const period=event.target.closest("[data-progress-period]"),circumference=event.target.closest("[data-progress-circumference]");
+    const period=event.target.closest("[data-progress-period]"),circumference=event.target.closest("[data-progress-circumference]"),bia=event.target.closest("[data-progress-bia]");
     if(period) update({period:period.dataset.progressPeriod},`[data-progress-period="${period.dataset.progressPeriod}"]`);
     if(circumference) update({circumference:circumference.dataset.progressCircumference},`[data-progress-circumference="${circumference.dataset.progressCircumference}"]`);
+    if(bia) update({biaSeries:bia.dataset.progressBia},`[data-progress-bia="${bia.dataset.progressBia}"]`);
   });
   content.addEventListener("change",event=>{
     if(event.target.matches("[data-progress-first]")) update({firstId:event.target.value},"[data-progress-first]");
