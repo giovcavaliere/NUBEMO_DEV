@@ -163,7 +163,7 @@ export function getPatientData(id){
   if(!record) return null;
   const detail=patientDetails[id]||{};
   const data={
-    identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:null,age:record.age,sex:null,height:"",phone:record.phone||"",email:record.email||"",fiscalCode:"",address:"",postalCode:"",city:"",province:"",showCaloriesToPatient:true,nubemoAccountStatus:"inactive",...detail.identity},
+    identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:record.birthDate||null,age:record.age,sex:record.sex||null,height:record.height??"",phone:record.phone||"",email:record.email||"",fiscalCode:record.fiscalCode||"",address:record.address||"",postalCode:record.postalCode||"",city:record.city||"",province:record.province||"",showCaloriesToPatient:record.showCaloriesToPatient??true,nubemoAccountStatus:record.nubemoAccountStatus||"inactive",...detail.identity},
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
     diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],laboratoryReports:detail.laboratoryReports||[],documentUi:{filter:"all",unreadOnly:false},activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
