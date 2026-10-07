@@ -154,7 +154,7 @@ export function openNewPatientDialog(root,{records,onCreate}){
       unreadDocuments:0,
       lastVisit:"—",
       nextVisit:"—",
-      avatar:"assets/nubemo-n-icon-192.png",
+      avatar:"",
       birthDate,
       sex:String(values.get("sex")||"").trim(),
       height:heightRaw===""?"":Number(heightRaw),
