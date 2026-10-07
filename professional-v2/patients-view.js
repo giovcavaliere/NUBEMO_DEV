@@ -16,6 +16,20 @@ function escapeHtml(value=""){
   return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 }
 
+function patientInitials(patient){
+  return [patient.first_name,patient.last_name]
+    .map(value=>String(value||"").trim().charAt(0))
+    .filter(Boolean)
+    .join("")
+    .toLocaleUpperCase("it");
+}
+
+function patientAvatar(patient){
+  return patient.avatar
+    ? `<img class="patient-avatar" src="${escapeHtml(patient.avatar)}" alt="">`
+    : `<span class="patient-avatar patient-avatar-initials" aria-hidden="true">${escapeHtml(patientInitials(patient)||"—")}</span>`;
+}
+
 export function getCounts(records){
   return Object.keys(STATUS_LABELS).reduce((acc,status)=>{
     acc[status]=records.filter(patient=>patient.status===status).length;
@@ -23,20 +37,24 @@ export function getCounts(records){
   },{});
 }
 
-export function getPatientsForStatus(records,status){
+export function getPatientsForStatus(records,status,sortBy="created"){
   const result=records.filter(patient=>patient.status===status);
-  // Regola funzionale approvata: SOLO gli attivi sono ordinati per created_at,
-  // dal più recente al più vecchio. Gli altri stati conservano l'ordine sorgente.
-  if(status==="active"){
-    return [...result].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  if(sortBy==="name"){
+    return [...result].sort((a,b)=>
+      `${a.last_name||""} ${a.first_name||""}`.localeCompare(
+        `${b.last_name||""} ${b.first_name||""}`,
+        "it",
+        {sensitivity:"base"}
+      )
+    );
   }
-  return result;
+  return [...result].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
 }
 
-export function renderPatientsPage(root,{records,status="active",query="",documentsOnly=false}){
+export function renderPatientsPage(root,{records,status="active",query="",documentsOnly=false,sortBy="created"}){
   const counts=getCounts(records);
   const normalized=query.trim().toLocaleLowerCase("it");
-  const rows=getPatientsForStatus(records,status).filter(patient=>{
+  const rows=getPatientsForStatus(records,status,sortBy).filter(patient=>{
     const matchesName=!normalized || `${patient.first_name} ${patient.last_name}`.toLocaleLowerCase("it").includes(normalized);
     const matchesDocuments=!documentsOnly || Number(patient.unreadDocuments||0)>0;
     return matchesName && matchesDocuments;
@@ -79,6 +97,13 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
             <svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg>
             <input type="search" value="${escapeHtml(query)}" placeholder="Cerca per nome e cognome..." aria-label="Cerca paziente per nome e cognome" data-patient-search>
           </label>
+          <label class="patient-sort">
+            <span>Ordina per</span>
+            <select data-patient-sort aria-label="Ordina pazienti">
+              <option value="created" ${sortBy==="created"?"selected":""}>Data di inserimento</option>
+              <option value="name" ${sortBy==="name"?"selected":""}>Nome / Cognome</option>
+            </select>
+          </label>
           <button type="button" class="patient-doc-filter ${documentsOnly?"active":""}" data-documents-filter aria-pressed="${documentsOnly}">
             <span class="patient-doc-toggle" aria-hidden="true"><span></span></span>
             <span>Solo con documenti da leggere</span>
@@ -88,7 +113,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
         <div class="patient-list">
           ${rows.length ? rows.map(patient=>`
             <button type="button" class="patient-row" data-patient-id="${patient.id}">
-              <img class="patient-avatar" src="${escapeHtml(patient.avatar)}" alt="">
+              ${patientAvatar(patient)}
               <span class="patient-main">
                 <strong>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</strong>
                 <span class="patient-age">${escapeHtml(String(patient.age))} anni</span>
