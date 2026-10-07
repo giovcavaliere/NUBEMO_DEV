@@ -11,6 +11,7 @@
 .detail-hero{border-radius:20px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px;min-width:0}
 .detail-person{display:flex;align-items:center;gap:17px;min-width:0}
 .detail-avatar{width:92px;height:92px;flex:none;border-radius:22px;object-fit:cover;background:var(--green-soft-2)}
+.detail-avatar-initials{display:grid;place-items:center;color:var(--green-800);font-size:26px;font-weight:750;letter-spacing:.03em}
 .detail-person-copy{min-width:0}
 .detail-name-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .detail-name-line h1{margin:0;color:var(--green-950);font-size:clamp(23px,2.1vw,31px);line-height:1.15;letter-spacing:-.025em}
