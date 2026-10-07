@@ -18,7 +18,7 @@ const agendaView=document.getElementById("agendaView");
 const appointmentView=document.getElementById("appointmentView");
 const homeBanner=document.getElementById("homeBanner");
 
-const patientState={status:"active",query:"",documentsOnly:false};
+const patientState={status:"active",query:"",documentsOnly:false,sortBy:"created"};
 
 const dashboardSearch=document.querySelector("[data-dashboard-patient-search]");
 const dashboardSearchResults=document.querySelector("[data-dashboard-search-results]");
@@ -135,7 +135,8 @@ function renderPatients(){
     records:patientRecords,
     status:patientState.status,
     query:patientState.query,
-    documentsOnly:patientState.documentsOnly
+    documentsOnly:patientState.documentsOnly,
+    sortBy:patientState.sortBy
   });
 
   patientsView.querySelectorAll("[data-patient-status]").forEach(button=>{
@@ -158,6 +159,11 @@ function renderPatients(){
 
   patientsView.querySelector("[data-documents-filter]")?.addEventListener("click",()=>{
     patientState.documentsOnly=!patientState.documentsOnly;
+    renderPatients();
+  });
+
+  patientsView.querySelector("[data-patient-sort]")?.addEventListener("change",event=>{
+    patientState.sortBy=event.target.value==="name"?"name":"created";
     renderPatients();
   });
 
