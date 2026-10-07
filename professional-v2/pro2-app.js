@@ -1,5 +1,6 @@
 import {patientRecords} from "./patients-data.js";
 import {renderPatientsPage} from "./patients-view.js";
+import {openNewPatientDialog} from "./patient-create-view.js";
 import {getPatientData} from "./patient-detail-data.js?v=profile-parity-20261006";
 import {getPatientViewModel} from "./patient-detail-model.js";
 import {renderPatientDetail} from "./patient-detail-view.js?v=profile-parity-20261006";
@@ -165,7 +166,16 @@ function renderPatients(){
   });
 
   patientsView.querySelector("[data-new-patient]")?.addEventListener("click",()=>{
-    alert("Nuovo paziente: funzione da collegare nel prossimo step.");
+    openNewPatientDialog(patientsView,{
+      records:patientRecords,
+      onCreate:patient=>{
+        patientRecords.push(patient);
+        patientState.status=patient.status;
+        patientState.query="";
+        patientState.documentsOnly=false;
+        renderPatients();
+      }
+    });
   });
 }
 
