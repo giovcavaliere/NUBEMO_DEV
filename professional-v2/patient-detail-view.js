@@ -18,6 +18,14 @@ const icon=(name)=>`<svg class="icon" aria-hidden="true" focusable="false"><use 
 const route=(id,tab)=>`#patient/${encodeURIComponent(id)}/${tab}`;
 const field=(label,value)=>`<div class="detail-field"><dt>${label}</dt><dd>${escapeHtml(value||"—")}</dd></div>`;
 const sectionHeading=(symbol,title,subtitle="")=>`<div class="detail-section-heading"><span class="detail-symbol">${icon(symbol)}</span><div><h2>${title}</h2>${subtitle?`<p>${subtitle}</p>`:""}</div></div>`;
+const patientInitials=identity=>[identity.firstName,identity.lastName]
+  .map(value=>String(value||"").trim().charAt(0))
+  .filter(Boolean)
+  .join("")
+  .toLocaleUpperCase("it");
+const patientAvatar=identity=>identity.avatar
+  ? `<img class="detail-avatar" src="${escapeHtml(identity.avatar)}" alt="">`
+  : `<span class="detail-avatar detail-avatar-initials" aria-hidden="true">${escapeHtml(patientInitials(identity)||"—")}</span>`;
 
 function renderHeader(model){
   const {data,age,kpis,firstVisit,lastControl}=model,{identity,journey}=data;
@@ -25,7 +33,7 @@ function renderHeader(model){
   const status={active:"Attivo",pending:"In attesa",draft:"Bozza",terminated:"Terminato"}[identity.status]||identity.status;
   return `<header class="detail-hero">
     <div class="detail-person">
-      <img class="detail-avatar" src="${escapeHtml(identity.avatar)}" alt="">
+      ${patientAvatar(identity)}
       <div class="detail-person-copy">
         <div class="detail-name-line"><h1>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</h1><span class="detail-status">${escapeHtml(status)}</span></div>
         <p class="detail-demographics">${age!=null?`${escapeHtml(age)} anni`:"Età non disponibile"}<span>·</span>${escapeHtml(identity.sex||"Sesso non indicato")}<span>·</span>${journey.startedAt?`Dal ${fmtDate(journey.startedAt)}`:"Inizio non registrato"}</p>
