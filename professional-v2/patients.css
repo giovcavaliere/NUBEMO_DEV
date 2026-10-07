@@ -402,6 +402,18 @@
   border-radius:11px;
   object-fit:cover;
 }
+.dashboard-search-avatar-fallback{
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  background:var(--green-soft-2);
+  color:var(--green-800);
+  font-size:12px;
+  font-weight:750;
+  letter-spacing:.03em;
+}
 .dashboard-search-item strong{
   display:block;
   color:var(--green-950);
