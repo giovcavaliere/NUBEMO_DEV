@@ -41,8 +41,8 @@ export function getPatientsForStatus(records,status,sortBy="created"){
   const result=records.filter(patient=>patient.status===status);
   if(sortBy==="name"){
     return [...result].sort((a,b)=>
-      `${a.last_name||""} ${a.first_name||""}`.localeCompare(
-        `${b.last_name||""} ${b.first_name||""}`,
+      `${a.first_name||""} ${a.last_name||""}`.localeCompare(
+        `${b.first_name||""} ${b.last_name||""}`,
         "it",
         {sensitivity:"base"}
       )
