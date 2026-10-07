@@ -189,6 +189,16 @@ function escapeSearchHtml(value=""){
   return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 }
 
+function dashboardPatientAvatar(patient){
+  if(patient.avatar) return `<img src="${escapeSearchHtml(patient.avatar)}" alt="">`;
+  const initials=[patient.first_name,patient.last_name]
+    .map(value=>String(value||"").trim().charAt(0))
+    .filter(Boolean)
+    .join("")
+    .toLocaleUpperCase("it");
+  return `<span class="dashboard-search-avatar-fallback" aria-hidden="true">${escapeSearchHtml(initials||"—")}</span>`;
+}
+
 function closeDashboardSearch(){
   if(!dashboardSearchResults) return;
   dashboardSearchResults.hidden=true;
@@ -210,7 +220,7 @@ function renderDashboardSearch(){
   dashboardSearchResults.innerHTML=matches.length
     ? matches.map(patient=>`
         <button type="button" class="dashboard-search-item" data-dashboard-patient-id="${patient.id}">
-          <img src="${escapeSearchHtml(patient.avatar)}" alt="">
+          ${dashboardPatientAvatar(patient)}
           <span>
             <strong>${escapeSearchHtml(patient.first_name)} ${escapeSearchHtml(patient.last_name)}</strong>
             <small>${patient.status==="active"?"Paziente attivo":"Percorso "+escapeSearchHtml(patient.status)}</small>
