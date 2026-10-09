@@ -81,7 +81,7 @@
         window.location.replace('privacy.html');
         return true;
       }
-      window.location.replace(profile.role === 'professional' ? 'pro.html' : 'patient.html');
+      window.location.replace(profile.role === 'professional' ? 'pro2.html' : 'patient.html');
       return true;
     }
 
