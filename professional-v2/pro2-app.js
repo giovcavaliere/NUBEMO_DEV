@@ -3,7 +3,7 @@ import {renderPatientsPage} from "./patients-view.js?v=patient-sort-avatar-20261
 import {openNewPatientDialog} from "./patient-create-view.js?v=patient-avatar-20261007";
 import {getPatientData} from "./patient-detail-data.js?v=pathways-20261009";
 import {getPatientViewModel} from "./patient-detail-model.js";
-import {renderPatientDetail} from "./patient-detail-view.js?v=pathways-20261009";
+import {renderPatientDetail} from "./patient-detail-view.js?v=pathways-history-20261009";
 import {renderSupportPage,sendSupport} from "./support-view.js";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
 import {agendaState,renderAgendaPage,bindAgendaPage,addAgendaEvent} from "./agenda-view.js";
