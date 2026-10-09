@@ -404,15 +404,24 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--green-700);outl
   .login-side{min-height:auto;padding:28px 20px 42px}
 }
 @media(max-width:620px){
-  .login-hero{min-height:300px;padding:24px 20px;background-position:58% 54%}
-  .login-brand img{width:50px;height:50px;border-radius:13px}
-  .login-brand-copy strong{font-size:22px}
+  .login-hero{
+    min-height:255px;
+    padding:22px 20px 18px;
+    justify-content:flex-start;
+    background:
+      linear-gradient(180deg,rgba(250,246,238,.97) 0%,rgba(250,246,238,.92) 48%,rgba(250,246,238,.28) 72%,rgba(250,246,238,.04) 100%),
+      url("assets/nubemo-pro2-breakfast.webp") center 78%/cover no-repeat;
+  }
+  .login-hero-content{display:grid;align-content:start}
+  .login-brand img{width:48px;height:48px;border-radius:12px}
+  .login-brand-copy strong{font-size:21px}
   .login-brand-copy span{font-size:8px}
-  .login-kicker{margin:28px 0 12px;font-size:8px}
-  .login-hero h1{font-size:43px;max-width:370px}
+  .login-kicker{margin:24px 0 10px;font-size:8px}
+  .login-hero h1{font-size:39px;max-width:340px;line-height:.94}
   .login-hero-lead{display:none}
   .login-values{display:none}
-  .login-side{padding:18px 12px 28px}
+  .login-hero-quote{display:none}
+  .login-side{padding:12px 12px 28px}
   .login-card{padding:26px 20px;border-radius:20px}
   .login-card-brand{margin-bottom:28px}
   .login-card-brand img{width:48px;height:48px}
