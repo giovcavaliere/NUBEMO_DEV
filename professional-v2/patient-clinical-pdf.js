@@ -112,13 +112,25 @@ function profilePage(doc){
   }
   return s;
 }
-function anamnesisPage(doc){
+function anamnesisPages(doc){
   const a=doc.anamnesis||{};
-  let s=pageHeader("Profilo clinico e anamnesi",doc.activePathway?`Riferita al percorso iniziato il ${fmtDate(doc.activePathway.startedAt)}`:"Ultima anamnesi disponibile"),y=720;
   const activity={1.2:"Sedentario",1.375:"Leggermente attivo",1.55:"Moderatamente attivo",1.725:"Molto attivo",1.9:"Estremamente attivo"}[String(a.activityFactor||"")]||a.activityFactor||"";
   const fields=[["Diagnosi / motivo",a.diagnosis],["Peso obiettivo",a.goalWeight?`${a.goalWeight} kg`:""],["Peso minimo storico",a.minWeight?`${a.minWeight} kg`:""],["Peso massimo storico",a.maxWeight?`${a.maxWeight} kg`:""],["Peso ragionevole / concordato",a.reasonableWeight?`${a.reasonableWeight} kg`:""],["Peso teorico",a.theoreticalWeight?`${a.theoreticalWeight} kg`:""],["Attivita lavorativa",a.work],["Attivita fisica",a.activity],["Livello attivita",activity],["Fumo",a.smoking],["Alcol",a.alcohol],["Alvo",a.bowel],["Metabolismo basale",a.metabolism],["FEEG / fabbisogno",a.feeg],["Impedenziometria",a.impedance],["Familiarita",a.familyText],["Diete pregresse",a.previousDiets],["Allergie / intolleranze",a.allergies],["Farmaci / integrazione",a.medications],["Disturbi gastrointestinali",a.giIssues],["Patologie / interventi pregressi",a.pastConditions],["Osservazioni",a.observations],["Obiettivi",a.objectives]];
-  for(const [label,value] of fields){if(y<95) break;const r=row(label,value||"-",y);s+=r.stream;y=r.y}
-  return s;
+  const subtitle=doc.activePathway?`Riferita al percorso iniziato il ${fmtDate(doc.activePathway.startedAt)}`:"Ultima anamnesi disponibile";
+  const pages=[];
+  let page=pageHeader("Profilo clinico e anamnesi",subtitle),y=720;
+  for(const [label,value] of fields){
+    const valueLines=wrap(value||"-",58);
+    const h=Math.max(28,14+valueLines.length*10);
+    if(y-h<78){
+      pages.push(page);
+      page=pageHeader("Profilo clinico e anamnesi","Continuazione");
+      y=720;
+    }
+    const r=row(label,value||"-",y);page+=r.stream;y=r.y;
+  }
+  pages.push(page);
+  return pages;
 }
 function measuresPage(doc){
   let s=pageHeader("Antropometria, misure ed esami","Dati longitudinali del paziente"),y=720;
@@ -189,7 +201,7 @@ function buildPdf(pageStreams){
 }
 
 export function createClinicalPdf(doc){
-  const pages=[cover(doc),profilePage(doc),anamnesisPage(doc),measuresPage(doc),trendPage(doc),biaPage(doc)];
+  const pages=[cover(doc),profilePage(doc),...anamnesisPages(doc),measuresPage(doc),trendPage(doc),biaPage(doc)];
   if(doc.diary?.length) pages.push(...diaryPages(doc));
   return buildPdf(pages.map((stream,index)=>stream+footer(index+1,pages.length)));
 }
