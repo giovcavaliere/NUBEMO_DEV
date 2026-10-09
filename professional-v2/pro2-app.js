@@ -1,3 +1,5 @@
+await window.NUBEMO_PRO2_AUTH_READY;
+
 import {patientRecords} from "./patients-data.js";
 import {renderPatientsPage} from "./patients-view.js?v=patient-sort-avatar-20261007";
 import {openNewPatientDialog} from "./patient-create-view.js?v=patient-avatar-20261007";
