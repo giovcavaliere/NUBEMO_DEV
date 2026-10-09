@@ -199,12 +199,12 @@ function openNewDialog(root,model,onChange,attachDialog){
     const objectiveKey=String(values.get("objectiveKey")||"weight_loss");
     const customObjective=String(values.get("customObjective")||"").trim();
     if(objectiveKey==="other"&&!customObjective) return;
-    const accountActive=model.data.identity.nubemoAccountStatus==="active";
+    const hasOtherActivePathway=Boolean(model.data.pathways?.hasOtherActivePathway);
     const startedAt=String(values.get("startedAt")||todayIso());
     const item={
       id:`${model.data.identity.id}-pathway-${Date.now()}`,
-      status:accountActive?"pending":"active",
-      startedAt:accountActive?null:startedAt,
+      status:hasOtherActivePathway?"pending":"active",
+      startedAt:hasOtherActivePathway?null:startedAt,
       proposedAt:startedAt,
       endedAt:null,
       objectiveKey,
