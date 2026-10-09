@@ -5,7 +5,7 @@ import {renderVisits,bindVisits} from "./patient-visits-view.js";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
 import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
-import {renderClinicalPdfAction,bindClinicalPdf} from "./patient-clinical-pdf-view.js?v=clinical-pdf-20261009";
+import {renderClinicalPdfAction,bindClinicalPdf} from "./patient-clinical-pdf-view.js?v=clinical-pdf-20261009b";
 
 const tabs=[
   ["panoramica","Panoramica"],["profilo","Profilo"],["visite","Visite"],
