@@ -4,6 +4,7 @@ import {renderPlan,bindPlan} from "./patient-plan-view.js";
 import {renderVisits,bindVisits} from "./patient-visits-view.js";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
+import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js";
 
 const tabs=[
   ["panoramica","Panoramica"],["profilo","Profilo"],["visite","Visite"],
@@ -109,7 +110,7 @@ function renderComposition(model){
 
 function renderOverview(model){
   const actions=[["Apri visita","visite","calendar"],["Leggi referti","documenti","document"],["Controlla diario","diario","check"],["Aggiungi misure","misure","chart"]];
-  return `<div class="detail-overview">${renderKpis(model)}
+  return `<div class="detail-overview">${renderPathwayManagement(model)}${renderKpis(model)}
     <div class="detail-overview-top">${renderTimeline(model)}${renderFocus(model)}</div>
     <div class="detail-overview-lower">
       <section class="detail-panel">${sectionHeading("chart","Andamento recente","Peso nelle ultime rilevazioni.")}${renderWeightChart(model.weightSeries)}</section>
@@ -334,6 +335,7 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
     openProfileSectionDialog(root,model,button.dataset.editProfileSection,onIdentityChange);
   }));
   root.querySelector("[data-edit-administration]")?.addEventListener("click",()=>openAdministrationDialog(root,model,onIdentityChange));
+  if(tab==="panoramica") bindPathwayManagement(root,model,onIdentityChange,attachDialog);
   if(tab==="visite") bindVisits(root,model,onIdentityChange);
   if(tab==="andamento") bindProgress(root,model.data,model.progress);
   if(tab==="misure") bindMeasurements(root,model.data,model.measurements,onIdentityChange,attachDialog);
