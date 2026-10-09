@@ -87,9 +87,10 @@
 .pathway-dialog-fields label>span{display:flex;align-items:flex-end;min-height:18px;line-height:1.2}
 .pathway-dialog-fields input,.pathway-dialog-fields select,.pathway-dialog-fields textarea{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:0;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
 .pathway-dialog-fields input,.pathway-dialog-fields select{height:42px;min-height:42px;max-height:42px;padding:0 10px;line-height:normal}
-.pathway-dialog-fields input[type="date"]{-webkit-appearance:none;appearance:none;text-align:left;direction:ltr}
-.pathway-dialog-fields input[type="date"]::-webkit-date-and-time-value{min-height:0;line-height:normal;text-align:left}
-.pathway-dialog-fields input[type="date"]::-webkit-datetime-edit,.pathway-dialog-fields input[type="date"]::-webkit-datetime-edit-fields-wrapper{padding:0}
+.pathway-dialog-fields input[type="date"]{-webkit-appearance:none;appearance:none;text-align:left;direction:ltr;line-height:42px}
+.pathway-dialog-fields input[type="date"]::-webkit-date-and-time-value{display:flex;align-items:center;height:100%;min-height:100%;line-height:normal;text-align:left}
+.pathway-dialog-fields input[type="date"]::-webkit-datetime-edit{display:flex;align-items:center;height:100%;padding:0}
+.pathway-dialog-fields input[type="date"]::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;height:100%;padding:0}
 .pathway-dialog-fields textarea{min-height:86px;padding:10px;resize:vertical;line-height:1.45}
 .pathway-custom-objective,.pathway-note-field{grid-column:1/-1}
 .pathway-note-field small{font-size:9px;font-weight:400}
