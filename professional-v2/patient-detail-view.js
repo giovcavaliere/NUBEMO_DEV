@@ -2,9 +2,9 @@ import {renderProgress,bindProgress} from "./patient-progress-view.js";
 import {renderMeasurements,bindMeasurements} from "./patient-measurements-view.js";
 import {renderPlan,bindPlan} from "./patient-plan-view.js";
 import {renderVisits,bindVisits} from "./patient-visits-view.js";
-import {renderDocuments,bindDocuments} from "./patient-documents-view.js";
+import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
-import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathways-history-20261009";
+import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
 
 const tabs=[
   ["panoramica","Panoramica"],["profilo","Profilo"],["visite","Visite"],

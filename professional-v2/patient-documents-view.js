@@ -3,7 +3,7 @@ const icon=name=>`<svg class="icon" aria-hidden="true" focusable="false"><use hr
 const fmtDate=value=>value?new Intl.DateTimeFormat("it-IT",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`)):"—";
 const filters=[["all","Tutti"],["analysis","Analisi"],["report","Referti"],["other","Altro"]];
 const categoryLabel={analysis:"Analisi",report:"Referti",other:"Altro"};
-const labFields=[
+export const labFields=[
   ["glucose","Glicemia"],["cholesterol","Colesterolo"],["hdl","HDL"],["ldl","LDL"],
   ["triglycerides","Trigliceridi"],["got","GOT"],["gpt","GPT"],["uricAcid","Acido urico"],
   ["creatinine","Creatinina"],["ggt","GGT"],["tsh","TSH"],["vitaminD","Vitamina D"]
@@ -164,8 +164,8 @@ function openAnalysisDialog(root,model,doc,onChange){
   dialog.showModal();
 }
 
-function openDocumentFile(doc){
-  if(doc.file instanceof File){
+export function openDocumentFile(doc){
+  if(doc.file instanceof Blob){
     const url=URL.createObjectURL(doc.file);
     window.open(url,"_blank","noopener");
     setTimeout(()=>URL.revokeObjectURL(url),60000);

@@ -1,3 +1,6 @@
+import {capturePathwaySnapshot,getPathwayHistoryModel} from "./patient-pathways-model.js";
+import {labFields,openDocumentFile} from "./patient-documents-view.js?v=pathway-archive-20261009";
+
 const OBJECTIVES=[
   ["weight_loss","Dimagrimento"],
   ["weight_gain","Aumento di peso"],
@@ -15,21 +18,6 @@ const fmtDate=value=>{
   if(!value) return "—";
   const date=new Date(String(value).length===10?`${value}T12:00:00`:value);
   return Number.isNaN(date.getTime())?String(value):new Intl.DateTimeFormat("it-IT").format(date);
-};
-const fmtNumber=value=>Number.isFinite(Number(value))
-  ? new Intl.NumberFormat("it-IT",{maximumFractionDigits:1}).format(Number(value))
-  : "—";
-const daysBetween=(start,end)=>{
-  if(!start||!end) return null;
-  const from=new Date(`${String(start).slice(0,10)}T12:00:00`);
-  const to=new Date(`${String(end).slice(0,10)}T12:00:00`);
-  if(Number.isNaN(from.getTime())||Number.isNaN(to.getTime())) return null;
-  return Math.max(1,Math.round((to-from)/86400000)+1);
-};
-const bmi=(weight,heightCm)=>{
-  const weightValue=Number(weight),heightValue=Number(heightCm);
-  if(!Number.isFinite(weightValue)||!Number.isFinite(heightValue)||heightValue<=0) return null;
-  return weightValue/((heightValue/100)**2);
 };
 const objectiveLabel=(key,custom="")=>key==="other"
   ? String(custom||"Altro").trim()
@@ -105,48 +93,6 @@ function historyPanel(model){
   const state=pathways(model);
   if(!state.ui.historyOpen) return "";
   const ended=endedPathways(model);
-  const selected=ended.find(item=>item.id===state.ui.selectedHistoryId)||null;
-
-  if(selected){
-    const summary=selected.snapshotSummary||{};
-    const duration=summary.durationDays??daysBetween(selected.startedAt,selected.endedAt);
-    const initialWeight=summary.initialWeight;
-    const finalWeight=summary.finalWeight;
-    const delta=Number.isFinite(Number(initialWeight))&&Number.isFinite(Number(finalWeight))
-      ? Number(finalWeight)-Number(initialWeight)
-      : null;
-    const initialBmi=summary.initialBmi??bmi(initialWeight,model.data.identity.height);
-    const finalBmi=summary.finalBmi??bmi(finalWeight,model.data.identity.height);
-    return `<section class="pathway-history pathway-history-detail">
-      <header class="pathway-history-head">
-        <div>
-          <span class="pathway-eyebrow">STORICO PERCORSO</span>
-          <h2>${escapeHtml(selected.objectiveLabel||objectiveLabel(selected.objectiveKey,selected.customObjective))}</h2>
-          <p>${fmtDate(selected.startedAt)} → ${fmtDate(selected.endedAt)}</p>
-        </div>
-        <button type="button" class="pathway-secondary" data-pathway-history-back>← Torna allo storico</button>
-      </header>
-      <div class="pathway-readonly-note"><strong>Percorso concluso</strong><span>I dati di questo percorso sono consultabili in sola lettura.</span></div>
-      <div class="pathway-outcome">
-        <div><span>Durata</span><strong>${duration?`${duration} giorni`:"—"}</strong></div>
-        <div><span>Peso iniziale</span><strong>${initialWeight!=null?`${fmtNumber(initialWeight)} kg`:"—"}</strong></div>
-        <div><span>Peso finale</span><strong>${finalWeight!=null?`${fmtNumber(finalWeight)} kg`:"—"}</strong></div>
-        <div><span>Variazione</span><strong>${delta==null?"—":`${delta>0?"+":""}${fmtNumber(delta)} kg`}</strong></div>
-        <div><span>BMI iniziale</span><strong>${initialBmi==null?"—":fmtNumber(initialBmi)}</strong></div>
-        <div><span>BMI finale</span><strong>${finalBmi==null?"—":fmtNumber(finalBmi)}</strong></div>
-      </div>
-      <div class="pathway-history-kpis">
-        <div><span>Visite</span><strong>${summary.visits??"—"}</strong></div>
-        <div><span>Misurazioni</span><strong>${summary.measurements??"—"}</strong></div>
-        <div><span>Giornate diario</span><strong>${summary.diaryDays??"—"}</strong></div>
-        <div><span>Documenti</span><strong>${summary.documents??"—"}</strong></div>
-        <div><span>Piani</span><strong>${summary.plans??"—"}</strong></div>
-        <div><span>Note</span><strong>${summary.notes??"—"}</strong></div>
-      </div>
-      ${selected.objectiveNote?`<div class="pathway-history-note"><span>Nota obiettivo</span><p>${escapeHtml(selected.objectiveNote)}</p></div>`:""}
-      ${selected.closingNote?`<div class="pathway-history-note pathway-history-closing"><span>Nota di chiusura</span><p>${escapeHtml(selected.closingNote)}</p></div>`:""}
-    </section>`;
-  }
 
   return `<section class="pathway-history">
     <header class="pathway-history-head">
@@ -172,6 +118,67 @@ function historyPanel(model){
 
 export function renderPathwayManagement(model){
   return `<div class="pathway-management">${pathwayStatusCard(model)}${historyPanel(model)}</div>`;
+}
+
+const anamnesisLabels={goalWeight:"Peso obiettivo (kg)",minWeight:"Peso minimo storico (kg)",maxWeight:"Peso massimo storico (kg)",reasonableWeight:"Peso concordato (kg)",theoreticalWeight:"Peso teorico (kg)",objectives:"Obiettivi",work:"Attività lavorativa",activity:"Attività fisica",activityFactor:"Fattore attività",smoking:"Fumo",alcohol:"Alcol",diagnosis:"Diagnosi / motivo",bowel:"Alvo",metabolism:"Metabolismo basale",feeg:"FEEG / fabbisogno",impedance:"Impedenziometria",previousDiets:"Diete pregresse",allergies:"Allergie / intolleranze",medications:"Farmaci / integrazione",giIssues:"Disturbi gastrointestinali",pastConditions:"Patologie / interventi pregressi",observations:"Osservazioni"};
+const familyLabels={obesity:"Obesità",diabetes:"Diabete",hypertension:"Ipertensione",cardiovascular:"Cardiovascolare",dyslipidemia:"Dislipidemie",thyroid:"Tiroide"};
+const readValue=value=>value===null||value===undefined||value===""?"—":typeof value==="boolean"?value?"Sì":"No":String(value);
+const readFields=fields=>`<dl class="pathway-record-fields">${fields.map(([label,value])=>`<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(readValue(value))}</dd></div>`).join("")}</dl>`;
+const readRecord=(title,fields,extra="")=>`<article class="pathway-record"><h4>${escapeHtml(title)}</h4>${readFields(fields)}${extra}</article>`;
+
+function renderHistorySection(section,history){
+  if(section.items===null) return '<p class="pathway-section-empty">Dettaglio non archiviato per questo percorso.</p>';
+  if(!section.items.length) return '<p class="pathway-section-empty">Nessun elemento archiviato per questo percorso.</p>';
+  if(section.key==="anamnesis"){
+    const a=section.items[0];
+    return readFields(Object.entries(anamnesisLabels).map(([key,label])=>[label,a[key]]))+
+      `<h4 class="pathway-family-title">Familiarità</h4>${readFields(Object.entries(familyLabels).map(([key,label])=>[label,a.family?.[key]]))}`;
+  }
+  if(section.key==="measurements") return history.measurementRows.map(row=>readRecord(`${row.dateText} · ${row.timeText}`,
+    [...row.values,...row.details].map(item=>[item.label,item.text]).concat([["Note",row.notes]]),row.ffmNote?`<p>${escapeHtml(row.ffmNote)}</p>`:"")).join("");
+  if(section.key==="diary") return history.diaryDays.map(day=>readRecord(fmtDate(day.date),
+    [["Peso",day.weight!=null?`${day.weight} kg`:null],["Acqua",day.water],["Energia registrata / stimata",day.kcalText],["Qualità dati",day.note],["Note",day.notes]],
+    day.meals.map(meal=>readRecord(`${meal.label} · ${meal.time||"—"}`,[["Descrizione",meal.originalText],["Energia registrata / stimata",meal.kcal!=null?`${meal.kcal} kcal`:null]],
+      meal.components.length?`<ul class="pathway-food-list">${meal.components.map(item=>`<li>${escapeHtml(item.text||"—")} · ${escapeHtml(item.kcal==null?"Energia non disponibile":`${item.kcal} kcal`)}</li>`).join("")}</ul>`:"")).join(""))).join("");
+  return section.items.map(item=>{
+    if(section.key==="visits") return readRecord(item.title||"Visita",[["Data",fmtDate(item.date)],["Tipo",{first:"Prima visita",control:"Controllo"}[item.type]||item.type],["Stato",item.status==="completed"?"Completata":item.status],["Descrizione",item.description],["Note",item.notes]]);
+    if(section.key==="notes") return readRecord(fmtDate(item.createdAt),[["Nota",item.text],["Ultimo aggiornamento",item.updatedAt?fmtDate(item.updatedAt):"—"]]);
+    if(section.key==="reports") return readRecord(`Referto · ${fmtDate(item.reportDate)}`,
+      [["Stato",item.status==="confirmed"?"Confermato":item.status],...labFields.map(([key,label])=>[label,item.values?.[key]]),["Note",item.notes]]);
+    const isPlan=section.key==="plans";
+    const fileIndex=history.files.indexOf(item);
+    return readRecord(item.title||(isPlan?"Piano alimentare":"Documento"),[["Data",fmtDate(isPlan?item.validFrom:item.date)],
+      ["File",item.fileName],[isPlan?"Nota professionista":"Descrizione",isPlan?item.professionalNote:item.description],
+      ...(isPlan?[]:[["Categoria",{analysis:"Analisi",report:"Referto",other:"Altro"}[item.category]||item.category],["Provenienza",item.origin]])],
+      item.file instanceof Blob?`<button type="button" data-history-file="${fileIndex}">Apri allegato</button>`:'<p class="pathway-file-unavailable">Allegato non disponibile in questa sessione.</p>');
+  }).join("");
+}
+
+function openHistoryDialog(root,pathway,attachDialog){
+  const history=getPathwayHistoryModel(pathway);
+  history.files=[...(history.snapshot.documents||[]),...(history.snapshot.plans||[])];
+  const dialog=document.createElement("dialog");
+  dialog.className="pathway-history-dialog";
+  dialog.setAttribute("aria-labelledby","pathway-history-title");
+  dialog.setAttribute("aria-describedby","pathway-history-readonly");
+  dialog.innerHTML=`<div class="pathway-history-sheet">
+    <header class="pathway-history-head">
+      <div><span class="pathway-eyebrow">CARTELLA DEL PERCORSO</span><h2 id="pathway-history-title">Storico percorso</h2></div>
+      <button type="button" class="pathway-close" data-close aria-label="Chiudi storico percorso">×</button>
+    </header>
+    <div class="pathway-archive-heading"><h3>${escapeHtml(pathway.objectiveLabel||objectiveLabel(pathway.objectiveKey,pathway.customObjective))}</h3><span class="pathway-status ended">Concluso</span></div>
+    <p class="pathway-archive-dates">${escapeHtml(fmtDate(pathway.startedAt))} → ${escapeHtml(fmtDate(pathway.endedAt))}</p>
+    <p class="pathway-readonly-note" id="pathway-history-readonly">Percorso storico in sola lettura</p>
+    <dl class="pathway-archive-summary">${history.summary.map(([label,value])=>`<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>
+    ${pathway.objectiveNote||pathway.closingNote?`<aside class="pathway-archive-notes" aria-label="Note del percorso">${[["Nota obiettivo",pathway.objectiveNote],["Nota di chiusura",pathway.closingNote]].filter(([,value])=>value).map(([label,value])=>`<div class="pathway-history-note"><h4>${label}</h4><p>${escapeHtml(value)}</p></div>`).join("")}</aside>`:""}
+    <div class="pathway-archive-sections">${history.sections.map(section=>`<details class="pathway-archive-section"><summary><span>${section.label}</span>${section.key!=="anamnesis"?`<span class="pathway-section-count">${section.count??"—"}</span>`:""}<svg class="pathway-section-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="pathway-section-body">${renderHistorySection(section,history)}</div></details>`).join("")}</div>
+    <footer><button type="button" class="pathway-secondary" data-close>Chiudi storico</button></footer>
+  </div>`;
+  dialog.querySelectorAll("[data-history-file]").forEach(button=>button.addEventListener("click",()=>{
+    const item=history.files[Number(button.dataset.historyFile)];
+    if(item?.file instanceof Blob) openDocumentFile(item);
+  }));
+  attachDialog(root,dialog);
 }
 
 function dialogShell(title,body,submitLabel){
@@ -203,25 +210,6 @@ function syncCustomObjective(dialog){
   };
   select?.addEventListener("change",sync);
   sync();
-}
-
-function captureSnapshot(model,current){
-  const weights=(model.weightSeries||[]).map(row=>Number(row.weight)).filter(Number.isFinite);
-  const initialWeight=weights.length?weights[0]:null;
-  const finalWeight=weights.length?weights.at(-1):null;
-  return {
-    visits:model.data.visits.filter(item=>item.status==="completed").length,
-    measurements:model.data.measurements.length,
-    diaryDays:model.data.diary?.days?.length||0,
-    documents:model.data.documents.length,
-    plans:model.data.nutritionPlans.length,
-    notes:model.data.notes.length,
-    durationDays:daysBetween(current?.startedAt,todayIso()),
-    initialWeight,
-    finalWeight,
-    initialBmi:bmi(initialWeight,model.data.identity.height),
-    finalBmi:bmi(finalWeight,model.data.identity.height)
-  };
 }
 
 function openNewDialog(root,model,onChange,attachDialog){
@@ -293,7 +281,7 @@ function openEndDialog(root,model,onChange,attachDialog){
     current.status="ended";
     current.endedAt=todayIso();
     current.closingNote=String(values.get("closingNote")||"").trim();
-    current.snapshotSummary=captureSnapshot(model,current);
+    current.snapshot=capturePathwaySnapshot(model.data,current);
     model.data.journey.startedAt=null;
     pathways(model).ui.historyOpen=true;
     pathways(model).ui.selectedHistoryId=null;
@@ -315,12 +303,8 @@ export function bindPathwayManagement(root,model,onChange,attachDialog){
     pathways(model).ui.selectedHistoryId=null;
     onChange();
   });
-  root.querySelector("[data-pathway-history-back]")?.addEventListener("click",()=>{
-    pathways(model).ui.selectedHistoryId=null;
-    onChange();
-  });
   root.querySelectorAll("[data-pathway-history-open]").forEach(button=>button.addEventListener("click",()=>{
-    pathways(model).ui.selectedHistoryId=button.dataset.pathwayHistoryOpen||null;
-    onChange();
+    const selected=endedPathways(model).find(item=>item.id===button.dataset.pathwayHistoryOpen);
+    if(selected) openHistoryDialog(root,selected,attachDialog);
   }));
 }
