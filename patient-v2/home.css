@@ -1,0 +1,351 @@
+/* NUBEMO Patient 2.0 — Home statica
+   Estende direttamente la grammatica visiva di Professional 2.0.
+   Nessuna logica applicativa e nessun collegamento Supabase. */
+
+.patient-demo-avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#dfe9da,#f4ead9);
+  color:var(--green-900);
+  border:1px solid rgba(255,255,255,.28);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.03em;
+}
+
+.patient-welcome{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+}
+.patient-welcome-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  flex-shrink:0;
+  padding:7px 10px;
+  border-radius:999px;
+  background:var(--green-soft-2);
+  color:var(--green-800);
+  font-size:10px;
+  font-weight:650;
+}
+.patient-welcome-badge .icon{width:15px;height:15px}
+
+.patient-kpi-grid .kpi-copy>span{min-height:0}
+.patient-kpi-grid .kpi-card{min-height:112px}
+
+.patient-home-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);
+  gap:16px;
+}
+.patient-home-grid + .patient-home-grid{margin-top:16px}
+
+.patient-progress-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 128px;
+  gap:22px;
+  align-items:center;
+}
+.patient-progress-copy{min-width:0}
+.patient-progress-note{
+  margin:7px 0 0 35px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.55;
+}
+.patient-progress-body{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.patient-progress-metric{
+  padding:12px 13px;
+  border-radius:14px;
+  background:rgba(237,242,233,.72);
+  border:1px solid rgba(41,106,86,.06);
+}
+.patient-progress-metric span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.35;
+}
+.patient-progress-metric strong{
+  display:block;
+  margin-top:5px;
+  font-size:17px;
+  font-weight:650;
+}
+.patient-progress-ring{
+  --progress:11.5;
+  width:116px;
+  height:116px;
+  justify-self:end;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  position:relative;
+  background:conic-gradient(var(--green-700) calc(var(--progress)*1%),var(--green-soft) 0);
+}
+.patient-progress-ring:before{
+  content:"";
+  position:absolute;
+  inset:11px;
+  border-radius:50%;
+  background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px rgba(41,106,86,.06);
+}
+.patient-progress-ring strong{
+  position:relative;
+  z-index:1;
+  font-size:26px;
+  letter-spacing:-.04em;
+  font-weight:650;
+}
+.patient-progress-ring span{
+  position:absolute;
+  z-index:1;
+  margin-top:34px;
+  color:var(--muted);
+  font-size:9px;
+}
+
+.patient-chart-card{min-width:0}
+.patient-chart-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+}
+.patient-chart-head .module-title{align-items:flex-start}
+.patient-chart-copy small{
+  display:block;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+}
+.patient-range{
+  display:flex;
+  gap:3px;
+  padding:3px;
+  border-radius:999px;
+  background:var(--green-soft-2);
+  flex-shrink:0;
+}
+.patient-range button{
+  min-height:28px;
+  padding:0 10px;
+  border:0;
+  border-radius:999px;
+  background:transparent;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:550;
+}
+.patient-range button.active{
+  background:var(--green-800);
+  color:#fff;
+}
+.patient-weight-chart{
+  width:100%;
+  height:225px;
+  margin-top:14px;
+}
+.patient-weight-chart svg{width:100%;height:100%;display:block}
+.patient-chart-grid{stroke:#e8e4dc;stroke-width:1}
+.patient-chart-area{fill:#edf3e9}
+.patient-chart-line{
+  fill:none;
+  stroke:var(--green-700);
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.patient-chart-point{
+  fill:var(--surface-2);
+  stroke:var(--green-700);
+  stroke-width:2;
+}
+.patient-chart-label{fill:var(--muted);font-size:10px}
+.patient-chart-value{fill:var(--green-950);font-size:11px;font-weight:650}
+
+.patient-calorie-card{
+  background:
+    radial-gradient(circle at 92% 8%,rgba(230,238,226,.9),transparent 140px),
+    linear-gradient(140deg,rgba(255,253,250,.99),rgba(249,247,238,.99));
+}
+.patient-calorie-value{
+  margin:23px 0 0 35px;
+  font-size:34px;
+  line-height:1;
+  letter-spacing:-.04em;
+  font-weight:650;
+}
+.patient-calorie-caption{
+  margin:8px 0 0 35px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+.patient-calorie-status{
+  display:inline-flex;
+  margin:14px 0 0 35px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:var(--green-soft);
+  color:var(--green-800);
+  font-size:10px;
+  font-weight:600;
+}
+
+.patient-diary-summary{
+  margin-top:17px;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+}
+.patient-meal-status{
+  min-width:0;
+  padding:12px 7px 10px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:rgba(255,253,250,.72);
+  text-align:center;
+}
+.patient-meal-status span{
+  width:24px;
+  height:24px;
+  margin:0 auto 7px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:var(--green-soft);
+  color:var(--green-800);
+  font-size:11px;
+  font-weight:700;
+}
+.patient-meal-status.pending span{
+  background:#f1eee8;
+  color:#978d82;
+}
+.patient-meal-status small{
+  display:block;
+  color:#53665e;
+  font-size:9px;
+  line-height:1.25;
+}
+.patient-diary-actions{
+  display:flex;
+  gap:9px;
+  margin-top:15px;
+}
+.patient-primary,
+.patient-secondary{
+  min-height:38px;
+  border-radius:11px;
+  font-size:11px;
+  font-weight:600;
+  padding:0 14px;
+}
+.patient-primary{
+  border:1px solid var(--green-800);
+  background:var(--green-800);
+  color:#fff;
+}
+.patient-secondary{
+  border:1px solid #d8ded3;
+  background:rgba(255,253,250,.8);
+  color:var(--green-800);
+}
+
+.patient-quick-list{margin-top:14px}
+.patient-quick-row{
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr) auto;
+  gap:11px;
+  align-items:center;
+  min-height:66px;
+  padding:10px 0;
+  border-top:1px solid var(--line);
+}
+.patient-quick-icon{
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:var(--green-soft-2);
+  color:var(--green-800);
+}
+.patient-quick-icon.peach{background:var(--peach-soft);color:#b65e2a}
+.patient-quick-icon .icon{width:20px;height:20px}
+.patient-quick-row strong{
+  display:block;
+  font-size:12px;
+  font-weight:600;
+  line-height:1.35;
+}
+.patient-quick-row small{
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.4;
+}
+.patient-quick-row .link-button{padding:7px 0}
+
+.patient2-banner .warm-copy{padding-left:16px}
+
+@media (min-width:721px) and (max-width:1100px){
+  .patient-home-grid{grid-template-columns:1fr}
+  .patient-progress-card{grid-template-columns:minmax(0,1fr) 120px}
+}
+
+@media (max-width:720px){
+  .patient-welcome{display:block}
+  .patient-welcome-badge{margin-top:13px}
+  .patient-home-grid{grid-template-columns:1fr;gap:14px}
+  .patient-home-grid + .patient-home-grid{margin-top:14px}
+  .patient-progress-card{
+    grid-template-columns:minmax(0,1fr) 90px;
+    gap:12px;
+  }
+  .patient-progress-note{margin-left:31px}
+  .patient-progress-ring{width:86px;height:86px}
+  .patient-progress-ring:before{inset:9px}
+  .patient-progress-ring strong{font-size:21px}
+  .patient-progress-ring span{margin-top:28px;font-size:8px}
+  .patient-progress-body{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    margin-top:14px;
+  }
+  .patient-progress-metric{padding:10px 8px}
+  .patient-progress-metric strong{font-size:14px}
+  .patient-chart-head{display:block}
+  .patient-range{width:max-content;margin-top:12px}
+  .patient-weight-chart{height:190px;margin-top:9px}
+  .patient-diary-summary{gap:5px}
+  .patient-meal-status{padding:10px 3px 8px}
+  .patient-meal-status small{font-size:8px}
+  .patient-diary-actions{display:grid;grid-template-columns:1fr 1fr}
+  .patient-primary,.patient-secondary{padding:0 8px}
+  .patient-calorie-value,
+  .patient-calorie-caption,
+  .patient-calorie-status{margin-left:31px}
+}
+
+@media (max-width:380px){
+  .patient-progress-card{grid-template-columns:1fr}
+  .patient-progress-ring{justify-self:start;margin:4px 0 0 31px}
+  .patient-progress-body{grid-template-columns:1fr 1fr}
+  .patient-progress-metric:last-child{grid-column:1/-1}
+  .patient-diary-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
