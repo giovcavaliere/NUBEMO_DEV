@@ -1,4 +1,4 @@
-import {calculateFFM} from "./patient-measurements-model.js";
+import {calculateFFM,buildComposition} from "./patient-measurements-model.js";
 
 const finite=value=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(Number(value));
 const sortByDate=items=>[...(items||[])].filter(item=>item?.date||item?.reportDate).sort((a,b)=>String(a.date||a.reportDate).localeCompare(String(b.date||b.reportDate)));
@@ -38,6 +38,18 @@ export function buildClinicalPdfData(data,professional,options={}){
   const labs=[...(data.laboratoryReports||[])].filter(row=>row?.reportDate).sort((a,b)=>String(a.reportDate).localeCompare(String(b.reportDate))).slice(-5);
   const latestBia=[...measurements].reverse().find(row=>["bodyFat","muscleMass","ffm","ecm","bcm"].some(key=>finite(row[key])))||null;
   const height=finite(data.identity.height)?Number(data.identity.height):null;
+  const startedAt=Date.parse(activePathway?.startedAt?.slice(0,10)||"");
+  const trendRows=weightRows.filter(row=>Number.isFinite(Date.parse(row.date))&&(!Number.isFinite(startedAt)||Date.parse(row.date)>=startedAt));
+  const trendFirst=trendRows.length?Number(trendRows[0].weight):null;
+  const trendCurrent=trendRows.length?Number(trendRows.at(-1).weight):null;
+  const bia=latestBia?{
+    date:latestBia.date||"",
+    ffm:normalizedFFM(latestBia),
+    bodyFat:finite(latestBia.bodyFat)?Number(latestBia.bodyFat):null,
+    muscleMass:finite(latestBia.muscleMass)?Number(latestBia.muscleMass):null,
+    ecm:finite(latestBia.ecm)?Number(latestBia.ecm):null,
+    bcm:finite(latestBia.bcm)?Number(latestBia.bcm):null
+  }:null;
   const family=data.profile?.anamnesis?.family||{};
   const familyLabels=[
     ["obesity","Obesita"],["diabetes","Diabete"],["hypertension","Ipertensione"],
@@ -75,6 +87,11 @@ export function buildClinicalPdfData(data,professional,options={}){
       currentBmi:bmi(currentWeight,height),
       currentBmiCategory:bmiCategory(bmi(currentWeight,height))
     },
+    weightTrend:{
+      measurements:trendRows.map(row=>({date:row.date,weight:Number(row.weight)})),
+      firstWeight:trendFirst,currentWeight:trendCurrent,
+      delta:trendFirst!==null&&trendCurrent!==null?trendCurrent-trendFirst:null
+    },
     activePathway:activePathway?{
       status:"active",
       startedAt:activePathway.startedAt||"",
@@ -97,14 +114,8 @@ export function buildClinicalPdfData(data,professional,options={}){
       notes:row.notes||""
     })),
     labs:labs.map(row=>({date:row.reportDate,values:{...(row.values||{})},notes:row.notes||""})),
-    latestBia:latestBia?{
-      date:latestBia.date||"",
-      ffm:normalizedFFM(latestBia),
-      bodyFat:finite(latestBia.bodyFat)?Number(latestBia.bodyFat):null,
-      muscleMass:finite(latestBia.muscleMass)?Number(latestBia.muscleMass):null,
-      ecm:finite(latestBia.ecm)?Number(latestBia.ecm):null,
-      bcm:finite(latestBia.bcm)?Number(latestBia.bcm):null
-    }:null,
+    latestBia:bia,
+    biaComposition:buildComposition(bia),
     diary:diarySelection(data,options.diaryMode||"none").map(day=>({
       date:day.date,
       weight:finite(day.weight)?Number(day.weight):null,

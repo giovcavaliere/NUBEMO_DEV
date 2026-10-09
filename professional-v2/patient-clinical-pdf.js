@@ -1,4 +1,5 @@
 import {pdfLogo,pdfFontRegular,pdfFontBold} from "./patient-clinical-pdf-assets.js";
+import {patientBodyPath} from "./patient-body-graphic.js";
 
 // Editorial A4 layout. Coordinates below are measured from the top of the page.
 // The renderer consumes normalized data only; no DOM, network or route dependencies.
@@ -211,12 +212,21 @@ function weightChart(rows){
   return s;
 }
 function trendPages(doc){
-  const su=doc.summary,f=new Flow("Andamento peso","Evoluzione longitudinale delle rilevazioni disponibili","05");
+  const su=doc.weightTrend,f=new Flow("Andamento peso",doc.activePathway?"Evoluzione del peso dall’inizio del percorso":"Evoluzione longitudinale delle rilevazioni disponibili","05");
   f.page+=metrics([["Prima rilevazione",weight(su.firstWeight)],["Ultima rilevazione",weight(su.currentWeight)],["Variazione",delta(su.delta),C.sage]]);f.y=TOP+100;
-  const chart=weightChart(doc.measurements);
-  if(chart){f.page+=chart;f.y=674;f.note(doc.measurements.filter(item=>finite(item.weight)).length===1?"Una sola rilevazione disponibile: il punto indica il peso registrato, senza stimare un andamento.":"Il grafico mantiene le date reali delle rilevazioni. La scala verticale segue l’intervallo dei pesi disponibili.")}
+  const chart=weightChart(su.measurements);
+  if(chart){f.page+=chart;f.y=674;f.note(su.measurements.length===1?"Una sola rilevazione disponibile: il punto indica il peso registrato, senza stimare un andamento.":"Il grafico mantiene le date reali delle rilevazioni. La scala verticale segue l’intervallo dei pesi disponibili.")}
   else f.note("Nessun peso disponibile per rappresentare l’andamento.");
   return f.finish();
+}
+function bodyFigure(composition,center,top,height){
+  const scale=height/292;
+  // The shared outline uses only absolute SVG move/line/cubic commands.
+  // A flipped PDF coordinate system preserves the approved UI geometry exactly.
+  const path=patientBodyPath.replace(/([MLC])([^MLCZ]+)/g,(_,command,coordinates)=>`${coordinates.trim()} ${{M:"m",L:"l",C:"c"}[command]} `).replace(/Z/g,"h");
+  let stream=`q ${n(scale)} 0 0 ${n(-scale)} ${n(center-100*scale)} ${n(PAGE_H-top+14*scale)} cm ${path} W n 0.898 0.902 0.875 rg 20 20 160 280 re f\n`;
+  composition.bands.forEach(band=>{if(band.height>0)stream+=`${C[band.tone]} rg 20 ${n(band.y)} 160 ${n(band.height)} re f\n`});
+  return stream+"Q\n";
 }
 function biaPages(doc){
   const b=doc.latestBia,f=new Flow("Composizione corporea","Analisi BIA · ultima rilevazione disponibile","06");
@@ -230,28 +240,13 @@ function biaPages(doc){
   });
   f.y+=124;
   const chartTop=f.y;
-  f.page+=rect(LEFT,chartTop,WIDTH,305,C.white,C.line)+txt(LEFT+18,chartTop+27,"Due letture complementari",12,"F2")+txt(LEFT+18,chartTop+46,"Scala di riferimento 0–100%",8,"F1",C.muted);
-  const base=chartTop+240,h=160,chartLeft=LEFT+42,stackW=64;
-  const stacks=[["FFM / FM",[["FFM",b.ffm,C.green],["FM",b.bodyFat,C.fm]]],["BCM / ECM",[["BCM",b.bcm,C.bcm],["ECM",b.ecm,C.ecm]]]];
-  const ceiling=Math.max(100,...stacks.map(([,segments])=>segments.reduce((sum,[,value])=>sum+(finite(value)?value:0),0)));
-  const unit=h/ceiling;
-  for(let tick=0;tick<=100;tick+=20){const yy=base-unit*tick;f.page+=txt(LEFT+12,yy+3,String(tick),7,"F1",C.muted)+line(chartLeft-5,yy,chartLeft+stackW*2+40,yy)}
-  stacks.forEach(([label,segments],i)=>{
-    const x=chartLeft+i*(stackW+32),total=segments.reduce((sum,[,value])=>sum+(finite(value)?value:0),0);let offset=0;
-    f.page+=rect(x,base-100*unit,stackW,100*unit,C.cream,C.line);
-    segments.forEach(([name,value,color])=>{
-      if(!finite(value))return;
-      if(value>0){f.page+=rect(x,base-(offset+value)*unit,stackW,value*unit,color);if(value*unit>=27)f.page+=alignText(x,base-(offset+value/2)*unit+3,fmtNum(value),stackW,9,"F2","center",name==="FFM"?C.white:C.ink)}
-      offset+=value;
-    });
-    f.page+=alignText(x-8,base+21,label,stackW+16,9,"F2","center");
-    if(total>100)f.page+=alignText(x-6,base-h-12,`Totale ${fmtNum(total)}%`,stackW+12,7,"F2","center",C.muted);
-  });
+  f.page+=rect(LEFT,chartTop,WIDTH,305,C.white,C.line)+txt(LEFT+18,chartTop+27,"Rappresentazione corporea",12,"F2")+txt(LEFT+18,chartTop+46,"FM · ECM · BCM",8,"F1",C.muted);
+  f.page+=bodyFigure(doc.biaComposition,LEFT+143,chartTop+61,232);
   let ly=chartTop+92;
   components.forEach(([label,description,value,color])=>{f.page+=circle(LEFT+289,ly-3,3.5,color)+txt(LEFT+302,ly,label,9,"F2",color)+alignText(LEFT+342,ly,finite(value)?`${fmtNum(value)} %`:"—",WIDTH-354,9,"F2","right");ly+=31});
   f.y=chartTop+327;
   const complete=[b.bodyFat,b.ecm,b.bcm].every(finite),total=complete?b.bodyFat+b.ecm+b.bcm:null;
-  f.note(`${finite(b.bcm)&&finite(b.ecm)?"FFM = BCM + ECM.":"FFM registrata, quando disponibile."} ${total>100?`FM + ECM + BCM = ${fmtNum(total)}%. Nessuna normalizzazione: l’eccedenza si estende oltre il riferimento 100%.`:"I campi mancanti non sono stimati. Le pile non implicano che la somma delle componenti sia pari a 100%."}`);
+  f.note(`${finite(b.bcm)&&finite(b.ecm)?"FFM = BCM + ECM.":"FFM registrata, quando disponibile."} ${total>100?`FM + ECM + BCM = ${fmtNum(total)}%. La figura è proporzionale ai valori rilevati, che restano invariati.`:doc.biaComposition.note}`);
   return f.finish();
 }
 function diaryPages(doc){

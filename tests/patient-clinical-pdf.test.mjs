@@ -5,6 +5,7 @@ import {createClinicalPdf} from "../professional-v2/patient-clinical-pdf.js";
 import {getPatientData} from "../professional-v2/patient-detail-data.js";
 import {professionalProfile} from "../professional-v2/profile-view.js";
 import {pdfFontRegular,pdfFontBold} from "../professional-v2/patient-clinical-pdf-assets.js";
+import {getMeasurementsViewModel} from "../professional-v2/patient-measurements-model.js";
 
 const encoded=text=>Array.from(text,c=>c.charCodeAt(0).toString(16).padStart(2,"0")).join("");
 const pdfText=async doc=>new TextDecoder().decode(await createClinicalPdf(doc).arrayBuffer());
@@ -55,9 +56,40 @@ test("missing data, no active pathway, one reading and partial/excess BIA remain
   assert.ok(empty.includes(encoded("Nessun percorso attivo.")));
   assert.ok(empty.includes(encoded("Anamnesi non ancora disponibile.")));
   assert.ok(empty.includes(encoded("Composizione corporea non ancora rilevata.")));
-  sparse.measurements=[{date:"2026-10-09",weight:80}];
-  sparse.latestBia={date:"2026-10-09",bodyFat:70,bcm:90,ecm:20,ffm:110,muscleMass:null};
-  const text=await pdfText(sparse);
+  const data=structuredClone(getPatientData("p2"));
+  data.measurements=[{date:"2026-10-09",weight:80,bodyFat:70,bcm:90,ecm:20,ffm:110,muscleMass:null}];
+  const text=await pdfText(buildClinicalPdfData(data,professionalProfile));
   assert.ok(text.includes(encoded("180,0%"))||text.includes(encoded("180,0%.")));
   assert.doesNotMatch(text,/NaN|Infinity/);
+});
+test("weight trend and its KPIs share the inclusive active-pathway interval without changing patient totals",async()=>{
+  const data=structuredClone(getPatientData("p1"));
+  data.pathways.items=[{status:"ended",startedAt:"2024-01-01"},{status:"active",startedAt:"2026-09-01"}];
+  data.measurements=[{date:"2026-08-31",weight:100},{date:"2026-09-01",weight:"95"},{date:"2026-09-10",weight:null},{date:"2026-09-20",weight:92}];
+  const doc=buildClinicalPdfData(data,professionalProfile);
+  assert.deepEqual(doc.weightTrend,{measurements:[{date:"2026-09-01",weight:95},{date:"2026-09-20",weight:92}],firstWeight:95,currentWeight:92,delta:-3});
+  assert.equal(doc.measurements.length,4);
+  assert.equal(doc.summary.firstWeight,100);
+  assert.equal(doc.summary.delta,-8);
+  assert.ok((await pdfText(doc)).includes(encoded("Evoluzione del peso dall")+"92"+encoded("inizio del percorso")));
+  data.pathways.items=[];
+  const fallback=buildClinicalPdfData(data,professionalProfile);
+  assert.equal(fallback.weightTrend.firstWeight,100);
+  assert.equal(fallback.weightTrend.delta,-8);
+  assert.equal(fallback.weightTrend.measurements.length,3);
+  data.pathways.items=[{status:"active",startedAt:"2027-01-01"}];
+  const empty=buildClinicalPdfData(data,professionalProfile);
+  assert.deepEqual(empty.weightTrend,{measurements:[],firstWeight:null,currentWeight:null,delta:null});
+  assert.ok((await pdfText(empty)).includes(encoded("Nessun peso disponibile per rappresentare")));
+});
+test("PDF BIA reuses the approved Misure bands for complete, partial and excess values",async()=>{
+  for(const values of [{bodyFat:30,bcm:50,ecm:20},{bodyFat:20,bcm:null,ecm:null},{bodyFat:70,bcm:90,ecm:20},{ffm:70}]){
+    const data=structuredClone(getPatientData("p2"));
+    data.measurements=[{date:"2026-10-09",...values}];
+    const doc=buildClinicalPdfData(data,professionalProfile);
+    assert.deepEqual(doc.biaComposition.bands,getMeasurementsViewModel(data).composition.bands);
+    const text=await pdfText(doc);
+    assert.match(text,/ W n 0\.898 0\.902 0\.875 rg/);
+    assert.doesNotMatch(text,/NaN|Infinity/);
+  }
 });

@@ -109,7 +109,7 @@ function measurementRow(measurement){
     notes:measurement.notes||"Nessuna nota",ffmNote:nonnegative(measurement.ffm)&&nonnegative(measurement.bcm)&&nonnegative(measurement.ecm)&&Math.abs(measurement.ffm-ffm)>.1?`FFM registrata: ${valueText(measurement.ffm,"%")} · calcolata: ${valueText(ffm,"%")}. Il valore registrato è conservato.`:""};
 }
 
-function buildComposition(measurement){
+export function buildComposition(measurement){
   if(!measurement) return null;
   const definitions=[["bodyFat","FM","Massa grassa","fm"],["ecm","ECM","Massa extracellulare","ecm"],["bcm","BCM","Massa cellulare","bcm"]];
   const complete=definitions.every(([key])=>nonnegative(measurement[key]));
