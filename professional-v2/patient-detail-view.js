@@ -5,6 +5,7 @@ import {renderVisits,bindVisits} from "./patient-visits-view.js";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
 import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
+import {renderClinicalPdfAction,bindClinicalPdf} from "./patient-clinical-pdf-view.js?v=clinical-pdf-20261009";
 
 const tabs=[
   ["panoramica","Panoramica"],["profilo","Profilo"],["visite","Visite"],
@@ -116,7 +117,7 @@ function renderOverview(model){
       <section class="detail-panel">${sectionHeading("chart","Andamento recente","Peso nelle ultime rilevazioni.")}${renderWeightChart(model.weightSeries)}</section>
       ${renderComposition(model)}
       <section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Accessi rapidi alla scheda.")}
-        <div class="detail-actions">${actions.map(([label,target,symbol])=>`<a href="${route(model.data.identity.id,target)}">${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
+        ${renderClinicalPdfAction()}<div class="detail-actions">${actions.map(([label,target,symbol])=>`<a href="${route(model.data.identity.id,target)}">${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
       </section>
     </div>
     <section class="detail-panel">${sectionHeading("document","Documenti e attività recenti","Aggiornamenti in ordine cronologico.")}
@@ -335,7 +336,7 @@ export function renderPatientDetail(root,model,activeTab="panoramica",onIdentity
     openProfileSectionDialog(root,model,button.dataset.editProfileSection,onIdentityChange);
   }));
   root.querySelector("[data-edit-administration]")?.addEventListener("click",()=>openAdministrationDialog(root,model,onIdentityChange));
-  if(tab==="panoramica") bindPathwayManagement(root,model,onIdentityChange,attachDialog);
+  if(tab==="panoramica"){ bindPathwayManagement(root,model,onIdentityChange,attachDialog); bindClinicalPdf(root,model); }
   if(tab==="visite") bindVisits(root,model,onIdentityChange);
   if(tab==="andamento") bindProgress(root,model.data,model.progress);
   if(tab==="misure") bindMeasurements(root,model.data,model.measurements,onIdentityChange,attachDialog);
