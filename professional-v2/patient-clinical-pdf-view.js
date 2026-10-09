@@ -1,5 +1,5 @@
-import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=clinical-pdf-20261009b";
-import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js?v=clinical-pdf-20261009b";
+import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=clinical-pdf-editorial-20261009";
+import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js?v=clinical-pdf-editorial-20261009";
 import {professionalProfile} from "./profile-view.js";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));

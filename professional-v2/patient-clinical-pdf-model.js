@@ -1,3 +1,5 @@
+import {calculateFFM} from "./patient-measurements-model.js";
+
 const finite=value=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(Number(value));
 const sortByDate=items=>[...(items||[])].filter(item=>item?.date||item?.reportDate).sort((a,b)=>String(a.date||a.reportDate).localeCompare(String(b.date||b.reportDate)));
 const bmi=(weight,height)=>finite(weight)&&finite(height)&&Number(height)>0?Number(weight)/((Number(height)/100)**2):null;
@@ -10,6 +12,8 @@ const ageAt=(birth,now=new Date())=>{
   return age;
 };
 const objective=item=>item?.objectiveLabel||item?.customObjective||"Percorso nutrizionale";
+const normalizedFFM=row=>calculateFFM({bcm:finite(row.bcm)?Number(row.bcm):null,ecm:finite(row.ecm)?Number(row.ecm):null,ffm:finite(row.ffm)?Number(row.ffm):null});
+const bmiCategory=value=>value==null?null:value<18.5?"Sottopeso":value<25?"Normopeso":value<30?"Sovrappeso":value<35?"Obesità I":value<40?"Obesità II":"Obesità III";
 
 function diarySelection(data,mode){
   if(mode==="none") return [];
@@ -67,7 +71,9 @@ export function buildClinicalPdfData(data,professional,options={}){
       firstWeight:finite(firstWeight)?Number(firstWeight):null,
       currentWeight:finite(currentWeight)?Number(currentWeight):null,
       delta:finite(firstWeight)&&finite(currentWeight)?Number(currentWeight)-Number(firstWeight):null,
-      currentBmi:bmi(currentWeight,height)
+      initialBmi:bmi(firstWeight,height),
+      currentBmi:bmi(currentWeight,height),
+      currentBmiCategory:bmiCategory(bmi(currentWeight,height))
     },
     activePathway:activePathway?{
       status:"active",
@@ -85,7 +91,7 @@ export function buildClinicalPdfData(data,professional,options={}){
     measurements:measurements.map(row=>({
       date:row.date||"",weight:finite(row.weight)?Number(row.weight):null,
       waist:finite(row.waist)?Number(row.waist):null,hips:finite(row.hips)?Number(row.hips):null,
-      ffm:finite(row.ffm)?Number(row.ffm):null,bodyFat:finite(row.bodyFat)?Number(row.bodyFat):null,
+      ffm:normalizedFFM(row),bodyFat:finite(row.bodyFat)?Number(row.bodyFat):null,
       muscleMass:finite(row.muscleMass)?Number(row.muscleMass):null,
       ecm:finite(row.ecm)?Number(row.ecm):null,bcm:finite(row.bcm)?Number(row.bcm):null,
       notes:row.notes||""
@@ -93,7 +99,7 @@ export function buildClinicalPdfData(data,professional,options={}){
     labs:labs.map(row=>({date:row.reportDate,values:{...(row.values||{})},notes:row.notes||""})),
     latestBia:latestBia?{
       date:latestBia.date||"",
-      ffm:finite(latestBia.ffm)?Number(latestBia.ffm):null,
+      ffm:normalizedFFM(latestBia),
       bodyFat:finite(latestBia.bodyFat)?Number(latestBia.bodyFat):null,
       muscleMass:finite(latestBia.muscleMass)?Number(latestBia.muscleMass):null,
       ecm:finite(latestBia.ecm)?Number(latestBia.ecm):null,
@@ -101,6 +107,8 @@ export function buildClinicalPdfData(data,professional,options={}){
     }:null,
     diary:diarySelection(data,options.diaryMode||"none").map(day=>({
       date:day.date,
+      weight:finite(day.weight)?Number(day.weight):null,
+      water:day.water??null,
       meals:(day.meals||[]).map(meal=>({key:meal.key,time:meal.time||"",text:meal.originalText||""})),
       valid:day.valid!==false
     })),
