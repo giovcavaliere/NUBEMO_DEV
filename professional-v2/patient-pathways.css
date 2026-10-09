@@ -39,6 +39,16 @@
 .pathway-history-empty{margin:12px 0 0;color:var(--muted);font-size:11px}
 .pathway-readonly-note{display:flex;align-items:center;gap:9px;margin-top:13px;padding:10px 12px;border-radius:11px;background:#edf2e9;color:var(--green-800);font-size:10px}
 .pathway-readonly-note span{color:var(--muted)}
+.pathway-outcome{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin-top:12px}
+.pathway-outcome>div{padding:10px;border:1px solid #d8e4d3;border-radius:11px;background:rgba(237,242,233,.58);min-width:0}
+.pathway-outcome span,.pathway-outcome strong{display:block}
+.pathway-outcome span{color:var(--muted);font-size:8px}
+.pathway-outcome strong{margin-top:4px;color:var(--green-950);font-size:13px;line-height:1.25}
+.pathway-history-closing{background:rgba(236,244,232,.72)}
+.pathway-closing-note{display:grid;gap:5px;margin-top:14px;color:var(--muted);font-size:10px}
+.pathway-closing-note span{display:block}
+.pathway-closing-note small{font-size:9px;font-weight:400}
+.pathway-closing-note textarea{display:block;width:100%;min-height:92px;box-sizing:border-box;margin:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;line-height:1.45;resize:vertical}
 .pathway-history-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin-top:12px}
 .pathway-history-kpis>div{padding:9px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.55);min-width:0}
 .pathway-history-kpis span,.pathway-history-kpis strong{display:block}
@@ -48,10 +58,13 @@
 .pathway-history-note span{display:block;color:var(--muted);font-size:9px}
 .pathway-history-note p{margin:4px 0 0;color:var(--text);font-size:10px;line-height:1.45}
 .pathway-dialog-fields{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}
-.pathway-dialog-fields label{display:grid;gap:5px;color:var(--muted);font-size:10px}
-.pathway-dialog-fields input,.pathway-dialog-fields select,.pathway-dialog-fields textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
-.pathway-dialog-fields input,.pathway-dialog-fields select{height:42px;padding:0 10px}
-.pathway-dialog-fields textarea{min-height:86px;padding:10px;resize:vertical}
+.pathway-dialog-fields label{display:grid;grid-template-rows:18px auto;gap:5px;min-width:0;align-self:start;color:var(--muted);font-size:10px}
+.pathway-dialog-fields label>span{display:flex;align-items:flex-end;min-height:18px;line-height:1.2}
+.pathway-dialog-fields input,.pathway-dialog-fields select,.pathway-dialog-fields textarea{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:0;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
+.pathway-dialog-fields input,.pathway-dialog-fields select{height:42px;min-height:42px;max-height:42px;padding:0 10px;line-height:normal}
+.pathway-dialog-fields input[type="date"]{-webkit-appearance:none;appearance:none;text-align:left;direction:ltr;line-height:42px}
+.pathway-dialog-fields input[type="date"]::-webkit-date-and-time-value{display:flex;align-items:center;height:42px;min-height:42px;line-height:42px;text-align:left}
+.pathway-dialog-fields textarea{min-height:86px;padding:10px;resize:vertical;line-height:1.45}
 .pathway-custom-objective,.pathway-note-field{grid-column:1/-1}
 .pathway-note-field small{font-size:9px;font-weight:400}
 .pathway-end-summary{display:grid;gap:4px;margin-top:15px;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--green-soft-2)}
@@ -60,7 +73,7 @@
 
 @media(max-width:1100px){
   .pathway-card{align-items:flex-start}
-  .pathway-history-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .pathway-outcome,.pathway-history-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(max-width:720px){
   .pathway-card{display:grid}
@@ -68,7 +81,7 @@
   .pathway-card-actions button{flex:1 1 auto}
   .pathway-pending-note{max-width:none;text-align:left}
   .pathway-history-head{align-items:center}
-  .pathway-history-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pathway-outcome,.pathway-history-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .pathway-dialog-fields{grid-template-columns:1fr}
   .pathway-custom-objective,.pathway-note-field{grid-column:auto}
 }
