@@ -1,5 +1,5 @@
 const finite=value=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(Number(value));
-const sortByDate=items=>[...(items||[])].filter(item=>item?.date||item?.reportDate).sort((a,b)=>String(a.date||a.reportDate).localeCompare(String(b.date||b.reportortDate)));
+const sortByDate=items=>[...(items||[])].filter(item=>item?.date||item?.reportDate).sort((a,b)=>String(a.date||a.reportDate).localeCompare(String(b.date||b.reportDate)));
 const bmi=(weight,height)=>finite(weight)&&finite(height)&&Number(height)>0?Number(weight)/((Number(height)/100)**2):null;
 const ageAt=(birth,now=new Date())=>{
   if(!birth) return null;
