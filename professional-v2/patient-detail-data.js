@@ -165,6 +165,20 @@ export function getPatientData(id){
   const data={
     identity:{id:record.id,firstName:record.first_name,lastName:record.last_name,avatar:record.avatar,status:record.status,birthDate:record.birthDate||null,age:record.age,sex:record.sex||null,height:record.height??"",phone:record.phone||"",email:record.email||"",fiscalCode:record.fiscalCode||"",address:record.address||"",postalCode:record.postalCode||"",city:record.city||"",province:record.province||"",showCaloriesToPatient:record.showCaloriesToPatient??true,nubemoAccountStatus:record.nubemoAccountStatus||"inactive",...detail.identity},
     journey:{startedAt:null,summary:"",plans:[],...detail.journey},
+    pathways:{
+      items:Array.isArray(detail.pathways?.items)
+        ? detail.pathways.items.map(item=>({...item}))
+        : (detail.journey?.startedAt ? [{
+            id:`${id}-pathway-current`,
+            status:"active",
+            startedAt:detail.journey.startedAt,
+            endedAt:null,
+            objectiveKey:"weight_loss",
+            objectiveLabel:"Dimagrimento",
+            objectiveNote:""
+          }] : []),
+      ui:{historyOpen:false,selectedHistoryId:null,...(detail.pathways?.ui||{})}
+    },
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
     diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],laboratoryReports:detail.laboratoryReports||[],documentUi:{filter:"all",unreadOnly:false},activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
     profile:{anamnesis:{goalWeight:"",minWeight:"",maxWeight:"",reasonableWeight:"",theoreticalWeight:"",objectives:"",work:"",activity:"",activityFactor:"",smoking:"",alcohol:"",diagnosis:"",bowel:"",metabolism:"",feeg:"",impedance:"",family:{obesity:false,diabetes:false,hypertension:false,cardiovascular:false,dyslipidemia:false,thyroid:false},previousDiets:"",allergies:"",medications:"",giIssues:"",pastConditions:"",observations:""},...detail.profile},
