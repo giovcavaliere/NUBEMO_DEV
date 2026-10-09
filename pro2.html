@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0c5449">
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
-  <link rel="stylesheet" href="professional-v2/home-design.css?v=pro2-patients-step1-20261003">
+  <link rel="stylesheet" href="professional-v2/home-design.css?v=pro2-auth-20261009">
   <link rel="stylesheet" href="professional-v2/patients.css?v=patient-sort-avatar-20261007">
   <link rel="stylesheet" href="professional-v2/patient-create.css?v=new-patient-20261007">
   <link rel="stylesheet" href="professional-v2/patient-detail.css?v=clinical-pdf-editorial-20261009">
@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="professional-v2/appointment.css?v=pro2-appointment-20261004">
   <title>NUBEMO Professional 2.0</title>
 </head>
-<body>
+<body class="pro2-auth-pending">
   <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <defs>
       <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
@@ -298,6 +298,10 @@
     <a href="#support" data-route-link="support"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-support"/></svg>Assistenza</a>
     <a href="#profile" data-route-link="profile"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-profile"/></svg>Profilo</a>
   </nav>
-  <script type="module" src="professional-v2/pro2-app.js?v=clinical-pdf-editorial-20261009"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js?v=nubemo-env-20260919"></script>
+  <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
+  <script src="professional-v2/pro2-auth.js?v=pro2-auth-20261009"></script>
+  <script type="module" src="professional-v2/pro2-app.js?v=pro2-auth-20261009"></script>
 </body>
 </html>
