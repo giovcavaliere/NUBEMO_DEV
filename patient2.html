@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c5449">
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
   <link rel="stylesheet" href="professional-v2/home-design.css?v=patient2-home-baseline-20261009">
-  <link rel="stylesheet" href="patient-v2/home.css?v=patient2-home-baseline-20261009">
+  <link rel="stylesheet" href="patient-v2/home.css?v=patient2-home-refinement-20261009">
   <title>NUBEMO Patient 2.0</title>
 </head>
 <body>
@@ -93,6 +93,14 @@
               Prossima visita · 15 ottobre
             </div>
           </header>
+
+          <section class="patient-daily-quote" aria-labelledby="daily-quote-title">
+            <span class="patient-quote-icon" aria-hidden="true"><svg class="icon"><use href="#icon-leaf"/></svg></span>
+            <div>
+              <h2 id="daily-quote-title">Frase del giorno</h2>
+              <blockquote>“Ogni piccolo passo ripetuto con costanza costruisce il risultato.”</blockquote>
+            </div>
+          </section>
 
           <section class="kpi-grid patient-kpi-grid">
             <article class="kpi-card">
@@ -194,11 +202,22 @@
               </div>
 
               <div class="patient-weight-chart" aria-label="Grafico demo andamento peso">
-                <svg viewBox="0 0 680 225" role="img">
-                  <line class="patient-chart-grid" x1="36" y1="42" x2="648" y2="42"/>
-                  <line class="patient-chart-grid" x1="36" y1="96" x2="648" y2="96"/>
-                  <line class="patient-chart-grid" x1="36" y1="150" x2="648" y2="150"/>
-                  <line class="patient-chart-grid" x1="36" y1="196" x2="648" y2="196"/>
+                <div class="patient-chart-y-axis" aria-hidden="true">
+                  <small>kg</small>
+                  <span style="--tick:51.643">110,0</span>
+                  <span style="--tick:85.571">109,0</span>
+                  <span style="--tick:119.5">108,0</span>
+                  <span style="--tick:153.429">107,0</span>
+                  <span style="--tick:187.357">106,0</span>
+                </div>
+                <div class="patient-chart-plot">
+                <svg viewBox="0 0 680 225" preserveAspectRatio="none" role="img" aria-labelledby="weight-chart-title">
+                  <title id="weight-chart-title">Andamento peso demo dal 3 al 9 ottobre. Ultimo peso 106,6 kg; scala da 106 a 110 kg.</title>
+                  <line class="patient-chart-grid" x1="36" y1="51.643" x2="648" y2="51.643"/>
+                  <line class="patient-chart-grid" x1="36" y1="85.571" x2="648" y2="85.571"/>
+                  <line class="patient-chart-grid" x1="36" y1="119.5" x2="648" y2="119.5"/>
+                  <line class="patient-chart-grid" x1="36" y1="153.429" x2="648" y2="153.429"/>
+                  <line class="patient-chart-grid" x1="36" y1="187.357" x2="648" y2="187.357"/>
                   <path class="patient-chart-area" d="M36 72 L138 91 L240 112 L342 119 L444 143 L546 154 L648 167 L648 196 L36 196 Z"/>
                   <polyline class="patient-chart-line" points="36,72 138,91 240,112 342,119 444,143 546,154 648,167"/>
                   <circle class="patient-chart-point" cx="36" cy="72" r="4"/>
@@ -208,11 +227,10 @@
                   <circle class="patient-chart-point" cx="444" cy="143" r="4"/>
                   <circle class="patient-chart-point" cx="546" cy="154" r="4"/>
                   <circle class="patient-chart-point" cx="648" cy="167" r="4"/>
-                  <text class="patient-chart-label" x="36" y="216">3 ott</text>
-                  <text class="patient-chart-label" x="304" y="216">6 ott</text>
-                  <text class="patient-chart-label" x="648" y="216" text-anchor="end">9 ott</text>
-                  <text class="patient-chart-value" x="648" y="151" text-anchor="end">106,6 kg</text>
                 </svg>
+                <div class="patient-chart-labels" aria-hidden="true"><span>3 ott</span><span>6 ott</span><span>9 ott</span></div>
+                <strong class="patient-chart-value" aria-hidden="true">106,6 kg</strong>
+                </div>
               </div>
             </article>
 
