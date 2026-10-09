@@ -1,5 +1,5 @@
-import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js";
-import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js";
+import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=clinical-pdf-20261009b";
+import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js?v=clinical-pdf-20261009b";
 import {professionalProfile} from "./profile-view.js";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
@@ -57,7 +57,8 @@ function openClinicalPdfDialog(root,model){
       const normalized=buildClinicalPdfData(model.data,professionalProfile,{diaryMode});
       const blob=createClinicalPdf(normalized);
       const safe=normalized.patient.name.replace(/[^A-Za-z0-9_-]+/g,"_")||"Paziente";
-      openClinicalPdf(blob,`Cartella_NUBEMO_${safe}.pdf`);
+      const stamp=new Date().toISOString().slice(0,10).replace(/-/g,"");
+      openClinicalPdf(blob,`Cartella_NUBEMO_${safe}_${stamp}.pdf`);
     }
     dialog.remove();
   },{once:true});
