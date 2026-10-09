@@ -16,6 +16,21 @@ const fmtDate=value=>{
   const date=new Date(String(value).length===10?`${value}T12:00:00`:value);
   return Number.isNaN(date.getTime())?String(value):new Intl.DateTimeFormat("it-IT").format(date);
 };
+const fmtNumber=value=>Number.isFinite(Number(value))
+  ? new Intl.NumberFormat("it-IT",{maximumFractionDigits:1}).format(Number(value))
+  : "—";
+const daysBetween=(start,end)=>{
+  if(!start||!end) return null;
+  const from=new Date(`${String(start).slice(0,10)}T12:00:00`);
+  const to=new Date(`${String(end).slice(0,10)}T12:00:00`);
+  if(Number.isNaN(from.getTime())||Number.isNaN(to.getTime())) return null;
+  return Math.max(1,Math.round((to-from)/86400000)+1);
+};
+const bmi=(weight,heightCm)=>{
+  const weightValue=Number(weight),heightValue=Number(heightCm);
+  if(!Number.isFinite(weightValue)||!Number.isFinite(heightValue)||heightValue<=0) return null;
+  return weightValue/((heightValue/100)**2);
+};
 const objectiveLabel=(key,custom="")=>key==="other"
   ? String(custom||"Altro").trim()
   : OBJECTIVES.find(([value])=>value===key)?.[1]||"Non specificato";
@@ -94,6 +109,14 @@ function historyPanel(model){
 
   if(selected){
     const summary=selected.snapshotSummary||{};
+    const duration=summary.durationDays??daysBetween(selected.startedAt,selected.endedAt);
+    const initialWeight=summary.initialWeight;
+    const finalWeight=summary.finalWeight;
+    const delta=Number.isFinite(Number(initialWeight))&&Number.isFinite(Number(finalWeight))
+      ? Number(finalWeight)-Number(initialWeight)
+      : null;
+    const initialBmi=summary.initialBmi??bmi(initialWeight,model.data.identity.height);
+    const finalBmi=summary.finalBmi??bmi(finalWeight,model.data.identity.height);
     return `<section class="pathway-history pathway-history-detail">
       <header class="pathway-history-head">
         <div>
@@ -104,6 +127,14 @@ function historyPanel(model){
         <button type="button" class="pathway-secondary" data-pathway-history-back>← Torna allo storico</button>
       </header>
       <div class="pathway-readonly-note"><strong>Percorso concluso</strong><span>I dati di questo percorso sono consultabili in sola lettura.</span></div>
+      <div class="pathway-outcome">
+        <div><span>Durata</span><strong>${duration?`${duration} giorni`:"—"}</strong></div>
+        <div><span>Peso iniziale</span><strong>${initialWeight!=null?`${fmtNumber(initialWeight)} kg`:"—"}</strong></div>
+        <div><span>Peso finale</span><strong>${finalWeight!=null?`${fmtNumber(finalWeight)} kg`:"—"}</strong></div>
+        <div><span>Variazione</span><strong>${delta==null?"—":`${delta>0?"+":""}${fmtNumber(delta)} kg`}</strong></div>
+        <div><span>BMI iniziale</span><strong>${initialBmi==null?"—":fmtNumber(initialBmi)}</strong></div>
+        <div><span>BMI finale</span><strong>${finalBmi==null?"—":fmtNumber(finalBmi)}</strong></div>
+      </div>
       <div class="pathway-history-kpis">
         <div><span>Visite</span><strong>${summary.visits??"—"}</strong></div>
         <div><span>Misurazioni</span><strong>${summary.measurements??"—"}</strong></div>
@@ -113,6 +144,7 @@ function historyPanel(model){
         <div><span>Note</span><strong>${summary.notes??"—"}</strong></div>
       </div>
       ${selected.objectiveNote?`<div class="pathway-history-note"><span>Nota obiettivo</span><p>${escapeHtml(selected.objectiveNote)}</p></div>`:""}
+      ${selected.closingNote?`<div class="pathway-history-note pathway-history-closing"><span>Nota di chiusura</span><p>${escapeHtml(selected.closingNote)}</p></div>`:""}
     </section>`;
   }
 
@@ -173,8 +205,10 @@ function syncCustomObjective(dialog){
   sync();
 }
 
-function captureSnapshot(model){
+function captureSnapshot(model,current){
   const weights=(model.weightSeries||[]).map(row=>Number(row.weight)).filter(Number.isFinite);
+  const initialWeight=weights.length?weights[0]:null;
+  const finalWeight=weights.length?weights.at(-1):null;
   return {
     visits:model.data.visits.filter(item=>item.status==="completed").length,
     measurements:model.data.measurements.length,
@@ -182,8 +216,11 @@ function captureSnapshot(model){
     documents:model.data.documents.length,
     plans:model.data.nutritionPlans.length,
     notes:model.data.notes.length,
-    initialWeight:weights.length?weights[0]:null,
-    finalWeight:weights.length?weights.at(-1):null
+    durationDays:daysBetween(current?.startedAt,todayIso()),
+    initialWeight,
+    finalWeight,
+    initialBmi:bmi(initialWeight,model.data.identity.height),
+    finalBmi:bmi(finalWeight,model.data.identity.height)
   };
 }
 
@@ -248,13 +285,15 @@ function openEndDialog(root,model,onChange,attachDialog){
   dialog.className="detail-dialog pathway-dialog pathway-end-dialog";
   dialog.innerHTML=dialogShell("Concludi percorso",
     `<p>Il percorso verrà spostato nello storico e resterà consultabile in sola lettura.</p>
-     <div class="pathway-end-summary"><strong>${escapeHtml(current.objectiveLabel||objectiveLabel(current.objectiveKey,current.customObjective))}</strong><span>Iniziato il ${fmtDate(current.startedAt)}</span></div>`,
+     <div class="pathway-end-summary"><strong>${escapeHtml(current.objectiveLabel||objectiveLabel(current.objectiveKey,current.customObjective))}</strong><span>Iniziato il ${fmtDate(current.startedAt)}</span></div>
+     <label class="pathway-closing-note"><span>Nota di chiusura <small>(facoltativa)</small></span><textarea name="closingNote" rows="4" maxlength="400" placeholder="Esito del percorso, indicazioni finali o motivo della chiusura."></textarea></label>`,
     "Concludi percorso"
   );
-  attachDialog(root,dialog,()=>{
+  attachDialog(root,dialog,values=>{
     current.status="ended";
     current.endedAt=todayIso();
-    current.snapshotSummary=captureSnapshot(model);
+    current.closingNote=String(values.get("closingNote")||"").trim();
+    current.snapshotSummary=captureSnapshot(model,current);
     model.data.journey.startedAt=null;
     pathways(model).ui.historyOpen=true;
     pathways(model).ui.selectedHistoryId=null;
