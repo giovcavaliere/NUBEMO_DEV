@@ -66,6 +66,16 @@
 .patient-diary-history-card{overflow:hidden}
 .patient-diary-history-card>header{padding:17px 18px;border-bottom:1px solid var(--line)}
 .patient-diary-history-card>header p{margin:4px 0 0;color:var(--muted);font-size:11px}
+
+.patient-diary-history-search{
+  display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;align-items:center;
+  margin:12px 18px;padding:0 11px;border:1px solid var(--line);border-radius:10px;background:#fbfcfa;
+}
+.patient-diary-history-search>span{color:var(--muted);font-size:15px}
+.patient-diary-history-search input{
+  width:100%;min-width:0;height:40px;border:0;outline:0;background:transparent;
+  color:var(--text);font:inherit;font-size:11px;
+}
 .patient-diary-history-list{display:grid}
 .patient-diary-history-row{
   width:100%;min-width:0;display:grid;grid-template-columns:minmax(100px,.8fr) minmax(120px,1fr) auto 14px;
@@ -190,6 +200,11 @@
 .patient-diary-history-detail strong,.patient-diary-history-detail small{display:block}
 .patient-diary-history-detail strong{font-size:11px}
 .patient-diary-history-detail small{margin-top:3px;color:var(--muted);font-size:10px;line-height:1.4}
+
+.patient-diary-history-actions{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+}
+.patient-diary-danger{color:#9a3f3a;border-color:#ead5d2;background:#fff8f7}
 .patient-diary-toast{
   position:fixed;z-index:120;right:18px;bottom:calc(96px + env(safe-area-inset-bottom));
   width:min(330px,calc(100% - 36px));display:grid;gap:3px;padding:12px 14px;border:1px solid #cfe0d3;
