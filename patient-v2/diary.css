@@ -46,11 +46,11 @@
   padding:12px;border:1px solid #e8e8e1;border-radius:13px;background:#fbfcfa;
 }
 .patient-diary-summary-icon{
-  width:42px;height:42px;display:grid;place-items:center;border-radius:12px;
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;
   background:var(--green-soft-2);color:var(--green-800);
 }
 .patient-diary-summary-icon.is-peach{background:var(--peach-soft);color:#bd6f31}
-.patient-diary-summary-icon .icon{width:20px;height:20px}
+.patient-diary-summary-icon .icon{display:block;width:20px;height:20px;margin:0}
 .patient-diary-summary-grid small,
 .patient-diary-summary-grid strong,
 .patient-diary-summary-grid span{display:block}
@@ -136,8 +136,8 @@
 .patient-diary-meal-card header>div:first-child{display:flex;align-items:center;gap:8px;min-width:0}
 .patient-diary-meal-card header strong{font-size:12px;color:#183a36}
 .patient-diary-meal-index{
-  width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:var(--peach-soft);
-  color:#bd6f31;font-size:9px;font-weight:800;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex:none;
+  border-radius:10px;background:var(--peach-soft);font-size:18px;line-height:1;
 }
 .patient-diary-meal-actions{display:flex;align-items:center;gap:5px;flex:none}
 .patient-diary-meal-actions button{
@@ -155,9 +155,8 @@
   padding:11px;color:var(--text);font:inherit;font-size:11.5px;line-height:1.5;resize:vertical;
 }
 .patient-diary-save-actions{
-  position:sticky;bottom:82px;z-index:5;display:grid;grid-template-columns:minmax(120px,.5fr) minmax(180px,1fr);
-  gap:8px;padding:10px;border:1px solid rgba(221,226,219,.95);border-radius:14px;
-  background:rgba(255,253,250,.95);backdrop-filter:blur(12px);box-shadow:0 10px 28px rgba(47,62,55,.08);
+  display:grid;grid-template-columns:minmax(120px,.5fr) minmax(180px,1fr);
+  gap:10px;padding:0 0 4px;
 }
 
 /* Dialogs */
