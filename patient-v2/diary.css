@@ -66,7 +66,12 @@
 .patient-diary-history-card{overflow:hidden}
 .patient-diary-history-card>header{padding:17px 18px;border-bottom:1px solid var(--line)}
 .patient-diary-history-card>header p{margin:4px 0 0;color:var(--muted);font-size:11px}
-.patient-diary-search-row{margin-bottom:0}
+.patient-diary-search-row{
+  margin:12px 18px;
+}
+.patient-diary-search-row .patient-search{
+  width:100%;
+}
 .patient-diary-history-empty{margin:0;padding:18px;text-align:center;color:var(--muted);font-size:11px}
 .patient-diary-history-empty[hidden]{display:none}
 
