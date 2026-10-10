@@ -509,15 +509,106 @@
             </section>
           </section>
 
-          <section class="patient-static-view" data-patient-view="profile" hidden>
-            <header class="patient-view-head"><div><span class="patient-view-eyebrow">Area paziente</span><h1>Profilo</h1><p>Dati personali e impostazioni del tuo account NUBEMO.</p></div></header>
-            <section class="module">
-              <div class="patient-demo-profile">
-                <div><span>Nome</span><strong>Giovanni Cavaliere</strong></div>
-                <div><span>Email</span><strong>giovanni.cavaliere@email.it</strong></div>
-                <div><span>Calorie</span><strong>Visibili</strong></div>
-                <div><span>Percorso</span><strong>Attivo</strong></div>
+          <section class="patient-static-view patient-profile-page" data-patient-view="profile" hidden>
+            <header class="patient-view-head">
+              <div>
+                <span class="patient-view-eyebrow">Area paziente</span>
+                <h1>Profilo</h1>
+                <p>I tuoi dati personali, la privacy e l'assistenza NUBEMO.</p>
               </div>
+            </header>
+
+            <section class="patient-profile-grid">
+              <article class="module patient-profile-photo-card">
+                <div class="patient-profile-card-head">
+                  <div>
+                    <span class="patient-view-eyebrow">Identità</span>
+                    <h2>Foto profilo</h2>
+                    <p>La stessa foto sarà visibile anche al tuo professionista.</p>
+                  </div>
+                </div>
+                <div class="patient-profile-photo-body">
+                  <div class="patient-profile-avatar" data-patient-profile-avatar>
+                    <span>GC</span>
+                  </div>
+                  <div class="patient-profile-photo-copy">
+                    <p>Puoi usare una foto JPG, PNG o WebP. Se non la carichi, NUBEMO mostrerà le tue iniziali.</p>
+                    <div class="patient-profile-photo-actions">
+                      <label class="patient-secondary patient-profile-upload">
+                        Carica foto
+                        <input type="file" accept="image/png,image/jpeg,image/webp" hidden data-patient-profile-photo>
+                      </label>
+                      <button class="patient-profile-remove" type="button" data-patient-profile-photo-remove>Rimuovi foto</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="module patient-profile-data-card">
+                <div class="patient-profile-card-head">
+                  <div>
+                    <span class="patient-view-eyebrow">Anagrafica</span>
+                    <h2>I tuoi dati</h2>
+                    <p>I dati principali associati al tuo account NUBEMO.</p>
+                  </div>
+                </div>
+
+                <dl class="patient-profile-fields">
+                  <div><dt>Nome</dt><dd>Giovanni</dd></div>
+                  <div><dt>Cognome</dt><dd>Cavaliere</dd></div>
+                  <div><dt>Data di nascita</dt><dd>12 maggio 1984</dd></div>
+                  <div><dt>Sesso</dt><dd>Maschile</dd></div>
+                  <div><dt>Altezza</dt><dd>180 cm</dd></div>
+                  <div><dt>Telefono</dt><dd>+39 333 123 4567</dd></div>
+                  <div><dt>Email</dt><dd>giovanni.cavaliere@email.it</dd></div>
+                  <div><dt>Account NUBEMO</dt><dd><span class="patient-profile-status">Attivo</span></dd></div>
+                </dl>
+              </article>
+
+              <article class="module patient-profile-privacy-card">
+                <div class="patient-profile-card-head">
+                  <div>
+                    <span class="patient-view-eyebrow">Privacy</span>
+                    <h2>Privacy e consensi</h2>
+                    <p>Consulta l'informativa e lo stato dei consensi collegati al tuo account.</p>
+                  </div>
+                </div>
+
+                <div class="patient-profile-privacy-list">
+                  <div>
+                    <span>Consenso privacy</span>
+                    <strong>Firmato</strong>
+                    <small>Ultimo aggiornamento · 1 ottobre 2026</small>
+                  </div>
+                  <div>
+                    <span>Comunicazioni</span>
+                    <strong>Email</strong>
+                    <small>Canale attivo</small>
+                  </div>
+                  <div>
+                    <span>Promemoria appuntamenti</span>
+                    <strong>Email</strong>
+                    <small>Canale attivo</small>
+                  </div>
+                </div>
+
+                <div class="patient-profile-card-actions">
+                  <button class="patient-secondary" type="button" data-patient-profile-action="privacy-info">Visualizza informativa</button>
+                  <button class="patient-secondary" type="button" data-patient-profile-action="privacy-consents">Gestisci consensi</button>
+                </div>
+              </article>
+
+              <article class="module patient-profile-support-card">
+                <div class="patient-profile-support-icon" aria-hidden="true">
+                  <svg class="icon"><use href="#icon-support"/></svg>
+                </div>
+                <div class="patient-profile-support-copy">
+                  <span class="patient-view-eyebrow">Assistenza</span>
+                  <h2>Hai bisogno di aiuto?</h2>
+                  <p>Invia una richiesta al supporto NUBEMO per problemi tecnici o dubbi sull'utilizzo dell'app.</p>
+                </div>
+                <button class="patient-primary" type="button" data-patient-profile-action="support">Richiedi assistenza</button>
+              </article>
             </section>
           </section>
         </div>
@@ -545,5 +636,6 @@
   </nav>
   <script src="patient-v2/home-demo.js?v=patient2-home-support-20261010"></script>
   <script src="patient-v2/diary-demo.js?v=patient2-diary-searchfix-20261010"></script>
+  <script src="patient-v2/profile-demo.js?v=patient2-profile-20261010"></script>
 </body>
 </html>
