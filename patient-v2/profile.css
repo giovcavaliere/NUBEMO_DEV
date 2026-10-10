@@ -209,6 +209,33 @@
 }
 .patient-profile-privacy-copy p{margin:0}
 
+.patient-profile-consent-form{display:grid;gap:0}
+.patient-profile-consent-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid var(--line);
+}
+.patient-profile-consent-row strong,
+.patient-profile-consent-row small{display:block}
+.patient-profile-consent-row strong{color:var(--text);font-size:11px}
+.patient-profile-consent-row small{margin-top:3px;color:var(--muted);font-size:9.5px;line-height:1.4}
+.patient-profile-consent-row input[type="checkbox"]{width:18px;height:18px;accent-color:var(--green-700)}
+.patient-profile-consent-fixed{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:0 9px;
+  border-radius:999px;
+  background:var(--green-soft-2);
+  color:var(--green-800);
+  font-size:10px;
+  font-weight:700;
+}
+.patient-profile-consent-form>.patient-primary{margin-top:14px}
+
 @media(max-width:900px){
   .patient-profile-grid{grid-template-columns:1fr}
   .patient-profile-data-card,
