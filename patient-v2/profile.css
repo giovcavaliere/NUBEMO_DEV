@@ -178,6 +178,25 @@
   display:grid;
   gap:11px;
 }
+.patient-profile-support-meta{
+  display:grid;
+  grid-template-columns:minmax(72px,.6fr) minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--green-soft-2);
+}
+.patient-profile-support-meta span{
+  color:var(--muted);
+  font-size:10px;
+}
+.patient-profile-support-meta strong{
+  color:var(--green-950);
+  font-size:12px;
+}
+
 .patient-profile-dialog-form label{
   display:grid;
   gap:5px;
