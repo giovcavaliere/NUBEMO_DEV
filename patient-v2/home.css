@@ -191,10 +191,10 @@
   background:var(--green-800);
   color:#fff;
 }
-.patient-weight-chart{
+.patient-weight-chart{margin-top:4px}
+.patient-chart-core{
   position:relative;
   height:220px;
-  margin-top:4px;
 }
 .patient-chart-axis-title{
   position:absolute;
