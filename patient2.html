@@ -42,11 +42,11 @@
           </div>
 
           <nav class="side-nav" aria-label="Navigazione principale">
-            <a class="active" href="#home" aria-current="page"><svg class="icon"><use href="#icon-home"/></svg><span>Home</span></a>
-            <a href="#diario"><svg class="icon"><use href="#icon-diary"/></svg><span>Diario</span></a>
-            <a href="#piano"><svg class="icon"><use href="#icon-plan"/></svg><span>Piano</span></a>
-            <a href="#documenti"><svg class="icon"><use href="#icon-document"/></svg><span>Documenti</span></a>
-            <a href="#profilo"><svg class="icon"><use href="#icon-profile"/></svg><span>Profilo</span></a>
+            <a class="active" href="#home" data-patient-route="home" aria-current="page"><svg class="icon"><use href="#icon-home"/></svg><span>Home</span></a>
+            <a href="#diario" data-patient-route="diary"><svg class="icon"><use href="#icon-diary"/></svg><span>Diario</span></a>
+            <a href="#piano" data-patient-route="plan"><svg class="icon"><use href="#icon-plan"/></svg><span>Piano</span></a>
+            <a href="#documenti" data-patient-route="documents"><svg class="icon"><use href="#icon-document"/></svg><span>Documenti</span></a>
+            <a href="#profilo" data-patient-route="profile"><svg class="icon"><use href="#icon-profile"/></svg><span>Profilo</span></a>
           </nav>
 
           <div class="side-user">
@@ -83,6 +83,7 @@
             <button class="compact-exit" type="button" aria-label="Esci" title="Esci"><svg class="icon"><use href="#icon-logout"/></svg></button>
           </div>
 
+          <div id="patientHomeView" data-patient-view="home">
           <header class="welcome patient-welcome">
             <div>
               <h1>Buongiorno, Giovanni <span class="wave">👋</span></h1>
@@ -98,7 +99,7 @@
             <span class="patient-quote-icon" aria-hidden="true"><svg class="icon"><use href="#icon-leaf"/></svg></span>
             <div>
               <h2 id="daily-quote-title">Frase del giorno</h2>
-              <blockquote>“Ogni piccolo passo ripetuto con costanza costruisce il risultato.”</blockquote>
+              <blockquote id="patientDailyQuote">“Ogni piccolo passo ripetuto con costanza costruisce il risultato.”</blockquote>
             </div>
           </section>
 
@@ -155,8 +156,8 @@
                     <strong>109,4 kg</strong>
                   </div>
                   <div class="patient-progress-metric">
-                    <span>Persi finora</span>
-                    <strong>2,8 kg</strong>
+                    <span>Variazione</span>
+                    <strong>−2,8 kg</strong>
                   </div>
                   <div class="patient-progress-metric">
                     <span>Da raggiungere</span>
@@ -179,6 +180,11 @@
               </div>
               <div class="patient-calorie-value">1.650 kcal</div>
               <p class="patient-calorie-caption">Stima basata sugli alimenti inseriti nel diario di oggi.</p>
+              <div class="patient-calorie-bmr">
+                <span>BMR a riposo</span>
+                <strong>1.980 kcal</strong>
+                <small>metabolismo basale stimato</small>
+              </div>
               <span class="patient-calorie-status">Stima buona</span>
             </article>
           </section>
@@ -194,14 +200,14 @@
                   </div>
                 </div>
                 <div class="patient-range" aria-label="Intervallo grafico">
-                  <button class="active" type="button">7 gg</button>
-                  <button type="button">1 mese</button>
-                  <button type="button">3 mesi</button>
-                  <button type="button">Tutto</button>
+                  <button class="active" type="button" data-weight-range="7d">7 gg</button>
+                  <button type="button" data-weight-range="1m">1 mese</button>
+                  <button type="button" data-weight-range="3m">3 mesi</button>
+                  <button type="button" data-weight-range="all">Tutto</button>
                 </div>
               </div>
 
-              <div class="patient-weight-chart" aria-label="Grafico demo andamento peso">
+              <div class="patient-weight-chart" id="patientWeightChart" aria-label="Grafico demo andamento peso">
                 <div class="patient-chart-y-axis" aria-hidden="true">
                   <small>kg</small>
                   <span style="--tick:51.643">110,0</span>
@@ -240,7 +246,7 @@
                   <span class="module-icon"><svg class="icon"><use href="#icon-diary"/></svg></span>
                   <h2>Diario di oggi</h2>
                 </div>
-                <button class="link-button" type="button">Apri diario →</button>
+                <button class="link-button" type="button" data-patient-route="diary">Apri diario →</button>
               </div>
               <p class="agenda-note">3 pasti su 5 già registrati</p>
 
@@ -253,8 +259,8 @@
               </div>
 
               <div class="patient-diary-actions">
-                <button class="patient-primary" type="button">Vai al diario</button>
-                <button class="patient-secondary" type="button">
+                <button class="patient-primary" type="button" data-patient-route="diary">Vai al diario</button>
+                <button class="patient-secondary" type="button" data-patient-modal="measures">
                   <svg class="icon" style="display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:5px"><use href="#icon-measure"/></svg>
                   Aggiungi misure
                 </button>
@@ -269,7 +275,7 @@
                   <span class="module-icon"><svg class="icon"><use href="#icon-plan"/></svg></span>
                   <h2>Piano alimentare</h2>
                 </div>
-                <button class="link-button" type="button">Apri piano →</button>
+                <button class="link-button" type="button" data-patient-route="plan">Apri piano →</button>
               </div>
               <div class="patient-quick-list">
                 <div class="patient-quick-row">
@@ -278,7 +284,7 @@
                     <strong>Piano alimentare ottobre</strong>
                     <small>Attivo · valido dal 1 ottobre</small>
                   </div>
-                  <button class="link-button" type="button">Apri</button>
+                  <button class="link-button" type="button" data-patient-route="plan">Apri</button>
                 </div>
               </div>
             </article>
@@ -297,7 +303,7 @@
                     <strong>Prossima visita</strong>
                     <small>15 ottobre · ore 18:30</small>
                   </div>
-                  <button class="link-button" type="button">Dettagli</button>
+                  <button class="link-button" type="button" data-patient-modal="appointment">Dettagli</button>
                 </div>
                 <div class="patient-quick-row">
                   <div class="patient-quick-icon"><svg class="icon"><use href="#icon-document"/></svg></div>
@@ -305,16 +311,72 @@
                     <strong>Documenti</strong>
                     <small>1 nuovo documento da leggere</small>
                   </div>
-                  <button class="link-button" type="button">Apri</button>
+                  <button class="link-button" type="button" data-patient-route="documents">Apri</button>
                 </div>
               </div>
             </article>
+          </section>
+          </div>
+
+          <section class="patient-static-view" data-patient-view="diary" hidden>
+            <header class="patient-view-head">
+              <div>
+                <span class="patient-view-eyebrow">Area paziente</span>
+                <h1>Diario</h1>
+                <p>La nuova area Diario verrà costruita qui mantenendo peso, calorie e pasti preferiti.</p>
+              </div>
+              <button class="patient-secondary" type="button" data-patient-modal="measures"><svg class="icon"><use href="#icon-measure"/></svg>Aggiungi misure</button>
+            </header>
+            <section class="module">
+              <div class="module-head"><div class="module-title"><span class="module-icon"><svg class="icon"><use href="#icon-diary"/></svg></span><h2>Oggi · 3 pasti su 5</h2></div></div>
+              <div class="patient-demo-list">
+                <button type="button" class="patient-demo-row" data-patient-demo-action="meal"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span><span><strong>Colazione</strong><small>Yogurt greco, muesli e banana</small></span><b>›</b></button>
+                <button type="button" class="patient-demo-row" data-patient-demo-action="meal"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span><span><strong>Spuntino</strong><small>Mela e mandorle</small></span><b>›</b></button>
+                <button type="button" class="patient-demo-row" data-patient-demo-action="meal"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span><span><strong>Pranzo</strong><small>Pasta al pomodoro, tonno e insalata</small></span><b>›</b></button>
+                <button type="button" class="patient-demo-row" data-patient-demo-action="favorite"><span class="patient-quick-icon peach">★</span><span><strong>Richiama un pasto preferito</strong><small>Funzione già prevista nella nuova veste del Diario</small></span><b>›</b></button>
+              </div>
+            </section>
+          </section>
+
+          <section class="patient-static-view" data-patient-view="plan" hidden>
+            <header class="patient-view-head">
+              <div><span class="patient-view-eyebrow">Area paziente</span><h1>Piano alimentare</h1><p>Il piano attivo e le indicazioni condivise dal professionista.</p></div>
+            </header>
+            <section class="module">
+              <div class="module-head"><div class="module-title"><span class="module-icon"><svg class="icon"><use href="#icon-plan"/></svg></span><h2>Piano alimentare ottobre</h2></div><span class="pill green">Attivo</span></div>
+              <div class="patient-demo-list">
+                <button type="button" class="patient-demo-row" data-patient-demo-action="plan"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-plan"/></svg></span><span><strong>Visualizza piano</strong><small>Valido dal 1 ottobre · versione corrente</small></span><b>›</b></button>
+                <button type="button" class="patient-demo-row" data-patient-demo-action="plan"><span class="patient-quick-icon peach"><svg class="icon"><use href="#icon-document"/></svg></span><span><strong>Indicazioni del professionista</strong><small>Note associate al piano alimentare</small></span><b>›</b></button>
+              </div>
+            </section>
+          </section>
+
+          <section class="patient-static-view" data-patient-view="documents" hidden>
+            <header class="patient-view-head"><div><span class="patient-view-eyebrow">Area paziente</span><h1>Documenti</h1><p>Documenti, referti e file condivisi nel percorso.</p></div></header>
+            <section class="module">
+              <div class="patient-demo-list">
+                <button type="button" class="patient-demo-row" data-patient-demo-action="document"><span class="patient-quick-icon peach"><svg class="icon"><use href="#icon-document"/></svg></span><span><strong>Referto ematochimico</strong><small>Nuovo · 8 ottobre 2026</small></span><b>›</b></button>
+                <button type="button" class="patient-demo-row" data-patient-demo-action="document"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-plan"/></svg></span><span><strong>Piano alimentare ottobre</strong><small>1 ottobre 2026</small></span><b>›</b></button>
+              </div>
+            </section>
+          </section>
+
+          <section class="patient-static-view" data-patient-view="profile" hidden>
+            <header class="patient-view-head"><div><span class="patient-view-eyebrow">Area paziente</span><h1>Profilo</h1><p>Dati personali e impostazioni del tuo account NUBEMO.</p></div></header>
+            <section class="module">
+              <div class="patient-demo-profile">
+                <div><span>Nome</span><strong>Giovanni Cavaliere</strong></div>
+                <div><span>Email</span><strong>giovanni.cavaliere@email.it</strong></div>
+                <div><span>Calorie</span><strong>Visibili</strong></div>
+                <div><span>Percorso</span><strong>Attivo</strong></div>
+              </div>
+            </section>
           </section>
         </div>
       </main>
     </div>
 
-    <section class="warm-banner patient2-banner">
+    <section class="warm-banner patient2-banner" id="patientHomeBanner">
       <div class="warm-photo" aria-hidden="true"></div>
       <div class="warm-copy">
         <span class="leaf-mark"><svg class="icon"><use href="#icon-leaf"/></svg></span>
@@ -327,11 +389,12 @@
   </div>
 
   <nav class="mobile-nav" aria-label="Navigazione mobile">
-    <a class="active" aria-current="page" href="#home"><svg class="icon"><use href="#icon-home"/></svg>Home</a>
-    <a href="#diario"><svg class="icon"><use href="#icon-diary"/></svg>Diario</a>
-    <a href="#piano"><svg class="icon"><use href="#icon-plan"/></svg>Piano</a>
-    <a href="#documenti"><svg class="icon"><use href="#icon-document"/></svg>Documenti</a>
-    <a href="#profilo"><svg class="icon"><use href="#icon-profile"/></svg>Profilo</a>
+    <a class="active" aria-current="page" href="#home" data-patient-route="home"><svg class="icon"><use href="#icon-home"/></svg>Home</a>
+    <a href="#diario" data-patient-route="diary"><svg class="icon"><use href="#icon-diary"/></svg>Diario</a>
+    <a href="#piano" data-patient-route="plan"><svg class="icon"><use href="#icon-plan"/></svg>Piano</a>
+    <a href="#documenti" data-patient-route="documents"><svg class="icon"><use href="#icon-document"/></svg>Documenti</a>
+    <a href="#profilo" data-patient-route="profile"><svg class="icon"><use href="#icon-profile"/></svg>Profilo</a>
   </nav>
+  <script src="patient-v2/home-demo.js?v=patient2-home-interactions-20261010"></script>
 </body>
 </html>
