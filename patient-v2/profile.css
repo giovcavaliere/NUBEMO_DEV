@@ -1,0 +1,226 @@
+/* NUBEMO Patient 2.0 — Profilo
+   Modulo autonomo: anagrafica, foto, privacy e assistenza. */
+
+.patient-profile-page{min-width:0}
+.patient-profile-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+}
+.patient-profile-grid>.module{margin:0}
+.patient-profile-data-card,
+.patient-profile-support-card{grid-column:1/-1}
+
+.patient-profile-card-head{margin-bottom:14px}
+.patient-profile-card-head h2,
+.patient-profile-support-copy h2{
+  margin:0;
+  color:var(--green-950);
+  font-size:20px;
+  line-height:1.2;
+  letter-spacing:-.02em;
+}
+.patient-profile-card-head p,
+.patient-profile-support-copy p{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+
+.patient-profile-photo-body{
+  display:grid;
+  grid-template-columns:88px minmax(0,1fr);
+  gap:16px;
+  align-items:center;
+}
+.patient-profile-avatar{
+  width:88px;
+  height:88px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:var(--green-soft-2);
+  display:grid;
+  place-items:center;
+  color:var(--green-800);
+}
+.patient-profile-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.patient-profile-avatar span{
+  font-size:24px;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.patient-profile-photo-copy p{
+  margin:0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.55;
+}
+.patient-profile-photo-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.patient-profile-upload{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.patient-profile-remove{
+  min-height:38px;
+  padding:0 12px;
+  border:1px solid #e1d9d5;
+  border-radius:11px;
+  background:#fff9f7;
+  color:#8e4a43;
+  font-size:11px;
+  font-weight:600;
+}
+
+.patient-profile-fields{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0 18px;
+  margin:0;
+}
+.patient-profile-fields>div{
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(120px,.8fr) minmax(0,1.2fr);
+  gap:12px;
+  align-items:center;
+  min-height:54px;
+  border-top:1px solid var(--line);
+}
+.patient-profile-fields dt{
+  color:var(--muted);
+  font-size:10px;
+}
+.patient-profile-fields dd{
+  min-width:0;
+  margin:0;
+  color:var(--text);
+  font-size:12px;
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+.patient-profile-status{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:0 9px;
+  border-radius:999px;
+  background:var(--green-soft-2);
+  color:var(--green-800);
+  font-size:10px;
+  font-weight:700;
+}
+
+.patient-profile-privacy-list{display:grid}
+.patient-profile-privacy-list>div{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:3px 12px;
+  align-items:center;
+  padding:11px 0;
+  border-top:1px solid var(--line);
+}
+.patient-profile-privacy-list span{
+  color:var(--text);
+  font-size:11px;
+  font-weight:600;
+}
+.patient-profile-privacy-list strong{
+  color:var(--green-800);
+  font-size:11px;
+}
+.patient-profile-privacy-list small{
+  grid-column:1/-1;
+  color:var(--muted);
+  font-size:9.5px;
+}
+.patient-profile-card-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:13px;
+}
+
+.patient-profile-support-card{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+}
+.patient-profile-support-icon{
+  width:52px;
+  height:52px;
+  display:grid;
+  place-items:center;
+  border-radius:15px;
+  background:var(--peach-soft);
+  color:#bd6f31;
+}
+.patient-profile-support-icon .icon{width:25px;height:25px}
+.patient-profile-support-card>.patient-primary{
+  min-height:42px;
+  white-space:nowrap;
+}
+
+.patient-profile-dialog-form{
+  display:grid;
+  gap:11px;
+}
+.patient-profile-dialog-form label{
+  display:grid;
+  gap:5px;
+  color:var(--text);
+  font-size:11px;
+  font-weight:600;
+}
+.patient-profile-dialog-form select,
+.patient-profile-dialog-form textarea{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:#fff;
+  padding:10px 11px;
+  color:var(--text);
+  font:inherit;
+}
+.patient-profile-dialog-form textarea{
+  min-height:100px;
+  resize:vertical;
+}
+.patient-profile-privacy-copy{
+  display:grid;
+  gap:10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.6;
+}
+.patient-profile-privacy-copy p{margin:0}
+
+@media(max-width:900px){
+  .patient-profile-grid{grid-template-columns:1fr}
+  .patient-profile-data-card,
+  .patient-profile-support-card{grid-column:auto}
+  .patient-profile-fields{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .patient-profile-photo-body{grid-template-columns:72px minmax(0,1fr)}
+  .patient-profile-avatar{width:72px;height:72px;border-radius:20px}
+  .patient-profile-fields>div{grid-template-columns:1fr;gap:3px;padding:10px 0}
+  .patient-profile-support-card{grid-template-columns:46px minmax(0,1fr)}
+  .patient-profile-support-icon{width:46px;height:46px}
+  .patient-profile-support-card>.patient-primary{grid-column:1/-1;width:100%}
+  .patient-profile-card-actions{display:grid;grid-template-columns:1fr}
+}
