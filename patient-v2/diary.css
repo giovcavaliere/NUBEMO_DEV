@@ -232,3 +232,15 @@
   .diary2-favorites-overlay{place-items:end center;padding:10px}
   .diary2-favorites-modal{border-radius:18px 18px 12px 12px}
 }
+
+.diary2-feedback{
+  position:fixed;z-index:120;right:18px;bottom:calc(92px + env(safe-area-inset-bottom));
+  width:min(340px,calc(100% - 36px));display:grid;gap:3px;padding:12px 14px;
+  border:1px solid #cfe0d3;border-radius:12px;background:#f5faf4;color:var(--green-950);
+  box-shadow:0 12px 34px rgba(24,55,47,.15);
+}
+.diary2-feedback strong{font-size:11px}
+.diary2-feedback span{color:var(--muted);font-size:10px;line-height:1.45}
+@media(max-width:520px){
+  .diary2-feedback{left:18px;right:18px;width:auto}
+}
