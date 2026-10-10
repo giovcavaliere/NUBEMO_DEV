@@ -151,7 +151,7 @@ const patientDetails={
         observations:"Monitorare la continuità del diario nei fine settimana."
       }
     },
-    privacy:{consent:{status:"signed",signedAt:"2026-09-12",documentId:null},communications:{email:true},reminders:{email:true},administrativeNotes:""}
+    privacy:{consent:{status:"signed",signedAt:"2026-09-12",documentId:null},communications:{email:true},reminders:{email:true},consentManagement:{updatedAt:"2026-10-10",updatedBy:"patient"},administrativeNotes:""}
   }
 };
 
@@ -182,7 +182,7 @@ export function getPatientData(id){
     appointments:detail.appointments||[],visits:detail.visits||[],measurements:detail.measurements||[],
     diary:{days:[],updates:[],...detail.diary},documents:detail.documents||[],laboratoryReports:detail.laboratoryReports||[],documentUi:{filter:"all",unreadOnly:false},activities:detail.activities||[],notes:detail.notes||[],nutritionPlans:detail.nutritionPlans||[],
     profile:{anamnesis:{goalWeight:"",minWeight:"",maxWeight:"",reasonableWeight:"",theoreticalWeight:"",objectives:"",work:"",activity:"",activityFactor:"",smoking:"",alcohol:"",diagnosis:"",bowel:"",metabolism:"",feeg:"",impedance:"",family:{obesity:false,diabetes:false,hypertension:false,cardiovascular:false,dyslipidemia:false,thyroid:false},previousDiets:"",allergies:"",medications:"",giIssues:"",pastConditions:"",observations:""},...detail.profile},
-    privacy:{consent:null,communications:{email:false},reminders:{email:false},administrativeNotes:"",...detail.privacy}
+    privacy:{consent:null,communications:{email:false},reminders:{email:false},consentManagement:{updatedAt:null,updatedBy:null},administrativeNotes:"",...detail.privacy}
   };
   demoSession.set(id,data);
   return data;
