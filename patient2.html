@@ -338,6 +338,11 @@
                   </div>
                 </header>
 
+                <div class="patient-diary-history-search">
+                  <span aria-hidden="true">⌕</span>
+                  <input type="search" data-diary-history-search placeholder="Cerca un pasto nello storico…" autocomplete="off">
+                </div>
+
                 <div class="patient-diary-history-list">
                   <button type="button" class="patient-diary-history-row" data-diary-history-date="2026-10-09">
                     <span class="patient-diary-history-date"><strong>Ven 9 ott</strong><small>106,8 kg</small></span>
@@ -378,10 +383,10 @@
                 </header>
 
                 <div class="patient-diary-habits-grid">
-                  <label><span>Peso</span><div class="patient-diary-unit-input"><input type="text" value="106,6"><b>kg</b></div></label>
-                  <label><span>Acqua</span><div class="patient-diary-unit-input"><input type="text" value="1,5"><b>L</b></div></label>
+                  <label><span>Peso</span><div class="patient-diary-unit-input"><input type="text" value="106,6" data-diary-edit-field="weight"><b>kg</b></div></label>
+                  <label><span>Acqua</span><div class="patient-diary-unit-input"><input type="text" value="1,5" data-diary-edit-field="water"><b>L</b></div></label>
                   <label><span>Caffè</span><div class="patient-diary-counter"><button type="button" data-diary-coffee="-1">−</button><strong id="patientDiaryCoffee">2</strong><button type="button" data-diary-coffee="1">+</button></div></label>
-                  <label><span>Zucchero / dolcificante</span><input type="text" value="Senza zucchero"></label>
+                  <label><span>Zucchero / dolcificante</span><input type="text" value="Senza zucchero" data-diary-edit-field="sweetener"></label>
                 </div>
               </section>
 
@@ -452,7 +457,7 @@
                   <span class="patient-diary-step">03</span>
                   <div><h2>Sport e note</h2><p>Facoltativo.</p></div>
                 </header>
-                <textarea class="patient-diary-notes-input" placeholder="Allenamento, sensazioni o altre note utili…">Passeggiata di 40 minuti dopo pranzo.</textarea>
+                <textarea class="patient-diary-notes-input" data-diary-edit-field="notes" placeholder="Allenamento, sensazioni o altre note utili…">Passeggiata di 40 minuti dopo pranzo.</textarea>
               </section>
 
               <div class="patient-diary-save-actions">
