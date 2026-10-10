@@ -7,7 +7,7 @@
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
   <link rel="stylesheet" href="professional-v2/home-design.css?v=patient2-home-baseline-20261009">
   <link rel="stylesheet" href="patient-v2/home.css?v=patient2-home-refinement-20261009">
-  <link rel="stylesheet" href="patient-v2/diary.css?v=patient2-diary-searchfix-20261010">
+  <link rel="stylesheet" href="patient-v2/diary.css?v=patient2-diary-search-history-20261010">
   <title>NUBEMO Patient 2.0</title>
 </head>
 <body>
@@ -292,13 +292,6 @@
 
           <section class="patient-static-view patient-diary-page" data-patient-view="diary" hidden>
             <div data-diary-panel="overview" class="patient-diary-view">
-              <div class="search-row patient-diary-search-row">
-                <label class="patient-search">
-                  <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-search"/></svg>
-                  <input type="search" data-diary-history-search placeholder="Cerca un pasto nello storico..." aria-label="Cerca un pasto nello storico" autocomplete="off">
-                </label>
-              </div>
-
               <header class="patient-diary-header">
                 <div>
                   <span class="patient-view-eyebrow">Area paziente</span>
@@ -345,6 +338,13 @@
                     <p>Consulta le giornate già registrate.</p>
                   </div>
                 </header>
+
+                <div class="search-row patient-diary-search-row">
+                  <label class="patient-search">
+                    <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-search"/></svg>
+                    <input type="search" data-diary-history-search placeholder="Cerca un pasto nello storico..." aria-label="Cerca un pasto nello storico" autocomplete="off">
+                  </label>
+                </div>
 
                 <div class="patient-diary-history-list">
                   <button type="button" class="patient-diary-history-row" data-diary-history-date="2026-10-09">
