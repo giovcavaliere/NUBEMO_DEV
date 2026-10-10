@@ -202,7 +202,7 @@
 .patient-diary-history-detail small{margin-top:3px;color:var(--muted);font-size:10px;line-height:1.4}
 
 .patient-diary-history-actions{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
 }
 .patient-diary-danger{color:#9a3f3a;border-color:#ead5d2;background:#fff8f7}
 .patient-diary-toast{
