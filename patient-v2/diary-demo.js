@@ -92,13 +92,18 @@
 
   function filterHistory(term){
     const q=normalize(term);
-    $$('[data-diary-history-date]').forEach(row=>{
+    let visible=0;
+    $('[data-diary-history-date]').forEach(row=>{
       const day=history[row.dataset.diaryHistoryDate];
       const haystack=day
         ?[row.dataset.diaryHistoryDate,day.title,day.weight,day.water,day.coffee,day.sweetener,day.notes,...day.meals].join(' ')
         :'';
-      row.hidden=!!q&&!normalize(haystack).includes(q);
+      const match=!q||normalize(haystack).includes(q);
+      row.hidden=!match;
+      if(match)visible++;
     });
+    const empty=$('[data-diary-history-empty]');
+    if(empty)empty.hidden=visible!==0;
   }
 
   function fillEditForm(date){
