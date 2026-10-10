@@ -197,7 +197,7 @@ function renderProfile(model){
       </section>
 
       <section class="detail-panel detail-administration"><div class="detail-heading-action">${sectionHeading("check","Dati amministrativi")}<button type="button" class="detail-edit-button" data-edit-administration>${icon("edit")}<span>Modifica</span></button></div>
-        <dl class="detail-fields">${field("Consenso privacy",consent)}${field("Comunicazioni",privacy.communications.email?"Email":"Non attive")}${field("Promemoria appuntamenti",privacy.reminders.email?"Email":"Non attivi")}${field("Note amministrative",privacy.administrativeNotes||"Nessuna nota")}</dl>
+        <dl class="detail-fields">${field("Consenso privacy",consent)}${field("Comunicazioni",privacy.communications.email?"Email":"Non attive")}${field("Promemoria appuntamenti",privacy.reminders.email?"Email":"Non attivi")}${field("Ultimo aggiornamento consensi",privacy.consentManagement?.updatedAt?`${fmtDate(privacy.consentManagement.updatedAt)} · ${privacy.consentManagement.updatedBy==="patient"?"Paziente":"Professionista"}`:"Non registrato")}${field("Note amministrative",privacy.administrativeNotes||"Nessuna nota")}</dl>
       </section>
     </div>
 
