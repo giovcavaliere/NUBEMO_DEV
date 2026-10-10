@@ -81,12 +81,17 @@ function dailyMotivationalQuote(date=new Date()){
     drawChart(key);
   }
 
-  function route(view){
+  function setDiaryMode(mode='overview'){
+    $('[data-diary-panel]').forEach(panel=>{panel.hidden=panel.dataset.diaryPanel!==mode;});
+  }
+
+  function route(view,options={}){
     const target=['home','diary','plan','documents','profile'].includes(view)?view:'home';
-    $$('[data-patient-view]').forEach(section=>{section.hidden=section.dataset.patientView!==target;});
+    $('[data-patient-view]').forEach(section=>{section.hidden=section.dataset.patientView!==target;});
+    if(target==='diary')setDiaryMode(options.diaryMode||'overview');
     const banner=$('#patientHomeBanner');
     if(banner)banner.hidden=target!=='home';
-    $$('[data-patient-route]').forEach(link=>{
+    $('[data-patient-route]').forEach(link=>{
       const active=link.dataset.patientRoute===target;
       link.classList.toggle('active',active);
       if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
@@ -132,7 +137,8 @@ function dailyMotivationalQuote(date=new Date()){
       meal:['Dettaglio pasto','Questa interazione anticipa l’apertura/modifica del pasto nella futura vista Diario 2.0.'],
       favorite:['Pasti preferiti','Qui verrà richiamato l’elenco dei pasti preferiti già previsto nell’implementazione attuale, senza calorie nella lista.'],
       plan:['Piano alimentare','Questa azione aprirà il documento o il dettaglio del piano attivo quando collegheremo i dati reali.'],
-      document:['Documento','Questa azione aprirà il documento reale quando collegheremo la Patient 2.0 a Supabase.']
+      document:['Documento','Questa azione aprirà il documento reale quando collegheremo la Patient 2.0 a Supabase.'],
+      'save-day':['Giornata salvata','Nella versione statica il salvataggio è simulato. La struttura della giornata corrente è pronta per il collegamento ai dati reali.']
     }[kind]||['Demo','Interazione demo'];
     modal(copy[0],'<p class="patient-demo-message">'+copy[1]+'</p>');
   }
@@ -140,6 +146,16 @@ function dailyMotivationalQuote(date=new Date()){
   document.addEventListener('click',event=>{
     const range=event.target.closest('[data-weight-range]');
     if(range){selectRange(range.dataset.weightRange);return;}
+
+    const diaryModeBtn=event.target.closest('[data-patient-diary-mode]');
+    if(diaryModeBtn){
+      event.preventDefault();
+      const mode=diaryModeBtn.dataset.patientDiaryMode;
+      const routeTarget=diaryModeBtn.dataset.patientRoute;
+      if(routeTarget==='diary')route('diary',{diaryMode:mode});
+      else setDiaryMode(mode);
+      return;
+    }
 
     const routeBtn=event.target.closest('[data-patient-route]');
     if(routeBtn){
