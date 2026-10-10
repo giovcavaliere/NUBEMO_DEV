@@ -229,7 +229,7 @@
               </div>
 
               <div class="patient-diary-actions">
-                <button class="patient-primary" type="button" data-patient-route="diary">Vai al diario</button>
+                <button class="patient-primary" type="button" data-patient-route="diary" data-patient-diary-mode="add">Aggiungi giornata</button>
                 <button class="patient-secondary" type="button" data-patient-modal="measures">
                   <svg class="icon" style="display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:5px"><use href="#icon-measure"/></svg>
                   Aggiungi misure
@@ -293,19 +293,75 @@
               <div>
                 <span class="patient-view-eyebrow">Area paziente</span>
                 <h1>Diario</h1>
-                <p>La nuova area Diario verrà costruita qui mantenendo peso, calorie e pasti preferiti.</p>
+                <p>Giornate, pasti, peso e abitudini del tuo percorso.</p>
               </div>
               <button class="patient-secondary" type="button" data-patient-modal="measures"><svg class="icon"><use href="#icon-measure"/></svg>Aggiungi misure</button>
             </header>
-            <section class="module">
-              <div class="module-head"><div class="module-title"><span class="module-icon"><svg class="icon"><use href="#icon-diary"/></svg></span><h2>Oggi · 3 pasti su 5</h2></div></div>
-              <div class="patient-demo-list">
-                <button type="button" class="patient-demo-row" data-patient-demo-action="meal"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span><span><strong>Colazione</strong><small>Yogurt greco, muesli e banana</small></span><b>›</b></button>
-                <button type="button" class="patient-demo-row" data-patient-demo-action="meal"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span><span><strong>Spuntino</strong><small>Mela e mandorle</small></span><b>›</b></button>
-                <button type="button" class="patient-demo-row" data-patient-demo-action="meal"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span><span><strong>Pranzo</strong><small>Pasta al pomodoro, tonno e insalata</small></span><b>›</b></button>
-                <button type="button" class="patient-demo-row" data-patient-demo-action="favorite"><span class="patient-quick-icon peach">★</span><span><strong>Richiama un pasto preferito</strong><small>Funzione già prevista nella nuova veste del Diario</small></span><b>›</b></button>
-              </div>
-            </section>
+
+            <div data-diary-panel="overview">
+              <section class="module">
+                <div class="module-head">
+                  <div class="module-title"><span class="module-icon"><svg class="icon"><use href="#icon-diary"/></svg></span><h2>Le tue giornate</h2></div>
+                  <button class="patient-primary patient-diary-add-top" type="button" data-patient-diary-mode="add">Aggiungi giornata</button>
+                </div>
+                <div class="patient-demo-list">
+                  <button type="button" class="patient-demo-row" data-patient-diary-mode="add">
+                    <span class="patient-quick-icon"><svg class="icon"><use href="#icon-calendar"/></svg></span>
+                    <span><strong>Oggi · 10 ottobre</strong><small>3 pasti su 5 · giornata in corso</small></span><b>›</b>
+                  </button>
+                  <button type="button" class="patient-demo-row" data-patient-demo-action="meal">
+                    <span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span>
+                    <span><strong>9 ottobre</strong><small>5 pasti su 5 · giornata completa</small></span><b>›</b>
+                  </button>
+                  <button type="button" class="patient-demo-row" data-patient-demo-action="meal">
+                    <span class="patient-quick-icon"><svg class="icon"><use href="#icon-check"/></svg></span>
+                    <span><strong>8 ottobre</strong><small>4 pasti su 5</small></span><b>›</b>
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <div data-diary-panel="add" hidden>
+              <section class="module patient-diary-entry">
+                <div class="module-head">
+                  <div class="module-title">
+                    <span class="module-icon"><svg class="icon"><use href="#icon-diary"/></svg></span>
+                    <div><h2>Giornata di oggi</h2><p class="patient-entry-date">10 ottobre 2026</p></div>
+                  </div>
+                  <button class="link-button" type="button" data-patient-diary-mode="overview">← Torna al diario</button>
+                </div>
+
+                <div class="patient-entry-grid">
+                  <label class="patient-entry-field">
+                    <span>Peso</span>
+                    <input type="text" value="106,6 kg" aria-label="Peso di oggi">
+                  </label>
+                  <button type="button" class="patient-entry-favorite" data-patient-demo-action="favorite">
+                    <span class="patient-quick-icon peach">★</span>
+                    <span><strong>Richiama pasto preferito</strong><small>Duplica rapidamente un pasto già salvato</small></span>
+                    <b>›</b>
+                  </button>
+                </div>
+
+                <div class="patient-entry-meals">
+                  <label><span>Colazione</span><textarea>Yogurt greco, muesli e banana</textarea></label>
+                  <label><span>Spuntino mattina</span><textarea>Mela e mandorle</textarea></label>
+                  <label><span>Pranzo</span><textarea>Pasta al pomodoro, tonno e insalata</textarea></label>
+                  <label><span>Spuntino pomeriggio</span><textarea placeholder="Inserisci gli alimenti"></textarea></label>
+                  <label><span>Cena</span><textarea placeholder="Inserisci gli alimenti"></textarea></label>
+                </div>
+
+                <label class="patient-entry-notes"><span>Note della giornata</span><textarea placeholder="Facoltative"></textarea></label>
+
+                <div class="patient-diary-actions">
+                  <button class="patient-primary" type="button" data-patient-demo-action="save-day">Salva giornata</button>
+                  <button class="patient-secondary" type="button" data-patient-modal="measures">
+                    <svg class="icon" style="display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:5px"><use href="#icon-measure"/></svg>
+                    Aggiungi misure
+                  </button>
+                </div>
+              </section>
+            </div>
           </section>
 
           <section class="patient-static-view" data-patient-view="plan" hidden>
