@@ -194,7 +194,7 @@
 .patient-weight-chart{margin-top:4px}
 .patient-chart-core{
   position:relative;
-  height:232px;
+  height:242px;
 }
 .patient-chart-axis-title{
   position:absolute;
@@ -206,7 +206,7 @@
 }
 .patient-chart-plot{
   position:absolute;
-  inset:24px 10px 46px 40px;
+  inset:24px 10px 52px 40px;
 }
 .patient-chart-plot>svg{
   display:block;
