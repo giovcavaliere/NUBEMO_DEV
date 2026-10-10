@@ -89,17 +89,7 @@
   function openSupport(){
     const wrap=modal('Richiedi assistenza',
       '<form class="patient-profile-dialog-form" data-patient-support-form>'+
-        '<label>Area dell’app<select name="area" required>'+
-          '<option value="">Seleziona area</option>'+
-          '<option>Home</option>'+
-          '<option>Diario</option>'+
-          '<option>Piano alimentare</option>'+
-          '<option>Documenti</option>'+
-          '<option>Profilo</option>'+
-          '<option>Privacy e consensi</option>'+
-          '<option>Accesso / account</option>'+
-          '<option>Altro</option>'+
-        '</select></label>'+
+        '<div class="patient-profile-support-meta"><span>Area</span><strong>Paziente</strong></div>'+
         '<label>Tipo di richiesta<select name="type" required>'+
           '<option value="">Seleziona tipo</option>'+
           '<option>Problema tecnico</option>'+
