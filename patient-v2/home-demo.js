@@ -65,7 +65,6 @@ function dailyMotivationalQuote(date=new Date()){
           data.points.map((v,i)=>'<circle class="patient-chart-point" cx="'+x(i).toFixed(2)+'" cy="'+y(v).toFixed(2)+'" r="4"/>').join('')+
         '</svg>'+
         '<div class="patient-chart-labels" aria-hidden="true"><span>'+data.labels[0]+'</span><span>'+data.labels[1]+'</span><span>'+data.labels[2]+'</span></div>'+
-        '<strong class="patient-chart-value" style="bottom:'+Math.max(12,100-(y(data.points.at(-1))/H*100)-2).toFixed(1)+'%" aria-hidden="true">'+data.points.at(-1).toFixed(1).replace('.',',')+' kg</strong>'+
       '</div>';
   }
 
