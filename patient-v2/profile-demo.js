@@ -2,8 +2,16 @@
   'use strict';
 
   const $=(selector,root=document)=>root.querySelector(selector);
-  const PHOTO_TYPES=new Set(['image/png','image/jpeg','image/webp']);
-  const PHOTO_MAX_BYTES=2.5*1024*1024;
+  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[char]));
+
+  const privacyState={
+    consent:true,
+    communicationsEmail:true,
+    remindersEmail:true,
+    updatedAt:'1 ottobre 2026'
+  };
 
   function modal(title,body){
     document.querySelector('.patient-demo-modal')?.remove();
@@ -12,7 +20,7 @@
     wrap.innerHTML=
       '<div class="patient-demo-modal-card">'+
         '<div class="patient-demo-modal-head">'+
-          '<div><span class="patient-view-eyebrow">Patient 2.0</span><h2>'+title+'</h2></div>'+
+          '<div><span class="patient-view-eyebrow">Patient 2.0</span><h2>'+esc(title)+'</h2></div>'+
           '<button type="button" class="patient-demo-modal-close" aria-label="Chiudi">×</button>'+
         '</div>'+
         body+
@@ -24,90 +32,132 @@
     return wrap;
   }
 
-  function resetPhoto(){
-    const preview=$('[data-patient-profile-avatar]');
-    if(preview)preview.innerHTML='<span>GC</span>';
-    const input=$('[data-patient-profile-photo]');
-    if(input)input.value='';
+  function toast(title,message){
+    const wrap=modal(title,'<p class="patient-demo-message">'+esc(message)+'</p>');
+    setTimeout(()=>wrap.remove(),2200);
   }
 
-  function previewPhoto(file){
-    if(!file)return;
-    if(!PHOTO_TYPES.has(file.type)){
-      modal('Foto profilo','<p class="patient-demo-message">Formato non supportato. Usa JPG, PNG o WebP.</p>');
-      return;
-    }
-    if(file.size>PHOTO_MAX_BYTES){
-      modal('Foto profilo','<p class="patient-demo-message">La foto demo può avere una dimensione massima di 2,5 MB.</p>');
-      return;
-    }
+  function renderPrivacyState(){
+    const consent=$('[data-patient-privacy-consent]');
+    const communications=$('[data-patient-privacy-communications]');
+    const reminders=$('[data-patient-privacy-reminders]');
+    const updated=$('[data-patient-privacy-updated]');
 
-    const reader=new FileReader();
-    reader.onload=()=>{
-      const preview=$('[data-patient-profile-avatar]');
-      if(preview)preview.innerHTML='<img src="'+String(reader.result)+'" alt="Anteprima foto profilo">';
-    };
-    reader.readAsDataURL(file);
+    if(consent)consent.textContent=privacyState.consent?'Firmato':'Non registrato';
+    if(communications)communications.textContent=privacyState.communicationsEmail?'Email':'Non attive';
+    if(reminders)reminders.textContent=privacyState.remindersEmail?'Email':'Non attivi';
+    if(updated)updated.textContent='Ultimo aggiornamento · '+privacyState.updatedAt;
   }
 
   function openPrivacyInfo(){
     modal('Informativa privacy',
       '<div class="patient-profile-privacy-copy">'+
-        '<p>Qui il paziente potrà consultare l’informativa privacy NUBEMO collegata al proprio account.</p>'+
-        '<p>Nella versione statica non viene ancora caricato alcun documento reale.</p>'+
+        '<p>Questa è una schermata demo della futura informativa privacy NUBEMO.</p>'+
+        '<p>Nella versione collegata ai dati reali saranno disponibili versione dell’informativa, data di accettazione e documento associato.</p>'+
       '</div>');
   }
 
-  function openPrivacyConsents(){
+  function openConsents(){
     const wrap=modal('Gestisci consensi',
-      '<form class="patient-profile-dialog-form">'+
-        '<label><span>Comunicazioni via email</span><select><option selected>Attive</option><option>Non attive</option></select></label>'+
-        '<label><span>Promemoria appuntamenti via email</span><select><option selected>Attivi</option><option>Non attivi</option></select></label>'+
-        '<button class="patient-primary" type="button" data-profile-consents-save>Salva impostazioni</button>'+
+      '<form class="patient-profile-consent-form">'+
+        '<div class="patient-profile-consent-row">'+
+          '<div><strong>Consenso privacy</strong><small>Consenso necessario per l’utilizzo del servizio.</small></div>'+
+          '<span class="patient-profile-consent-fixed">Firmato</span>'+
+        '</div>'+
+        '<label class="patient-profile-consent-row">'+
+          '<div><strong>Comunicazioni via email</strong><small>Comunicazioni legate al percorso.</small></div>'+
+          '<input type="checkbox" data-consent-communications '+(privacyState.communicationsEmail?'checked':'')+'>'+
+        '</label>'+
+        '<label class="patient-profile-consent-row">'+
+          '<div><strong>Promemoria appuntamenti</strong><small>Invio dei promemoria via email.</small></div>'+
+          '<input type="checkbox" data-consent-reminders '+(privacyState.remindersEmail?'checked':'')+'>'+
+        '</label>'+
+        '<button class="patient-primary" type="submit">Salva consensi</button>'+
       '</form>');
-    $('[data-profile-consents-save]',wrap)?.addEventListener('click',()=>{
+
+    $('.patient-profile-consent-form',wrap)?.addEventListener('submit',event=>{
+      event.preventDefault();
+      privacyState.communicationsEmail=!!$('[data-consent-communications]',wrap)?.checked;
+      privacyState.remindersEmail=!!$('[data-consent-reminders]',wrap)?.checked;
+      privacyState.updatedAt='10 ottobre 2026';
+      renderPrivacyState();
       wrap.remove();
-      modal('Consensi','<p class="patient-demo-message">Impostazioni salvate nella demo. Nessun dato reale è stato modificato.</p>');
+      toast('Consensi aggiornati','Nella versione reale lo stesso stato sarà visibile anche al professionista.');
     });
   }
 
   function openSupport(){
     const wrap=modal('Richiedi assistenza',
-      '<form class="patient-profile-dialog-form">'+
-        '<label><span>Tipo di richiesta</span><select><option>Problema tecnico</option><option>Accesso all’account</option><option>Documenti</option><option>Altro</option></select></label>'+
-        '<label><span>Descrivi il problema</span><textarea placeholder="Scrivi qui la tua richiesta…"></textarea></label>'+
-        '<button class="patient-primary" type="button" data-profile-support-send>Invia richiesta</button>'+
+      '<form class="patient-profile-dialog-form" data-patient-support-form>'+
+        '<label>Area dell’app<select name="area" required>'+
+          '<option value="">Seleziona area</option>'+
+          '<option>Home</option>'+
+          '<option>Diario</option>'+
+          '<option>Piano alimentare</option>'+
+          '<option>Documenti</option>'+
+          '<option>Profilo</option>'+
+          '<option>Privacy e consensi</option>'+
+          '<option>Accesso / account</option>'+
+          '<option>Altro</option>'+
+        '</select></label>'+
+        '<label>Tipo di richiesta<select name="type" required>'+
+          '<option value="">Seleziona tipo</option>'+
+          '<option>Problema tecnico</option>'+
+          '<option>Funzione che non risponde</option>'+
+          '<option>Dato non corretto</option>'+
+          '<option>Problema di accesso</option>'+
+          '<option>Problema con un documento</option>'+
+          '<option>Problema con notifiche o email</option>'+
+          '<option>Richiesta privacy / consensi</option>'+
+          '<option>Richiesta di chiarimento sull’app</option>'+
+          '<option>Suggerimento o nuova funzione</option>'+
+          '<option>Altro</option>'+
+        '</select></label>'+
+        '<label>Descrivi cosa è successo<textarea name="message" required placeholder="Spiega cosa stavi facendo e cosa è successo…"></textarea></label>'+
+        '<button class="patient-primary" type="submit">Invia richiesta</button>'+
       '</form>');
-    $('[data-profile-support-send]',wrap)?.addEventListener('click',()=>{
+
+    $('[data-patient-support-form]',wrap)?.addEventListener('submit',event=>{
+      event.preventDefault();
       wrap.remove();
-      modal('Richiesta inviata','<p class="patient-demo-message">Invio simulato nella versione statica Patient 2.0.</p>');
+      toast('Richiesta preparata','Invio demo completato. Nessuna richiesta reale è stata trasmessa.');
     });
   }
 
-  document.addEventListener('change',event=>{
-    if(event.target.matches('[data-patient-profile-photo]')){
-      previewPhoto(event.target.files?.[0]);
+  function handlePhoto(file){
+    if(!file)return;
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)){
+      toast('Formato non supportato','Usa JPG, PNG o WebP.');
+      return;
     }
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const preview=$('[data-patient-profile-avatar]');
+      if(preview)preview.innerHTML='<img src="'+esc(reader.result)+'" alt="Foto profilo">';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.addEventListener('change',event=>{
+    const input=event.target.closest('[data-patient-profile-photo]');
+    if(input)handlePhoto(input.files?.[0]);
   });
 
   document.addEventListener('click',event=>{
-    if(event.target.closest('[data-patient-profile-photo-remove]')){
-      resetPhoto();
+    const remove=event.target.closest('[data-patient-profile-photo-remove]');
+    if(remove){
+      const preview=$('[data-patient-profile-avatar]');
+      if(preview)preview.innerHTML='<span>GC</span>';
       return;
     }
 
     const action=event.target.closest('[data-patient-profile-action]');
-    if(action){
-      const kind=action.dataset.patientProfileAction;
-      if(kind==='privacy-info')openPrivacyInfo();
-      if(kind==='privacy-consents')openPrivacyConsents();
-      if(kind==='support')openSupport();
-      return;
-    }
+    if(!action)return;
 
-    const homeSupport=event.target.closest('[data-patient-modal="support"]');
-    if(homeSupport){
-      openSupport();
-    }
+    if(action.dataset.patientProfileAction==='privacy-info')openPrivacyInfo();
+    if(action.dataset.patientProfileAction==='privacy-consents')openConsents();
+    if(action.dataset.patientProfileAction==='support')openSupport();
   });
+
+  renderPrivacyState();
 })();
