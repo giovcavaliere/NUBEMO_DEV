@@ -3,46 +3,77 @@
 
   const $=(selector,root=document)=>root.querySelector(selector);
   const $$=(selector,root=document)=>[...root.querySelectorAll(selector)];
+  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[char]));
 
   const diaryDays={
     '2026-10-10':{
-      title:'Sabato 10 ottobre',status:'Giornata in corso · 3 pasti su 5',weight:'106,6 kg',kcal:'1.650 kcal',confidence:'Buona',confidenceClass:'good',
+      date:'sabato 10 ottobre 2026',
+      status:'Giornata in corso. Tre pasti compilati su cinque.',
+      weight:'106,6 kg',
+      water:'1,5 L',
+      coffee:'2',
+      kcal:'1.650 kcal',
+      confidence:'Buona',
+      confidenceClass:'high',
       meals:[
-        ['☕','Colazione','Yogurt greco, 45 g muesli, banana','410 kcal'],
-        ['🍎','Spuntino mattina','Mela e 15 g mandorle','175 kcal'],
-        ['🍝','Pranzo','Pasta al pomodoro, tonno e insalata','620 kcal'],
-        ['·','Spuntino pomeriggio','Non ancora compilato','—',true],
-        ['·','Cena','Non ancora compilata','—',true]
+        ['☕','Colazione','Compilato','Yogurt greco 150 g + muesli 45 g + 1 banana','410 kcal'],
+        ['🍎','Spuntino mattina','Compilato','1 mela + 15 g mandorle','175 kcal'],
+        ['🍝','Pranzo','Compilato','Pasta al pomodoro 80 g + tonno 100 g + insalata','620 kcal'],
+        ['🍎','Spuntino pomeriggio','Non ancora compilato','', '—'],
+        ['🍽','Cena','Non ancora compilata','', '—']
       ]
     },
     '2026-10-09':{
-      title:'Venerdì 9 ottobre',status:'Giornata completa · 5 pasti su 5',weight:'106,8 kg',kcal:'1.720 kcal',confidence:'Buona',confidenceClass:'good',
+      date:'venerdì 9 ottobre 2026',
+      status:'Giornata completa. Cinque pasti compilati su cinque.',
+      weight:'106,8 kg',
+      water:'1,8 L',
+      coffee:'2',
+      kcal:'1.720 kcal',
+      confidence:'Buona',
+      confidenceClass:'high',
       meals:[
-        ['☕','Colazione','Latte, pane tostato e marmellata','390 kcal'],
-        ['🍎','Spuntino mattina','Yogurt e frutta','180 kcal'],
-        ['🍝','Pranzo','Riso, pollo e verdure','610 kcal'],
-        ['🍎','Spuntino pomeriggio','Frutta secca','160 kcal'],
-        ['🍽','Cena','Pesce, patate e verdure','380 kcal']
+        ['☕','Colazione','Compilato','Latte 250 ml + pane tostato + marmellata','390 kcal'],
+        ['🍎','Spuntino mattina','Compilato','Yogurt + frutta','180 kcal'],
+        ['🍝','Pranzo','Compilato','Riso basmati + pollo + verdure','610 kcal'],
+        ['🍎','Spuntino pomeriggio','Compilato','Frutta secca','160 kcal'],
+        ['🍽','Cena','Compilato','Pesce + patate + verdure','380 kcal']
       ]
     },
     '2026-10-08':{
-      title:'Giovedì 8 ottobre',status:'Diario parziale · 4 pasti su 5',weight:'107,1 kg',kcal:'1.480 kcal',confidence:'Media',confidenceClass:'medium',
+      date:'giovedì 8 ottobre 2026',
+      status:'Diario parziale. Quattro pasti compilati su cinque.',
+      weight:'107,1 kg',
+      water:'1,4 L',
+      coffee:'3',
+      kcal:'1.480 kcal',
+      confidence:'Media',
+      confidenceClass:'medium',
       meals:[
-        ['☕','Colazione','Cappuccino e biscotti','360 kcal'],
-        ['🍎','Spuntino mattina','Banana','105 kcal'],
-        ['🍝','Pranzo','Pasta al ragù e insalata','650 kcal'],
-        ['🍎','Spuntino pomeriggio','Yogurt greco','130 kcal'],
-        ['·','Cena','Non compilata','—',true]
+        ['☕','Colazione','Compilato','Cappuccino + biscotti','360 kcal'],
+        ['🍎','Spuntino mattina','Compilato','1 banana','105 kcal'],
+        ['🍝','Pranzo','Compilato','Pasta al ragù + insalata','650 kcal'],
+        ['🍎','Spuntino pomeriggio','Compilato','Yogurt greco','130 kcal'],
+        ['🍽','Cena','Non compilata','', '—']
       ]
     },
     '2026-10-07':{
-      title:'Mercoledì 7 ottobre',status:'Giornata completa · 5 pasti su 5',weight:'107,4 kg',kcal:'1.805 kcal',confidence:'Buona',confidenceClass:'good',
+      date:'mercoledì 7 ottobre 2026',
+      status:'Giornata completa. Cinque pasti compilati su cinque.',
+      weight:'107,4 kg',
+      water:'2,0 L',
+      coffee:'2',
+      kcal:'1.805 kcal',
+      confidence:'Buona',
+      confidenceClass:'high',
       meals:[
-        ['☕','Colazione','Yogurt greco, avena e frutta','420 kcal'],
-        ['🍎','Spuntino mattina','Pera e noci','180 kcal'],
-        ['🍝','Pranzo','Pasta integrale e verdure','640 kcal'],
-        ['🍎','Spuntino pomeriggio','Crackers e bresaola','165 kcal'],
-        ['🍽','Cena','Tacchino, pane e verdure','400 kcal']
+        ['☕','Colazione','Compilato','Yogurt greco + avena + frutta','420 kcal'],
+        ['🍎','Spuntino mattina','Compilato','Pera + noci','180 kcal'],
+        ['🍝','Pranzo','Compilato','Pasta integrale + verdure','640 kcal'],
+        ['🍎','Spuntino pomeriggio','Compilato','Crackers + bresaola','165 kcal'],
+        ['🍽','Cena','Compilato','Tacchino + pane + verdure','400 kcal']
       ]
     }
   };
@@ -75,132 +106,178 @@
     ]
   };
 
-  const mealCalories={breakfast:410,snack1:175,lunch:620,snack2:165,dinner:380};
+  const demoKcal={breakfast:410,snack1:175,lunch:620,snack2:165,dinner:380};
+  let selectedDate='2026-10-10';
 
-  function detailMarkup(day){
-    return '<header>'+
-      '<div><span class="patient-view-eyebrow">Giornata selezionata</span><h3>'+day.title+'</h3><p>'+day.status+'</p></div>'+
-      '<button class="link-button" type="button" data-patient-diary-mode="add">Modifica →</button>'+
-    '</header>'+
-    '<div class="diary2-detail-metrics">'+
-      '<div><span>Peso</span><strong>'+day.weight+'</strong></div>'+
-      '<div><span>Calorie <small>(stima)</small></span><strong>'+day.kcal+'</strong></div>'+
-      '<div><span>Attendibilità</span><strong class="diary2-confidence '+day.confidenceClass+'">'+day.confidence+'</strong></div>'+
-    '</div>'+
-    '<div class="diary2-meal-list">'+day.meals.map(meal=>
-      '<div class="'+(meal[4]?'pending':'')+'"><span class="diary2-meal-icon">'+meal[0]+'</span><span><strong>'+meal[1]+'</strong><small>'+meal[2]+'</small></span><b>'+meal[3]+'</b></div>'
-    ).join('')+'</div>'+
-    '<div class="diary2-detail-actions"><button class="patient-primary" type="button" data-patient-diary-mode="add">Modifica giornata</button><button class="patient-secondary" type="button" data-diary-duplicate>Duplica giornata</button></div>';
+  function renderDetail(day){
+    const target=$('#patientDiaryDetail');
+    if(!target||!day)return;
+
+    target.innerHTML=
+      '<header class="diary-detail-head">'+
+        '<div>'+
+          '<span class="diary-detail-date">'+esc(day.date)+'</span>'+
+          '<div class="diary-detail-value"><strong>'+esc(day.kcal)+'</strong><span class="diary-confidence diary-confidence-'+day.confidenceClass+'">'+esc(day.confidence)+'</span></div>'+
+          '<p>'+esc(day.status)+'</p>'+
+        '</div>'+
+        '<button class="patient-secondary patient-diary-edit-button" type="button" data-patient-diary-mode="add">Modifica</button>'+
+      '</header>'+
+      '<div class="patient-diary-day-meta">'+
+        '<div><span>Peso</span><strong>'+esc(day.weight)+'</strong></div>'+
+        '<div><span>Acqua</span><strong>'+esc(day.water)+'</strong></div>'+
+        '<div><span>Caffè</span><strong>'+esc(day.coffee)+'</strong></div>'+
+      '</div>'+
+      '<div class="diary-meals">'+
+        day.meals.map(meal=>
+          '<article class="diary-meal '+(!meal[3]?'patient-diary-meal-empty':'')+'">'+
+            '<header><span class="diary-meal-icon">'+meal[0]+'</span><div><strong>'+esc(meal[1])+'</strong><small>'+esc(meal[2])+'</small></div><strong class="diary-meal-total">'+esc(meal[4])+'</strong></header>'+
+            (meal[3]?'<p class="diary-original"><span>Testo inserito</span>“'+esc(meal[3])+'”</p>':'')+
+          '</article>'
+        ).join('')+
+      '</div>'+
+      '<div class="patient-diary-detail-actions">'+
+        '<button class="patient-primary" type="button" data-patient-diary-mode="add">Modifica giornata</button>'+
+        '<button class="patient-secondary" type="button" data-diary-duplicate>Duplica giornata</button>'+
+      '</div>';
   }
 
   function selectDay(date){
     const day=diaryDays[date];
     if(!day)return;
-    $$('.diary2-day').forEach(row=>row.classList.toggle('is-selected',row.dataset.diaryDay===date));
-    const detail=$('#diary2Detail');
-    if(detail)detail.innerHTML=detailMarkup(day);
-  }
-
-  function updateRange(button){
-    $$('.diary2-range button').forEach(item=>item.classList.toggle('active',item===button));
-    const label=button.dataset.diaryRange;
-    const main=$('.diary2-summary-main small:last-child');
-    if(main){
-      main.textContent=label==='7d'?'ultimi 7 giorni · attendibilità buona':label==='30d'?'ultimi 30 giorni · attendibilità buona':'tutto il percorso · attendibilità buona';
-    }
+    selectedDate=date;
+    $$('.diary-day-row').forEach(row=>{
+      const selected=row.dataset.diaryDate===date;
+      row.classList.toggle('is-selected',selected);
+      const chevron=row.querySelector('.diary-day-chevron');
+      if(chevron)chevron.textContent=selected?'⌄':'⌄';
+    });
+    renderDetail(day);
   }
 
   function updateCalories(){
-    let total=0,filled=0;
+    let total=0;
+    let filled=0;
+
     $$('[data-diary-meal-text]').forEach(field=>{
-      const text=field.value.trim();
       const key=field.dataset.diaryMealText;
-      const card=field.closest('.diary2-meal-entry');
-      const state=card?.querySelector('header small');
+      const text=field.value.trim();
+      const editor=field.closest('.patient-diary-meal-editor');
+      const status=editor?.querySelector('header small');
+
       if(text){
         filled++;
-        total+=mealCalories[key]||0;
-        if(state)state.textContent='Compilato';
-      }else if(state)state.textContent='Da compilare';
+        total+=demoKcal[key]||0;
+        if(status)status.textContent='Compilato';
+      }else if(status){
+        status.textContent='Da compilare';
+      }
     });
-    const value=$('#diary2Calories');
-    const quality=$('#diary2Quality');
+
+    const value=$('#patientDiaryCalories');
+    const quality=$('#patientDiaryQuality');
     if(value)value.textContent=filled?total.toLocaleString('it-IT')+' kcal':'—';
     if(quality)quality.textContent=filled>=4?'Stima buona':filled>=2?'Stima media':'Compila i pasti per la stima';
+  }
+
+  function toast(title,message){
+    document.querySelector('.patient-diary-toast')?.remove();
+    const el=document.createElement('div');
+    el.className='patient-diary-toast';
+    el.innerHTML='<strong>'+esc(title)+'</strong><span>'+esc(message)+'</span>';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2600);
   }
 
   function toggleFavorite(button){
     const key=button.dataset.diaryFavoriteToggle;
     const field=$('[data-diary-meal-text="'+key+'"]');
     if(!field?.value.trim()){
-      notify('Preferiti','Scrivi prima il pasto da salvare tra i preferiti.');
+      toast('Pasto preferito','Scrivi prima il pasto da salvare.');
       return;
     }
+
     const active=!button.classList.contains('active');
     button.classList.toggle('active',active);
     button.setAttribute('aria-pressed',String(active));
-    button.innerHTML=(active?'★':'☆')+' <span>Preferito</span>';
+    button.textContent=active?'★':'☆';
+    button.title=active?'Rimuovi dai preferiti':'Salva come preferito';
+    toast('Pasto preferito',active?'Pasto aggiunto ai preferiti nella demo.':'Pasto rimosso dai preferiti nella demo.');
   }
 
   function openFavorites(type){
-    document.querySelector('.diary2-favorites-overlay')?.remove();
+    document.querySelector('.patient-diary-favorites')?.remove();
+
     const rows=favoriteMeals[type]||[];
     const overlay=document.createElement('div');
-    overlay.className='diary2-favorites-overlay';
+    overlay.className='patient-diary-favorites';
 
     const render=list=>list.length
-      ?list.map((text,index)=>'<button type="button" class="diary2-favorite-option" data-diary-favorite-index="'+index+'"><span>★</span><strong>'+text+'</strong><b>Usa</b></button>').join('')
-      :'<div class="diary2-favorites-empty">Nessun preferito trovato.</div>';
+      ?list.map(item=>
+        '<button type="button" class="patient-diary-favorite-option" data-favorite-index="'+item.index+'">'+
+          '<span>★</span><strong>'+esc(item.text)+'</strong><b>Usa</b>'+
+        '</button>'
+      ).join('')
+      :'<div class="patient-diary-favorites-empty">Nessun preferito trovato.</div>';
 
-    overlay.innerHTML='<div class="diary2-favorites-modal">'+
-      '<div class="diary2-favorites-head"><div><span class="patient-view-eyebrow">Pasti preferiti</span><h3>Richiama preferito</h3><p>Nessuna caloria nella lista: scegli semplicemente il pasto da riutilizzare.</p></div><button class="diary2-favorites-close" type="button" aria-label="Chiudi">×</button></div>'+
-      '<input class="diary2-favorites-search" type="search" placeholder="Cerca tra i preferiti…">'+
-      '<div class="diary2-favorites-list">'+render(rows)+'</div>'+
-    '</div>';
+    const indexed=rows.map((text,index)=>({text,index}));
+
+    overlay.innerHTML=
+      '<div class="patient-diary-favorites-card">'+
+        '<div class="patient-diary-favorites-head">'+
+          '<div><span class="patient-view-eyebrow">Pasti preferiti</span><h3>Richiama preferito</h3><p>Scegli un pasto già salvato per questa tipologia.</p></div>'+
+          '<button class="patient-diary-favorites-close" type="button" aria-label="Chiudi">×</button>'+
+        '</div>'+
+        '<input class="patient-diary-favorites-search" type="search" placeholder="Cerca tra i preferiti…">'+
+        '<div class="patient-diary-favorites-list">'+render(indexed)+'</div>'+
+      '</div>';
 
     document.body.appendChild(overlay);
+
     const close=()=>overlay.remove();
-    $('.diary2-favorites-close',overlay)?.addEventListener('click',close);
+    $('.patient-diary-favorites-close',overlay)?.addEventListener('click',close);
+
     overlay.addEventListener('click',event=>{
-      if(event.target===overlay)return close();
-      const option=event.target.closest('[data-diary-favorite-index]');
+      if(event.target===overlay){
+        close();
+        return;
+      }
+
+      const option=event.target.closest('[data-favorite-index]');
       if(!option)return;
-      const visible=$$('.diary2-favorite-option',overlay);
-      const selected=visible[Number(option.dataset.diaryFavoriteIndex)]?.querySelector('strong')?.textContent;
-      if(!selected)return;
+
+      const text=rows[Number(option.dataset.favoriteIndex)];
       const field=$('[data-diary-meal-text="'+type+'"]');
-      if(field){
-        field.value=selected;
+      if(field&&text){
+        field.value=text;
         field.dispatchEvent(new Event('input',{bubbles:true}));
       }
       close();
     });
-    $('.diary2-favorites-search',overlay)?.addEventListener('input',event=>{
-      const term=event.target.value.toLowerCase().trim();
-      const filtered=rows.filter(text=>text.toLowerCase().includes(term));
-      const list=$('.diary2-favorites-list',overlay);
+
+    $('.patient-diary-favorites-search',overlay)?.addEventListener('input',event=>{
+      const term=event.target.value.trim().toLowerCase();
+      const filtered=indexed.filter(item=>item.text.toLowerCase().includes(term));
+      const list=$('.patient-diary-favorites-list',overlay);
       if(list)list.innerHTML=render(filtered);
     });
   }
 
-  function notify(title,message){
-    document.querySelector('.diary2-feedback')?.remove();
-    const feedback=document.createElement('div');
-    feedback.className='diary2-feedback';
-    feedback.innerHTML='<strong>'+title+'</strong><span>'+message+'</span>';
-    document.body.appendChild(feedback);
-    setTimeout(()=>feedback.remove(),2600);
-  }
-
   function duplicateDay(){
-    const title=$('.diary2-entry-head h2');
-    const date=$('.diary2-entry-metrics input[type="date"]');
-    const weight=$('.diary2-entry-metrics input[inputmode="decimal"]');
+    const day=diaryDays[selectedDate]||diaryDays['2026-10-10'];
+    const addButton=$('[data-patient-view="home"] [data-patient-diary-mode="add"]') || $('[data-patient-diary-mode="add"]');
+
+    const title=$('[data-diary-panel="add"] .diary-titlebar h2');
+    const subtitle=$('[data-diary-panel="add"] .diary-titlebar p');
+    const date=$('[data-diary-panel="add"] input[type="date"]');
+    const weight=$('[data-diary-panel="add"] input[inputmode="decimal"]');
+
     if(title)title.textContent='Duplica giornata';
+    if(subtitle)subtitle.textContent='Copia rapida dalla giornata selezionata';
     if(date)date.value='2026-10-11';
     if(weight)weight.value='';
-    document.querySelector('[data-patient-diary-mode="add"]')?.click();
-    notify('Copia rapida','Pasti e note copiati. Il peso è stato escluso, come nell’attuale NUBEMO.');
+
+    if(addButton)addButton.click();
+    toast('Copia rapida','Pasti e note copiati. Il peso è stato escluso.');
   }
 
   document.addEventListener('input',event=>{
@@ -208,21 +285,15 @@
   });
 
   document.addEventListener('click',event=>{
-    const day=event.target.closest('[data-diary-day]');
+    const day=event.target.closest('[data-diary-date]');
     if(day){
-      selectDay(day.dataset.diaryDay);
-      return;
-    }
-
-    const range=event.target.closest('[data-diary-range]');
-    if(range){
-      updateRange(range);
+      selectDay(day.dataset.diaryDate);
       return;
     }
 
     const coffee=event.target.closest('[data-diary-coffee]');
     if(coffee){
-      const value=$('#diary2Coffee');
+      const value=$('#patientDiaryCoffee');
       if(value){
         const next=Math.max(0,Math.min(12,Number(value.textContent||0)+Number(coffee.dataset.diaryCoffee||0)));
         value.textContent=String(next);
@@ -230,9 +301,9 @@
       return;
     }
 
-    const star=event.target.closest('[data-diary-favorite-toggle]');
-    if(star){
-      toggleFavorite(star);
+    const favorite=event.target.closest('[data-diary-favorite-toggle]');
+    if(favorite){
+      toggleFavorite(favorite);
       return;
     }
 
@@ -243,7 +314,7 @@
     }
 
     if(event.target.closest('[data-diary-save]')){
-      notify('Giornata salvata','Salvataggio demo completato. Nessun dato reale è stato modificato.');
+      toast('Giornata salvata','Salvataggio demo completato.');
       return;
     }
 
@@ -252,5 +323,6 @@
     }
   });
 
+  renderDetail(diaryDays[selectedDate]);
   updateCalories();
 })();
