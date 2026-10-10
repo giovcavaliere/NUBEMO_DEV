@@ -192,57 +192,109 @@
   color:#fff;
 }
 .patient-weight-chart{
-  display:grid;
-  grid-template-columns:38px minmax(0,1fr);
-  gap:4px;
-  width:100%;
-  height:225px;
-  margin-top:14px;
+  position:relative;
+  height:220px;
+  margin-top:4px;
 }
-.patient-chart-y-axis,
-.patient-chart-plot{position:relative;min-width:0}
-.patient-chart-y-axis{color:var(--muted);font-size:10px;font-variant-numeric:tabular-nums}
-.patient-chart-y-axis small{position:absolute;top:8px;right:0;font-size:10px}
-.patient-chart-y-axis span{
+.patient-chart-axis-title{
   position:absolute;
-  right:0;
-  top:calc(var(--tick) * 100% / 225);
-  transform:translateY(-50%);
+  top:0;
+  left:40px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.3;
 }
-.patient-weight-chart svg{width:100%;height:100%;display:block}
-.patient-chart-grid{stroke:#e8e4dc;stroke-width:1;vector-effect:non-scaling-stroke}
-.patient-chart-area{fill:#edf3e9}
+.patient-chart-plot{
+  position:absolute;
+  inset:24px 10px 30px 40px;
+}
+.patient-chart-plot>svg{
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+.patient-chart-grid{
+  stroke:#e5e3da;
+  stroke-width:1;
+  vector-effect:non-scaling-stroke;
+}
+.patient-chart-grid-vertical{stroke-opacity:.5}
+.patient-chart-area{
+  fill:#88b69c;
+  fill-opacity:.12;
+}
 .patient-chart-line{
   fill:none;
   stroke:var(--green-700);
-  stroke-width:3;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  vector-effect:non-scaling-stroke;
-}
-.patient-chart-point{
-  fill:var(--surface-2);
-  stroke:var(--green-700);
   stroke-width:2;
+  stroke-linejoin:round;
+  stroke-linecap:round;
   vector-effect:non-scaling-stroke;
 }
-.patient-chart-labels{
-  position:absolute;
-  left:5.294%;
-  right:4.706%;
-  bottom:0;
-  display:flex;
-  justify-content:space-between;
+.patient-chart-axis{
   color:var(--muted);
   font-size:10px;
+  line-height:1.3;
 }
-.patient-chart-value{
+.patient-chart-tick{
   position:absolute;
-  right:4.706%;
-  bottom:32.889%;
-  color:var(--green-950);
+  right:calc(100% + 8px);
+  top:calc((var(--patient-y) - 34) / 191 * 100%);
+  transform:translateY(-50%);
+  white-space:nowrap;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.patient-chart-dot{
+  position:absolute;
+  left:calc((var(--patient-x) - 46) / 408 * 100%);
+  top:calc((var(--patient-y) - 34) / 191 * 100%);
+  width:7px;
+  height:7px;
+  transform:translate(-50%,-50%);
+  border:2px solid var(--green-700);
+  border-radius:50%;
+  background:var(--surface-2);
+}
+.patient-chart-date{
+  position:absolute;
+  top:calc(100% + 14px);
+  left:calc((var(--patient-x) - 46) / 408 * 100%);
+  white-space:nowrap;
+}
+.patient-chart-date-middle{transform:translateX(-50%)}
+.patient-chart-date-end{transform:translateX(-100%)}
+.patient-chart-latest{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 16px;
+  align-items:center;
+  margin-top:8px;
+  min-height:20px;
+}
+.patient-chart-latest>span{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  color:var(--muted);
   font-size:11px;
-  font-weight:650;
+}
+.patient-chart-latest strong{color:var(--text)}
+.patient-chart-latest .patient-chart-goal{
+  margin-left:auto;
+  padding:4px 7px;
+  border-radius:5px;
+  background:var(--green-soft-2);
+  color:var(--green-800);
+  font-size:10px;
+}
+.patient-chart-legend-dot{
+  width:8px;
+  height:8px;
+  flex:none;
+  border-radius:50%;
+  background:var(--green-700);
 }
 
 .patient-calorie-card{
