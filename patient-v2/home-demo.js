@@ -82,16 +82,16 @@ function dailyMotivationalQuote(date=new Date()){
   }
 
   function setDiaryMode(mode='overview'){
-    $('[data-diary-panel]').forEach(panel=>{panel.hidden=panel.dataset.diaryPanel!==mode;});
+    $$('[data-diary-panel]').forEach(panel=>{panel.hidden=panel.dataset.diaryPanel!==mode;});
   }
 
   function route(view,options={}){
     const target=['home','diary','plan','documents','profile'].includes(view)?view:'home';
-    $('[data-patient-view]').forEach(section=>{section.hidden=section.dataset.patientView!==target;});
+    $$('[data-patient-view]').forEach(section=>{section.hidden=section.dataset.patientView!==target;});
     if(target==='diary')setDiaryMode(options.diaryMode||'overview');
     const banner=$('#patientHomeBanner');
     if(banner)banner.hidden=target!=='home';
-    $('[data-patient-route]').forEach(link=>{
+    $$('[data-patient-route]').forEach(link=>{
       const active=link.dataset.patientRoute===target;
       link.classList.toggle('active',active);
       if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
