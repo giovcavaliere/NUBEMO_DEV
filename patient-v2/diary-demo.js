@@ -93,7 +93,7 @@
   function filterHistory(term){
     const q=normalize(term);
     let visible=0;
-    $('[data-diary-history-date]').forEach(row=>{
+    $$('[data-diary-history-date]').forEach(row=>{
       const day=history[row.dataset.diaryHistoryDate];
       const haystack=day
         ?[row.dataset.diaryHistoryDate,day.title,day.weight,day.water,day.coffee,day.sweetener,day.notes,...day.meals].join(' ')
