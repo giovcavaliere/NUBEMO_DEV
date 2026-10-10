@@ -459,7 +459,7 @@
   .patient-progress-metric strong{font-size:14px}
   .patient-chart-head{display:block}
   .patient-range{width:max-content;margin-top:12px}
-  .patient-weight-chart{height:190px;margin-top:9px}
+  .patient-weight-chart{margin-top:9px}
   .patient-diary-summary{gap:5px}
   .patient-meal-status{padding:10px 3px 8px}
   .patient-meal-status small{font-size:8px}
