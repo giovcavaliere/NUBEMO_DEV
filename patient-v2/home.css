@@ -194,7 +194,7 @@
 .patient-weight-chart{margin-top:4px}
 .patient-chart-core{
   position:relative;
-  height:220px;
+  height:232px;
 }
 .patient-chart-axis-title{
   position:absolute;
@@ -206,7 +206,7 @@
 }
 .patient-chart-plot{
   position:absolute;
-  inset:24px 10px 30px 40px;
+  inset:24px 10px 46px 40px;
 }
 .patient-chart-plot>svg{
   display:block;
@@ -259,7 +259,7 @@
 }
 .patient-chart-date{
   position:absolute;
-  top:calc(100% + 14px);
+  top:calc(100% + 10px);
   left:calc((var(--patient-x) - 46) / 408 * 100%);
   white-space:nowrap;
 }
