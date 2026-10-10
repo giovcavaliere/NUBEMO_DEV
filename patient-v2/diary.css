@@ -1,246 +1,373 @@
-/* NUBEMO Patient 2.0 — Diario statico
-   Coerente con Professional 2.0; nessuna dipendenza dati reale. */
+/* NUBEMO Patient 2.0 — Diario
+   Estende il Diario Professional 2.0. Nessuna duplicazione della sua grammatica visiva. */
 
-.patient-diary-page-head{align-items:center}
-.patient-diary-head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.patient-diary-head-actions .patient-secondary{min-height:38px}
+.patient-diary-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.patient-diary-toolbar .patient-primary{min-height:40px}
 
-.diary2-summary{
+.patient-diary-edit-button{min-height:34px}
+.patient-diary-day-meta{
   display:grid;
-  grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(180px,.65fr));
-  gap:12px;
-  margin-bottom:16px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:14px;
 }
-.diary2-summary>article{
+.patient-diary-day-meta>div{
+  padding:10px 11px;
+  border:1px solid #e4e7e1;
+  border-radius:11px;
+  background:#f8faf7;
+}
+.patient-diary-day-meta span,
+.patient-diary-day-meta strong{display:block}
+.patient-diary-day-meta span{color:#7d8d89;font-size:10px}
+.patient-diary-day-meta strong{margin-top:3px;color:#1a3d38;font-size:13px}
+.patient-diary-meal-empty{opacity:.56}
+.patient-diary-detail-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #edf0eb;
+}
+
+/* Inserimento / modifica */
+.patient-diary-edit{display:grid;gap:18px}
+.patient-diary-edit-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  padding:14px;
+  border:1px solid #e4e5df;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(55,74,65,.04);
+}
+.patient-diary-field,
+.patient-diary-notes{
+  display:grid;
+  gap:6px;
   min-width:0;
-  padding:15px;
-  border:1px solid var(--line);
+}
+.patient-diary-field>span,
+.patient-diary-notes>span{
+  color:#697b77;
+  font-size:11px;
+  font-weight:600;
+}
+.patient-diary-field input,
+.patient-diary-notes textarea,
+.patient-diary-meal-editor textarea{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  border:1px solid #dde3dd;
+  border-radius:10px;
+  background:#fff;
+  color:#213f3a;
+  font:inherit;
+}
+.patient-diary-field input{
+  height:40px;
+  padding:0 11px;
+  font-size:12px;
+}
+.patient-diary-input-unit{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 34px;
+}
+.patient-diary-input-unit input{border-radius:10px 0 0 10px}
+.patient-diary-input-unit b{
+  display:grid;
+  place-items:center;
+  border:1px solid #dde3dd;
+  border-left:0;
+  border-radius:0 10px 10px 0;
+  background:#f3f7f2;
+  color:#49645e;
+  font-size:10px;
+}
+.patient-diary-energy{
+  min-width:0;
+  padding:10px 11px;
+  border:1px solid #e4e7e1;
+  border-radius:11px;
+  background:#f8faf7;
+}
+.patient-diary-energy span,
+.patient-diary-energy small{display:block;color:#7d8d89;font-size:10px;line-height:1.35}
+.patient-diary-energy strong{
+  display:block;
+  margin:4px 0 3px;
+  color:#173c38;
+  font-size:18px;
+  letter-spacing:-.02em;
+}
+
+.patient-diary-writing-tip{margin:0}
+.patient-diary-writing-tip strong{color:inherit}
+
+.patient-diary-habits,
+.patient-diary-meal-editors{
+  display:grid;
+  gap:12px;
+}
+.patient-diary-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+}
+.patient-diary-section-head h3{
+  margin:0;
+  color:#173c38;
+  font-size:17px;
+  letter-spacing:-.02em;
+}
+.patient-diary-section-head p{
+  margin:0;
+  color:#7b8986;
+  font-size:11px;
+  line-height:1.4;
+}
+.patient-diary-habit-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  padding:14px;
+  border:1px solid #e4e5df;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(55,74,65,.04);
+}
+.patient-diary-stepper{
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr) 38px;
+  height:40px;
+}
+.patient-diary-stepper button,
+.patient-diary-stepper strong{
+  display:grid;
+  place-items:center;
+  border:1px solid #dde3dd;
+  background:#fff;
+  color:#254a43;
+}
+.patient-diary-stepper button:first-child{border-radius:10px 0 0 10px}
+.patient-diary-stepper button:last-child{border-radius:0 10px 10px 0}
+.patient-diary-stepper strong{
+  border-left:0;
+  border-right:0;
+  font-size:13px;
+}
+
+.patient-diary-meal-editor{
+  border:1px solid #e4e7e1;
   border-radius:14px;
-  background:var(--surface-2);
-  box-shadow:0 7px 20px rgba(55,74,65,.04);
+  background:#fff;
+  box-shadow:0 7px 20px rgba(55,74,65,.035);
+  overflow:hidden;
 }
-.diary2-summary>article>span,
-.diary2-summary>article>small{display:block;color:var(--muted);font-size:10px;line-height:1.4}
-.diary2-summary>article>strong{display:block;margin:7px 0 4px;color:var(--green-950);font-size:23px;letter-spacing:-.03em}
-.diary2-summary-main{display:flex;align-items:center;gap:13px}
-.diary2-summary-main>div{min-width:0}
-.diary2-summary-icon{
-  width:46px;height:46px;display:grid;place-items:center;flex:none;
-  border-radius:13px;background:var(--peach-soft);color:#bd6f31;
+.patient-diary-meal-editor header{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:11px 12px;
+  background:#fbfcfa;
+  border-bottom:1px solid #edf0eb;
 }
-.diary2-summary-icon .icon{width:23px;height:23px}
-
-.diary2-overview{display:grid;gap:14px}
-.diary2-overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
-.diary2-overview-head .module-title{align-items:flex-start}
-.diary2-overview-head .module-title p{margin:4px 0 0;color:var(--muted);font-size:10px}
-.diary2-range{
-  display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:9px;
-  background:#faf7f1;flex-shrink:0;
+.patient-diary-meal-editor header>div:nth-child(2){
+  display:grid;
+  gap:1px;
+  min-width:0;
 }
-.diary2-range button{
-  min-height:31px;padding:5px 10px;border:0;border-radius:7px;background:transparent;
-  color:var(--muted);font-size:10px;cursor:pointer;
+.patient-diary-meal-editor header strong{font-size:13px;color:#183a36}
+.patient-diary-meal-editor header small{font-size:10.5px;color:#899692}
+.patient-diary-meal-editor textarea{
+  display:block;
+  min-height:82px;
+  border:0;
+  border-radius:0;
+  padding:12px;
+  font-size:12px;
+  line-height:1.5;
+  resize:vertical;
+  outline:0;
 }
-.diary2-range button.active{background:var(--green-800);color:#fff;box-shadow:0 2px 5px rgba(29,92,75,.12)}
-
-.diary2-layout{display:grid;grid-template-columns:minmax(360px,.9fr) minmax(0,1.1fr);gap:14px;align-items:start}
-.diary2-days,.diary2-detail{
-  border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.56);overflow:hidden;
+.patient-diary-favorite-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
 }
-.diary2-days{display:grid}
-.diary2-day{
-  appearance:none;width:100%;min-height:74px;display:grid;
-  grid-template-columns:52px minmax(0,1fr) auto 14px;gap:11px;align-items:center;
-  padding:11px 13px;border:0;border-bottom:1px solid var(--line);background:transparent;
-  color:var(--text);text-align:left;cursor:pointer;
+.patient-diary-favorite-actions button{
+  min-height:30px;
+  border:1px solid #dfe5df;
+  border-radius:8px;
+  background:#fff;
+  color:#4d6962;
+  font-size:10px;
+  font-weight:650;
 }
-.diary2-day:last-child{border-bottom:0}
-.diary2-day:hover{background:rgba(237,242,233,.45)}
-.diary2-day.is-selected{background:var(--green-soft-2)}
-.diary2-day-state{
-  width:42px;height:34px;display:grid;place-items:center;border-radius:10px;
-  font-size:10px;font-weight:700;
+.patient-diary-favorite-star{
+  width:32px;
+  padding:0;
+  font-size:16px!important;
+  color:#9b7b37!important;
 }
-.diary2-day-state.complete{background:#e3f0e3;color:#2f7156}
-.diary2-day-state.partial{background:#fff0d9;color:#a86525}
-.diary2-day-state.in-progress{background:#e8f0e7;color:var(--green-800)}
-.diary2-day-main,.diary2-day-metric{min-width:0}
-.diary2-day-main strong,.diary2-day-main small,.diary2-day-metric strong,.diary2-day-metric small{display:block}
-.diary2-day-main strong{font-size:12px;line-height:1.35}
-.diary2-day-main small,.diary2-day-metric small{margin-top:3px;color:var(--muted);font-size:9px;line-height:1.35}
-.diary2-day-metric{text-align:right}
-.diary2-day-metric strong{font-size:11px}
-.diary2-day>b{color:var(--green-700);font-size:17px;font-weight:500}
-
-.diary2-detail{padding:16px}
-.diary2-detail>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}
-.diary2-detail h3{margin:0;color:var(--green-950);font-size:16px}
-.diary2-detail header p{margin:4px 0 0;color:var(--muted);font-size:10px}
-.diary2-detail-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:13px}
-.diary2-detail-metrics>div{padding:10px;border-radius:10px;background:var(--green-soft-2)}
-.diary2-detail-metrics span,.diary2-detail-metrics strong{display:block}
-.diary2-detail-metrics span{color:var(--muted);font-size:9px}
-.diary2-detail-metrics strong{margin-top:4px;color:var(--green-950);font-size:13px}
-.diary2-confidence.good{color:#2f7156}
-.diary2-confidence.medium{color:#a86525}
-
-.diary2-meal-list{display:grid;margin-top:12px}
-.diary2-meal-list>div{
-  display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:center;
-  padding:10px 2px;border-top:1px solid var(--line);
+.patient-diary-favorite-star.active{
+  background:#fff7df;
+  border-color:#ead8a3;
+  color:#a06e16!important;
 }
-.diary2-meal-list>div:first-child{border-top:0}
-.diary2-meal-list .pending{opacity:.6}
-.diary2-meal-icon{
-  width:32px;height:32px;display:grid;place-items:center;border-radius:10px;
-  background:var(--peach-soft);font-size:15px;
+.patient-diary-favorite-recall{padding:0 9px}
+.patient-diary-notes textarea{
+  min-height:90px;
+  padding:11px 12px;
+  font-size:12px;
+  line-height:1.5;
+  resize:vertical;
 }
-.diary2-meal-list strong,.diary2-meal-list small{display:block}
-.diary2-meal-list strong{font-size:11px}
-.diary2-meal-list small{margin-top:2px;color:var(--muted);font-size:9px;line-height:1.4}
-.diary2-meal-list b{font-size:10px;color:var(--green-950)}
-.diary2-detail-actions{display:flex;gap:8px;margin-top:13px}
-
-.diary2-entry{display:grid;gap:16px}
-.diary2-entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
-.diary2-entry-head .module-title{align-items:flex-start}
-.diary2-entry-head p{margin:4px 0 0;color:var(--muted);font-size:10px}
-.diary2-entry-metrics{
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;
-}
-.diary2-entry-metrics>label,
-.diary2-energy{
-  min-width:0;padding:11px;border:1px solid var(--line);border-radius:11px;
-  background:rgba(255,255,255,.58);
-}
-.diary2-entry-metrics label{display:grid;gap:6px}
-.diary2-entry-metrics label>span,.diary2-energy>span,.diary2-energy>small{
-  color:var(--muted);font-size:9px;line-height:1.35;
-}
-.diary2-entry-metrics input{
-  width:100%;min-width:0;height:36px;box-sizing:border-box;border:1px solid var(--line);
-  border-radius:8px;background:#fff;padding:0 9px;color:var(--text);font:inherit;font-size:11px;
-}
-.diary2-energy strong{display:block;margin:5px 0 3px;color:var(--green-950);font-size:17px}
-.diary2-energy small{display:block}
-.diary2-writing-tip{
-  margin:0;padding:10px 12px;border-radius:10px;background:#fff7ea;
-  color:#72552f;font-size:10px;line-height:1.5;
+.patient-diary-savebar{
+  position:sticky;
+  bottom:88px;
+  z-index:5;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  padding:10px;
+  border:1px solid rgba(220,225,218,.95);
+  border-radius:14px;
+  background:rgba(255,253,250,.94);
+  backdrop-filter:blur(12px);
+  box-shadow:0 10px 28px rgba(47,62,55,.08);
 }
 
-.diary2-habits{display:grid;gap:11px;padding-top:3px}
-.diary2-habits .module-title h3,.diary2-section-heading h3{margin:0;color:var(--green-950);font-size:14px}
-.diary2-habit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-.diary2-habit-grid label{display:grid;gap:6px;min-width:0;color:var(--muted);font-size:10px}
-.diary2-habit-grid input{
-  width:100%;min-width:0;height:40px;box-sizing:border-box;border:1px solid var(--line);
-  border-radius:9px;background:#fff;padding:0 10px;color:var(--text);font:inherit;font-size:11px;
+/* Picker preferiti */
+.patient-diary-favorites{
+  position:fixed;
+  inset:0;
+  z-index:110;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(18,55,48,.28);
+  backdrop-filter:blur(5px);
 }
-.diary2-input-unit{display:grid;grid-template-columns:minmax(0,1fr) 30px;align-items:center}
-.diary2-input-unit input{border-radius:9px 0 0 9px}
-.diary2-input-unit b{height:40px;display:grid;place-items:center;border:1px solid var(--line);border-left:0;border-radius:0 9px 9px 0;background:var(--green-soft-2);font-size:10px}
-.diary2-stepper{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;height:40px}
-.diary2-stepper button,.diary2-stepper strong{display:grid;place-items:center;border:1px solid var(--line);background:#fff}
-.diary2-stepper button:first-child{border-radius:9px 0 0 9px}
-.diary2-stepper button:last-child{border-radius:0 9px 9px 0}
-.diary2-stepper strong{border-left:0;border-right:0;font-size:12px}
+.patient-diary-favorites-card{
+  width:min(520px,100%);
+  max-height:min(680px,88vh);
+  overflow:auto;
+  padding:18px;
+  border:1px solid #e1e5df;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 24px 70px rgba(31,53,46,.18);
+}
+.patient-diary-favorites-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+}
+.patient-diary-favorites-head h3{margin:0;color:#173c38;font-size:20px}
+.patient-diary-favorites-head p{margin:4px 0 0;color:#7a8985;font-size:11px}
+.patient-diary-favorites-close{
+  width:34px;
+  height:34px;
+  flex:none;
+  border:1px solid #dfe5df;
+  border-radius:9px;
+  background:#fff;
+  color:#41645c;
+  font-size:18px;
+}
+.patient-diary-favorites-search{
+  width:100%;
+  height:40px;
+  margin-top:14px;
+  box-sizing:border-box;
+  border:1px solid #dfe5df;
+  border-radius:10px;
+  background:#fff;
+  padding:0 11px;
+  color:#213f3a;
+  font:inherit;
+  font-size:12px;
+}
+.patient-diary-favorites-list{display:grid;margin-top:8px}
+.patient-diary-favorite-option{
+  width:100%;
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr) auto;
+  gap:9px;
+  align-items:center;
+  padding:12px 2px;
+  border:0;
+  border-top:1px solid #edf0eb;
+  background:transparent;
+  color:#314c46;
+  text-align:left;
+}
+.patient-diary-favorite-option span:first-child{color:#a06e16}
+.patient-diary-favorite-option strong{font-size:12px;font-weight:550;line-height:1.45}
+.patient-diary-favorite-option b{color:#2d6d58;font-size:10px}
+.patient-diary-favorites-empty{padding:22px;text-align:center;color:#7b8986;font-size:12px}
 
-.diary2-meals-entry{display:grid;gap:10px}
-.diary2-section-heading p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
-.diary2-meal-entry{
-  padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.55);
-}
-.diary2-meal-entry header{display:grid;grid-template-columns:34px minmax(0,1fr);gap:9px;align-items:center}
-.diary2-meal-entry header strong,.diary2-meal-entry header small{display:block}
-.diary2-meal-entry header strong{font-size:12px}
-.diary2-meal-entry header small{margin-top:2px;color:var(--muted);font-size:9px}
-.diary2-meal-entry textarea{
-  width:100%;min-width:0;box-sizing:border-box;min-height:72px;margin-top:9px;padding:9px 10px;
-  border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);
-  font:inherit;font-size:11px;line-height:1.5;resize:vertical;
-}
-.diary2-favorite-actions{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
-.diary2-favorite-actions button{
-  min-height:32px;padding:0 9px;border:1px solid var(--line);border-radius:8px;
-  background:#fff;color:var(--green-800);font-size:9px;font-weight:600;
-}
-.diary2-favorite-star.active{background:#fff6df;color:#a56b1c;border-color:#ead49d}
-.diary2-favorite-recall{background:var(--green-soft-2)}
-
-.diary2-notes{display:grid;gap:6px;color:var(--muted);font-size:10px}
-.diary2-notes textarea{
-  min-height:84px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;
-  background:#fff;color:var(--text);font:inherit;font-size:11px;line-height:1.5;resize:vertical;
-}
-.diary2-entry-actions{display:flex;gap:8px}
-
-.diary2-favorites-overlay{
-  position:fixed;inset:0;z-index:110;display:grid;place-items:center;padding:18px;
-  background:rgba(10,52,46,.28);backdrop-filter:blur(5px);
-}
-.diary2-favorites-modal{
-  width:min(520px,100%);max-height:min(680px,88vh);overflow:auto;padding:18px;
-  border:1px solid var(--line);border-radius:18px;background:var(--surface-2);
-  box-shadow:0 20px 60px rgba(28,43,37,.18);
-}
-.diary2-favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.diary2-favorites-head h3{margin:0;color:var(--green-950);font-size:18px}
-.diary2-favorites-head p{margin:4px 0 0;color:var(--muted);font-size:10px}
-.diary2-favorites-close{
-  width:34px;height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--green-800);font-size:18px;
-}
-.diary2-favorites-search{
-  width:100%;height:40px;margin-top:13px;box-sizing:border-box;border:1px solid var(--line);
-  border-radius:9px;background:#fff;padding:0 11px;color:var(--text);font:inherit;font-size:11px;
-}
-.diary2-favorites-list{display:grid;margin-top:8px}
-.diary2-favorite-option{
-  width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:9px;align-items:center;
-  padding:11px 2px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--text);text-align:left;
-}
-.diary2-favorite-option span:first-child{color:#a56b1c}
-.diary2-favorite-option strong{font-size:11px;font-weight:600;line-height:1.45}
-.diary2-favorite-option b{color:var(--green-700);font-size:16px}
-.diary2-favorites-empty{padding:18px;text-align:center;color:var(--muted);font-size:11px}
-
-@media(max-width:1100px){
-  .diary2-layout{grid-template-columns:1fr}
-  .diary2-summary{grid-template-columns:1fr 1fr}
-  .diary2-summary-main{grid-column:1/-1}
-}
-@media(max-width:760px){
-  .patient-diary-page-head{display:block}
-  .patient-diary-head-actions{margin-top:12px}
-  .diary2-summary{grid-template-columns:1fr 1fr}
-  .diary2-overview-head{display:grid}
-  .diary2-range{width:max-content;max-width:100%}
-  .diary2-day{grid-template-columns:48px minmax(0,1fr) 14px}
-  .diary2-day-metric{grid-column:2;grid-row:2;text-align:left}
-  .diary2-day>b{grid-column:3;grid-row:1/3}
-  .diary2-detail-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .diary2-entry-metrics{grid-template-columns:1fr 1fr}
-  .diary2-habit-grid{grid-template-columns:1fr}
-}
-@media(max-width:520px){
-  .diary2-summary{grid-template-columns:1fr}
-  .diary2-summary-main{grid-column:auto}
-  .patient-diary-head-actions{display:grid;grid-template-columns:1fr 1fr}
-  .diary2-detail-metrics{grid-template-columns:1fr}
-  .diary2-entry-metrics{grid-template-columns:1fr}
-  .diary2-detail-actions,.diary2-entry-actions{display:grid;grid-template-columns:1fr 1fr}
-  .diary2-favorites-overlay{place-items:end center;padding:10px}
-  .diary2-favorites-modal{border-radius:18px 18px 12px 12px}
-}
-
-.diary2-feedback{
-  position:fixed;z-index:120;right:18px;bottom:calc(92px + env(safe-area-inset-bottom));
-  width:min(340px,calc(100% - 36px));display:grid;gap:3px;padding:12px 14px;
-  border:1px solid #cfe0d3;border-radius:12px;background:#f5faf4;color:var(--green-950);
+.patient-diary-toast{
+  position:fixed;
+  z-index:120;
+  right:18px;
+  bottom:calc(96px + env(safe-area-inset-bottom));
+  width:min(340px,calc(100% - 36px));
+  display:grid;
+  gap:3px;
+  padding:12px 14px;
+  border:1px solid #cfe0d3;
+  border-radius:12px;
+  background:#f5faf4;
   box-shadow:0 12px 34px rgba(24,55,47,.15);
 }
-.diary2-feedback strong{font-size:11px}
-.diary2-feedback span{color:var(--muted);font-size:10px;line-height:1.45}
+.patient-diary-toast strong{color:#173c38;font-size:11px}
+.patient-diary-toast span{color:#6f817c;font-size:10px;line-height:1.45}
+
+@media(max-width:900px){
+  .patient-diary-edit-summary{grid-template-columns:1fr 1fr}
+  .patient-diary-habit-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+  .patient-diary-toolbar{justify-content:flex-start}
+  .patient-diary-day-meta{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .patient-diary-detail-actions{justify-content:stretch}
+  .patient-diary-detail-actions button{flex:1}
+  .patient-diary-section-head{display:grid}
+  .patient-diary-meal-editor header{grid-template-columns:34px minmax(0,1fr)}
+  .patient-diary-favorite-actions{
+    grid-column:2;
+    justify-self:start;
+    margin-top:4px;
+  }
+  .patient-diary-savebar{bottom:82px}
+}
 @media(max-width:520px){
-  .diary2-feedback{left:18px;right:18px;width:auto}
+  .patient-diary-toolbar{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    width:100%;
+  }
+  .patient-diary-toolbar .diary-range{grid-column:1/-1;width:max-content}
+  .patient-diary-edit-summary,
+  .patient-diary-habit-grid{grid-template-columns:1fr}
+  .patient-diary-day-meta{grid-template-columns:1fr 1fr 1fr}
+  .patient-diary-detail-actions,
+  .patient-diary-savebar{display:grid;grid-template-columns:1fr 1fr}
+  .patient-diary-favorites{place-items:end center;padding:10px}
+  .patient-diary-favorites-card{border-radius:18px 18px 12px 12px}
+  .patient-diary-toast{left:18px;right:18px;width:auto}
 }
