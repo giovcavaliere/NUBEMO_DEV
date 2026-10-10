@@ -46,25 +46,33 @@ function dailyMotivationalQuote(date=new Date()){
     const data=chartSets[key]||chartSets['7d'];
     const host=$('#patientWeightChart');
     if(!host)return;
-    const W=680,H=225,left=36,right=648,top=34,bottom=196;
+
+    const left=46,right=454,top=34,bottom=225;
     const min=Math.min(...data.y),max=Math.max(...data.y);
     const x=i=>left+(i*(right-left)/(data.points.length-1));
     const y=v=>top+((max-v)*(bottom-top)/(max-min));
-    const pts=data.points.map((v,i)=>x(i).toFixed(2)+','+y(v).toFixed(2)).join(' ');
-    const area='M '+x(0).toFixed(2)+' '+y(data.points[0]).toFixed(2)+' L '+data.points.map((v,i)=>x(i).toFixed(2)+' '+y(v).toFixed(2)).join(' L ')+' L '+right+' '+bottom+' L '+left+' '+bottom+' Z';
+    const path=data.points.map((v,i)=>(i?'L ':'M ')+x(i).toFixed(2)+' '+y(v).toFixed(2)).join(' ');
+    const area=path+' L '+right+' '+bottom+' L '+left+' '+bottom+' Z';
+    const labelIndexes=[0,Math.floor((data.points.length-1)/2),data.points.length-1];
+
     host.innerHTML=
-      '<div class="patient-chart-y-axis" aria-hidden="true">'+
-        '<small>kg</small>'+
-        data.y.map(v=>'<span style="--tick:'+y(v).toFixed(2)+'">'+v.toFixed(1).replace('.',',')+'</span>').join('')+
+      '<div class="patient-chart-core" role="img" aria-label="Andamento peso demo">'+
+        '<span class="patient-chart-axis-title">Peso (kg)</span>'+
+        '<div class="patient-chart-plot">'+
+          '<svg viewBox="46 34 408 191" preserveAspectRatio="none" aria-hidden="true">'+
+            data.y.map(v=>'<line x1="46" x2="454" y1="'+y(v).toFixed(2)+'" y2="'+y(v).toFixed(2)+'" class="patient-chart-grid"/>').join('')+
+            labelIndexes.map(i=>'<line x1="'+x(i).toFixed(2)+'" x2="'+x(i).toFixed(2)+'" y1="34" y2="225" class="patient-chart-grid patient-chart-grid-vertical"/>').join('')+
+            '<path d="'+area+'" class="patient-chart-area"/>'+
+            '<path d="'+path+'" class="patient-chart-line"/>'+
+          '</svg>'+
+          data.y.map(v=>'<span class="patient-chart-axis patient-chart-tick" style="--patient-y:'+y(v).toFixed(2)+'">'+v.toFixed(1).replace('.',',')+'</span>').join('')+
+          data.points.map((v,i)=>'<span class="patient-chart-dot" style="--patient-x:'+x(i).toFixed(2)+';--patient-y:'+y(v).toFixed(2)+'" title="'+v.toFixed(1).replace('.',',')+' kg"></span>').join('')+
+          labelIndexes.map((i,n)=>'<span class="patient-chart-axis patient-chart-date patient-chart-date-'+(n===0?'start':n===2?'end':'middle')+'" style="--patient-x:'+x(i).toFixed(2)+'">'+data.labels[n]+'</span>').join('')+
+        '</div>'+
       '</div>'+
-      '<div class="patient-chart-plot">'+
-        '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Andamento peso demo">'+
-          data.y.map(v=>'<line class="patient-chart-grid" x1="'+left+'" y1="'+y(v).toFixed(2)+'" x2="'+right+'" y2="'+y(v).toFixed(2)+'"/>').join('')+
-          '<path class="patient-chart-area" d="'+area+'"/>'+
-          '<polyline class="patient-chart-line" points="'+pts+'"/>'+
-          data.points.map((v,i)=>'<circle class="patient-chart-point" cx="'+x(i).toFixed(2)+'" cy="'+y(v).toFixed(2)+'" r="4"/>').join('')+
-        '</svg>'+
-        '<div class="patient-chart-labels" aria-hidden="true"><span>'+data.labels[0]+'</span><span>'+data.labels[1]+'</span><span>'+data.labels[2]+'</span></div>'+
+      '<div class="patient-chart-latest">'+
+        '<span><i class="patient-chart-legend-dot"></i>Peso <strong>'+data.points.at(-1).toFixed(1).replace('.',',')+' kg</strong></span>'+
+        '<span class="patient-chart-goal">Obiettivo 85,0 kg</span>'+
       '</div>';
   }
 
