@@ -218,13 +218,13 @@
 .patient-diary-favorite-star{
   width:32px;
   padding:0;
-  font-size:16px!important;
-  color:#9b7b37!important;
+  font-size:16px;
+  color:#9b7b37;
 }
 .patient-diary-favorite-star.active{
   background:#fff7df;
   border-color:#ead8a3;
-  color:#a06e16!important;
+  color:#a06e16;
 }
 .patient-diary-favorite-recall{padding:0 9px}
 .patient-diary-notes textarea{
