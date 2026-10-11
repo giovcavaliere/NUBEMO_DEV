@@ -6,6 +6,7 @@
   if (!root || !gate) return;
   const message = gate.querySelector('[data-admin-access-message]');
   const retry = gate.querySelector('[data-admin-access-retry]');
+  const loginLink = gate.querySelector('[data-admin-login-link]');
   const logoutRetry = gate.querySelector('[data-admin-logout]');
   let services;
   let views;
@@ -42,6 +43,7 @@
     gate.setAttribute('aria-busy', 'false');
     message.textContent = text;
     retry.hidden = !canRetry;
+    loginLink.hidden = true;
     logoutRetry.hidden = true;
     verifiedUserId = null;
     state = null;
@@ -50,6 +52,7 @@
 
   function denyAccess(error) {
     lock(error.message || 'Verifica accesso non disponibile.', error.name !== 'AdminAccessError');
+    loginLink.hidden = false;
     if (error.code === 'unauthenticated') window.location.replace('index2.html');
   }
 
