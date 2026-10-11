@@ -1,5 +1,6 @@
 import { withSupabase } from "npm:@supabase/server@^1";
 import { handleManagement, readManagement, accountPermissions } from "./management.mjs";
+import { checkPatientCapacity } from "./patient-capacity.mjs";
 
 const INVITE_REDIRECT_URL =
   "https://giovcavaliere.github.io/NUBEMO_DEV/set-password.html";
@@ -62,17 +63,10 @@ export default {
         return Response.json({ ok: false, error: "Impossibile verificare il limite pazienti" }, { status: 500 });
       }
 
-      const activePatientLimit = professionalSettings?.active_patient_limit ?? null;
-      if (activePatientLimit !== null) {
-        const { count, error: countError } = await ctx.supabaseAdmin
-          .from("professional_patients").select("id", { count: "exact", head: true })
-          .eq("professional_id", currentProfessional.id).eq("status", "active");
-        if (countError) {
-          console.error("Active patient count error:", countError);
-          return Response.json({ ok: false, error: "Impossibile verificare il numero di pazienti" }, { status: 500 });
-        }
-        if ((count ?? 0) >= activePatientLimit) return Response.json({ ok: false, error: `Limite di ${activePatientLimit} pazienti attivi raggiunto` }, { status: 409 });
-      }
+      // Il conteggio deduplicato rispecchia i trigger SQL Admin 2.0.
+      // Prima della migrazione mantiene il comportamento della Edge precedente.
+      const capacity = await checkPatientCapacity(ctx.supabaseAdmin, currentProfessional.id, professionalSettings);
+      if (!capacity.ok) return Response.json({ ok: false, error: capacity.error }, { status: capacity.status });
 
       let authUserId: string | null = null;
       let patientProfileId: string | null = null;
