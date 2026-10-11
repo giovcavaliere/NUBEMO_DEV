@@ -45,7 +45,7 @@
     if(filter){ui.filter=filter.dataset.patientDocumentFilter;render();return;}
     if(event.target.closest('[data-patient-document-unread]')){ui.unreadOnly=!ui.unreadOnly;render();return;}
     if(event.target.closest('[data-patient-document-upload]')){
-      const today=new Date().toLocaleDateString('en-CA');
+      const today=new Date().toISOString().slice(0,10);
       const el=dialog('<form><header><h2>Carica documento</h2><button type="button" data-close aria-label="Chiudi">×</button></header><div class="documents-upload-form">'+
         '<label class="documents-wide">File PDF o immagine<input type="file" name="file" accept=".pdf,application/pdf,image/*" required></label>'+
         '<label>Categoria<select name="category"><option value="analysis">Analisi</option><option value="report">Referti</option><option value="other">Altro</option></select></label>'+
@@ -64,9 +64,8 @@
     const open=event.target.closest('[data-patient-document-open]');
     if(open){
       const doc=docs.find(d=>d.id===open.dataset.patientDocumentOpen);if(!doc)return;
-      if(doc.file instanceof Blob){const url=URL.createObjectURL(doc.file);window.open(url,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(url),60000);}
+      if(doc.file instanceof Blob){const url=URL.createObjectURL(doc.file);window.open(url,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(url),60000);if(doc.uploadedBy==='professional'&&doc.unread){doc.unread=false;render();}}
       else alert('Questo è un documento di esempio. I file caricati durante la sessione sono apribili.');
-      if(doc.uploadedBy==='professional'&&doc.unread){doc.unread=false;render();}
       return;
     }
     const del=event.target.closest('[data-patient-document-delete]');
