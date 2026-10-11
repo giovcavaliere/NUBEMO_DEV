@@ -3,12 +3,13 @@ const assert = require('node:assert/strict');
 let check;
 test.before(async () => ({checkPatientCapacity: check} = await import('../supabase/functions/swift-endpoint/patient-capacity.mjs')));
 const db = (data, error = null) => ({rpc: async () => ({data, error})});
+const id = n => '20000000-0000-4000-8000-' + String(n).padStart(12,'0');
 test('conteggio Admin 2.0 deduplicato: 10 pazienti a limite', async () => {
-  const res = await check(db(Array.from({length:10},(_,i)=>({patient_id:String(i)}))), 'pro', {active_patient_limit:10});
+  const res = await check(db(Array.from({length:10},(_,i)=>({patient_id:id(i)}))), 'pro', {active_patient_limit:10});
   assert.equal(res.status,409);
 });
 test('percorso attivo incluso dal contratto SQL', async () => {
-  const res = await check(db([{patient_id:'p1'},{patient_id:'p2'}]), 'pro', {active_patient_limit:2});
+  const res = await check(db([{patient_id:id(1)},{patient_id:id(2)}]), 'pro', {active_patient_limit:2});
   assert.equal(res.status,409);
 });
 test('limite non configurato: stop prima di invitare', async () => {
@@ -16,7 +17,7 @@ test('limite non configurato: stop prima di invitare', async () => {
   assert.equal((await check(db([]),'pro',{active_patient_limit:null})).status,409);
 });
 test('posto disponibile', async () => {
-  assert.equal((await check(db([{patient_id:'p1'}]),'pro',{active_patient_limit:2})).ok,true);
+  assert.equal((await check(db([{patient_id:id(1)}]),'pro',{active_patient_limit:2})).ok,true);
 });
 test('errore RPC non mascherato da fallback', async () => {
   assert.equal((await check(db(null,{code:'42501'}),'pro',{active_patient_limit:10})).status,500);
@@ -29,7 +30,7 @@ test('fallback solo se RPC assente prima della migrazione', async () => {
 });
 
 test('paziente presente due volte viene contato una sola volta', async () => {
-  const res = await check(db([{patient_id:'p1'},{patient_id:'p1'}]), 'pro', {active_patient_limit:2});
+  const res = await check(db([{patient_id:id(1)},{patient_id:id(1)}]), 'pro', {active_patient_limit:2});
   assert.equal(res.ok,true);
 });
 test('l’assenza di righe è un conteggio valido', async () => {
@@ -43,5 +44,9 @@ test('RPC riuscita ma payload anomalo blocca in sicurezza', async () => {
 test('un errore di permessi non usa il conteggio legacy', async () => {
   const res = await check(db(null,{code:'42501'}), 'pro', {active_patient_limit:10});
   assert.equal(res.ok,false);
+  assert.equal(res.status,500);
+});
+test('righe prive di UUID non devono simulare capienza disponibile', async () => {
+  const res = await check(db([{patient_id:undefined}]), 'pro', {active_patient_limit:10});
   assert.equal(res.status,500);
 });
