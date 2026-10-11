@@ -76,7 +76,8 @@
   grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);
   gap:16px;
 }
-.patient-home-grid + .patient-home-grid{margin-top:16px}
+.patient-home-grid + .patient-home-grid,
+.patient-home-grid + .patient-support-card{margin-top:16px}
 
 .patient-progress-card{
   display:grid;
@@ -436,7 +437,8 @@
   .patient-quote-icon{flex-basis:26px;height:30px}
   .patient-daily-quote blockquote{font-size:12px}
   .patient-home-grid{grid-template-columns:1fr;gap:14px}
-  .patient-home-grid + .patient-home-grid{margin-top:14px}
+  .patient-home-grid + .patient-home-grid,
+  .patient-home-grid + .patient-support-card{margin-top:14px}
   .patient-progress-card{
     grid-template-columns:minmax(0,1fr) 90px;
     gap:12px;
