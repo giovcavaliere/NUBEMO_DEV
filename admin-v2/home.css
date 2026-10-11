@@ -5,7 +5,7 @@
 .admin-access p{font-size:13px;line-height:1.6;color:var(--muted)}
 .admin-access button,.admin-access a{display:inline-block;margin:8px 12px 0 0;color:var(--green-800);font-size:13px}
 .admin-access button{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);cursor:pointer}
-.admin-access button[hidden]{display:none}
+.admin-access button[hidden],.admin-access a[hidden]{display:none}
 .admin2 .admin-avatar{display:grid;place-items:center;width:36px;height:36px;border:1px solid #7fa594;border-radius:50%;color:#fff;font-size:11px;font-weight:700}
 .admin2 .compact-brand [data-admin-logout]{margin-left:auto}
 .admin2 .admin-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin:15px 0 24px}
