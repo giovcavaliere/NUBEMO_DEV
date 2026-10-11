@@ -175,11 +175,8 @@
     if (accessPromise) return accessPromise;
     if (!state) return load();
     const current = generation;
-    root.hidden = true;
-    gate.hidden = false;
-    gate.setAttribute('aria-busy', 'true');
-    message.textContent = 'Verifica accesso Admin…';
-    retry.hidden = true;
+    // La riconvalida in background non deve nascondere la dashboard già autorizzata.
+    // In caso di sessione non valida, denyAccess()/lock() la oscurano immediatamente.
     const task = (async () => {
       try {
         const access = await services.verifyAccess();
@@ -189,12 +186,8 @@
           return;
         }
         views.identity(access.profile);
-        gate.hidden = true;
-        root.hidden = false;
       } catch (error) {
         if (current === generation) denyAccess(error);
-      } finally {
-        if (current === generation) gate.setAttribute('aria-busy', 'false');
       }
     })().finally(() => { if (accessPromise === task) accessPromise = null; });
     accessPromise = task;
