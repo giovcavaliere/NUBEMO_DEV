@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="professional-v2/home-design.css?v=patient2-home-baseline-20261009">
   <link rel="stylesheet" href="patient-v2/home.css?v=patient2-home-support-20261010">
   <link rel="stylesheet" href="patient-v2/profile.css?v=patient2-profile-support-privacy-20261011">
+  <link rel="stylesheet" href="patient-v2/plan.css?v=patient2-plan-20261011">
   <link rel="stylesheet" href="patient-v2/diary.css?v=patient2-diary-search-history-20261010">
   <title>NUBEMO Patient 2.0</title>
 </head>
@@ -488,17 +489,11 @@
             </div>
           </section>
 
-          <section class="patient-static-view" data-patient-view="plan" hidden>
+          <section class="patient-static-view patient-plan-page" data-patient-view="plan" hidden>
             <header class="patient-view-head">
-              <div><span class="patient-view-eyebrow">Area paziente</span><h1>Piano alimentare</h1><p>Il piano attivo e le indicazioni condivise dal professionista.</p></div>
+              <div><span class="patient-view-eyebrow">Area paziente</span><h1>Piano alimentare</h1><p>Il piano in vigore e lo storico condiviso dal nutrizionista.</p></div>
             </header>
-            <section class="module">
-              <div class="module-head"><div class="module-title"><span class="module-icon"><svg class="icon"><use href="#icon-plan"/></svg></span><h2>Piano alimentare ottobre</h2></div><span class="pill green">Attivo</span></div>
-              <div class="patient-demo-list">
-                <button type="button" class="patient-demo-row" data-patient-demo-action="plan"><span class="patient-quick-icon"><svg class="icon"><use href="#icon-plan"/></svg></span><span><strong>Visualizza piano</strong><small>Valido dal 1 ottobre · versione corrente</small></span><b>›</b></button>
-                <button type="button" class="patient-demo-row" data-patient-demo-action="plan"><span class="patient-quick-icon peach"><svg class="icon"><use href="#icon-document"/></svg></span><span><strong>Indicazioni del professionista</strong><small>Note associate al piano alimentare</small></span><b>›</b></button>
-              </div>
-            </section>
+            <div data-patient-plan-content aria-live="polite"></div>
           </section>
 
           <section class="patient-static-view" data-patient-view="documents" hidden>
@@ -640,5 +635,6 @@
   <script src="patient-v2/diary-demo.js?v=patient2-diary-searchfix-20261010"></script>
   <script src="nubemo-support.js"></script>
   <script src="patient-v2/profile-demo.js?v=patient2-profile-support-privacy-20261011"></script>
+  <script src="patient-v2/plan-demo.js?v=patient2-plan-20261011"></script>
 </body>
 </html>
