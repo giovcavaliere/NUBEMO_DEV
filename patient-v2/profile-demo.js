@@ -89,7 +89,11 @@
   function openSupport(){
     const wrap=modal('Richiedi assistenza',
       '<form class="patient-profile-dialog-form" data-patient-support-form>'+
-        '<div class="patient-profile-support-meta"><span>Area</span><strong>Paziente</strong></div>'+
+        '<div class="patient-profile-support-meta">'+
+          '<div><span>Area</span><strong>Paziente</strong></div>'+
+          '<div><span>Versione</span><strong>'+esc(window.NubemoSupport?.version || 'Non disponibile')+'</strong></div>'+
+          '<div><span>Dispositivo</span><strong>'+esc(window.NubemoSupport?.deviceInfo?.() || 'Non disponibile')+'</strong></div>'+
+        '</div>'+
         '<label>Tipo di richiesta<select name="type" required>'+
           '<option value="">Seleziona tipo</option>'+
           '<option>Problema tecnico</option>'+
