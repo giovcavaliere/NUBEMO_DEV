@@ -1,0 +1,35 @@
+/* Patient 2.0 — Piano: stili dedicati, senza override globali. */
+.patient-plan-page{min-width:0}
+.patient-plan-stack{display:grid;gap:22px}
+.patient-plan-section-title{margin:0 0 12px;color:var(--green-950);font-size:19px;letter-spacing:-.02em}
+.patient-plan-card{margin:0}
+.patient-plan-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.patient-plan-card h2,.patient-plan-card h3{margin:0;color:var(--green-950);font-size:18px;line-height:1.35}
+.patient-plan-dates{margin:6px 0 0;color:var(--muted);font-size:12px}
+.patient-plan-note{margin-top:17px;padding:15px 16px;background:var(--green-soft-2);border-radius:12px}
+.patient-plan-note strong{display:block;font-size:11px;color:var(--green-950)}
+.patient-plan-note p{margin:7px 0 0;color:var(--text);font-size:13px;line-height:1.6;white-space:pre-wrap}
+.patient-plan-file{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-top:15px;padding:13px;border:1px solid var(--line);border-radius:12px}
+.patient-plan-file-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;background:var(--peach-soft);color:#bd6f31;flex-shrink:0}
+.patient-plan-file-icon .icon{width:20px;height:20px}
+.patient-plan-file-info{flex:1 1 150px;min-width:0}
+.patient-plan-file-info strong{display:block;overflow-wrap:anywhere;color:var(--text);font-size:12px}
+.patient-plan-file-info small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.patient-plan-file-actions{display:flex;gap:8px;flex-wrap:wrap}
+.patient-plan-file-actions button{cursor:pointer}
+.patient-plan-history{display:grid;gap:10px}
+.patient-plan-history details{padding:0}
+.patient-plan-history summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 19px;cursor:pointer}
+.patient-plan-history summary::-webkit-details-marker{display:none}
+.patient-plan-history summary strong{display:block;font-size:14px;color:var(--green-950)}
+.patient-plan-history summary small{display:block;margin-top:5px;font-size:11px;color:var(--muted)}
+.patient-plan-chevron{font-size:20px;color:var(--green-800);transition:transform .2s}
+.patient-plan-history details[open] .patient-plan-chevron{transform:rotate(180deg)}
+.patient-plan-history-body{padding:0 19px 19px;border-top:1px solid var(--line)}
+.patient-plan-empty{padding:20px;color:var(--muted);font-size:13px}
+@media(max-width:620px){
+ .patient-plan-file{align-items:flex-start}
+ .patient-plan-file-actions{width:100%}
+ .patient-plan-file-actions button{flex:1}
+ .patient-plan-card-header{align-items:flex-start}
+}
