@@ -44,7 +44,7 @@
             <a href="#privacy" data-admin-route="privacy"><svg class="icon"><use href="#icon-shield"/></svg><span>Privacy NUBEMO</span></a>
             <a href="#impostazioni" data-admin-route="impostazioni"><svg class="icon"><use href="#icon-settings"/></svg><span>Impostazioni</span></a>
           </nav>
-          <div class="side-user"><div class="admin-avatar" data-admin-avatar>AD</div><div><strong data-admin-name>Amministratore</strong><span>Admin · sola lettura</span></div><button class="exit" type="button" data-admin-logout aria-label="Logout" title="Logout"><svg class="icon" aria-hidden="true"><use href="#icon-exit"/></svg></button></div>
+          <div class="side-user"><div class="admin-avatar" data-admin-avatar>AD</div><div><strong data-admin-name>Amministratore</strong><span data-admin-mode>Admin · sola lettura</span></div><button class="exit" type="button" data-admin-logout aria-label="Logout" title="Logout"><svg class="icon" aria-hidden="true"><use href="#icon-exit"/></svg></button></div>
         </div>
       </aside>
       <main class="work">
@@ -80,7 +80,7 @@
               <div class="admin-management-head"><div><h2>Elenco professionisti</h2><p>Stato account, privacy e limiti di utilizzo.</p></div><button class="admin-action-primary" type="button" data-admin-invite-open disabled title="Inviti non ancora attivati: area in sola lettura">+ Invita professionista</button></div>
               <div class="admin-management-tools"><label class="admin-search"><span>Cerca</span><input type="search" data-admin-professional-search placeholder="Nome o email..." autocomplete="off"></label><label class="admin-filter"><span>Stato NUBEMO</span><select data-admin-professional-filter><option value="all">Tutti</option><option value="active">Attivi</option><option value="suspended">Sospesi</option></select></label></div>
               <div class="admin-prof-table"><div class="admin-prof-table-head"><span>Professionista</span><span>Account</span><span>Stato NUBEMO</span><span>Privacy</span><span>Pazienti</span><span>Azioni</span></div><div data-admin-professional-list></div></div>
-              <p class="admin-demo-hint">Consultazione in sola lettura. Inviti, reinvii e modifiche dello stato non sono ancora attivati. Conteggio e limite pazienti non sono disponibili nel servizio attuale.</p>
+              <p class="admin-demo-hint" data-admin-operation-message role="status" aria-live="polite">Gestione professionisti non ancora disponibile. Elenco consultabile in sola lettura.</p>
             </section>
           </section>
           <section data-admin-view="privacy" hidden class="admin-section-page">
@@ -102,7 +102,7 @@
             <div class="admin-settings-layout">
               <section class="module"><div class="admin-management-head"><div><h2>Impostazioni generali</h2><p>Valori di riferimento per i nuovi professionisti.</p></div></div><form class="admin-form" data-admin-settings-form>
                 <label>Limite pazienti predefinito<input name="defaultLimit" type="number" min="1" max="100000" step="1" disabled placeholder="Non configurato" required></label>
-                <p class="admin-demo-hint">Il limite globale non è disponibile nel backend attuale. La modifica delle impostazioni non è ancora attivata.</p>
+                <p class="admin-demo-hint" data-admin-settings-message>Gestione non ancora disponibile: è necessaria l’attivazione del backend.</p>
                 <button class="admin-action-primary" type="submit" disabled title="Modifica impostazioni non ancora attivata">Salva impostazioni</button>
               </form></section>
               <section class="module"><div class="admin-management-head"><div><h2>Informazioni piattaforma</h2><p>Riferimenti utili per l'amministrazione.</p></div></div><dl class="admin-info-list"><div><dt>Ambiente</dt><dd>DEV · NUBEMO_DEV</dd></div><div><dt>Versione UI</dt><dd>2.0 · Warm Human</dd></div><div><dt>Connessione dati</dt><dd data-admin-platform-connection>Verifica accesso</dd></div><div><dt>Richieste assistenza</dt><dd>Gestite via email, fuori dall'Admin</dd></div></dl></section>
@@ -121,8 +121,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=nubemo-env-20260919"></script>
   <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
-  <script src="admin-v2/admin-services.js?v=admin2-login-20261011"></script>
-  <script src="admin-v2/admin-views.js?v=admin2-session-20261011"></script>
-  <script src="admin-v2/admin-app.js?v=admin2-login-20261011"></script>
+  <script src="admin-v2/admin-services.js?v=admin2-management-20261011"></script>
+  <script src="admin-v2/admin-views.js?v=admin2-management-20261011"></script>
+  <script src="admin-v2/admin-app.js?v=admin2-management-20261011"></script>
 </body>
 </html>

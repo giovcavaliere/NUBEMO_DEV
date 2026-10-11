@@ -1,4 +1,4 @@
-// Admin 2.0 — avvio protetto, navigazione baseline e coordinamento delle sole letture.
+// Admin 2.0 — accesso protetto, navigazione baseline e operazioni confermate dal backend.
 (() => {
   'use strict';
   const root = document.querySelector('.admin2');
@@ -18,6 +18,7 @@
   let signingOut = false;
   let logoutBlocked = false;
   let pageAway = false;
+  let managing = false;
   const valid = ['dashboard', 'professionisti', 'privacy', 'impostazioni'];
 
   function route(name) {
@@ -68,7 +69,7 @@
     try {
       if (!window.NubemoAdminServices || !window.NubemoAdminViews) throw new Error('Servizio Admin non disponibile. Riprova o ricarica la pagina.');
       if (!services) services = window.NubemoAdminServices.create(window.nubemoSupabase);
-      if (!views) views = window.NubemoAdminViews.create(root);
+      if (!views) views = window.NubemoAdminViews.create(root, (action, values) => void manage(action, values));
       const access = await services.verifyAccess();
       if (current !== generation) return;
       verifiedUserId = access.user.id;
@@ -97,7 +98,10 @@
           if (error.name === 'AdminAccessError') { denyAccess(error); return; }
           state[key] = { phase: 'error', message: error.message, [field]: field === 'rows' ? [] : null };
         }
-        if (current === generation) views.render(state);
+        if (current === generation) {
+          if (key === 'professionals') state.management = services.getManagement();
+          views.render(state);
+        }
       }));
       if (current !== generation) return;
       if (state.professionals.phase === 'ready' && state.privacy.phase === 'ready') {
@@ -117,6 +121,51 @@
       if (current !== generation) return;
       denyAccess(error);
     }
+  }
+
+  async function manage(action, values) {
+    if (root.hidden || logoutBlocked || pageAway || managing || state?.management?.enabled !== true || state.professionals.phase !== 'ready') return;
+    managing = true;
+    const current = generation;
+    let confirmed = false;
+    views.setOperation({ busy: true, message: 'Operazione in corso…', error: false });
+    try {
+      const access = await services.verifyAccess();
+      if (current !== generation) return;
+      if (access.user.id !== verifiedUserId) { lock('La sessione è cambiata. Riprova la verifica accesso.', true); return; }
+      await services.manage(action, values);
+      confirmed = true;
+      if (current !== generation) return;
+      views.closeDialogs();
+      // Una lettura esplicita dopo scrittura confermata. La navigazione non chiama load().
+      const rows = await services.listProfessionals();
+      if (current !== generation) return;
+      state.professionals = { phase: 'ready', rows };
+      state.management = services.getManagement();
+      if (state.privacy.phase === 'ready') {
+        try {
+          const acceptances = await services.loadAcceptances(state.privacy.document?.id, rows.map(row => row.profile_id));
+          if (current !== generation) return;
+          state.consents = { phase: 'ready', rows: acceptances };
+        } catch (error) {
+          if (current !== generation) return;
+          state.consents = { phase: 'error', rows: [], message: error.message };
+        }
+      }
+      views.render(state);
+      views.setOperation({ busy: false, error: false, message: ['invite-professional','resend-professional-invite'].includes(action) ?
+        'Richiesta di invito accettata dal servizio Auth/email. La consegna non è verificata.' : 'Operazione confermata dal backend.' });
+    } catch (error) {
+      if (current !== generation) return;
+      if (error.name === 'AdminAccessError') { denyAccess(error); return; }
+      if (error.code === 'backend_unavailable') { state.management = { version: 0, enabled: false }; views.render(state); }
+      if (confirmed) {
+        state.professionals = { phase: 'error', rows: [], message: 'Operazione confermata, ma elenco non aggiornato. Riprova il caricamento.' };
+        state.management = { version: 0, enabled: false };
+        views.render(state);
+      }
+      views.setOperation({ busy: false, error: true, message: confirmed ? 'Operazione confermata, ma rilettura non riuscita. Riprova il caricamento prima di altre operazioni.' : error.message });
+    } finally { managing = false; }
   }
 
   // Al ritorno o al rinnovo Auth verifica l'accesso, senza rileggere l'elenco.

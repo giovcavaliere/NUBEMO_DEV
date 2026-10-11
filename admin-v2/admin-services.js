@@ -1,4 +1,4 @@
-// Admin 2.0 — servizi di lettura e Logout Auth. Nessuna dipendenza dalla UI.
+// Admin 2.0 — servizi dati e Auth condivisa. Nessuna dipendenza dalla UI.
 (() => {
   'use strict';
 
@@ -9,6 +9,9 @@
   function create(client) {
     if (!client) throw new Error('Servizio di accesso non disponibile.');
     const timeoutMs = 15000;
+    let management = { version: 0, enabled: false };
+    let writing = false;
+    const operationIds = new Map();
     async function request(operation) {
       let timer;
       try {
@@ -41,27 +44,105 @@
       return { user, profile };
     }
 
-    async function listProfessionals() {
+    async function invoke(body) {
       const { data, error } = await request(client.auth.getSession());
       const session = data?.session;
       if (error || !session?.access_token) throw new AccessError('La sessione non è più disponibile. Accedi nuovamente.', 'unauthenticated');
       const response = await request(client.functions.invoke('swift-endpoint', {
-        body: { action: 'list-professionals' },
-        headers: { Authorization: `Bearer ${session.access_token}` }
+        body, headers: { Authorization: `Bearer ${session.access_token}` }
       }));
-      if (response.error?.context?.status === 401 || response.error?.context?.status === 403) {
-        throw new AccessError('La sessione non consente più l’accesso Admin.', response.error.context.status === 401 ? 'unauthenticated' : 'forbidden');
+      const httpStatus = response.error?.context?.status;
+      if ([401, 403].includes(httpStatus)) {
+        throw new AccessError('La sessione non consente più l’accesso Admin.', httpStatus === 401 ? 'unauthenticated' : 'forbidden');
       }
-      if (response.error || response.data?.ok !== true || !Array.isArray(response.data.professionals)) {
-        throw new Error('Non è stato possibile caricare i professionisti. Riprova.');
+      if (response.error || response.data?.ok !== true) {
+        let result = response.data;
+        if (!result && response.error?.context?.json) {
+          try { result = await response.error.context.json(); } catch (_) { /* Errore di rete senza payload. */ }
+        }
+        const messages = {
+          duplicate: 'Email già utilizzata o richiesta già in corso. Aggiorna l’elenco.',
+          state_changed: 'Lo stato è cambiato. Aggiorna l’elenco prima di riprovare.',
+          ineligible: 'Il reinvio non è consentito per lo stato attuale dell’account.',
+          invalid_input: 'Verifica i dati inseriti.',
+          backend_unavailable: 'Gestione professionisti non ancora disponibile.',
+          operation_pending: 'Richiesta già registrata. Verificare l’esito prima di un nuovo invio.',
+          needs_review: 'Esito invio incerto. È necessaria una verifica amministrativa.',
+          email_unconfirmed: 'Invito non confermato dal servizio email. Verificare l’esito prima di riprovare.',
+          unavailable: 'Operazione non disponibile o già in corso.'
+        };
+        throw Object.assign(new Error(messages[result?.code] || 'Il servizio non ha confermato l’operazione. Riprova la lettura dei dati.'), { code: result?.code || 'backend_error' });
       }
-      const rows = response.data.professionals;
-      if (rows.some(row => !row || typeof row.professional_id !== 'string' || !row.professional_id ||
+      return response.data;
+    }
+
+    async function listProfessionals() {
+      management = { version: 0, enabled: false };
+      let response;
+      try { response = await invoke({ action: 'list-professionals', management_version: 1 }); }
+      catch (error) { if (error.name === 'AdminAccessError') throw error; throw new Error('Non è stato possibile caricare i professionisti. Riprova.'); }
+      const rows = response.professionals;
+      if (!Array.isArray(rows) || rows.some(row => !row || typeof row.professional_id !== 'string' || !row.professional_id ||
         typeof row.profile_id !== 'string' || !row.profile_id)) {
         throw new Error('Il servizio ha restituito un elenco professionisti non valido.');
       }
+      const config = response.management;
+      if (config?.version === 1) {
+        if (typeof config.enabled !== 'boolean' || !validLimit(config.default_patient_limit) || rows.some(row =>
+          !Number.isInteger(row.active_patient_count) || row.active_patient_count < 0 ||
+          !Number.isInteger(row.associated_patient_count) || row.associated_patient_count < 0 ||
+          (row.active_patient_limit !== null && !validLimit(row.active_patient_limit)) ||
+          row.available_patient_slots !== (row.active_patient_limit === null ? null : Math.max(0, row.active_patient_limit - row.active_patient_count)) ||
+          ['can_resend','can_suspend','can_activate'].some(key => typeof row[key] !== 'boolean'))) {
+          throw new Error('Il backend ha restituito capacità o autorizzazioni non valide.');
+        }
+        management = { ...config };
+      }
       return rows;
     }
+
+    function validLimit(value) { return Number.isInteger(value) && value >= 1 && value <= 100000; }
+    function validId(value) { return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value); }
+    async function manage(action, values = {}) {
+      if (management.version !== 1 || management.enabled !== true) throw new Error('Gestione professionisti non ancora disponibile.');
+      if (writing) throw new Error('Un’operazione è già in corso.');
+      const body = { action, management_version: 1 };
+      if (action === 'invite-professional') {
+        for (const key of ['first_name','last_name','email']) body[key] = typeof values[key] === 'string' ? values[key].trim() : '';
+        body.email = body.email.toLowerCase();
+        if (!body.first_name || !body.last_name || body.first_name.length > 100 || body.last_name.length > 100 || body.email.length > 254 ||
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) throw new Error('Inserisci nome, cognome e un’email valida.');
+      } else if (['resend-professional-invite','suspend-professional','activate-professional','set-professional-limit'].includes(action)) {
+        if (!validId(values.professional_id)) throw new Error('Professionista non valido.');
+        body.professional_id = values.professional_id;
+        if (action === 'suspend-professional') {
+          if (values.confirmed !== true) throw new Error('Conferma esplicitamente la sospensione.');
+          body.confirmed = true;
+        }
+      } else if (action !== 'set-default-patient-limit') throw new Error('Operazione non disponibile.');
+      if (['set-professional-limit','set-default-patient-limit'].includes(action)) {
+        if (!validLimit(values.limit)) throw new Error('Il limite deve essere un intero da 1 a 100.000.');
+        body.limit = values.limit;
+      }
+      const emailAction = ['invite-professional','resend-professional-invite'].includes(action);
+      const key = JSON.stringify(body);
+      if (emailAction) {
+        if (!operationIds.has(key)) operationIds.set(key, window.crypto.randomUUID());
+        body.operation_id = operationIds.get(key);
+      }
+      writing = true;
+      try {
+        const result = await invoke(body);
+        const confirmed = action === 'invite-professional' ? result.invited === true && validId(result.professional_id) && result.email_status === 'accepted' :
+          action === 'resend-professional-invite' ? result.resent === true && result.professional_id === body.professional_id && result.email_status === 'accepted' :
+          ['set-professional-limit','set-default-patient-limit'].includes(action) ? result.limit === body.limit && result.professional_id === (body.professional_id || null) :
+          result.professional_id === body.professional_id && result.nubemo_status === (action === 'suspend-professional' ? 'suspended' : 'active');
+        if (!confirmed) throw new Error('Il backend non ha confermato il risultato previsto. Verifica l’elenco.');
+        if (emailAction) operationIds.delete(key);
+        return result;
+      } finally { writing = false; }
+    }
+    function getManagement() { return Object.freeze({ ...management }); }
 
     async function loadCurrentPrivacy() {
       const { data, error } = await request(client.from('privacy_documents')
@@ -106,7 +187,7 @@
     }
 
     function onAuthChange(callback) { return client.auth.onAuthStateChange(callback).data.subscription; }
-    return Object.freeze({ verifyAccess, listProfessionals, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, signOut, onAuthChange });
+    return Object.freeze({ verifyAccess, listProfessionals, getManagement, manage, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, signOut, onAuthChange });
   }
 
   window.NubemoAdminServices = Object.freeze({ create, AccessError });

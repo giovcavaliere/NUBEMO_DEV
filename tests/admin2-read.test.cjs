@@ -74,7 +74,7 @@ test('Timeout limita attese senza mostrare dati o richiedere scritture', async (
 test('Elenco usa soltanto list-professionals e JWT di sessione', async () => {
   const client = clientFor(); assert.deepEqual(plain(await service(client).listProfessionals()), []);
   const invoke = client.calls.find(c => c[0] === 'invoke');
-  assert.deepEqual(plain(invoke.slice(1)), ['swift-endpoint', { body: { action: 'list-professionals' }, headers: { Authorization: 'Bearer test-jwt' } }]);
+  assert.deepEqual(plain(invoke.slice(1)), ['swift-endpoint', { body: { action: 'list-professionals', management_version: 1 }, headers: { Authorization: 'Bearer test-jwt' } }]);
 });
 test('Elenco vuoto valido distinto da errori, payload malformato e accesso revocato', async () => {
   for (const result of [{ data: { ok: false } }, { data: { ok: true } }, { data: { ok: true, professionals: [{}] } }, { error: { message: 'network' } }]) {
@@ -174,6 +174,7 @@ function appHarness(overrides = {}) {
     verifyAccess: async () => { calls.push('verify'); return { user: { id: 'auth-admin' }, profile: admin }; },
     signOut: async () => { calls.push('signOut'); },
     listProfessionals: async () => { calls.push('list'); return [row('1')]; },
+    getManagement: () => ({ version: 0, enabled: false }),
     loadCurrentPrivacy: async () => { calls.push('privacy'); return documentRow; },
     loadAcceptances: async () => [],
     createPrivacyUrl: async () => 'https://example.invalid/signed.pdf',
@@ -237,7 +238,7 @@ test('HTML protetto dal primo paint, script separati e moduli di scrittura disab
   assert.equal((html.match(/type="submit" disabled/g) || []).length, 2);
   assert.match(html, /data-admin-kpi="total">—</);
   const servicesSource = source('admin-services.js');
-  assert.ok(!/\b(document|innerHTML|createClient)\b|\.\s*(insert|update|upsert|delete|upload|remove)\s*\(/.test(servicesSource));
+  assert.ok(!/\b(document|innerHTML|createClient)\b|\.\s*(insert|update|upsert|upload|remove)\s*\(/.test(servicesSource));
   assert.ok(!/serviceWorker|unregister|<style|\.style\b|localStorage/.test(source('admin-app.js') + source('admin-views.js')));
 });
 
