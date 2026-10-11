@@ -19,6 +19,7 @@ function clientFor(options = {}) {
     auth: {
       getUser: async () => { calls.push(['getUser']); return options.userResult || { data: { user: { id: 'auth-admin', user_metadata: { role: 'admin' } } } }; },
       getSession: async () => options.sessionResult || { data: { session: { access_token: 'test-jwt' } } },
+      signOut: async (...args) => { calls.push(['signOut', ...args]); return options.signOutResult || {}; },
       onAuthStateChange: callback => { client.callback = callback; return { data: { subscription: { unsubscribe() {} } } }; }
     },
     functions: { invoke: async (...args) => { calls.push(['invoke', ...args]); return options.functionResult || { data: { ok: true, professionals: [] } }; } },
@@ -159,18 +160,19 @@ class Element {
   fire(type, event = {}) { for (const fn of this.listeners[type] || []) fn(event); }
 }
 function appHarness(overrides = {}) {
-  const root = new Element(), gate = new Element(), message = new Element(), retry = new Element();
+  const root = new Element(), gate = new Element(), message = new Element(), retry = new Element(), logoutRetry = new Element();
   const viewsByRoute = ['dashboard', 'professionisti', 'privacy', 'impostazioni'].map(value => Object.assign(new Element(), { dataset: { adminView: value } }));
   const links = viewsByRoute.map(view => Object.assign(new Element(), { dataset: { adminRoute: view.dataset.adminView } }));
   const doc = new Element(); doc.visibilityState = 'hidden';
   const button = new Element(), note = new Element();
   root.querySelectorAll = selector => selector === '[data-admin-view]' ? viewsByRoute : selector === '[data-admin-route]' ? links : [];
   root.querySelector = selector => selector === '[data-admin-privacy-preview]' ? button : note;
-  gate.querySelector = selector => selector === '[data-admin-access-message]' ? message : retry;
+  gate.querySelector = selector => selector === '[data-admin-access-message]' ? message : selector === '[data-admin-logout]' ? logoutRetry : retry;
   doc.querySelector = selector => selector === '.admin2' ? root : gate;
   let authCallback; const calls = []; const renders = [];
   const api = {
-    verifyAccess: async () => ({ user: { id: 'auth-admin' }, profile: admin }),
+    verifyAccess: async () => { calls.push('verify'); return { user: { id: 'auth-admin' }, profile: admin }; },
+    signOut: async () => { calls.push('signOut'); },
     listProfessionals: async () => { calls.push('list'); return [row('1')]; },
     loadCurrentPrivacy: async () => { calls.push('privacy'); return documentRow; },
     loadAcceptances: async () => [],
@@ -179,11 +181,11 @@ function appHarness(overrides = {}) {
   };
   const window = new Element(); window.NubemoAdminServices = { create: () => api };
   window.NubemoAdminViews = { create: () => ({ identity() {}, render: s => renders.push(plain(s)), clear: () => renders.push('cleared') }) };
-  const location = { hash: '#privacy', assign() {} }; window.location = location;
+  const location = { hash: '#privacy', assign() {}, replace: value => { calls.push(['redirect', value]); } }; window.location = location;
   vm.runInNewContext(source('admin-app.js'), { window, document: doc, location, setTimeout, clearTimeout });
-  return { root, gate, message, retry, doc, window, calls, renders, routes: viewsByRoute, auth: (event, session) => authCallback(event, session) };
+  return { root, gate, message, retry, logoutRetry, doc, window, location, calls, renders, routes: viewsByRoute, auth: (event, session) => authCallback(event, session), logout: () => root.fire('click', { target: { closest: selector => selector === '[data-admin-logout]' ? {} : null } }) };
 }
-const tick = async () => { for (let i = 0; i < 6; i++) await new Promise(resolve => setImmediate(resolve)); };
+const tick = async () => { await new Promise(resolve => setTimeout(resolve, 0)); for (let i = 0; i < 6; i++) await new Promise(resolve => setImmediate(resolve)); };
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
 
 test('Nessun contenuto o lettura dati prima della verifica Admin', async () => {
@@ -266,8 +268,81 @@ test('Stati vuoti, errori e caricamento producono testi distinti senza dati inve
   assert.match(node('[data-admin-professional-list]').innerHTML, /Rete non disponibile/);
   assert.equal(node('[data-admin-data-retry]').hidden, false);
   s.professionals = { phase: 'ready', rows: [row('1')] }; s.privacy.document = documentRow;
-  view.render(s); view.clear();
+  view.render(s);
+  assert.equal(node('[data-admin-data-retry]').hidden, true);
+  s.privacy = { phase: 'error', document: null, message: 'Errore privacy' }; view.render(s);
+  assert.equal(node('[data-admin-data-retry]').hidden, false);
+  s.privacy = { phase: 'ready', document: null }; view.render(s);
+  assert.equal(node('[data-admin-data-retry]').hidden, true);
+  view.clear();
   assert.equal(node('[data-admin-professional-list]').innerHTML, '');
   assert.equal(node('[data-admin-kpi="total"]').textContent, '—');
   assert.equal(node('[data-admin-privacy-title]').textContent, 'Caricamento informativa…');
+});
+
+test('Logout usa il client esistente e il solo scope locale; errori e timeout sono propagati', async () => {
+  const client = clientFor(); await service(client).signOut();
+  assert.deepEqual(plain(client.calls), [['signOut', { scope: 'local' }]]);
+  await assert.rejects(service(clientFor({ signOutResult: { error: { message: 'offline' } } })).signOut(), /Disconnessione/);
+  client.auth.signOut = () => new Promise(() => {});
+  await assert.rejects(service(client, { setTimeout: fn => setTimeout(fn, 1) }).signOut(), /non risponde/);
+});
+test('Navigazione interna e SIGNED_IN ripetuto non eseguono nuove letture o verifiche', async () => {
+  const h = appHarness(); await tick(); const before = plain(h.calls);
+  for (const name of ['dashboard', 'professionisti', 'privacy', 'impostazioni', 'dashboard']) {
+    h.location.hash = '#' + name; h.window.fire('hashchange');
+    h.auth('SIGNED_IN', { user: { id: 'auth-admin' } });
+  }
+  await tick(); assert.deepEqual(h.calls, before);
+  assert.equal(h.routes[0].hidden, false);
+});
+test('Ritorno e refresh token concomitanti ricontrollano accesso una volta senza rileggere dati', async () => {
+  const h = appHarness(); await tick(); const before = h.calls.length;
+  h.doc.visibilityState = 'visible'; h.doc.fire('visibilitychange');
+  h.auth('SIGNED_IN', { user: { id: 'auth-admin' } });
+  h.auth('TOKEN_REFRESHED', { user: { id: 'auth-admin' } });
+  await tick(); assert.deepEqual(h.calls.slice(before), ['verify']);
+  assert.equal(h.root.hidden, false);
+});
+test('Uscita nasconde e cancella dati prima di signOut; doppio click e refresh sono ignorati', async () => {
+  const pending = deferred(); const h = appHarness({ signOut: () => { h.calls.push('signOut'); return pending.promise; } });
+  await tick(); h.logout(); h.logout();
+  assert.equal(h.root.hidden, true); assert.equal(h.renders.at(-1), 'cleared');
+  h.auth('TOKEN_REFRESHED', { user: { id: 'auth-admin' } });
+  h.doc.visibilityState = 'visible'; h.doc.fire('visibilitychange'); await tick();
+  assert.equal(h.calls.filter(c => c === 'signOut').length, 1);
+  h.auth('SIGNED_OUT', null); pending.resolve(); await tick();
+  assert.deepEqual(h.calls.at(-1), ['redirect', 'index.html']);
+});
+test('Errore logout mantiene dati nascosti, non reindirizza e offre un vero nuovo signOut', async () => {
+  let attempts = 0;
+  const h = appHarness({ signOut: async () => { if (++attempts === 1) throw Error('Rete'); } });
+  await tick(); h.logout(); await tick();
+  assert.equal(h.root.hidden, true); assert.equal(h.logoutRetry.hidden, false);
+  assert.equal(h.calls.some(c => Array.isArray(c) && c[0] === 'redirect'), false);
+  const before = h.calls.length;
+  h.auth('SIGNED_IN', { user: { id: 'auth-admin' } });
+  h.doc.visibilityState = 'visible'; h.doc.fire('visibilitychange'); await tick();
+  assert.equal(h.calls.length, before);
+  h.logoutRetry.fire('click'); await tick();
+  assert.equal(attempts, 2); assert.deepEqual(h.calls.at(-1), ['redirect', 'index.html']);
+});
+test('BFCache cancella dati e riverifica; logout riuscito impedisce riapertura dal medesimo documento', async () => {
+  const h = appHarness(); await tick(); h.window.fire('pagehide');
+  assert.equal(h.root.hidden, true); assert.equal(h.renders.at(-1), 'cleared');
+  const before = h.calls.length;
+  h.window.fire('pageshow', { persisted: true }); await tick();
+  assert.deepEqual(h.calls.slice(before), ['verify', 'list', 'privacy']);
+  h.logout(); await tick(); const after = h.calls.length;
+  h.window.fire('pagehide'); h.window.fire('pageshow', { persisted: true }); await tick();
+  assert.equal(h.root.hidden, true); assert.equal(h.calls.length, after);
+});
+test('Cambio identità durante una lettura invalida i risultati e verifica la nuova sessione', async () => {
+  const oldRead = deferred(); let userId = 'auth-admin'; let reads = 0;
+  const h = appHarness({ verifyAccess: async () => ({ user: { id: userId }, profile: admin }),
+    listProfessionals: async () => ++reads === 1 ? oldRead.promise : [] });
+  await tick(); userId = 'other-admin'; h.auth('SIGNED_IN', { user: { id: userId } }); await tick();
+  oldRead.resolve([row('stale')]); await tick();
+  assert.equal(h.root.hidden, false);
+  assert.equal(h.renders.some(r => r !== 'cleared' && r.professionals.rows.some(p => p.professional_id === 'stale')), false);
 });

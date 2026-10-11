@@ -24,7 +24,7 @@ Inviti, reinvii, sospensioni, riattivazioni, modifica dei limiti e pubblicazione
 
 Il client mantiene la persistenza di sessione già esistente. Nessuna nuova chiave storage, copia della sessione, override o modalità di autenticazione alternativa.
 
-## Verifiche eseguite
+## Verifiche della prima integrazione (commit `00e9e18`)
 
 - `node --check` sui tre moduli Admin.
 - `node --test tests/admin2-read.test.cjs`: 21 test non-browser con client controllati e un doppio DOM minimale per il coordinamento; nessuna chiamata autenticata al progetto reale.
@@ -36,7 +36,7 @@ Il client mantiene la persistenza di sessione già esistente. Nessuna nuova chia
 - Server temporaneo esterno al repository, su `127.0.0.1` e porta assegnata: verificato via HTTP, `Cache-Control: no-store`; vecchio Admin e `sw.js` non serviti.
 - Confronto in sola lettura di catalogo, account Admin, bucket, vincoli, policy, trigger e funzioni SQL prima/dopo.
 
-## Verifiche ancora mancanti
+## Limiti del collaudo iniziale
 
 Nessun browser Chromium/Chrome/Edge eseguibile disponibile nell'ambiente. Non sono stati eseguiti rendering, screenshot, test visivi o responsive. Il confronto statico delle media query non è un test responsive.
 
@@ -52,5 +52,36 @@ Da verificare manualmente:
 4. Con risposte controllate nel contesto di test: ricerca/filtri, dialogo Gestisci, testi lunghi, errori/retry e stati parziali. Nessun nuovo record di test necessario nel progetto.
 5. Logout/scadenza e ritorno BFCache: nessun dato riaperto senza nuova verifica.
 6. Apertura PDF e blocco popup quando esiste un'informativa reale; oggi non è presente alcun documento.
+
+## Correzioni del collaudo Admin 2.0
+
+Base delle correzioni: `00e9e18692fa07e800092f4f4db7f5af83a322be`.
+
+- In `pages.css` la regola dei pulsanti azione applica `display:inline-flex` soltanto senza `hidden`. La dichiarazione originaria aveva la stessa specificità del selettore locale `[hidden]` ed era caricata dopo: prevaleva nella cascata. Nessun override o `!important` aggiunto.
+- Logout nella posizione `.side-user .exit` già prevista dalla baseline Professional 2.0. Quando la sidebar è nascosta, il comando è nella testata compatta. Il servizio usa `nubemoSupabase.auth.signOut({ scope: 'local' })`, senza un secondo client né revoca delle altre sessioni. È la sola nuova operazione Auth autorizzata.
+- Il comando invalida le risposte pendenti, nasconde e svuota i dati prima della chiamata. Successo: `location.replace('index.html')`. Errore/timeout: area bloccata, messaggio e pulsante Riprova logout; nessuna riapertura tramite eventi Auth o ritorno alla pagina.
+- Hash e navigazione interna modificano solo la vista. `SIGNED_IN` ripetuto per l'Admin verificato non genera richieste. `TOKEN_REFRESHED`, `USER_UPDATED` e ritorno in primo piano verificano Auth/profilo senza rileggere professionisti, privacy e consensi. Gli eventi concomitanti sono accorpati e i task in corso riutilizzati; nessun polling.
+- `pagehide` elimina i dati dalla presentazione; `pageshow` persistito li ricostruisce solo dopo verifica. Cambi di identità, logout e revoca invalidano i risultati tardivi.
+
+### Verifiche delle correzioni
+
+- 28 test Node: precedente suite e regressioni di logout, timeout, retry, doppio click, cambi di identità, hash, eventi Auth concomitanti, ritorno e BFCache.
+- 7 test Playwright con Chromium 153 già disponibile, server temporaneo su origine `127.0.0.1` con porta assegnata e contesto nuovo. Verificati controller Service Worker nullo, zero registrazioni, 404 per vecchio Admin e `sw.js`; nessuna registrazione/disregistrazione del worker.
+- SDK controllato nei test browser, con `config.js` e `supabase-client.js` inalterati: una sola creazione del client. Rete esterna bloccata; nessuna chiamata Auth o dati al progetto reale.
+- Cascata CSS effettiva: retry visibile solo per errore elenco/privacy e `hidden:true, display:none` dopo successo. Controllati anche gate, comandi e viste con `hidden`.
+- Contatori delle chiamate: nessuna richiesta durante navigazione/ricerca/filtri; sola verifica Auth/profilo alla ripresa e al rinnovo del token.
+- Logout nel browser con risposte controllate: occultamento immediato, cancellazione righe, errore, retry, redirect e ritorno indietro. Eventi BFCache verificati anche tramite PageTransitionEvent; non equivalgono a collaudo su tutte le politiche BFCache dei dispositivi reali.
+- Responsive: 320, 375, 720, 768, 1024, 1280 e 1920 px, controllo overflow e hidden sulle quattro viste, logout accessibile e dialogo contenuto nel viewport. Screenshot desktop/tablet/smartphone ispezionati. A 768 px portrait resta il comportamento della baseline: sidebar e nav mobile nascoste; il test della vista usa l'hash, senza modificarne il layout.
+- Sintassi JS e `git diff --check`.
+
+Esecuzione browser senza installazioni:
+
+```sh
+ADMIN2_BROWSER_PATH=/percorso/chromium \
+PLAYWRIGHT_MODULE_PATH=/percorso/playwright \
+node --test tests/admin2-browser.test.cjs
+```
+
+I test browser non eseguono il vero logout dell'account Admin del progetto. Resta da ripetere manualmente sul DEV il percorso con SDK/CDN e sessione reale, verificando logout/errore di rete e ritorno indietro nei browser dei dispositivi usati. Il login precedente, i file condivisi, il Service Worker e il backend sono invariati.
 
 Nessuna attività della seconda tranche è autorizzata da questa implementazione.

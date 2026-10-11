@@ -1,4 +1,4 @@
-// Admin 2.0 — servizi in sola lettura. Nessuna dipendenza dalla UI.
+// Admin 2.0 — servizi di lettura e Logout Auth. Nessuna dipendenza dalla UI.
 (() => {
   'use strict';
 
@@ -99,8 +99,14 @@
       return data.signedUrl;
     }
 
+    async function signOut() {
+      // Disconnette questa sessione, senza revocare gli accessi sugli altri dispositivi.
+      const { error } = await request(client.auth.signOut({ scope: 'local' }));
+      if (error) throw new Error('Disconnessione non riuscita. Riprova il logout.');
+    }
+
     function onAuthChange(callback) { return client.auth.onAuthStateChange(callback).data.subscription; }
-    return Object.freeze({ verifyAccess, listProfessionals, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, onAuthChange });
+    return Object.freeze({ verifyAccess, listProfessionals, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, signOut, onAuthChange });
   }
 
   window.NubemoAdminServices = Object.freeze({ create, AccessError });
