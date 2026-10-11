@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#0c5449">
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
   <link rel="stylesheet" href="professional-v2/home-design.css?v=admin2-baseline-20261011">
-  <link rel="stylesheet" href="admin-v2/home.css?v=admin2-dashboard-20261011">
+  <link rel="stylesheet" href="admin-v2/home.css?v=admin2-read-20261011">
   <link rel="stylesheet" href="admin-v2/pages.css?v=admin2-pages-20261011">
-  <title>NUBEMO Admin 2.0 · Dashboard demo</title>
+  <title>NUBEMO Admin 2.0 · Dashboard</title>
 </head>
 <body>
   <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -24,7 +24,14 @@
       <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
     </defs>
   </svg>
-  <div class="pro2 admin2">
+  <section class="admin-access" data-admin-access aria-busy="true" aria-label="Accesso Admin NUBEMO">
+    <h1>Admin 2.0</h1>
+    <p data-admin-access-message role="status" aria-live="polite">Verifica accesso Admin…</p>
+    <button type="button" data-admin-access-retry hidden>Riprova</button>
+    <a href="index.html">Vai al login</a>
+    <noscript><p>Attiva JavaScript per verificare l’accesso all’area Admin.</p></noscript>
+  </section>
+  <div class="pro2 admin2" hidden>
     <div class="home-layout">
       <aside class="side">
         <div class="side-inner">
@@ -35,7 +42,7 @@
             <a href="#privacy" data-admin-route="privacy"><svg class="icon"><use href="#icon-shield"/></svg><span>Privacy NUBEMO</span></a>
             <a href="#impostazioni" data-admin-route="impostazioni"><svg class="icon"><use href="#icon-settings"/></svg><span>Impostazioni</span></a>
           </nav>
-          <div class="side-user"><div class="admin-avatar">AD</div><div><strong>Amministratore</strong><span>Anteprima statica</span></div></div>
+          <div class="side-user"><div class="admin-avatar" data-admin-avatar>AD</div><div><strong data-admin-name>Amministratore</strong><span>Admin · sola lettura</span></div></div>
         </div>
       </aside>
       <main class="work">
@@ -43,16 +50,18 @@
         <div class="work-inner">
           <div class="compact-brand"><img src="assets/nubemo-brand-clean-v2.png" alt="NUBEMO"><div><strong>NUBEMO</strong><span>Admin 2.0</span></div></div>
           <section data-admin-view="dashboard" id="dashboard">
-            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · PANORAMICA</span><h1>La tua piattaforma, a colpo d'occhio.</h1><p>Professionisti, accessi e attività che richiedono attenzione.</p></div><span class="admin-demo-tag">Dati dimostrativi</span></header>
+            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · PANORAMICA</span><h1>La tua piattaforma, a colpo d'occhio.</h1><p>Professionisti, accessi e attività che richiedono attenzione.</p></div><span class="admin-demo-tag" data-admin-connection>Sola lettura</span></header>
             <section class="admin-kpis" aria-label="Indicatori piattaforma">
-              <article class="kpi-card"><span class="admin-kpi-symbol green"><svg class="icon"><use href="#icon-patients"/></svg></span><div class="kpi-copy"><span>Professionisti totali</span><strong>12</strong><small>account presenti</small></div></article>
-              <article class="kpi-card"><span class="admin-kpi-symbol green"><svg class="icon"><use href="#icon-check"/></svg></span><div class="kpi-copy"><span>Professionisti attivi</span><strong>9</strong><small>accesso consentito</small></div></article>
-              <article class="kpi-card"><span class="admin-kpi-symbol peach"><svg class="icon"><use href="#icon-bell"/></svg></span><div class="kpi-copy"><span>Inviti in attesa</span><strong>2</strong><small>registrazione da completare</small></div></article>
-              <article class="kpi-card"><span class="admin-kpi-symbol peach"><svg class="icon"><use href="#icon-shield"/></svg></span><div class="kpi-copy"><span>Professionisti sospesi</span><strong>1</strong><small>accesso NUBEMO sospeso</small></div></article>
+              <article class="kpi-card"><span class="admin-kpi-symbol green"><svg class="icon"><use href="#icon-patients"/></svg></span><div class="kpi-copy"><span>Professionisti totali</span><strong data-admin-kpi="total">—</strong><small>account presenti</small></div></article>
+              <article class="kpi-card"><span class="admin-kpi-symbol green"><svg class="icon"><use href="#icon-check"/></svg></span><div class="kpi-copy"><span>Professionisti attivi</span><strong data-admin-kpi="active">—</strong><small>accesso consentito</small></div></article>
+              <article class="kpi-card"><span class="admin-kpi-symbol peach"><svg class="icon"><use href="#icon-bell"/></svg></span><div class="kpi-copy"><span>Inviti in attesa</span><strong data-admin-kpi="invited">—</strong><small>registrazione da completare</small></div></article>
+              <article class="kpi-card"><span class="admin-kpi-symbol peach"><svg class="icon"><use href="#icon-shield"/></svg></span><div class="kpi-copy"><span>Professionisti sospesi</span><strong data-admin-kpi="suspended">—</strong><small>accesso NUBEMO sospeso</small></div></article>
             </section>
+            <p class="admin-demo-hint" data-admin-data-message role="status" aria-live="polite" hidden></p>
+            <button class="admin-action-secondary" type="button" data-admin-data-retry hidden>Riprova caricamento</button>
             <div class="admin-dashboard-grid">
               <section class="module admin-priorities"><div class="module-head"><div class="module-title"><span class="module-icon"><svg class="icon"><use href="#icon-bell"/></svg></span><h2>Da tenere d'occhio</h2></div></div>
-                <div class="admin-priority-row"><span class="admin-priority-dot amber"></span><div><strong>2 inviti in attesa</strong><small>Professionisti che non hanno ancora completato la registrazione</small></div><button type="button" data-admin-goto="professionisti">Visualizza <svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+                <div class="admin-priority-row"><span class="admin-priority-dot amber"></span><div><strong data-admin-invites-priority>Inviti: dati non disponibili</strong><small>Professionisti che non hanno ancora completato la registrazione</small></div><button type="button" data-admin-goto="professionisti">Visualizza <svg class="icon"><use href="#icon-arrow"/></svg></button></div>
                 <div class="admin-priority-row"><span class="admin-priority-dot green"></span><div><strong>Privacy NUBEMO</strong><small>Consulta l'informativa attiva e la sua versione</small></div><button type="button" data-admin-goto="privacy">Apri <svg class="icon"><use href="#icon-arrow"/></svg></button></div>
               </section>
               <section class="module admin-shortcuts"><div class="module-head"><div class="module-title"><span class="module-icon peach"><svg class="icon"><use href="#icon-plus"/></svg></span><h2>Accessi rapidi</h2></div></div>
@@ -64,37 +73,37 @@
             <section class="admin-summary module"><div><span class="admin-eyebrow">CONTROLLO PIATTAFORMA</span><h2>Gestione semplice, informazioni essenziali.</h2><p>L'area Admin riguarda account e configurazioni: non mostra cartelle cliniche, diari o dati sanitari dei pazienti.</p></div><svg class="admin-summary-icon icon"><use href="#icon-shield"/></svg></section>
           </section>
           <section data-admin-view="professionisti" hidden class="admin-section-page">
-            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · ACCOUNT</span><h1>Professionisti</h1><p>Gestisci gli accessi alla piattaforma e gli inviti.</p></div><span class="admin-demo-tag">Dati dimostrativi</span></header>
+            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · ACCOUNT</span><h1>Professionisti</h1><p>Gestisci gli accessi alla piattaforma e gli inviti.</p></div><span class="admin-demo-tag" data-admin-connection>Sola lettura</span></header>
             <section class="module admin-management">
-              <div class="admin-management-head"><div><h2>Elenco professionisti</h2><p>Stato account, privacy e limiti di utilizzo.</p></div><button class="admin-action-primary" type="button" data-admin-invite-open>+ Invita professionista</button></div>
+              <div class="admin-management-head"><div><h2>Elenco professionisti</h2><p>Stato account, privacy e limiti di utilizzo.</p></div><button class="admin-action-primary" type="button" data-admin-invite-open disabled title="Inviti non ancora attivati: area in sola lettura">+ Invita professionista</button></div>
               <div class="admin-management-tools"><label class="admin-search"><span>Cerca</span><input type="search" data-admin-professional-search placeholder="Nome o email..." autocomplete="off"></label><label class="admin-filter"><span>Stato NUBEMO</span><select data-admin-professional-filter><option value="all">Tutti</option><option value="active">Attivi</option><option value="suspended">Sospesi</option></select></label></div>
               <div class="admin-prof-table"><div class="admin-prof-table-head"><span>Professionista</span><span>Account</span><span>Stato NUBEMO</span><span>Privacy</span><span>Pazienti</span><span>Azioni</span></div><div data-admin-professional-list></div></div>
-              <p class="admin-demo-hint">Anteprima statica: tutte le modifiche rimangono in memoria e si azzerano ricaricando la pagina.</p>
+              <p class="admin-demo-hint">Consultazione in sola lettura. Inviti, reinvii e modifiche dello stato non sono ancora attivati. Conteggio e limite pazienti non sono disponibili nel servizio attuale.</p>
             </section>
           </section>
           <section data-admin-view="privacy" hidden class="admin-section-page">
-            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · DOCUMENTAZIONE</span><h1>Privacy NUBEMO</h1><p>Gestione centralizzata dell'informativa e delle sue versioni.</p></div><span class="admin-demo-tag">Dati dimostrativi</span></header>
+            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · DOCUMENTAZIONE</span><h1>Privacy NUBEMO</h1><p>Gestione centralizzata dell'informativa e delle sue versioni.</p></div><span class="admin-demo-tag" data-admin-connection>Sola lettura</span></header>
             <div class="admin-privacy-layout">
-              <section class="module"><div class="admin-management-head"><div><h2>Informativa in vigore</h2><p>Documento corrente richiesto per l'accesso a NUBEMO.</p></div><span class="admin-status positive">Attiva</span></div>
-                <div class="admin-privacy-current"><span class="admin-file-icon"><svg class="icon"><use href="#icon-document"/></svg></span><div><strong data-admin-privacy-title>Informativa privacy NUBEMO</strong><small data-admin-privacy-version>Versione DEV-0.1 · 1 ottobre 2026</small></div></div>
-                <button type="button" class="admin-action-secondary" data-admin-privacy-preview>Visualizza documento</button>
-                <p class="admin-demo-hint">Il PDF iniziale è dimostrativo. Il caricamento reale e l'accettazione degli utenti saranno gestiti nell'integrazione.</p>
+              <section class="module"><div class="admin-management-head"><div><h2>Informativa in vigore</h2><p>Documento corrente richiesto per l'accesso a NUBEMO.</p></div><span class="admin-status neutral" data-admin-privacy-state>Non disponibile</span></div>
+                <div class="admin-privacy-current"><span class="admin-file-icon"><svg class="icon"><use href="#icon-document"/></svg></span><div><strong data-admin-privacy-title>Informativa non disponibile</strong><small data-admin-privacy-version>—</small></div></div>
+                <button type="button" class="admin-action-secondary" data-admin-privacy-preview disabled>Visualizza documento</button>
+                <p class="admin-demo-hint" data-admin-privacy-message role="status" aria-live="polite">Consultazione in sola lettura dell’informativa NUBEMO.</p>
               </section>
               <section class="module"><div class="admin-management-head"><div><h2>Pubblica nuova versione</h2><p>Prepara la successiva informativa NUBEMO.</p></div></div>
-                <form class="admin-form" data-admin-privacy-form><label>Versione<input name="version" required maxlength="40" placeholder="Es. 1.0"></label><label>Titolo<input name="title" required maxlength="120" value="Informativa privacy NUBEMO"></label><label>Documento PDF<input name="file" type="file" accept=".pdf,application/pdf" required></label><button class="admin-action-primary" type="submit">Pubblica versione (demo)</button></form>
-                <p class="admin-demo-hint">Nessun documento viene caricato su Supabase e nessun consenso reale cambia.</p>
+                <form class="admin-form" data-admin-privacy-form><label>Versione<input name="version" disabled required maxlength="40" placeholder="Es. 1.0"></label><label>Titolo<input name="title" disabled required maxlength="120" value="Informativa privacy NUBEMO"></label><label>Documento PDF<input name="file" disabled type="file" accept=".pdf,application/pdf" required></label><button class="admin-action-primary" type="submit" disabled title="Pubblicazione non ancora attivata">Pubblica versione</button></form>
+                <p class="admin-demo-hint">La pubblicazione di nuove versioni non è ancora attivata.</p>
               </section>
             </div>
           </section>
           <section data-admin-view="impostazioni" hidden class="admin-section-page">
-            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · CONFIGURAZIONE</span><h1>Impostazioni</h1><p>Parametri generali della piattaforma, senza dati clinici.</p></div><span class="admin-demo-tag">Dati dimostrativi</span></header>
+            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · CONFIGURAZIONE</span><h1>Impostazioni</h1><p>Parametri generali della piattaforma, senza dati clinici.</p></div><span class="admin-demo-tag" data-admin-connection>Sola lettura</span></header>
             <div class="admin-settings-layout">
               <section class="module"><div class="admin-management-head"><div><h2>Impostazioni generali</h2><p>Valori di riferimento per i nuovi professionisti.</p></div></div><form class="admin-form" data-admin-settings-form>
-                <label>Limite pazienti predefinito<input name="defaultLimit" type="number" min="1" max="100000" step="1" value="10" required></label>
-                <p class="admin-demo-hint">Il limite specifico di ogni professionista si modifica nella sua scheda. Questa impostazione è solo un'anteprima.</p>
-                <button class="admin-action-primary" type="submit">Salva impostazioni (demo)</button>
+                <label>Limite pazienti predefinito<input name="defaultLimit" type="number" min="1" max="100000" step="1" disabled placeholder="Non configurato" required></label>
+                <p class="admin-demo-hint">Il limite globale non è disponibile nel backend attuale. La modifica delle impostazioni non è ancora attivata.</p>
+                <button class="admin-action-primary" type="submit" disabled title="Modifica impostazioni non ancora attivata">Salva impostazioni</button>
               </form></section>
-              <section class="module"><div class="admin-management-head"><div><h2>Informazioni piattaforma</h2><p>Riferimenti utili per l'amministrazione.</p></div></div><dl class="admin-info-list"><div><dt>Ambiente</dt><dd>Anteprima Admin 2.0</dd></div><div><dt>Versione UI</dt><dd>2.0 · Mockup statico</dd></div><div><dt>Connessione dati</dt><dd>Non attiva</dd></div><div><dt>Richieste assistenza</dt><dd>Gestite via email, fuori dall'Admin</dd></div></dl></section>
+              <section class="module"><div class="admin-management-head"><div><h2>Informazioni piattaforma</h2><p>Riferimenti utili per l'amministrazione.</p></div></div><dl class="admin-info-list"><div><dt>Ambiente</dt><dd>DEV · NUBEMO_DEV</dd></div><div><dt>Versione UI</dt><dd>2.0 · Warm Human</dd></div><div><dt>Connessione dati</dt><dd data-admin-platform-connection>Verifica accesso</dd></div><div><dt>Richieste assistenza</dt><dd>Gestite via email, fuori dall'Admin</dd></div></dl></section>
             </div>
           </section>
         </div>
@@ -107,7 +116,11 @@
       <a href="#impostazioni" data-admin-route="impostazioni"><svg class="icon"><use href="#icon-settings"/></svg><span>Impostazioni</span></a>
     </nav>
   </div>
-  <script src="admin-v2/home-demo.js?v=admin2-dashboard-20261011"></script>
-  <script src="admin-v2/pages-demo.js?v=admin2-pages-20261011"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js?v=nubemo-env-20260919"></script>
+  <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
+  <script src="admin-v2/admin-services.js?v=admin2-read-20261011"></script>
+  <script src="admin-v2/admin-views.js?v=admin2-read-20261011"></script>
+  <script src="admin-v2/admin-app.js?v=admin2-read-20261011"></script>
 </body>
 </html>
