@@ -5,7 +5,7 @@ Progetto: `NUBEMO_DEV` (`bggvwwjwzfskabgkynwp`).
 
 ## Perimetro
 
-L'accesso diretto a `admin2.html` verifica l'utente tramite Auth e il profilo persistente `admin/active` prima di mostrare la UI. Il login condiviso conserva il suo instradamento attuale: dopo aver effettuato l'accesso, aprire direttamente `admin2.html` sulla stessa origine.
+L'accesso diretto a `admin2.html` verifica l'utente tramite Auth e il profilo persistente `admin/active` prima di mostrare la UI. Il punto di accesso dedicato è ora `index2.html`, che instrada soltanto l'Admin autorizzato a `admin2.html`. Il login precedente mantiene il proprio instradamento. Vedi `docs/login2-integration.md`.
 
 Dashboard, ricerca e filtri usano un unico elenco restituito da `swift-endpoint` con la sola azione `list-professionals`. Il KPI attivi richiede account Auth confermato, profilo attivo e professionista attivo. Inviti e sospesi possono sovrapporsi e non sono una partizione dei professionisti totali.
 
@@ -42,7 +42,7 @@ Nessun browser Chromium/Chrome/Edge eseguibile disponibile nell'ambiente. Non so
 
 L'isolamento del Service Worker è predisposto tramite origine locale separata, ma controller/registrazioni non sono verificati in un browser. Nessuna registrazione, disregistrazione o modifica automatica del worker esistente.
 
-Prima del collaudo manuale utilizzare un browser con contesto nuovo su un'origine di test separata, verificando `navigator.serviceWorker.controller === null` e nessuna registrazione. Usare copie inalterate di configurazione/client e, per la sessione reale, del login condiviso; non trasferire token o credenziali nei file. Dopo il login aprire direttamente `admin2.html`. Non usare la produzione per il collaudo.
+Prima del collaudo manuale utilizzare un browser con contesto nuovo su un'origine di test separata, verificando `navigator.serviceWorker.controller === null` e nessuna registrazione. Usare configurazione/client inalterati e il login dedicato `index2.html`; non trasferire token o credenziali nei file. Il nuovo login instrada direttamente verso `admin2.html`. Non usare la produzione per il collaudo.
 
 Da verificare manualmente:
 
@@ -59,7 +59,7 @@ Base delle correzioni: `00e9e18692fa07e800092f4f4db7f5af83a322be`.
 
 - In `pages.css` la regola dei pulsanti azione applica `display:inline-flex` soltanto senza `hidden`. La dichiarazione originaria aveva la stessa specificità del selettore locale `[hidden]` ed era caricata dopo: prevaleva nella cascata. Nessun override o `!important` aggiunto.
 - Logout nella posizione `.side-user .exit` già prevista dalla baseline Professional 2.0. Quando la sidebar è nascosta, il comando è nella testata compatta. Il servizio usa `nubemoSupabase.auth.signOut({ scope: 'local' })`, senza un secondo client né revoca delle altre sessioni. È la sola nuova operazione Auth autorizzata.
-- Il comando invalida le risposte pendenti, nasconde e svuota i dati prima della chiamata. Successo: `location.replace('index.html')`. Errore/timeout: area bloccata, messaggio e pulsante Riprova logout; nessuna riapertura tramite eventi Auth o ritorno alla pagina.
+- Il comando invalida le risposte pendenti, nasconde e svuota i dati prima della chiamata. Successo: `location.replace('index2.html')`. Errore/timeout: area bloccata, messaggio e pulsante Riprova logout; nessuna riapertura tramite eventi Auth o ritorno alla pagina.
 - Hash e navigazione interna modificano solo la vista. `SIGNED_IN` ripetuto per l'Admin verificato non genera richieste. `TOKEN_REFRESHED`, `USER_UPDATED` e ritorno in primo piano verificano Auth/profilo senza rileggere professionisti, privacy e consensi. Gli eventi concomitanti sono accorpati e i task in corso riutilizzati; nessun polling.
 - `pagehide` elimina i dati dalla presentazione; `pageshow` persistito li ricostruisce solo dopo verifica. Cambi di identità, logout e revoca invalidano i risultati tardivi.
 

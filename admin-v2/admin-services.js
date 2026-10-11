@@ -3,7 +3,7 @@
   'use strict';
 
   class AccessError extends Error {
-    constructor(message) { super(message); this.name = 'AdminAccessError'; }
+    constructor(message, code = 'forbidden') { super(message); this.name = 'AdminAccessError'; this.code = code; }
   }
 
   function create(client) {
@@ -25,12 +25,12 @@
       const result = await request(client.auth.getUser());
       if (result.error) {
         if ([400, 401, 403].includes(result.error.status) || result.error.name === 'AuthSessionMissingError') {
-          throw new AccessError('Accedi con un account Admin attivo.');
+          throw new AccessError('Accedi con un account Admin attivo.', 'unauthenticated');
         }
         throw new Error('Non è stato possibile verificare la sessione. Riprova.');
       }
       const user = result.data?.user;
-      if (!user?.id) throw new AccessError('Accedi con un account Admin attivo.');
+      if (!user?.id) throw new AccessError('Accedi con un account Admin attivo.', 'unauthenticated');
       const { data: profile, error } = await request(client.from('profiles')
         .select('id,auth_user_id,first_name,last_name,email,role,status')
         .eq('auth_user_id', user.id).single());
@@ -44,13 +44,13 @@
     async function listProfessionals() {
       const { data, error } = await request(client.auth.getSession());
       const session = data?.session;
-      if (error || !session?.access_token) throw new AccessError('La sessione non è più disponibile. Accedi nuovamente.');
+      if (error || !session?.access_token) throw new AccessError('La sessione non è più disponibile. Accedi nuovamente.', 'unauthenticated');
       const response = await request(client.functions.invoke('swift-endpoint', {
         body: { action: 'list-professionals' },
         headers: { Authorization: `Bearer ${session.access_token}` }
       }));
       if (response.error?.context?.status === 401 || response.error?.context?.status === 403) {
-        throw new AccessError('La sessione non consente più l’accesso Admin.');
+        throw new AccessError('La sessione non consente più l’accesso Admin.', response.error.context.status === 401 ? 'unauthenticated' : 'forbidden');
       }
       if (response.error || response.data?.ok !== true || !Array.isArray(response.data.professionals)) {
         throw new Error('Non è stato possibile caricare i professionisti. Riprova.');

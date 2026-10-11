@@ -312,7 +312,7 @@ test('Uscita nasconde e cancella dati prima di signOut; doppio click e refresh s
   h.doc.visibilityState = 'visible'; h.doc.fire('visibilitychange'); await tick();
   assert.equal(h.calls.filter(c => c === 'signOut').length, 1);
   h.auth('SIGNED_OUT', null); pending.resolve(); await tick();
-  assert.deepEqual(h.calls.at(-1), ['redirect', 'index.html']);
+  assert.deepEqual(h.calls.at(-1), ['redirect', 'index2.html']);
 });
 test('Errore logout mantiene dati nascosti, non reindirizza e offre un vero nuovo signOut', async () => {
   let attempts = 0;
@@ -325,7 +325,7 @@ test('Errore logout mantiene dati nascosti, non reindirizza e offre un vero nuov
   h.doc.visibilityState = 'visible'; h.doc.fire('visibilitychange'); await tick();
   assert.equal(h.calls.length, before);
   h.logoutRetry.fire('click'); await tick();
-  assert.equal(attempts, 2); assert.deepEqual(h.calls.at(-1), ['redirect', 'index.html']);
+  assert.equal(attempts, 2); assert.deepEqual(h.calls.at(-1), ['redirect', 'index2.html']);
 });
 test('BFCache cancella dati e riverifica; logout riuscito impedisce riapertura dal medesimo documento', async () => {
   const h = appHarness(); await tick(); h.window.fire('pagehide');

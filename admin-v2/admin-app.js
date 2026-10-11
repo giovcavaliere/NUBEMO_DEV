@@ -47,6 +47,11 @@
     views?.clear();
   }
 
+  function denyAccess(error) {
+    lock(error.message || 'Verifica accesso non disponibile.', error.name !== 'AdminAccessError');
+    if (error.code === 'unauthenticated') window.location.replace('index2.html');
+  }
+
   function load() {
     if (logoutBlocked || pageAway) return;
     if (loadPromise) return loadPromise;
@@ -89,7 +94,7 @@
           state[key] = { phase: 'ready', [field]: result };
         } catch (error) {
           if (current !== generation) return;
-          if (error.name === 'AdminAccessError') { lock(error.message); return; }
+          if (error.name === 'AdminAccessError') { denyAccess(error); return; }
           state[key] = { phase: 'error', message: error.message, [field]: field === 'rows' ? [] : null };
         }
         if (current === generation) views.render(state);
@@ -110,7 +115,7 @@
       views.render(state);
     } catch (error) {
       if (current !== generation) return;
-      lock(error.message || 'Servizio di accesso non disponibile.', error.name !== 'AdminAccessError');
+      denyAccess(error);
     }
   }
 
@@ -138,7 +143,7 @@
         gate.hidden = true;
         root.hidden = false;
       } catch (error) {
-        if (current === generation) lock(error.message || 'Verifica accesso non disponibile.', error.name !== 'AdminAccessError');
+        if (current === generation) denyAccess(error);
       } finally {
         if (current === generation) gate.setAttribute('aria-busy', 'false');
       }
@@ -161,7 +166,7 @@
     gate.setAttribute('aria-busy', 'true');
     try {
       await services.signOut();
-      window.location.replace('index.html');
+      window.location.replace('index2.html');
     } catch (_) {
       message.textContent = 'Disconnessione non riuscita. I dati Admin restano nascosti. Riprova il logout.';
       gate.setAttribute('aria-busy', 'false');
@@ -193,7 +198,7 @@
     } catch (error) {
       popup?.close();
       if (current !== generation) return;
-      if (error.name === 'AdminAccessError') lock(error.message);
+      if (error.name === 'AdminAccessError') denyAccess(error);
       else note.textContent = error.message;
     } finally { if (current === generation) button.disabled = false; }
   }
@@ -221,7 +226,7 @@
       if (logoutBlocked) return;
       if (event === 'SIGNED_OUT' || (verifiedUserId && session?.user?.id !== verifiedUserId)) {
         lock('La sessione non è più disponibile. Accedi nuovamente.');
-        if (event === 'SIGNED_OUT') return;
+        if (event === 'SIGNED_OUT') { window.location.replace('index2.html'); return; }
       }
       // Il callback Auth resta sincrono: le letture sono eseguite fuori dal lock del client.
       if (event === 'SIGNED_IN' && (!verifiedUserId || session?.user?.id !== verifiedUserId)) scheduleAccessCheck();

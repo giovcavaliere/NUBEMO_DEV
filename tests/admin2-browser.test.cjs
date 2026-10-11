@@ -25,7 +25,7 @@ const sdk = `(() => {
  }};
 })();`;
 let server, browser, origin;
-const allowed = new Set(['admin2.html', 'config.js', 'supabase-client.js', 'professional-v2/home-design.css', 'admin-v2/home.css', 'admin-v2/pages.css', 'admin-v2/admin-app.js', 'admin-v2/admin-views.js', 'admin-v2/admin-services.js', 'assets/nubemo-brand-clean-v2.png', 'assets/nubemo-n-icon-192.png']);
+const allowed = new Set(['admin2.html', 'index2.html', 'auth-v2.js', 'login-v2-app.js', 'auth-v2.css', 'login-v2.css', 'config.js', 'supabase-client.js', 'professional-v2/home-design.css', 'admin-v2/home.css', 'admin-v2/pages.css', 'admin-v2/admin-app.js', 'admin-v2/admin-views.js', 'admin-v2/admin-services.js', 'assets/nubemo-brand-clean-v2.png', 'assets/nubemo-n-icon-192.png']);
 test.before(async () => {
  server = http.createServer((req,res)=>{
   const name = new URL(req.url,'http://local').pathname.slice(1);
@@ -119,7 +119,7 @@ test('Logout sul client condiviso controllato: dati nascosti immediatamente, err
  assert.equal(new URL(h.page.url()).pathname,'/admin2.html');
  await h.page.evaluate(()=>{testControl.failLogout=false;testControl.holdLogout=false;});
  await h.page.locator('.admin-access [data-admin-logout]').click();
- await h.page.waitForURL('**/index.html');
+ await h.page.waitForURL('**/index2.html');
  await h.page.goBack();
  if(new URL(h.page.url()).pathname==='/admin2.html'){
   await h.page.waitForFunction(()=>document.querySelector('.admin2').hidden);
