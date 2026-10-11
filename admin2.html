@@ -7,6 +7,7 @@
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
   <link rel="stylesheet" href="professional-v2/home-design.css?v=admin2-baseline-20261011">
   <link rel="stylesheet" href="admin-v2/home.css?v=admin2-dashboard-20261011">
+  <link rel="stylesheet" href="admin-v2/pages.css?v=admin2-pages-20261011">
   <title>NUBEMO Admin 2.0 · Dashboard demo</title>
 </head>
 <body>
@@ -62,9 +63,40 @@
             </div>
             <section class="admin-summary module"><div><span class="admin-eyebrow">CONTROLLO PIATTAFORMA</span><h2>Gestione semplice, informazioni essenziali.</h2><p>L'area Admin riguarda account e configurazioni: non mostra cartelle cliniche, diari o dati sanitari dei pazienti.</p></div><svg class="admin-summary-icon icon"><use href="#icon-shield"/></svg></section>
           </section>
-          <section data-admin-view="professionisti" hidden class="admin-placeholder module"><span class="admin-eyebrow">ADMIN 2.0</span><h1>Professionisti</h1><p>Sezione da progettare nella prossima fase: account, inviti, sospensioni, stato privacy e limite pazienti individuale.</p></section>
-          <section data-admin-view="privacy" hidden class="admin-placeholder module"><span class="admin-eyebrow">ADMIN 2.0</span><h1>Privacy NUBEMO</h1><p>Sezione autonoma da realizzare: informativa attiva, versione e pubblicazione PDF. Nessun collegamento reale in questa demo.</p></section>
-          <section data-admin-view="impostazioni" hidden class="admin-placeholder module"><span class="admin-eyebrow">ADMIN 2.0</span><h1>Impostazioni</h1><p>Sezione da definire dopo la Dashboard. Nessun parametro reale è modificabile in questa demo.</p></section>
+          <section data-admin-view="professionisti" hidden class="admin-section-page">
+            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · ACCOUNT</span><h1>Professionisti</h1><p>Gestisci gli accessi alla piattaforma e gli inviti.</p></div><span class="admin-demo-tag">Dati dimostrativi</span></header>
+            <section class="module admin-management">
+              <div class="admin-management-head"><div><h2>Elenco professionisti</h2><p>Stato account, privacy e limiti di utilizzo.</p></div><button class="admin-action-primary" type="button" data-admin-invite-open>+ Invita professionista</button></div>
+              <div class="admin-management-tools"><label class="admin-search"><span>Cerca</span><input type="search" data-admin-professional-search placeholder="Nome o email..." autocomplete="off"></label><label class="admin-filter"><span>Stato NUBEMO</span><select data-admin-professional-filter><option value="all">Tutti</option><option value="active">Attivi</option><option value="suspended">Sospesi</option></select></label></div>
+              <div class="admin-prof-table"><div class="admin-prof-table-head"><span>Professionista</span><span>Account</span><span>Stato NUBEMO</span><span>Privacy</span><span>Pazienti</span><span>Azioni</span></div><div data-admin-professional-list></div></div>
+              <p class="admin-demo-hint">Anteprima statica: tutte le modifiche rimangono in memoria e si azzerano ricaricando la pagina.</p>
+            </section>
+          </section>
+          <section data-admin-view="privacy" hidden class="admin-section-page">
+            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · DOCUMENTAZIONE</span><h1>Privacy NUBEMO</h1><p>Gestione centralizzata dell'informativa e delle sue versioni.</p></div><span class="admin-demo-tag">Dati dimostrativi</span></header>
+            <div class="admin-privacy-layout">
+              <section class="module"><div class="admin-management-head"><div><h2>Informativa in vigore</h2><p>Documento corrente richiesto per l'accesso a NUBEMO.</p></div><span class="admin-status positive">Attiva</span></div>
+                <div class="admin-privacy-current"><span class="admin-file-icon"><svg class="icon"><use href="#icon-document"/></svg></span><div><strong data-admin-privacy-title>Informativa privacy NUBEMO</strong><small data-admin-privacy-version>Versione DEV-0.1 · 1 ottobre 2026</small></div></div>
+                <button type="button" class="admin-action-secondary" data-admin-privacy-preview>Visualizza documento</button>
+                <p class="admin-demo-hint">Il PDF iniziale è dimostrativo. Il caricamento reale e l'accettazione degli utenti saranno gestiti nell'integrazione.</p>
+              </section>
+              <section class="module"><div class="admin-management-head"><div><h2>Pubblica nuova versione</h2><p>Prepara la successiva informativa NUBEMO.</p></div></div>
+                <form class="admin-form" data-admin-privacy-form><label>Versione<input name="version" required maxlength="40" placeholder="Es. 1.0"></label><label>Titolo<input name="title" required maxlength="120" value="Informativa privacy NUBEMO"></label><label>Documento PDF<input name="file" type="file" accept=".pdf,application/pdf" required></label><button class="admin-action-primary" type="submit">Pubblica versione (demo)</button></form>
+                <p class="admin-demo-hint">Nessun documento viene caricato su Supabase e nessun consenso reale cambia.</p>
+              </section>
+            </div>
+          </section>
+          <section data-admin-view="impostazioni" hidden class="admin-section-page">
+            <header class="admin-hero"><div><span class="admin-eyebrow">AMMINISTRAZIONE · CONFIGURAZIONE</span><h1>Impostazioni</h1><p>Parametri generali della piattaforma, senza dati clinici.</p></div><span class="admin-demo-tag">Dati dimostrativi</span></header>
+            <div class="admin-settings-layout">
+              <section class="module"><div class="admin-management-head"><div><h2>Impostazioni generali</h2><p>Valori di riferimento per i nuovi professionisti.</p></div></div><form class="admin-form" data-admin-settings-form>
+                <label>Limite pazienti predefinito<input name="defaultLimit" type="number" min="1" max="100000" step="1" value="10" required></label>
+                <p class="admin-demo-hint">Il limite specifico di ogni professionista si modifica nella sua scheda. Questa impostazione è solo un'anteprima.</p>
+                <button class="admin-action-primary" type="submit">Salva impostazioni (demo)</button>
+              </form></section>
+              <section class="module"><div class="admin-management-head"><div><h2>Informazioni piattaforma</h2><p>Riferimenti utili per l'amministrazione.</p></div></div><dl class="admin-info-list"><div><dt>Ambiente</dt><dd>Anteprima Admin 2.0</dd></div><div><dt>Versione UI</dt><dd>2.0 · Mockup statico</dd></div><div><dt>Connessione dati</dt><dd>Non attiva</dd></div><div><dt>Richieste assistenza</dt><dd>Gestite via email, fuori dall'Admin</dd></div></dl></section>
+            </div>
+          </section>
         </div>
       </main>
     </div>
@@ -76,5 +108,6 @@
     </nav>
   </div>
   <script src="admin-v2/home-demo.js?v=admin2-dashboard-20261011"></script>
+  <script src="admin-v2/pages-demo.js?v=admin2-pages-20261011"></script>
 </body>
 </html>
