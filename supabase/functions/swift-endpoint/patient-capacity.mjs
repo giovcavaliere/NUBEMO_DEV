@@ -8,7 +8,11 @@ export async function checkPatientCapacity(db, professionalId, settings) {
     if (!Number.isInteger(assigned) || assigned < 1) {
       return { ok: false, status: 409, error: 'Limite pazienti non configurato: contatta l’amministratore' };
     }
-    const count = new Set(result.data.map(row => row?.patient_id)).size;
+    // Una risposta incompleta non può diventare artificialmente un posto disponibile.
+    if (result.data.some(row => typeof row?.patient_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(row.patient_id))) {
+      return { ok: false, status: 500, error: 'Impossibile verificare il numero di pazienti' };
+    }
+    const count = new Set(result.data.map(row => row.patient_id)).size;
     return count >= assigned
       ? { ok: false, status: 409, error: `Limite di ${assigned} pazienti attivi raggiunto` }
       : { ok: true };
