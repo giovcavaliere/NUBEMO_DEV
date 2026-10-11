@@ -7,7 +7,7 @@
 .admin-access button{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);cursor:pointer}
 .admin-access button[hidden],.admin-access a[hidden]{display:none}
 /* Durante la verifica iniziale mostra soltanto un indicatore neutro; gli errori restano leggibili. */
-.admin-access[aria-busy="true"]{min-height:138px;display:flex;align-items:center;justify-content:center}
+.admin-access[aria-busy="true"]:not([hidden]){min-height:138px;display:flex;align-items:center;justify-content:center}
 .admin-access[aria-busy="true"] > h1,.admin-access[aria-busy="true"] > p,.admin-access[aria-busy="true"] > button,.admin-access[aria-busy="true"] > a{display:none}
 .admin-access[aria-busy="true"]::before{content:"";display:block;width:30px;height:30px;border:3px solid #d8e7dc;border-top-color:#31785b;border-radius:50%;animation:admin-access-spin .85s linear infinite}
 @keyframes admin-access-spin{to{transform:rotate(360deg)}}
