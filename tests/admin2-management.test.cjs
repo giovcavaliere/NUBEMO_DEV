@@ -146,9 +146,11 @@ test('Entrypoint: autentica identità/profilo prima della gestione e mantiene li
  const { stripTypeScriptTypes } = require('node:module');
  const { pathToFileURL } = require('node:url');
  const helper=pathToFileURL(path.join(__dirname,'../supabase/functions/swift-endpoint/management.mjs')).href;
+ const capacityHelper=pathToFileURL(path.join(__dirname,'../supabase/functions/swift-endpoint/patient-capacity.mjs')).href;
  let source=fs.readFileSync(path.join(__dirname,'../supabase/functions/swift-endpoint/index.ts'),'utf8');
  source=source.replace('import { withSupabase } from "npm:@supabase/server@^1";','const withSupabase = (_,handler) => handler;')
-   .replace('from "./management.mjs"','from '+JSON.stringify(helper));
+   .replace('from "./management.mjs"','from '+JSON.stringify(helper))
+   .replace('from "./patient-capacity.mjs"','from '+JSON.stringify(capacityHelper));
  const entry=await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source,{mode:'transform'})).toString('base64'));
  const run=(ctx,body)=>entry.default.fetch(new Request('https://example.invalid',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),ctx);
  const h=edgeFixture();
