@@ -7,7 +7,7 @@
   <link rel="icon" href="assets/nubemo-n-icon-192.png">
   <link rel="stylesheet" href="professional-v2/home-design.css?v=admin2-baseline-20261011">
   <link rel="stylesheet" href="admin-v2/home.css?v=admin2-access-loader-20261011">
-  <link rel="stylesheet" href="admin-v2/pages.css?v=admin2-session-20261011">
+  <link rel="stylesheet" href="admin-v2/pages.css?v=admin2-profile-20261012">
   <title>NUBEMO Admin 2.0 · Dashboard</title>
 </head>
 <body>
@@ -105,11 +105,22 @@
                 <p class="admin-demo-hint" data-admin-settings-message>Gestione non ancora disponibile: è necessaria l’attivazione del backend.</p>
                 <button class="admin-action-primary" type="submit" disabled title="Modifica impostazioni non ancora attivata">Salva impostazioni</button>
               </form></section>
+              <section class="module admin-identity-module"><div class="admin-management-head"><div><h2>Il mio profilo</h2><p>Dati del tuo account amministratore.</p></div></div>
+                <form class="admin-form" data-admin-identity-form>
+                  <div class="admin-identity-photo"><div class="admin-avatar admin-avatar-preview" data-admin-photo-preview>AD</div><div><label for="admin-photo-input">Foto profilo</label><input id="admin-photo-input" type="file" name="photo" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG o WebP · massimo 2 MB. Visibile nella barra laterale.</small></div></div>
+                  <label>Nome<input name="firstName" type="text" maxlength="100" autocomplete="given-name" required></label>
+                  <label>Cognome<input name="lastName" type="text" maxlength="100" autocomplete="family-name" required></label>
+                  <label>Email<input name="email" type="email" readonly aria-readonly="true"></label>
+                  <p class="admin-demo-hint" data-admin-identity-message role="status" aria-live="polite"></p>
+                  <button class="admin-action-primary" type="submit">Salva profilo</button>
+                </form>
+              </section>
               <section class="module"><div class="admin-management-head"><div><h2>Informazioni piattaforma</h2><p>Riferimenti utili per l'amministrazione.</p></div></div><dl class="admin-info-list"><div><dt>Ambiente</dt><dd>DEV · NUBEMO_DEV</dd></div><div><dt>Versione UI</dt><dd>2.0 · Warm Human</dd></div><div><dt>Connessione dati</dt><dd data-admin-platform-connection>Verifica accesso</dd></div><div><dt>Richieste assistenza</dt><dd>Gestite via email, fuori dall'Admin</dd></div></dl></section>
             </div>
           </section>
         </div>
       </main>
+      <footer class="admin-bottom-banner" aria-label="NUBEMO, ogni percorso è unico"><div class="admin-bottom-image" role="img" aria-label="Colazione sana"></div><div class="admin-bottom-copy"><span>NUBEMO · BENESSERE E PERSONE</span><strong>Ogni percorso è unico.</strong><p>Strumenti semplici, persone al centro.</p></div></footer>
     </div>
     <nav class="admin-mobile-nav" aria-label="Navigazione mobile">
       <a href="#dashboard" data-admin-route="dashboard" class="active"><svg class="icon"><use href="#icon-home"/></svg><span>Home</span></a>
@@ -121,8 +132,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=nubemo-env-20260919"></script>
   <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
-  <script src="admin-v2/admin-services.js?v=admin2-management-20261011"></script>
-  <script src="admin-v2/admin-views.js?v=admin2-management-20261011"></script>
-  <script src="admin-v2/admin-app.js?v=admin2-management-20261011"></script>
+  <script src="admin-v2/admin-services.js?v=admin2-profile-20261012"></script>
+  <script src="admin-v2/admin-views.js?v=admin2-profile-20261012"></script>
+  <script src="admin-v2/admin-app.js?v=admin2-profile-20261012"></script>
 </body>
 </html>
