@@ -178,7 +178,26 @@
     }
   }
 
+  async function saveDefaultLimit(limit) {
+    if (managing || root.hidden || logoutBlocked || pageAway || state?.management?.version !== 1) return;
+    managing = true;
+    const current = generation;
+    views.setOperation({ busy: true, message: 'Salvataggio limite pazienti…', error: false });
+    try {
+      await services.saveDefaultPatientLimit(limit);
+      if (current !== generation) return;
+      state.management = services.getManagement();
+      views.render(state);
+      views.setOperation({ busy: false, error: false, message: 'Limite pazienti predefinito aggiornato.' });
+    } catch (error) {
+      if (current !== generation) return;
+      if (error.name === 'AdminAccessError') denyAccess(error);
+      else views.setOperation({ busy: false, error: true, message: error.message });
+    } finally { managing = false; }
+  }
+
   async function manage(action, values) {
+    if (action === 'save-default-limit') return saveDefaultLimit(values.limit);
     if (root.hidden || logoutBlocked || pageAway || managing || state?.management?.enabled !== true || state.professionals.phase !== 'ready') return;
     managing = true;
     const current = generation;
