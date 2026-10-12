@@ -113,7 +113,7 @@
         if (value !== displayedDefault) { input.value = value ?? ''; displayedDefault = value; }
       }
       if (save) save.disabled = !state || state.management?.version !== 1 || operation.busy;
-      setText('[data-admin-settings-message]', state?.management?.version === 1 ? 'Il limite vale per i nuovi professionisti. I limiti individuali già assegnati restano invariati.' : 'Impostazioni non disponibili. Riprova il caricamento.');
+      setText('[data-admin-settings-message]', operation.message && /limite pazienti/i.test(operation.message) ? operation.message : state?.management?.version === 1 ? 'Il limite vale per i nuovi professionisti. I limiti individuali già assegnati restano invariati.' : 'Impostazioni non disponibili. Riprova il caricamento.');
       setText('[data-admin-operation-message]', operation.message || (available() ? '' : 'Gestione professionisti non ancora disponibile. Elenco consultabile in sola lettura.'));
       root.querySelectorAll('[data-admin-modal-message]').forEach(element => {
         element.textContent = operation.message;
