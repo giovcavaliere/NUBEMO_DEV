@@ -117,6 +117,10 @@
       const { error } = await client.auth.updateUser({ password: password.value });
       if (error) throw error;
 
+      // Solo l'avvenuto aggiornamento password conclude l'attivazione NUBEMO.
+      const completion = await client.rpc('nubemo_complete_own_activation');
+      if (completion.error || !completion.data) throw new Error('Password aggiornata, ma attivazione NUBEMO non confermata. Non ripetere la procedura: richiedi assistenza.');
+
       password.value = '';
       confirmPassword.value = '';
       await client.auth.signOut();
