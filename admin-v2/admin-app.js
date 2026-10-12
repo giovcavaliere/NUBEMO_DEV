@@ -20,7 +20,56 @@
   let logoutBlocked = false;
   let pageAway = false;
   let managing = false;
+  let adminProfile = null;
+  let avatarUrl = null;
+  let savingIdentity = false;
   const valid = ['dashboard', 'professionisti', 'privacy', 'impostazioni'];
+
+  async function displayIdentity(profile, current) {
+    adminProfile = profile;
+    let photoUrl = null;
+    try { photoUrl = await services.getAdminAvatarUrl(profile); } catch (_) { /* Fallback alle iniziali. */ }
+    if (current !== generation) return;
+    avatarUrl = photoUrl;
+    views.identity(profile, avatarUrl);
+  }
+
+  async function saveIdentity(form) {
+    if (savingIdentity || root.hidden || !adminProfile || logoutBlocked || pageAway) return;
+    const status = root.querySelector('[data-admin-identity-message]');
+    const submit = form.querySelector('button[type="submit"]');
+    const current = generation;
+    savingIdentity = true;
+    submit.disabled = true;
+    status.textContent = 'Salvataggio in corso…';
+    try {
+      const access = await services.verifyAccess();
+      if (current !== generation) return;
+      if (access.user.id !== adminProfile.auth_user_id) { lock('La sessione è cambiata.', true); return; }
+      const file = form.elements.photo.files[0];
+      let nextPath = adminProfile.admin_avatar_path || null;
+      if (file) nextPath = await services.uploadAdminAvatar(file, access.user.id);
+      if (current !== generation) return;
+      const profile = await services.saveOwnIdentity({
+        firstName: form.elements.firstName.value,
+        lastName: form.elements.lastName.value,
+        avatarPath: nextPath
+      });
+      if (current !== generation) return;
+      form.elements.photo.value = '';
+      await displayIdentity(profile, current);
+      if (current !== generation) return;
+      status.textContent = 'Profilo aggiornato.';
+    } catch (error) {
+      if (current === generation) {
+        if (error.name === 'AdminAccessError') denyAccess(error);
+        else status.textContent = error.message || 'Non è stato possibile salvare il profilo.';
+      }
+    } finally {
+      savingIdentity = false;
+      if (current === generation) submit.disabled = false;
+    }
+  }
 
   function route(name) {
     const selected = valid.includes(name) ? name : 'dashboard';
@@ -47,6 +96,8 @@
     logoutRetry.hidden = true;
     verifiedUserId = null;
     state = null;
+    adminProfile = null;
+    avatarUrl = null;
     views?.clear();
   }
 
@@ -81,7 +132,8 @@
         privacy: { phase: 'loading', document: null },
         consents: { phase: 'loading', rows: [] }
       };
-      views.identity(access.profile);
+      await displayIdentity(access.profile, current);
+      if (current !== generation) return;
       views.render(state);
       route(location.hash.slice(1));
       gate.hidden = true;
@@ -188,7 +240,7 @@
           lock('La sessione è cambiata. Riprova la verifica accesso.', true);
           return;
         }
-        views.identity(access.profile);
+        await displayIdentity(access.profile, current);
       } catch (error) {
         if (current === generation) denyAccess(error);
       }
@@ -255,6 +307,11 @@
     if (go) { location.hash = go.dataset.adminGoto; route(go.dataset.adminGoto); }
     if (event.target.closest('[data-admin-retry],[data-admin-data-retry]')) void load();
     if (event.target.closest('[data-admin-privacy-preview]')) void openPrivacy();
+  });
+  const identityForm = root.querySelector('[data-admin-identity-form]');
+  identityForm?.addEventListener('submit', event => {
+    event.preventDefault();
+    void saveIdentity(identityForm);
   });
   retry.addEventListener('click', () => void load());
   logoutRetry.addEventListener('click', () => void logout());
