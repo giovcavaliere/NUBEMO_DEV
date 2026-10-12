@@ -63,3 +63,22 @@
  .admin2 .admin-form .admin-action-primary{width:100%}
 }
 
+
+/* Profilo amministratore: immagine privata, dati personali e footer Warm Human. */
+.admin2 .admin-identity-module .admin-form{gap:13px}
+.admin2 .admin-identity-photo{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.admin2 .admin-identity-photo>div:last-child{flex:1;min-width:160px}
+.admin2 .admin-identity-photo label{display:block;font-size:12px;font-weight:650;color:var(--green-950);margin-bottom:7px}
+.admin2 .admin-identity-photo input{max-width:100%;font-size:12px}
+.admin2 .admin-identity-photo small{display:block;color:var(--muted);font-size:11px;margin-top:7px}
+.admin2 .admin-avatar-preview{height:70px;width:70px;border-radius:50%;font-size:22px;background:var(--green-800);overflow:hidden}
+.admin2 .admin-avatar img,.admin2 .admin-avatar-preview img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.admin2 .admin-identity-module input[readonly]{background:var(--surface-1);opacity:.75;cursor:default}
+.admin2 .admin-identity-module [data-admin-identity-message]:empty{display:none}
+.admin2 .admin-bottom-banner{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,42%) 1fr;min-height:220px;margin-top:28px;background:#e5eee3;overflow:hidden}
+.admin2 .admin-bottom-image{min-height:220px;background:linear-gradient(90deg,transparent 70%,#e5eee3 100%),url('../assets/nubemo-pro2-breakfast.webp') center 56%/cover no-repeat}
+.admin2 .admin-bottom-copy{display:flex;flex-direction:column;justify-content:center;padding:30px clamp(22px,5vw,76px);color:#124d3c}
+.admin2 .admin-bottom-copy span{font-size:10px;font-weight:750;letter-spacing:.14em;margin-bottom:12px}
+.admin2 .admin-bottom-copy strong{font-size:clamp(26px,3vw,42px);line-height:1.13;letter-spacing:-.03em}
+.admin2 .admin-bottom-copy p{font-size:14px;line-height:1.5;margin:12px 0 0}
+@media(max-width:720px){.admin2 .admin-bottom-banner{grid-template-columns:1fr;margin-top:18px}.admin2 .admin-bottom-image{min-height:150px;background:linear-gradient(0deg,#e5eee3,transparent 48%),url('../assets/nubemo-pro2-breakfast.webp') center/cover no-repeat}.admin2 .admin-bottom-copy{padding:15px 22px 32px}}
