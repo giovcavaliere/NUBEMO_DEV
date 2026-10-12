@@ -10,8 +10,8 @@ export function accountPermissions(row, authUser) {
   const usable = uuid(authUser?.id) && !authUser.deleted_at &&
     (!authUser.banned_until || new Date(authUser.banned_until).getTime() <= Date.now());
   return {
-    account_status: !usable ? 'unavailable' : authUser.email_confirmed_at ? 'active' : 'invited',
-    can_resend: usable && !authUser.email_confirmed_at && row.nubemo_status === 'active' &&
+    account_status: !usable ? 'unavailable' : row.activation_completed_at ? 'active' : 'invited',
+    can_resend: usable && !row.activation_completed_at && row.nubemo_status === 'active' &&
       row.professional_status === 'active' && text(row.email).toLowerCase() === text(authUser.email).toLowerCase(),
     can_suspend: row.nubemo_status === 'active' && row.professional_status === 'active',
     can_activate: usable && row.nubemo_status === 'suspended' && row.professional_status === 'active'
@@ -90,26 +90,40 @@ async function dispatchManagement(body, ctx, user, profile, redirectUrl) {
   };
   let emailAttempted = false;
   let resendAuthId = null;
+  let linkedForRecovery = null;
   try {
     const claimed = await operations().update({ state: 'email_started', updated_at: new Date().toISOString() })
       .eq('id', operationId).eq('actor_auth_id', user.id).eq('state', 'started').select('id').single();
     if (claimed.error || !claimed.data) return reply('Operazione già in corso o non disponibile.', 409, 'operation_pending');
     if (body.action === 'resend-professional-invite') {
       const target = await ctx.supabaseAdmin.from('professionals')
-        .select('id,status,profiles!inner(auth_user_id,role,status,email,first_name,last_name)')
+        .select('id,status,profiles!inner(auth_user_id,role,status,email,first_name,last_name,activation_completed_at)')
         .eq('id', payload.professional_id).single();
       const linked = Array.isArray(target.data?.profiles) ? target.data.profiles[0] : target.data?.profiles;
       if (target.error || !linked || linked.role !== 'professional') throw new Error('Account non disponibile');
       const auth = await ctx.supabaseAdmin.auth.admin.getUserById(linked.auth_user_id);
-      const permissions = accountPermissions({ nubemo_status: linked.status, professional_status: target.data.status, email: linked.email }, auth.data?.user);
+      const permissions = accountPermissions({ nubemo_status: linked.status, professional_status: target.data.status, email: linked.email, activation_completed_at: linked.activation_completed_at }, auth.data?.user);
       if (auth.error || !permissions.can_resend) { await mark('failed'); return reply('Reinvio non consentito per questo account.', 409, 'ineligible'); }
       resendAuthId = linked.auth_user_id;
+      linkedForRecovery = auth.data?.user;
       payload = { first_name: text(linked.first_name), last_name: text(linked.last_name), email: text(linked.email).toLowerCase() };
     }
     // Ricontrollo Admin/abilitazione immediatamente prima dell'effetto esterno.
     const access = await ctx.supabaseAdmin.rpc('admin2_assert_actor', { ...actor, p_write: true });
     if (access.error) { await mark('failed'); return databaseError(access.error); }
     emailAttempted = true;
+    if (body.action === 'resend-professional-invite' && linkedForRecovery?.email_confirmed_at) {
+      // Auth ha già confermato l'email: un secondo inviteUserByEmail non è valido.
+      // Un recovery link porta alla stessa pagina di impostazione password.
+      const reset = await ctx.supabaseAdmin.auth.resetPasswordForEmail(payload.email, { redirectTo: redirectUrl });
+      if (reset.error) {
+        await mark('needs_review');
+        return reply('Link di completamento non confermato dal servizio email.', 502, 'email_unconfirmed');
+      }
+      const completed = { ok:true, resent:true, professional_id:body.professional_id, email_status:'accepted' };
+      await mark('completed', completed);
+      return Response.json(completed);
+    }
     const invite = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(payload.email, {
       data: { first_name: payload.first_name, last_name: payload.last_name, intended_role: 'professional' }, redirectTo: redirectUrl
     });
