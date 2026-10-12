@@ -108,12 +108,12 @@
       const input = $('[data-admin-settings-form] input[name="defaultLimit"]');
       const save = $('[data-admin-settings-form] button[type="submit"]');
       if (input) {
-        input.disabled = !enabled;
+        input.disabled = !state || state.management?.version !== 1 || operation.busy;
         const value = state?.management?.default_patient_limit ?? null;
         if (value !== displayedDefault) { input.value = value ?? ''; displayedDefault = value; }
       }
-      if (save) save.disabled = !enabled;
-      setText('[data-admin-settings-message]', available() ? 'Il valore viene assegnato ai nuovi professionisti. I limiti individuali già assegnati restano invariati.' : 'Gestione non ancora disponibile: è necessaria l’attivazione del backend.');
+      if (save) save.disabled = !state || state.management?.version !== 1 || operation.busy;
+      setText('[data-admin-settings-message]', state?.management?.version === 1 ? 'Il limite vale per i nuovi professionisti. I limiti individuali già assegnati restano invariati.' : 'Impostazioni non disponibili. Riprova il caricamento.');
       setText('[data-admin-operation-message]', operation.message || (available() ? '' : 'Gestione professionisti non ancora disponibile. Elenco consultabile in sola lettura.'));
       root.querySelectorAll('[data-admin-modal-message]').forEach(element => {
         element.textContent = operation.message;
@@ -195,8 +195,8 @@
     });
     root.addEventListener('submit', event => {
       event.preventDefault();
-      if (event.target.matches('[data-admin-settings-form]') && available() && !operation.busy && !root.hidden) {
-        onAction('set-default-patient-limit', { limit: Number(new FormData(event.target).get('defaultLimit')) });
+      if (event.target.matches('[data-admin-settings-form]') && state?.management?.version === 1 && !operation.busy && !root.hidden) {
+        onAction('save-default-limit', { limit: Number(new FormData(event.target).get('defaultLimit')) });
       }
     });
 
