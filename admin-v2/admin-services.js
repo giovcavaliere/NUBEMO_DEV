@@ -35,7 +35,7 @@
       const user = result.data?.user;
       if (!user?.id) throw new AccessError('Accedi con un account Admin attivo.', 'unauthenticated');
       const { data: profile, error } = await request(client.from('profiles')
-        .select('id,auth_user_id,first_name,last_name,email,role,status')
+        .select('id,auth_user_id,first_name,last_name,email,role,status,admin_avatar_path')
         .eq('auth_user_id', user.id).single());
       if (error) throw new Error('Non è stato possibile verificare il profilo NUBEMO. Riprova.');
       if (!profile || profile.auth_user_id !== user.id || profile.role !== 'admin' || profile.status !== 'active') {
@@ -180,6 +180,39 @@
       return data.signedUrl;
     }
 
+    async function getAdminAvatarUrl(profile) {
+      if (!profile?.admin_avatar_path) return null;
+      const path = profile.admin_avatar_path;
+      if (!profile.auth_user_id || !['jpg', 'png', 'webp'].some(ext => path === profile.auth_user_id + '/avatar.' + ext)) return null;
+      const { data, error } = await request(client.storage.from('admin-assets').createSignedUrl(path, 120));
+      if (error || !data?.signedUrl) throw new Error('Non è stato possibile caricare la foto del profilo.');
+      return data.signedUrl;
+    }
+
+    async function saveOwnIdentity({ firstName, lastName, avatarPath }) {
+      const first = String(firstName || '').trim(), last = String(lastName || '').trim();
+      if (!first || !last || first.length > 100 || last.length > 100) throw new Error('Inserisci nome e cognome validi.');
+      const access = await verifyAccess();
+      const { data, error } = await request(client.rpc('admin2_update_own_profile', {
+        p_first_name: first, p_last_name: last, p_avatar_path: avatarPath ?? null
+      }));
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row || row.id !== access.profile.id) throw new Error('Salvataggio profilo non riuscito.');
+      return { ...access.profile, ...row };
+    }
+
+    async function uploadAdminAvatar(file, userId) {
+      const extensions = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp' };
+      const ext = extensions[file?.type];
+      if (!ext || file.size > 2097152 || file.size === 0) throw new Error('Seleziona una foto JPG, PNG o WebP fino a 2 MB.');
+      const access = await verifyAccess();
+      if (access.user.id !== userId) throw new AccessError('La sessione è cambiata.');
+      const path = userId + '/avatar.' + ext;
+      const { error } = await request(client.storage.from('admin-assets').upload(path, file, { upsert: true, contentType: file.type, cacheControl: '0' }));
+      if (error) throw new Error('Caricamento della foto non riuscito: ' + error.message);
+      return path;
+    }
+
     async function signOut() {
       // Disconnette questa sessione, senza revocare gli accessi sugli altri dispositivi.
       const { error } = await request(client.auth.signOut({ scope: 'local' }));
@@ -187,7 +220,7 @@
     }
 
     function onAuthChange(callback) { return client.auth.onAuthStateChange(callback).data.subscription; }
-    return Object.freeze({ verifyAccess, listProfessionals, getManagement, manage, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, signOut, onAuthChange });
+    return Object.freeze({ verifyAccess, listProfessionals, getManagement, manage, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, getAdminAvatarUrl, saveOwnIdentity, uploadAdminAvatar, signOut, onAuthChange });
   }
 
   window.NubemoAdminServices = Object.freeze({ create, AccessError });
