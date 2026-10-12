@@ -47,7 +47,7 @@
 
   function setBusy(busy) {
     submit.disabled = busy;
-    submit.textContent = busy ? 'Impostazione…' : 'Imposta password';
+    submit.textContent = busy ? 'Attivazione…' : 'Attiva account';
   }
 
   async function resolveAccessSession() {
@@ -58,13 +58,13 @@
 
     const redirectError = redirectErrorMessage();
     if (redirectError) {
-      showInvalid('Il link non è valido o è scaduto. Dal login puoi richiedere un nuovo invito oppure reimpostare la password.');
+      showInvalid('Il link non è valido o è scaduto. Chiedi all’amministratore NUBEMO un nuovo invito.');
       return;
     }
 
     const session = await waitForSession();
     if (!session) {
-      showInvalid('Il link non è valido o è scaduto. Dal login puoi richiedere un nuovo invito oppure reimpostare la password.');
+      showInvalid('Il link non è valido o è scaduto. Chiedi all’amministratore NUBEMO un nuovo invito.');
       return;
     }
 
@@ -132,6 +132,6 @@
   successLogin.addEventListener('click', () => window.location.replace('index2.html'));
 
   resolveAccessSession().catch(() => {
-    showInvalid('Il link non è valido o è scaduto. Dal login puoi richiedere un nuovo invito oppure reimpostare la password.');
+    showInvalid('Il link non è valido o è scaduto. Chiedi all’amministratore NUBEMO un nuovo invito.');
   });
 })();
