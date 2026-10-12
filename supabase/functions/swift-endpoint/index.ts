@@ -4,6 +4,8 @@ import { checkPatientCapacity } from "./patient-capacity.mjs";
 
 const INVITE_REDIRECT_URL =
   "https://giovcavaliere.github.io/NUBEMO_DEV/set-password.html";
+const PROFESSIONAL_INVITE_REDIRECT_URL =
+  "https://nubemo-pro-2.pages.dev/set-password2.html";
 
 export default {
   fetch: withSupabase({ auth: "user" }, async (req, ctx) => {
@@ -117,7 +119,7 @@ export default {
 
     if (!body.action) return Response.json({ ok:true, message:"Admin NUBEMO verificato", role:profile.role, status:profile.status });
 
-    const managed = await handleManagement(body, ctx, user, profile, INVITE_REDIRECT_URL);
+    const managed = await handleManagement(body, ctx, user, profile, PROFESSIONAL_INVITE_REDIRECT_URL);
     if (managed) return managed;
 
     // Contratto dry-run precedente: valida senza inviare email.
