@@ -240,7 +240,13 @@
           lock('La sessione è cambiata. Riprova la verifica accesso.', true);
           return;
         }
-        await displayIdentity(access.profile, current);
+        // La verifica silenziosa non deve cancellare modifiche ancora non salvate nel form.
+        if (access.profile.id !== adminProfile?.id ||
+            access.profile.first_name !== adminProfile.first_name ||
+            access.profile.last_name !== adminProfile.last_name ||
+            access.profile.admin_avatar_path !== adminProfile.admin_avatar_path) {
+          await displayIdentity(access.profile, current);
+        }
       } catch (error) {
         if (current === generation) denyAccess(error);
       }
