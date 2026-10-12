@@ -135,7 +135,7 @@ export default {
     if (body.action === "list-professionals") {
       const { data: professionals, error: professionalsError } = await ctx.supabaseAdmin
         .from("professionals")
-        .select(`id,profile_id,status,profiles!inner (auth_user_id,first_name,last_name,email,role,status)`)
+        .select(`id,profile_id,status,profiles!inner (auth_user_id,first_name,last_name,email,role,status,activation_completed_at)`)
         .order("created_at", { ascending:true });
       if (professionalsError) {
         console.error("Professional list error:", professionalsError);
@@ -158,11 +158,11 @@ export default {
           first_name:linkedProfile.first_name,
           last_name:linkedProfile.last_name,
           email:linkedProfile.email,
-          account_status:authData?.user?.email_confirmed_at ? "active" : "invited",
+          account_status:linkedProfile.activation_completed_at ? "active" : "invited",
           nubemo_status:linkedProfile.status,
           professional_status:professional.status,
           ...(management ? {
-            ...accountPermissions({nubemo_status:linkedProfile.status,professional_status:professional.status,email:linkedProfile.email},authError ? null : authData?.user),
+            ...accountPermissions({nubemo_status:linkedProfile.status,professional_status:professional.status,email:linkedProfile.email,activation_completed_at:linkedProfile.activation_completed_at},authError ? null : authData?.user),
             ...(management.capacity.find((row: any) => row.professional_id === professional.id) || {})
           } : {})
         });
