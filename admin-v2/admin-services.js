@@ -142,6 +142,14 @@
         return result;
       } finally { writing = false; }
     }
+    async function saveDefaultPatientLimit(limit) {
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100000) throw new Error('Il limite deve essere un intero da 1 a 100.000.');
+      await verifyAccess();
+      const { data, error } = await request(client.rpc('admin2_set_default_patient_limit', { p_limit: limit }));
+      if (error || data !== limit) throw new Error('Non è stato possibile salvare il limite pazienti.');
+      management = { ...management, default_patient_limit: limit };
+      return limit;
+    }
     function getManagement() { return Object.freeze({ ...management }); }
 
     async function loadCurrentPrivacy() {
@@ -220,7 +228,7 @@
     }
 
     function onAuthChange(callback) { return client.auth.onAuthStateChange(callback).data.subscription; }
-    return Object.freeze({ verifyAccess, listProfessionals, getManagement, manage, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, getAdminAvatarUrl, saveOwnIdentity, uploadAdminAvatar, signOut, onAuthChange });
+    return Object.freeze({ verifyAccess, listProfessionals, getManagement, manage, saveDefaultPatientLimit, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, getAdminAvatarUrl, saveOwnIdentity, uploadAdminAvatar, signOut, onAuthChange });
   }
 
   window.NubemoAdminServices = Object.freeze({ create, AccessError });
