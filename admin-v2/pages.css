@@ -71,7 +71,7 @@
 .admin2 .admin-identity-photo label{display:block;font-size:12px;font-weight:650;color:var(--green-950);margin-bottom:7px}
 .admin2 .admin-identity-photo input{max-width:100%;font-size:12px}
 .admin2 .admin-identity-photo small{display:block;color:var(--muted);font-size:11px;margin-top:7px}
-.admin2 .admin-avatar-preview{height:70px;width:70px;border-radius:50%;font-size:22px;background:var(--green-800);overflow:hidden}
+.admin2 .admin-avatar-preview{display:grid;place-items:center;flex:0 0 70px;width:70px;height:70px;aspect-ratio:1;border:1px solid #7fa594;border-radius:50%;font-size:22px;color:#fff;background:var(--green-800);overflow:hidden}
 .admin2 .admin-avatar img,.admin2 .admin-avatar-preview img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
 .admin2 .admin-identity-module input[readonly]{background:var(--surface-1);opacity:.75;cursor:default}
 .admin2 .admin-identity-module [data-admin-identity-message]:empty{display:none}
