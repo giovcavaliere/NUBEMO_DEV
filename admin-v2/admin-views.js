@@ -200,9 +200,28 @@
       }
     });
 
-    function identity(profile) {
-      setText('[data-admin-name]', [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email);
-      setText('[data-admin-avatar]', [profile.first_name, profile.last_name].filter(Boolean).map(part => part[0]).join('').slice(0, 2).toLocaleUpperCase('it') || 'AD');
+    function identity(profile, avatarUrl = null) {
+      const displayName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email;
+      const initials = [profile.first_name, profile.last_name].filter(Boolean).map(part => part[0]).join('').slice(0, 2).toLocaleUpperCase('it') || 'AD';
+      setText('[data-admin-name]', displayName);
+      for (const selector of ['[data-admin-avatar]', '[data-admin-photo-preview]']) {
+        const target = $(selector);
+        if (!target) continue;
+        target.replaceChildren();
+        if (avatarUrl) {
+          const photo = document.createElement('img');
+          photo.src = avatarUrl;
+          photo.alt = 'Foto del profilo Admin';
+          photo.addEventListener('error', () => { target.replaceChildren(document.createTextNode(initials)); }, { once: true });
+          target.append(photo);
+        } else target.textContent = initials;
+      }
+      const form = $('[data-admin-identity-form]');
+      if (form) {
+        form.elements.firstName.value = profile.first_name || '';
+        form.elements.lastName.value = profile.last_name || '';
+        form.elements.email.value = profile.email || '';
+      }
     }
     function clear() {
       closeDialogs();
@@ -213,6 +232,9 @@
       $('[data-admin-professional-list]').replaceChildren();
       setText('[data-admin-name]', 'Amministratore');
       setText('[data-admin-avatar]', 'AD');
+      setText('[data-admin-photo-preview]', 'AD');
+      const profileForm = $('[data-admin-identity-form]');
+      if (profileForm) profileForm.reset();
     }
     return Object.freeze({ render, identity, clear, setOperation, closeDialogs });
   }
