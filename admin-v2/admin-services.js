@@ -198,7 +198,7 @@
       }));
       const row = Array.isArray(data) ? data[0] : data;
       if (error || !row || row.id !== access.profile.id) throw new Error('Salvataggio profilo non riuscito.');
-      return { ...access.profile, ...row };
+      return { ...access.profile, ...row, auth_user_id: access.user.id };
     }
 
     async function uploadAdminAvatar(file, userId) {
