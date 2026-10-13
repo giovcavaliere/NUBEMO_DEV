@@ -13,7 +13,7 @@ export const professionalProfile={
   city:"",
   province:"",
   email:"",
-  phone:""
+  phone:"",
   studios:[],
   firstVisit:60,
   controlVisit:30,
