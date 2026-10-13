@@ -325,6 +325,34 @@
     } finally { if (current === generation) button.disabled = false; }
   }
 
+  const privacyForm = root.querySelector('[data-admin-privacy-form]');
+  let publishingPrivacy = false;
+  privacyForm?.addEventListener('submit', event => {
+    event.preventDefault();
+    if(publishingPrivacy || root.hidden || state?.privacy.phase!=='ready') return;
+    const current=generation, note=root.querySelector('[data-admin-privacy-message]');
+    const submit=privacyForm.querySelector('button[type="submit"]');
+    const file=privacyForm.elements.file.files[0];
+    publishingPrivacy=true;submit.disabled=true;note.textContent='Caricamento e pubblicazione informativa in corso…';
+    void (async()=>{
+      try {
+        await services.publishPrivacy({version:privacyForm.elements.version.value,title:privacyForm.elements.title.value,file});
+        if(current!==generation)return;
+        const documentRow=await services.loadCurrentPrivacy();
+        if(current!==generation)return;
+        state.privacy={phase:'ready',document:documentRow};
+        state.consents={phase:'ready',rows:await services.loadAcceptances(documentRow.id,state.professionals.rows.map(row=>row.profile_id))};
+        if(current!==generation)return;
+        privacyForm.reset();views.render(state);
+        note.textContent='Nuova informativa pubblicata correttamente. La versione precedente rimane archiviata.';
+      } catch(error) {
+        if(current!==generation)return;
+        if(error.name==='AdminAccessError')denyAccess(error);
+        else note.textContent=error.message||'Pubblicazione non riuscita.';
+      } finally {publishingPrivacy=false;if(current===generation)submit.disabled=false;}
+    })();
+  });
+
   root.addEventListener('click', event => {
     if (root.hidden) return;
     if (event.target.closest('[data-admin-logout]')) { void logout(); return; }
