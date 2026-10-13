@@ -64,6 +64,9 @@
 }
 .support-send:hover{background:var(--green-900)}
 .support-send:disabled{opacity:.6;cursor:wait}
+.support-feedback{margin:13px 0 0;font-size:12px;line-height:1.5;color:var(--green-800)}
+.support-feedback:empty{display:none}
+.support-feedback.is-error{color:#a43b35}
 .support-privacy{
   margin:15px 0 0;color:var(--muted);font-size:10px;line-height:1.55
 }
