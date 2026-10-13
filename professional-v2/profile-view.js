@@ -72,10 +72,10 @@ export function renderProfilePage(root,profile=professionalProfile){
           <div class="profile-media">
             <div class="profile-photo-preview" data-profile-photo-preview>${photoMarkup(profile)}</div>
             <div class="profile-media-copy">
-              <p>Usata nella barra laterale. Se non presente vengono mostrate le iniziali di nome e cognome. Caricamento foto in fase di migrazione.</p>
-              <div class="profile-media-actions" aria-disabled="true">
-                <label class="profile-secondary" title="Caricamento foto disponibile nella prossima fase">Carica foto<input disabled type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-photo-file></label>
-                <button class="profile-remove" type="button" data-profile-photo-remove disabled>Rimuovi foto</button>
+              <p>Usata nella barra laterale. Se non presente vengono mostrate le iniziali di nome e cognome. </p>
+              <div class="profile-media-actions">
+                <label class="profile-secondary">Carica foto<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-photo-file></label>
+                <button class="profile-remove" type="button" data-profile-photo-remove>Rimuovi foto</button>
               </div>
             </div>
           </div>
@@ -86,10 +86,10 @@ export function renderProfilePage(root,profile=professionalProfile){
           <div class="profile-media">
             <div class="profile-logo-preview" data-profile-logo-preview>${logoMarkup(profile)}</div>
             <div class="profile-media-copy">
-              <p>Se presente, viene utilizzato nei documenti professionali insieme al marchio NUBEMO. Caricamento logo in fase di migrazione.</p>
-              <div class="profile-media-actions" aria-disabled="true">
-                <label class="profile-secondary" title="Caricamento logo disponibile nella prossima fase">Carica logo<input disabled type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-logo-file></label>
-                <button class="profile-remove" type="button" data-profile-logo-remove disabled>Rimuovi logo</button>
+              <p>Se presente, viene utilizzato nei documenti professionali insieme al marchio NUBEMO. </p>
+              <div class="profile-media-actions">
+                <label class="profile-secondary">Carica logo<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-logo-file></label>
+                <button class="profile-remove" type="button" data-profile-logo-remove>Rimuovi logo</button>
               </div>
             </div>
           </div>
@@ -164,8 +164,8 @@ function readImage(file,onReady){
   reader.readAsDataURL(file);
 }
 
-export function bindProfilePage(root,{profile=professionalProfile,onChange,onSave}={}){
-  const rerender=()=>{renderProfilePage(root,profile);bindProfilePage(root,{profile,onChange,onSave});};
+export function bindProfilePage(root,{profile=professionalProfile,onChange,onSave,onMedia}={}){
+  const rerender=()=>{renderProfilePage(root,profile);bindProfilePage(root,{profile,onChange,onSave,onMedia});};
 
   root.querySelectorAll("[data-studio-field]").forEach(field=>{
     field.addEventListener("input",()=>{
@@ -192,35 +192,33 @@ export function bindProfilePage(root,{profile=professionalProfile,onChange,onSav
     if(wasPrimary&&profile.studios.length) profile.studios[0].primary=true;
     rerender();
   }));
-  root.querySelector("[data-profile-photo-file]")?.addEventListener("change",event=>{
-    readImage(event.target.files?.[0],data=>{
-      profile.photoData=data;
-      const preview=root.querySelector("[data-profile-photo-preview]");
-      if(preview) preview.innerHTML=photoMarkup(profile);
+  let mediaBusy=false;
+  async function changeMedia(type,file){
+    if(mediaBusy||!onMedia)return;
+    mediaBusy=true;
+    const controls=root.querySelectorAll('[data-profile-photo-file],[data-profile-logo-file],[data-profile-photo-remove],[data-profile-logo-remove]');
+    controls.forEach(control=>control.disabled=true);
+    try{
+      await onMedia(profile,type,file);
+      const preview=root.querySelector(type==='photo'?'[data-profile-photo-preview]':'[data-profile-logo-preview]');
+      if(preview)preview.innerHTML=type==='photo'?photoMarkup(profile):logoMarkup(profile);
       onChange?.(profile);
-    });
+    }catch(error){
+      alert(error.message||'Salvataggio immagine non riuscito.');
+    }finally{mediaBusy=false;controls.forEach(control=>control.disabled=false);}
+  }
+  root.querySelector("[data-profile-photo-file]")?.addEventListener("change",event=>{
+    const file=event.target.files?.[0];
+    if(file)void changeMedia('photo',file);
+    event.target.value='';
   });
-
-  root.querySelector("[data-profile-photo-remove]")?.addEventListener("click",()=>{
-    profile.photoData="";
-    const preview=root.querySelector("[data-profile-photo-preview]");
-    if(preview) preview.innerHTML=photoMarkup(profile);
-    onChange?.(profile);
-  });
-
   root.querySelector("[data-profile-logo-file]")?.addEventListener("change",event=>{
-    readImage(event.target.files?.[0],data=>{
-      profile.logoData=data;
-      const preview=root.querySelector("[data-profile-logo-preview]");
-      if(preview) preview.innerHTML=logoMarkup(profile);
-    });
+    const file=event.target.files?.[0];
+    if(file)void changeMedia('logo',file);
+    event.target.value='';
   });
-
-  root.querySelector("[data-profile-logo-remove]")?.addEventListener("click",()=>{
-    profile.logoData="";
-    const preview=root.querySelector("[data-profile-logo-preview]");
-    if(preview) preview.innerHTML=logoMarkup(profile);
-  });
+  root.querySelector("[data-profile-photo-remove]")?.addEventListener("click",()=>void changeMedia('photo',null));
+  root.querySelector("[data-profile-logo-remove]")?.addEventListener("click",()=>void changeMedia('logo',null));
 
   root.querySelector("[data-profile-save]")?.addEventListener("click",async()=>{
     root.querySelectorAll("[data-profile-field]").forEach(field=>{
