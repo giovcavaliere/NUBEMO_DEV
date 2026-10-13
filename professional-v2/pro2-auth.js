@@ -80,6 +80,18 @@
     button.addEventListener('click',()=>void logout(button));
   });
 
+  // Riesamina l'autorizzazione quando l'area già aperta torna visibile.
+  // Se il professionista è stato sospeso, chiudi la sessione e torna al login.
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='visible') return;
+    document.body.classList.add('pro2-auth-pending');
+    void verifyProfessionalAccess().catch(async error=>{
+      console.error('NUBEMO Professional 2.0 session recheck:',error);
+      await client?.auth?.signOut?.({scope:'local'}).catch(()=>{});
+      return redirect('index2.html');
+    });
+  });
+
   window.NUBEMO_PRO2_AUTH_READY=verifyProfessionalAccess().catch(async error=>{
     console.error('NUBEMO Professional 2.0 auth guard:',error);
     await client?.auth?.signOut?.().catch(()=>{});
