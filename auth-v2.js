@@ -38,7 +38,11 @@
     }
     async function restore() {
       try { return await verifyProfile(); }
-      catch (error) { if (error.code === 'unauthenticated') return null; throw error; }
+      catch (error) {
+        if (error.code === 'forbidden') await client.auth.signOut({ scope: 'local' }).catch(() => {});
+        if (error.code === 'unauthenticated') return null;
+        throw error;
+      }
     }
     async function login(email, password) {
       const address = String(email || '').trim();
@@ -50,7 +54,13 @@
         if (error.code === 'email_not_confirmed') throw new Error('Account non ancora confermato. Controlla l’invito ricevuto.');
         throw new Error('Non è stato possibile accedere. Riprova.');
       }
-      return verifyProfile();
+      try { return await verifyProfile(); }
+      catch (error) {
+        // Supabase Auth può aver aperto una sessione prima del controllo profilo.
+        // Se NUBEMO nega l'accesso, non conservarla per successivi restore automatici.
+        await client.auth.signOut({ scope: 'local' }).catch(() => {});
+        throw error;
+      }
     }
     async function signOut() {
       const { error } = await request(client.auth.signOut({ scope: 'local' }));
