@@ -2,7 +2,7 @@ await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
 import {loadPatientOverview} from "./patient-overview-live.js";
-import {renderLivePatientOverview} from "./patient-detail-view.js?v=live-layout-20261013";
+import {renderLivePatientOverview} from "./patient-detail-view.js?v=live-tabs-20261013";
 import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261013";
 let patientRecords=[];
 let patientsPhase="loading";
