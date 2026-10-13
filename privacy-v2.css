@@ -1,0 +1,17 @@
+/* Privacy NUBEMO 2.0: estensione circoscritta dei componenti login Warm Human. */
+.privacy2 .privacy2-document{border:1px solid var(--line);background:var(--surface-soft);border-radius:16px;padding:20px;margin:24px 0;display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;align-items:center}
+.privacy2 .privacy2-document-icon{display:grid;place-items:center;width:43px;height:50px;border:1px solid #c6d8c6;background:#edf2e9;border-radius:10px;color:var(--green-800);font-size:12px;font-weight:700}
+.privacy2 .privacy2-document-copy{min-width:0;display:grid;gap:3px}
+.privacy2 .privacy2-document-copy strong{overflow-wrap:anywhere;font-size:15px;line-height:1.45}
+.privacy2 .privacy2-document-copy small{color:var(--muted);font-size:12px}
+.privacy2 #privacy-status-note{grid-column:1/-1;font-size:13px;line-height:1.55;color:var(--muted);margin:0}
+.privacy2 .privacy2-document button{grid-column:1/-1;width:100%}
+.privacy2 .privacy2-confirm{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:start;gap:12px;font-size:14px;line-height:1.55;color:var(--text);margin:22px 0}
+.privacy2 .privacy2-confirm input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--green-800)}
+.privacy2 .privacy2-confirm input:disabled{opacity:.5}
+.privacy2 .privacy2-actions{display:grid;gap:12px}
+.privacy2 .privacy2-actions button{width:100%}
+.privacy2 #privacy-message{min-height:20px;font-size:13px;color:var(--muted)}
+.privacy2 #privacy-message.is-error{color:#9b3935}
+.privacy2 [hidden]{display:none!important}
+@media(max-width:460px){.privacy2 .privacy2-document{padding:16px;margin:20px 0}.privacy2 .privacy2-confirm{font-size:13px}}
