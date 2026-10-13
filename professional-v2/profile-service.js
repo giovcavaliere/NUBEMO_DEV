@@ -31,7 +31,7 @@ export async function loadProfessionalProfile(model){
  model.dayStart=fromTime(settings?.day_start)||'08:00';
  model.dayEnd=fromTime(settings?.day_end)||'19:00';
  model.workDays=Array.isArray(settings?.work_days)&&settings.work_days.includes(6)?6:5;
- model.studios=Array.isArray(settings?.settings_json?.studios)&&settings.settings_json.studios.length?settings.settings_json.studios:[{id:'studio-main',name:'Studio principale',address:record.address||'',zip:record.zip||'',city:record.city||'',province:record.province||'',primary:true}];
+ model.studios=Array.isArray(settings?.settings_json?.studios)?settings.settings_json.studios:[];
  model.photoData='';
  model.logoData='';
  model.photoStoragePath=settings?.settings_json?.profile_photo_path||null;
