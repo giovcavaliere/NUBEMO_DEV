@@ -18,7 +18,6 @@
   let profile = null;
   let documentRow = null;
   let acceptance = null;
-  let documentOpened = false;
 
   function showOnly(target) {
     loading.hidden = target !== loading;
@@ -123,9 +122,6 @@
       statusNote.textContent = acceptance?.status === 'refused'
         ? 'Questa informativa era stata rifiutata in precedenza. Per accedere a NUBEMO deve essere letta e accettata.'
         : 'Apri l’informativa completa prima di proseguire.';
-      readCheck.checked = false;
-      readCheck.disabled = true;
-      documentOpened = false;
       showOnly(view);
     } catch (error) {
       console.error('NUBEMO privacy gate:', error);
@@ -136,7 +132,7 @@
 
   openButton?.addEventListener('click', openPrivacy);
   acceptButton?.addEventListener('click', async () => {
-    if (!documentOpened || !readCheck.checked) return setMessage('Apri prima il PDF e dichiara di aver letto l’informativa.', true);
+    if (!readCheck.checked) return setMessage('Apri e leggi l’informativa, poi conferma la presa visione.', true);
     setMessage('Registrazione in corso…');
     acceptButton.disabled = true;
     refuseButton.disabled = true;
