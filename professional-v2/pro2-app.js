@@ -1,11 +1,14 @@
 await window.NUBEMO_PRO2_AUTH_READY;
 
-import {patientRecords} from "./patients-data.js";
+import {loadOwnPatients} from "./patients-service.js";
+let patientRecords=[];
+let patientsPhase="loading";
+let patientsError="";
 import {renderPatientsPage} from "./patients-view.js?v=patient-sort-avatar-20261007";
-import {openNewPatientDialog} from "./patient-create-view.js?v=patient-avatar-20261007";
-import {getPatientData} from "./patient-detail-data.js?v=pathways-20261009";
-import {getPatientViewModel} from "./patient-detail-model.js";
-import {renderPatientDetail} from "./patient-detail-view.js?v=clinical-pdf-editorial-20261009";
+
+
+
+
 import {renderSupportPage,sendSupport} from "./support-view.js?v=support-migration-20261013";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js?v=profile-clean-20261013";
 import {loadProfessionalProfile,saveProfessionalProfile,updateProfessionalMedia} from "./profile-service.js?v=profile-clean-20261013";
@@ -22,6 +25,7 @@ const appointmentView=document.getElementById("appointmentView");
 const homeBanner=document.getElementById("homeBanner");
 
 const patientState={status:"active",query:"",documentsOnly:false,sortBy:"created"};
+const patientsLoading=loadOwnPatients().then(rows=>{patientRecords=rows;patientsPhase="ready";if(!patientsView.hidden)renderPatients();renderDashboardSearch();}).catch(error=>{patientsPhase="error";patientsError=error.message||"Caricamento pazienti non riuscito.";console.error("Pazienti:",error);if(!patientsView.hidden)renderPatients();});
 let profileReady=false;
 const profileLoading=loadProfessionalProfile(professionalProfile).then(()=>{profileReady=true;updateProfessionalIdentity();if(!profileView.hidden){renderProfilePage(profileView,professionalProfile);bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:updateProfessionalIdentity});}}).catch(error=>{console.error("Profilo professionista:",error);document.querySelectorAll("[data-professional-display-name],[data-dashboard-display-name]").forEach(node=>{node.textContent="";});if(!profileView.hidden)profileView.textContent="Impossibile caricare il profilo reale. Riprova ad aggiornare la pagina.";});
 
@@ -127,17 +131,16 @@ function showView(route){
     renderProfilePage(profileView,professionalProfile);
     bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
-    const data=getPatientData(route.id);
-    if(!data){
-      location.hash="#patients";
-      return;
-    }
-    const renderDetail=()=>renderPatientDetail(patientDetailView,getPatientViewModel(data),route.tab,renderDetail);
-    renderDetail();
+    // La scheda clinica non è ancora migrata: impedisci il recupero dei dati demo.
+    location.hash="#patients";
   }
 }
 
 function renderPatients(){
+  if(patientsPhase!=="ready"){
+    patientsView.textContent=patientsPhase==="error"?patientsError:"Caricamento pazienti…";
+    return;
+  }
   renderPatientsPage(patientsView,{
     records:patientRecords,
     status:patientState.status,
@@ -164,32 +167,12 @@ function renderPatients(){
     if(next) next.setSelectionRange(next.value.length,next.value.length);
   });
 
-  patientsView.querySelector("[data-documents-filter]")?.addEventListener("click",()=>{
-    patientState.documentsOnly=!patientState.documentsOnly;
-    renderPatients();
-  });
-
   patientsView.querySelector("[data-patient-sort]")?.addEventListener("change",event=>{
     patientState.sortBy=event.target.value==="name"?"name":"created";
     renderPatients();
   });
 
-  patientsView.querySelectorAll("[data-patient-id]").forEach(row=>{
-    row.addEventListener("click",()=>{location.hash=`#patient/${row.dataset.patientId}`});
-  });
 
-  patientsView.querySelector("[data-new-patient]")?.addEventListener("click",()=>{
-    openNewPatientDialog(patientsView,{
-      records:patientRecords,
-      onCreate:patient=>{
-        patientRecords.push(patient);
-        patientState.status=patient.status;
-        patientState.query="";
-        patientState.documentsOnly=false;
-        renderPatients();
-      }
-    });
-  });
 }
 
 function escapeSearchHtml(value=""){
@@ -242,7 +225,7 @@ function renderDashboardSearch(){
     button.addEventListener("click",()=>{
       dashboardSearch.value="";
       closeDashboardSearch();
-      location.hash=`#patient/${button.dataset.dashboardPatientId}`;
+      location.hash="#patients";
     });
   });
 }
