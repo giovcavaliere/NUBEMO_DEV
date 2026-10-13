@@ -23,7 +23,7 @@ const homeBanner=document.getElementById("homeBanner");
 
 const patientState={status:"active",query:"",documentsOnly:false,sortBy:"created"};
 let profileReady=false;
-const profileLoading=loadProfessionalProfile(professionalProfile).then(()=>{profileReady=true;updateProfessionalIdentity();if(!profileView.hidden){renderProfilePage(profileView,professionalProfile);bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:updateProfessionalIdentity});}}).catch(error=>{console.error("Profilo professionista:",error);if(!profileView.hidden)profileView.textContent="Impossibile caricare il profilo reale. Riprova ad aggiornare la pagina.";});
+const profileLoading=loadProfessionalProfile(professionalProfile).then(()=>{profileReady=true;updateProfessionalIdentity();if(!profileView.hidden){renderProfilePage(profileView,professionalProfile);bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:updateProfessionalIdentity});}}).catch(error=>{console.error("Profilo professionista:",error);document.querySelectorAll("[data-professional-display-name],[data-dashboard-display-name]").forEach(node=>{node.textContent="";});if(!profileView.hidden)profileView.textContent="Impossibile caricare il profilo reale. Riprova ad aggiornare la pagina.";});
 
 const dashboardSearch=document.querySelector("[data-dashboard-patient-search]");
 const dashboardSearchResults=document.querySelector("[data-dashboard-search-results]");
@@ -43,11 +43,12 @@ function openNewAppointment(prefill={}){
 }
 
 function updateProfessionalIdentity(profile=professionalProfile){
-  const displayName=(profile.displayName||[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista").trim();
+  // Identità esclusivamente da profiles (creazione Admin), mai da displayName o demo.
+  const displayName=[profile.firstName,profile.surname].filter(Boolean).join(" ").trim();
   const qualification=(profile.qualification||"Nutrizionista").trim();
 
   document.querySelectorAll("[data-professional-display-name]").forEach(node=>{node.textContent=displayName});
-  document.querySelectorAll("[data-dashboard-display-name]").forEach(node=>{node.textContent=displayName});
+  document.querySelectorAll("[data-dashboard-display-name]").forEach(node=>{node.textContent=displayName ? ", "+displayName : ""});
   document.querySelectorAll("[data-professional-qualification]").forEach(node=>{node.textContent=qualification});
 
   document.querySelectorAll("[data-professional-avatar]").forEach(node=>{
@@ -265,5 +266,4 @@ document.addEventListener("click",event=>{
 });
 
 window.addEventListener("hashchange",()=>showView(currentRoute()));
-updateProfessionalIdentity();
 showView(currentRoute());
