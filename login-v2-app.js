@@ -110,6 +110,9 @@
     services = window.NubemoAuthV2.create(window.nubemoSupabase);
     services.onAuthChange(event => {
       if (event === 'SIGNED_OUT' && !loggingOut) {
+        // Durante la verifica di accesso, il servizio può chiudere la sessione
+        // di un account sospeso. Lascia al catch il messaggio specifico.
+        if (busy) return;
         generation++;
         showLogin();
         message('Sessione terminata.');
