@@ -352,7 +352,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways}){
     <nav class="detail-tabs" aria-label="Sezioni paziente">
       ${tabs.map(([key,label])=>key==="panoramica"
         ?`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" class="active" aria-current="page">${label}</a>`
-        :`<span title="Sezione in migrazione" aria-disabled="true">${label}</span>`).join("")}
+        :`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" aria-disabled="true" tabindex="-1" title="Sezione in migrazione" onclick="return false">${label}</a>`).join("")}
     </nav>
     <div class="detail-content"><div class="detail-overview">
       <div class="pathway-management">${pathwayCard}${historyCard}</div>
