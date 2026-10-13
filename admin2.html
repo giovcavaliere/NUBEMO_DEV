@@ -92,7 +92,7 @@
                 <p class="admin-demo-hint" data-admin-privacy-message role="status" aria-live="polite">Consultazione in sola lettura dell’informativa NUBEMO.</p>
               </section>
               <section class="module"><div class="admin-management-head"><div><h2>Pubblica nuova versione</h2><p>Prepara la successiva informativa NUBEMO.</p></div></div>
-                <form class="admin-form" data-admin-privacy-form><label>Versione<input name="version" disabled required maxlength="40" placeholder="Es. 1.0"></label><label>Titolo<input name="title" disabled required maxlength="120" value="Informativa privacy NUBEMO"></label><label>Documento PDF<input name="file" disabled type="file" accept=".pdf,application/pdf" required></label><button class="admin-action-primary" type="submit" disabled title="Pubblicazione non ancora attivata">Pubblica versione</button></form>
+                <form class="admin-form" data-admin-privacy-form><label>Versione<input name="version" required maxlength="40" placeholder="Es. 1.0"></label><label>Titolo<input name="title" required maxlength="120" value="Informativa privacy NUBEMO"></label><label>Documento PDF<input name="file" type="file" accept=".pdf,application/pdf" required></label><button class="admin-action-primary" type="submit">Pubblica versione</button></form>
                 <p class="admin-demo-hint">La pubblicazione di nuove versioni non è ancora attivata.</p>
               </section>
             </div>
@@ -132,8 +132,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=nubemo-env-20260919"></script>
   <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
-  <script src="admin-v2/admin-services.js?v=admin2-limit-20261012"></script>
-  <script src="admin-v2/admin-views.js?v=admin2-limit-20261012"></script>
-  <script src="admin-v2/admin-app.js?v=admin2-limit-20261012"></script>
+  <script src="admin-v2/admin-services.js?v=privacy-publish-20261013"></script>
+  <script src="admin-v2/admin-views.js?v=privacy-publish-20261013"></script>
+  <script src="admin-v2/admin-app.js?v=privacy-publish-20261013"></script>
 </body>
 </html>
