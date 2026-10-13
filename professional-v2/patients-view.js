@@ -112,7 +112,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
 
         <div class="patient-list">
           ${rows.length ? rows.map(patient=>`
-            <button type="button" class="patient-row" disabled title="Scheda paziente in fase di migrazione" data-patient-id="${patient.id}">
+            <button type="button" class="patient-row" data-patient-id="${patient.id}">
               ${patientAvatar(patient)}
               <span class="patient-main">
                 <strong>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</strong>
