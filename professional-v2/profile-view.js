@@ -72,10 +72,10 @@ export function renderProfilePage(root,profile=professionalProfile){
           <div class="profile-media">
             <div class="profile-photo-preview" data-profile-photo-preview>${photoMarkup(profile)}</div>
             <div class="profile-media-copy">
-              <p>Usata nella barra laterale. Se non presente vengono mostrate le iniziali di nome e cognome.</p>
-              <div class="profile-media-actions">
-                <label class="profile-secondary">Carica foto<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-photo-file></label>
-                <button class="profile-remove" type="button" data-profile-photo-remove>Rimuovi foto</button>
+              <p>Usata nella barra laterale. Se non presente vengono mostrate le iniziali di nome e cognome. Caricamento foto in fase di migrazione.</p>
+              <div class="profile-media-actions" aria-disabled="true">
+                <label class="profile-secondary" title="Caricamento foto disponibile nella prossima fase">Carica foto<input disabled type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-photo-file></label>
+                <button class="profile-remove" type="button" data-profile-photo-remove disabled>Rimuovi foto</button>
               </div>
             </div>
           </div>
@@ -86,10 +86,10 @@ export function renderProfilePage(root,profile=professionalProfile){
           <div class="profile-media">
             <div class="profile-logo-preview" data-profile-logo-preview>${logoMarkup(profile)}</div>
             <div class="profile-media-copy">
-              <p>Se presente, viene utilizzato nei documenti professionali insieme al marchio NUBEMO.</p>
-              <div class="profile-media-actions">
-                <label class="profile-secondary">Carica logo<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-logo-file></label>
-                <button class="profile-remove" type="button" data-profile-logo-remove>Rimuovi logo</button>
+              <p>Se presente, viene utilizzato nei documenti professionali insieme al marchio NUBEMO. Caricamento logo in fase di migrazione.</p>
+              <div class="profile-media-actions" aria-disabled="true">
+                <label class="profile-secondary" title="Caricamento logo disponibile nella prossima fase">Carica logo<input disabled type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-logo-file></label>
+                <button class="profile-remove" type="button" data-profile-logo-remove disabled>Rimuovi logo</button>
               </div>
             </div>
           </div>
