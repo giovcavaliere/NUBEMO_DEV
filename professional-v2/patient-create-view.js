@@ -30,10 +30,10 @@ function formMarkup(){
 
       <div class="new-patient-account">
         <label class="new-patient-account-toggle">
-          <input name="activateNubemo" type="checkbox" data-new-patient-activate>
+          <input name="activateNubemo" type="checkbox" data-new-patient-activate disabled>
           <span>
             <strong>Attiva profilo NUBEMO</strong>
-            <small>Invia l'invito al paziente. In questo caso l'email è obbligatoria.</small>
+            <small>L'invio dell'invito sarà abilitato con la migrazione dell'Area Paziente 2.0.</small>
           </span>
         </label>
       </div>
