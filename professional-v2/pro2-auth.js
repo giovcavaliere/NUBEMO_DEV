@@ -42,25 +42,25 @@
   }
 
   async function verifyProfessionalAccess(){
-    if(!client) return redirect('index.html');
+    if(!client) return redirect('index2.html');
 
     const {data:{user},error:userError}=await client.auth.getUser();
-    if(userError||!user) return redirect('index.html');
+    if(userError||!user) return redirect('index2.html');
 
     const profile=await loadOwnProfile(user.id);
     if(profile.status!=='active'){
       await client.auth.signOut().catch(()=>{});
-      return redirect('index.html');
+      return redirect('index2.html');
     }
 
-    if(profile.role==='admin') return redirect('admin.html');
+    if(profile.role==='admin') return redirect('admin2.html');
     if(profile.role==='patient') return redirect('patient.html');
     if(profile.role!=='professional'){
       await client.auth.signOut().catch(()=>{});
-      return redirect('index.html');
+      return redirect('index2.html');
     }
 
-    if(await requiresPrivacyGate(profile.id)) return redirect('privacy.html');
+    if(await requiresPrivacyGate(profile.id)) return redirect('privacy2.html');
 
     window.NUBEMO_PRO2_PROFILE=profile;
     document.body.classList.remove('pro2-auth-pending');
@@ -72,7 +72,7 @@
     try{
       await client?.auth?.signOut?.();
     }finally{
-      window.location.replace('index.html');
+      window.location.replace('index2.html');
     }
   }
 
@@ -95,6 +95,6 @@
   window.NUBEMO_PRO2_AUTH_READY=verifyProfessionalAccess().catch(async error=>{
     console.error('NUBEMO Professional 2.0 auth guard:',error);
     await client?.auth?.signOut?.().catch(()=>{});
-    return redirect('index.html');
+    return redirect('index2.html');
   });
 })();
