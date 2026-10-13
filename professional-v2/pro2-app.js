@@ -8,7 +8,7 @@ import {getPatientViewModel} from "./patient-detail-model.js";
 import {renderPatientDetail} from "./patient-detail-view.js?v=clinical-pdf-editorial-20261009";
 import {renderSupportPage,sendSupport} from "./support-view.js";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
-import {loadProfessionalProfile,saveProfessionalProfile} from "./profile-service.js?v=profile-load-fix-20261013";
+import {loadProfessionalProfile,saveProfessionalProfile,updateProfessionalMedia} from "./profile-service.js?v=profile-media-20261013";
 import {agendaState,renderAgendaPage,bindAgendaPage,addAgendaEvent} from "./agenda-view.js";
 import {appointmentState,renderAppointmentPage,bindAppointmentPage} from "./appointment-view.js";
 
@@ -23,7 +23,7 @@ const homeBanner=document.getElementById("homeBanner");
 
 const patientState={status:"active",query:"",documentsOnly:false,sortBy:"created"};
 let profileReady=false;
-const profileLoading=loadProfessionalProfile(professionalProfile).then(()=>{profileReady=true;updateProfessionalIdentity();if(!profileView.hidden){renderProfilePage(profileView,professionalProfile);bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onChange:updateProfessionalIdentity});}}).catch(error=>{console.error("Profilo professionista:",error);if(!profileView.hidden)profileView.textContent="Impossibile caricare il profilo reale. Riprova ad aggiornare la pagina.";});
+const profileLoading=loadProfessionalProfile(professionalProfile).then(()=>{profileReady=true;updateProfessionalIdentity();if(!profileView.hidden){renderProfilePage(profileView,professionalProfile);bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:updateProfessionalIdentity});}}).catch(error=>{console.error("Profilo professionista:",error);if(!profileView.hidden)profileView.textContent="Impossibile caricare il profilo reale. Riprova ad aggiornare la pagina.";});
 
 const dashboardSearch=document.querySelector("[data-dashboard-patient-search]");
 const dashboardSearchResults=document.querySelector("[data-dashboard-search-results]");
@@ -124,7 +124,7 @@ function showView(route){
   }else if(route.name==="profile"){
     if(!profileReady){profileView.textContent="Caricamento profilo professionale…";return;}
     renderProfilePage(profileView,professionalProfile);
-    bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onChange:profile=>{updateProfessionalIdentity(profile);}});
+    bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
     const data=getPatientData(route.id);
     if(!data){
