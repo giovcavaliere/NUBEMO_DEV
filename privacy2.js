@@ -72,32 +72,30 @@
   }
 
   async function saveStatus(status) {
-    const now = new Date().toISOString();
-    const payload = {
-      profile_id: profile.id,
-      privacy_document_id: documentRow.id,
-      status,
-      accepted_at: status === 'accepted' ? now : null,
-      refused_at: status === 'refused' ? (acceptance?.refused_at || now) : (acceptance?.refused_at || null)
-    };
-    const { data, error } = await client.from('privacy_acceptances')
-      .upsert(payload, { onConflict: 'profile_id,privacy_document_id' })
-      .select('id,profile_id,privacy_document_id,status,accepted_at,refused_at,created_at')
-      .single();
-    if (error) throw error;
-    acceptance = data;
+    const { data, error } = await client.rpc('nubemo_submit_privacy_choice',{
+      p_document: documentRow.id,
+      p_accept: status === 'accepted'
+    });
+    if(error || data !== status) throw error || new Error('Registrazione della presa visione non confermata.');
+    acceptance = { status };
     return data;
   }
 
   async function openPrivacy() {
     const popup = window.open('about:blank', '_blank');
+    if (popup) popup.opener = null;
     try {
+      if (!popup) throw new Error('Consenti le finestre per NUBEMO e riprova ad aprire il PDF.');
       const { data, error } = await client.storage
         .from(documentRow.storage_bucket)
         .createSignedUrl(documentRow.storage_path, 300);
       if (error || !data?.signedUrl) throw error || new Error('Informativa non disponibile.');
-      if (popup) popup.location.replace(data.signedUrl);
-      else window.location.href = data.signedUrl;
+      const opened = await client.rpc('nubemo_record_privacy_open',{p_document:documentRow.id});
+      if(opened.error || !opened.data) throw opened.error || new Error('Apertura informativa non registrata.');
+      popup.location.replace(data.signedUrl);
+      documentOpened = true;
+      readCheck.disabled = false;
+      setMessage('Informativa aperta. Dopo averla letta, conferma la presa visione.');
     } catch (error) {
       try { popup?.close(); } catch (_) {}
       setMessage(error?.message || 'Non è stato possibile aprire l’informativa.', true);
