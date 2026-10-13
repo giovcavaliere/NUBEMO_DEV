@@ -34,6 +34,14 @@ export async function loadProfessionalProfile(model){
  model.studios=Array.isArray(settings?.settings_json?.studios)&&settings.settings_json.studios.length?settings.settings_json.studios:[{id:'studio-main',name:'Studio principale',address:record.address||'',zip:record.zip||'',city:record.city||'',province:record.province||'',primary:true}];
  model.photoData='';
  model.logoData='';
+ model.photoStoragePath=settings?.settings_json?.profile_photo_path||null;
+ model.logoStoragePath=record.logo_storage_path||null;
+ await Promise.all([['photo',model.photoStoragePath],['logo',model.logoStoragePath]].map(async ([type,path])=>{
+   if(!path)return;
+   if(!path.startsWith(record.id+'/'))return;
+   const {data,error}=await client.storage.from('professional-assets').createSignedUrl(path,3600);
+   if(!error&&data?.signedUrl)model[type+'Data']=data.signedUrl;
+ }));
  return {id:record.id, settings:settings||null};
 }
 async function awaitOwnProfessionalId(profileId){
@@ -64,4 +72,54 @@ export async function saveProfessionalProfile(model){
  const operation=existing?client.from('professional_settings').update(patch).eq('professional_id',id):client.from('professional_settings').insert({professional_id:id,...patch});
  const {error:saveError}=await operation;
  if(saveError)throw new Error('Dati professionali salvati, ma impostazioni agenda non confermate.');
+}
+
+const supportedTypes={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+export async function updateProfessionalMedia(model,type,file=null){
+ if(!['photo','logo'].includes(type))throw new Error('Tipo immagine non valido.');
+ const identity=own();
+ if(!identity?.id)throw new Error('Sessione scaduta.');
+ const id=await awaitOwnProfessionalId(identity.id);
+ const pathKey=type==='photo'?'photoStoragePath':'logoStoragePath';
+ const dataKey=type==='photo'?'photoData':'logoData';
+ const oldPath=model[pathKey];
+ let newPath=null;
+ if(file){
+   const ext=supportedTypes[file.type];
+   if(!ext||!file.size||file.size>2621440)throw new Error('Usa un file JPG, PNG o WebP fino a 2,5 MB.');
+   newPath=id+'/'+type+'-'+crypto.randomUUID()+'.'+ext;
+   const uploaded=await client.storage.from('professional-assets').upload(newPath,file,{contentType:file.type,upsert:false,cacheControl:'0'});
+   if(uploaded.error)throw new Error('Caricamento immagine non riuscito: '+uploaded.error.message);
+ }
+ let updated=false;
+ try{
+   if(type==='logo'){
+     const {error}=await client.from('professionals').update({logo_storage_path:newPath}).eq('id',id);
+     if(error)throw error;
+   }else{
+     const {data:row,error:readError}=await client.from('professional_settings')
+       .select('settings_json').eq('professional_id',id).maybeSingle();
+     if(readError)throw readError;
+     const patch={...(row?.settings_json||{})};
+     if(newPath)patch.profile_photo_path=newPath;
+     else delete patch.profile_photo_path;
+     const {error}=row?await client.from('professional_settings').update({settings_json:patch}).eq('professional_id',id)
+       :await client.from('professional_settings').insert({professional_id:id,settings_json:patch});
+     if(error)throw error;
+   }
+   updated=true;
+ }catch(error){
+   if(newPath)await client.storage.from('professional-assets').remove([newPath]).catch(()=>{});
+   throw new Error('Impossibile registrare l’immagine: '+(error.message||'riprova.'));
+ }
+ if(updated){
+   model[pathKey]=newPath;
+   if(newPath){
+     const {data,error}=await client.storage.from('professional-assets').createSignedUrl(newPath,3600);
+     model[dataKey]=!error&&data?.signedUrl?data.signedUrl:'';
+   }else model[dataKey]='';
+   if(oldPath?.startsWith(id+'/')&&oldPath!==newPath)
+     await client.storage.from('professional-assets').remove([oldPath]).catch(()=>{});
+ }
+ return model[dataKey];
 }
