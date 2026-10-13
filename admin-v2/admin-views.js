@@ -94,7 +94,9 @@
       badge.textContent = active ? 'Attiva' : privacy.phase === 'loading' ? 'Caricamento' : privacy.phase === 'error' ? 'Non disponibile' : 'Non pubblicata';
       badge.className = 'admin-status ' + (active ? 'positive' : 'neutral');
       $('[data-admin-privacy-preview]').disabled = !active;
-      setText('[data-admin-privacy-message]', privacy.phase === 'error' ? privacy.message : 'Pubblica una nuova versione PDF solo dopo averla verificata. La precedente resterà archiviata.');\n      const publicationForm=$('[data-admin-privacy-form]');\n      publicationForm?.querySelectorAll('input,button[type="submit"]').forEach(element=>{element.disabled=privacy.phase!=='ready';});
+      setText('[data-admin-privacy-message]', privacy.phase === 'error' ? privacy.message : 'Pubblica una nuova versione PDF solo dopo averla verificata. La precedente resterà archiviata.');
+      const publicationForm=$('[data-admin-privacy-form]');
+      publicationForm?.querySelectorAll('input,button[type="submit"]').forEach(element=>{element.disabled=privacy.phase!=='ready';});
     }
 
     function closeDialogs() { root.querySelectorAll('dialog').forEach(dialog => { if (dialog.open) dialog.close(); dialog.remove(); }); }
