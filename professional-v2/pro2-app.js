@@ -4,7 +4,7 @@ import {loadOwnPatients} from "./patients-service.js";
 let patientRecords=[];
 let patientsPhase="loading";
 let patientsError="";
-import {renderPatientsPage} from "./patients-view.js?v=patient-sort-avatar-20261007";
+import {renderPatientsPage} from "./patients-view.js?v=patients-live-20261013";
 
 
 
