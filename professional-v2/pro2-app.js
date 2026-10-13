@@ -5,7 +5,7 @@ import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261
 let patientRecords=[];
 let patientsPhase="loading";
 let patientsError="";
-import {renderPatientsPage} from "./patients-view.js?v=patients-live-20261013";
+import {renderPatientsPage} from "./patients-view.js?v=real-create-20261013";
 
 
 
