@@ -67,7 +67,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
           <h1>Pazienti</h1>
           <p>Gestisci i percorsi e trova rapidamente il paziente che cerchi.</p>
         </div>
-        <button class="patient-new" type="button" data-new-patient>
+        <button class="patient-new" type="button" disabled title="Creazione paziente in migrazione">
           <svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg>
           Nuovo paziente
         </button>
@@ -104,7 +104,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
               <option value="name" ${sortBy==="name"?"selected":""}>Nome / Cognome</option>
             </select>
           </label>
-          <button type="button" class="patient-doc-filter ${documentsOnly?"active":""}" data-documents-filter aria-pressed="${documentsOnly}">
+          <button type="button" class="patient-doc-filter" disabled title="Filtro documenti disponibile dopo la migrazione Documenti">
             <span class="patient-doc-toggle" aria-hidden="true"><span></span></span>
             <span>Solo con documenti da leggere</span>
           </button>
@@ -112,14 +112,14 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
 
         <div class="patient-list">
           ${rows.length ? rows.map(patient=>`
-            <button type="button" class="patient-row" data-patient-id="${patient.id}">
+            <button type="button" class="patient-row" disabled title="Scheda paziente in fase di migrazione" data-patient-id="${patient.id}">
               ${patientAvatar(patient)}
               <span class="patient-main">
                 <strong>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</strong>
-                <span class="patient-age">${escapeHtml(String(patient.age))} anni</span>
+                <span class="patient-age">${patient.age===null?"Età non disponibile":escapeHtml(String(patient.age))+" anni"}</span>
                 <span class="patient-mobile-meta">
-                  <b>${escapeHtml(patient.weight)}</b>
-                  ${patient.weightDelta && patient.weightDelta!=="—" ? `<em class="${String(patient.weightDelta).startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta)}</em>` : ""}
+                  <b>${escapeHtml(patient.weight??"—")}</b>
+                  ${patient.weightDelta && patient.weightDelta!=="—" ? `<em class="${String(patient.weightDelta||"").startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta)}</em>` : ""}
                   ${status==="active" ? `<i>Prossima visita: ${escapeHtml(patient.nextVisit || "—")}</i>` : ""}
                 </span>
               </span>
@@ -134,7 +134,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
               </span>
               <span class="patient-arrow">›</span>
             </button>
-          `).join("") : '<div class="patient-empty">Nessun paziente trovato.</div>'}
+          `).join("") : '<div class="patient-empty">'+(records.length?'Nessun paziente corrisponde ai filtri.':'Nessun paziente associato. La creazione paziente sarà attivata nella prossima fase.')+'</div>'}
         </div>
       </section>
     </div>
