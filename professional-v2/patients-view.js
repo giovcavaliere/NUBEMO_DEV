@@ -67,7 +67,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
           <h1>Pazienti</h1>
           <p>Gestisci i percorsi e trova rapidamente il paziente che cerchi.</p>
         </div>
-        <button class="patient-new" type="button" disabled title="Creazione paziente in migrazione">
+        <button class="patient-new" type="button" data-new-patient>
           <svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg>
           Nuovo paziente
         </button>
