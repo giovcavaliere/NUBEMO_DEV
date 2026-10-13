@@ -1,6 +1,3 @@
-const PHOTO_TYPES=["image/png","image/jpeg","image/webp"];
-const PHOTO_MAX_BYTES=2.5*1024*1024;
-
 export const professionalProfile={
   firstName:"",
   surname:"",
@@ -61,7 +58,7 @@ export function renderProfilePage(root,profile=professionalProfile){
             <div class="profile-field"><label>Nome</label><input data-profile-field="firstName" value="${esc(profile.firstName)}" readonly></div>
             <div class="profile-field"><label>Cognome</label><input data-profile-field="surname" value="${esc(profile.surname)}" readonly></div>
             <div class="profile-field"><label>Qualifica / titolo professionale</label><input data-profile-field="qualification" value="${esc(profile.qualification)}" placeholder="es. Biologa Nutrizionista"></div>
-            <div class="profile-field"><label>Nome visualizzato</label><input data-profile-field="displayName" value="${esc(profile.displayName)}" placeholder="es. Dott.ssa Maria Rossi"></div>
+            <div class="profile-field"><label>Nome visualizzato</label><input data-profile-field="displayName" value="${esc(profile.displayName)}" placeholder="Nome da mostrare nei documenti"></div>
             <div class="profile-field"><label>Codice fiscale</label><input data-profile-field="taxCode" value="${esc(profile.taxCode)}"></div>
             <div class="profile-field"><label>Partita IVA</label><input data-profile-field="vat" value="${esc(profile.vat)}"></div>
           </div>
@@ -72,7 +69,7 @@ export function renderProfilePage(root,profile=professionalProfile){
           <div class="profile-media">
             <div class="profile-photo-preview" data-profile-photo-preview>${photoMarkup(profile)}</div>
             <div class="profile-media-copy">
-              <p>Usata nella barra laterale. Se non presente vengono mostrate le iniziali di nome e cognome. </p>
+              <p>Usata nella barra laterale. Se non presente vengono mostrate le iniziali di nome e cognome.</p>
               <div class="profile-media-actions">
                 <label class="profile-secondary">Carica foto<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-photo-file></label>
                 <button class="profile-remove" type="button" data-profile-photo-remove>Rimuovi foto</button>
@@ -86,7 +83,7 @@ export function renderProfilePage(root,profile=professionalProfile){
           <div class="profile-media">
             <div class="profile-logo-preview" data-profile-logo-preview>${logoMarkup(profile)}</div>
             <div class="profile-media-copy">
-              <p>Se presente, viene utilizzato nei documenti professionali insieme al marchio NUBEMO. </p>
+              <p>Se presente, viene utilizzato nei documenti professionali insieme al marchio NUBEMO.</p>
               <div class="profile-media-actions">
                 <label class="profile-secondary">Carica logo<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-profile-logo-file></label>
                 <button class="profile-remove" type="button" data-profile-logo-remove>Rimuovi logo</button>
@@ -106,6 +103,7 @@ export function renderProfilePage(root,profile=professionalProfile){
         <section class="profile-card wide">
           <div class="profile-card-head"><div><h2>Sedi studio</h2><p class="profile-card-subtitle">Gli studi configurati qui alimentano il campo Luogo / Studio dei nuovi appuntamenti.</p></div><button class="profile-secondary" type="button" data-studio-add>+ Aggiungi studio</button></div>
           <div class="profile-studios">
+            ${(!profile.studios?.length ? '<p class="profile-card-subtitle">Nessuna sede configurata. Usa “Aggiungi studio” per inserirne una.</p>' : "")}
             ${(Array.isArray(profile.studios)?profile.studios:[]).map((studio,index)=>`
               <article class="profile-studio-row ${studio.primary?"primary":""}" data-studio-row="${index}">
                 <div class="profile-studio-title">
@@ -126,7 +124,7 @@ export function renderProfilePage(root,profile=professionalProfile){
         </section>
 
         <section class="profile-card wide">
-          <div class="profile-card-head"><h2>Agenda</h2></div>
+          <div class="profile-card-head"><div><h2>Agenda</h2><p class="profile-card-subtitle">Se non hai ancora salvato le impostazioni, sono proposti orari e durate iniziali, modificabili prima del salvataggio.</p></div></div>
           <div class="profile-fields">
             <div class="profile-field"><label>Durata predefinita prima visita</label><input data-profile-field="firstVisit" type="number" step="15" min="15" value="${esc(profile.firstVisit)}"></div>
             <div class="profile-field"><label>Durata predefinita controllo</label><input data-profile-field="controlVisit" type="number" step="15" min="15" value="${esc(profile.controlVisit)}"></div>
@@ -147,21 +145,6 @@ export function renderProfilePage(root,profile=professionalProfile){
       </div>
     </div>
   `;
-}
-
-function readImage(file,onReady){
-  if(!file) return;
-  if(file.size>PHOTO_MAX_BYTES){
-    alert("L'immagine è troppo grande. Usa un file sotto 2,5 MB.");
-    return;
-  }
-  if(!PHOTO_TYPES.includes(file.type)){
-    alert("Formato non supportato. Usa PNG, JPEG o WebP.");
-    return;
-  }
-  const reader=new FileReader();
-  reader.onload=()=>onReady(String(reader.result||""));
-  reader.readAsDataURL(file);
 }
 
 export function bindProfilePage(root,{profile=professionalProfile,onChange,onSave,onMedia}={}){
@@ -235,8 +218,7 @@ export function bindProfilePage(root,{profile=professionalProfile,onChange,onSav
     }
 
     if(!profile.displayName) profile.displayName=[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista";
-    if(!Array.isArray(profile.studios)||!profile.studios.length){alert("Configura almeno uno studio prima di salvare il profilo.");return;}
-    if(!profile.studios.some(studio=>studio.primary)) profile.studios[0].primary=true;
+    if(profile.studios.length && !profile.studios.some(studio=>studio.primary)) profile.studios[0].primary=true;
     try {
       if(!onSave)throw new Error("Salvataggio non ancora disponibile.");
       await onSave(profile);
