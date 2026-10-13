@@ -225,7 +225,7 @@ export function bindProfilePage(root,{profile=professionalProfile,onChange,onSav
   root.querySelector("[data-profile-save]")?.addEventListener("click",async()=>{
     root.querySelectorAll("[data-profile-field]").forEach(field=>{
       const key=field.dataset.profileField;
-      if(["firstName","surname","email"].includes(key)) continue;
+      if(["firstName","surname","email"].includes(key)) return;
       profile[key]=field.type==="number"||key==="workDays" ? Number(field.value) : field.value.trim();
     });
 
