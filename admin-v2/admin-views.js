@@ -26,7 +26,7 @@
     if (!state.privacy.document) return 'Nessuna informativa';
     if (state.consents.phase !== 'ready') return 'Non disponibile';
     const acceptance = state.consents.rows.find(item => item.profile_id === row.profile_id);
-    return acceptance ? ({ accepted: 'Accettata', refused: 'Rifiutata' }[acceptance.status] || 'Non disponibile') : 'In attesa';
+    return acceptance ? ({ accepted: 'Presa visione · v' + (state.privacy.document.version || '—'), refused: 'Non confermata' }[acceptance.status] || 'Non disponibile') : 'In attesa';
   }
 
   function professionalMarkup(row, state) {
@@ -37,7 +37,7 @@
     return '<div class="admin-prof-row"><div class="admin-prof-person"><strong>' + esc(name(row)) + '</strong><small>' + esc(row.email) + '</small></div>' +
       '<div data-label="Account"><span class="admin-status ' + (row.account_status === 'active' ? 'positive' : 'warning') + '">' + esc(account(row.account_status)) + '</span></div>' +
       '<div data-label="Stato NUBEMO"><span class="admin-status ' + (row.nubemo_status === 'active' ? 'positive' : 'warning') + '">' + esc(status(row.nubemo_status)) + '</span></div>' +
-      '<div data-label="Privacy"><span class="admin-status ' + (privacy === 'Accettata' ? 'positive' : 'neutral') + '">' + esc(privacy) + '</span></div>' +
+      '<div data-label="Privacy"><span class="admin-status ' + (privacy.startsWith('Presa visione') ? 'positive' : 'neutral') + '">' + esc(privacy) + '</span></div>' +
       '<div data-label="Pazienti"><strong>' + capacity + '</strong></div>' +
       '<div class="admin-row-actions"><button type="button" data-admin-prof-detail="' + esc(row.professional_id) + '">Gestisci</button>' +
       (row.account_status === 'invited' ? '<button type="button" data-admin-prof-resend="' + esc(row.professional_id) + '"' + (enabled && row.can_resend ? '' : disabled) + '>Reinvia</button>' : '') +
