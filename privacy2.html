@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4eee5">
+  <link rel="icon" href="assets/nubemo-n-icon-192.png">
+  <link rel="stylesheet" href="login-v2.css?v=login-mobile-hero-20261009">
+  <link rel="stylesheet" href="privacy-v2.css?v=privacy-20261013">
+  <title>NUBEMO 2.0 · Privacy</title>
+</head>
+<body class="login2 privacy2" data-asset-prefix="">
+ <main class="login-shell">
+  <section class="login-hero" aria-label="NUBEMO">
+   <div class="login-hero-content">
+    <div class="login-brand"><img src="assets/nubemo-brand-clean-v2.png" alt="NUBEMO Modena"><div class="login-brand-copy"><strong>NUBEMO</strong><span>NUBEMO 2.0</span></div></div>
+    <div class="login-kicker">Nutrizione · Persone · Risultati</div>
+    <h1>La fiducia<br>inizia dalla<br><em>trasparenza.</em></h1>
+    <p class="login-hero-lead">Il tuo percorso, ogni giorno. Anche nella protezione delle informazioni che condividi con NUBEMO.</p>
+   </div>
+   <blockquote class="login-hero-quote">“Persone al centro, anche nella privacy.”</blockquote>
+  </section>
+  <section class="login-side">
+   <div class="login-card">
+    <div class="login-card-brand"><img src="assets/nubemo-brand-clean-v2.png" alt=""><div><strong>NUBEMO</strong><span>NUBEMO 2.0</span></div></div>
+    <section id="privacy-loading">
+     <p class="login-eyebrow">PRIVACY NUBEMO 2.0</p><h2>Un momento<br><em>ancora.</em></h2>
+     <p class="login-card-lead">Verifica dell'informativa in vigore…</p>
+    </section>
+    <section id="privacy-view" hidden>
+     <p class="login-eyebrow">PRIMA DI CONTINUARE</p><h2>La tua<br><em>privacy.</em></h2>
+     <p class="login-card-lead">Prima di accedere, consulta l'informativa in vigore e conferma di averne preso visione.</p>
+     <div class="privacy2-document">
+      <span class="privacy2-document-icon" aria-hidden="true">PDF</span>
+      <div class="privacy2-document-copy"><strong id="privacy-title">Informativa privacy NUBEMO</strong><small id="privacy-version"></small></div>
+      <p id="privacy-status-note"></p>
+      <button id="privacy-open" type="button" class="login-secondary">Apri informativa PDF</button>
+     </div>
+     <label class="privacy2-confirm"><input id="privacy-read" type="checkbox" disabled><span>Dichiaro di aver aperto e letto l'informativa indicata sopra.</span></label>
+     <p id="privacy-message" class="nubemo-login-message" role="status" aria-live="polite"></p>
+     <div class="privacy2-actions">
+       <button id="privacy-accept" type="button" class="login-primary">Conferma presa visione</button>
+       <button id="privacy-refuse" type="button" class="login-secondary">Non confermo</button>
+     </div>
+    </section>
+    <section id="privacy-refused" hidden>
+      <p class="login-eyebrow">PRIVACY NUBEMO</p><h2>Accesso<br><em>interrotto.</em></h2>
+      <p class="login-card-lead">Non hai confermato la presa visione dell'informativa. Per accedere sarà necessario completare questo passaggio.</p>
+      <button id="privacy-back-login" class="login-secondary" type="button">Torna al login</button>
+    </section>
+   </div>
+   <aside class="login-security" aria-label="Sicurezza"><span class="login-security-icon" aria-hidden="true">✓</span><div><strong>Accesso protetto</strong><span>La presa visione riguarda la versione indicata e viene registrata nel tuo profilo. Non è un consenso a trattamenti facoltativi.</span></div></aside>
+  </section>
+ </main>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <script src="config.js?v=nubemo-env-20260919"></script>
+ <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
+ <script src="privacy2.js?v=privacy-20261013"></script>
+</body>
+</html>
