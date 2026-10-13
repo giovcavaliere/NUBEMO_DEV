@@ -6,11 +6,13 @@ const weekdays=n=>Array.from({length:n===6?6:5},(_,i)=>i+1);
 export async function loadProfessionalProfile(model){
  const identity=own();
  if(!client||!identity?.id) throw new Error('Sessione professionista non disponibile.');
- const [{data:record,error:recordError},{data:settings,error:settingsError}]=await Promise.all([
-   client.from('professionals').select('id,profile_id,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,logo_storage_path,status').eq('profile_id',identity.id).single(),
-   client.from('professional_settings').select('professional_id,first_visit_duration_min,control_visit_duration_min,day_start,day_end,work_days,settings_json').eq('professional_id',awaitOwnProfessionalId(identity.id)).maybeSingle()
- ]);
+ const {data:record,error:recordError}=await client.from('professionals')
+   .select('id,profile_id,qualification,display_name,tax_code,vat_number,phone,address,zip,city,province,logo_storage_path,status')
+   .eq('profile_id',identity.id).single();
  if(recordError||!record||record.status!=='active')throw new Error('Profilo professionale non disponibile.');
+ const {data:settings,error:settingsError}=await client.from('professional_settings')
+   .select('professional_id,first_visit_duration_min,control_visit_duration_min,day_start,day_end,work_days,settings_json')
+   .eq('professional_id',record.id).maybeSingle();
  if(settingsError)throw new Error('Impostazioni professionali non disponibili.');
  model.firstName=identity.first_name||'';
  model.surname=identity.last_name||'';
