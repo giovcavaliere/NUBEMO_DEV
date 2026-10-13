@@ -22,7 +22,7 @@ const appointmentView=document.getElementById("appointmentView");
 const homeBanner=document.getElementById("homeBanner");
 
 const patientState={status:"active",query:"",documentsOnly:false,sortBy:"created"};
-const profileLoading=loadProfessionalProfile(professionalProfile).then(()=>{updateProfessionalIdentity();}).catch(error=>{console.error("Profilo professionista:",error);});
+const profileLoading=loadProfessionalProfile(professionalProfile).then(()=>{updateProfessionalIdentity();if(!profileView.hidden){renderProfilePage(profileView,professionalProfile);bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onChange:updateProfessionalIdentity});}}).catch(error=>{console.error("Profilo professionista:",error);if(!profileView.hidden)profileView.textContent="Impossibile caricare il profilo reale. Riprova ad aggiornare la pagina.";});
 
 const dashboardSearch=document.querySelector("[data-dashboard-patient-search]");
 const dashboardSearchResults=document.querySelector("[data-dashboard-search-results]");
