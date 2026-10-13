@@ -147,7 +147,8 @@ async function createRealPatient(values){
   patientState.query="";
   patientState.documentsOnly=false;
   renderDashboardSearch();
-  renderPatients();
+  // Chiudi prima il dialogo: il nuovo render sostituisce la vista che lo contiene.
+  setTimeout(()=>{if(!patientsView.hidden)renderPatients();},0);
 }
 
 function renderPatients(){
