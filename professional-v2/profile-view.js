@@ -2,22 +2,19 @@ const PHOTO_TYPES=["image/png","image/jpeg","image/webp"];
 const PHOTO_MAX_BYTES=2.5*1024*1024;
 
 export const professionalProfile={
-  firstName:"Maria",
-  surname:"Rossi",
-  displayName:"Dott.ssa Rossi",
-  qualification:"Biologa Nutrizionista",
-  taxCode:"RSSMRA80A41F257X",
-  vat:"01234567890",
-  address:"Via Emilia Centro 120",
-  zip:"41121",
-  city:"Modena",
-  province:"MO",
-  email:"maria.rossi@example.it",
-  phone:"+39 333 123 4567",
-  studios:[
-    {id:"studio-main",name:"Studio principale",address:"Via Emilia Centro 120",zip:"41121",city:"Modena",province:"MO",primary:true},
-    {id:"studio-secondary",name:"Studio secondario",address:"Via Giardini 80",zip:"41124",city:"Modena",province:"MO",primary:false}
-  ],
+  firstName:"",
+  surname:"",
+  displayName:"",
+  qualification:"",
+  taxCode:"",
+  vat:"",
+  address:"",
+  zip:"",
+  city:"",
+  province:"",
+  email:"",
+  phone:""
+  studios:[],
   firstVisit:60,
   controlVisit:30,
   dayStart:"08:00",
@@ -167,8 +164,8 @@ function readImage(file,onReady){
   reader.readAsDataURL(file);
 }
 
-export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){
-  const rerender=()=>{renderProfilePage(root,profile);bindProfilePage(root,{profile,onChange});};
+export function bindProfilePage(root,{profile=professionalProfile,onChange,onSave}={}){
+  const rerender=()=>{renderProfilePage(root,profile);bindProfilePage(root,{profile,onChange,onSave});};
 
   root.querySelectorAll("[data-studio-field]").forEach(field=>{
     field.addEventListener("input",()=>{
@@ -225,9 +222,10 @@ export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){
     if(preview) preview.innerHTML=logoMarkup(profile);
   });
 
-  root.querySelector("[data-profile-save]")?.addEventListener("click",()=>{
+  root.querySelector("[data-profile-save]")?.addEventListener("click",async()=>{
     root.querySelectorAll("[data-profile-field]").forEach(field=>{
       const key=field.dataset.profileField;
+      if(["firstName","surname","email"].includes(key)) continue;
       profile[key]=field.type==="number"||key==="workDays" ? Number(field.value) : field.value.trim();
     });
 
@@ -241,7 +239,11 @@ export function bindProfilePage(root,{profile=professionalProfile,onChange}={}){
     if(!profile.displayName) profile.displayName=[profile.firstName,profile.surname].filter(Boolean).join(" ")||"Professionista";
     if(!Array.isArray(profile.studios)||!profile.studios.length){alert("Configura almeno uno studio prima di salvare il profilo.");return;}
     if(!profile.studios.some(studio=>studio.primary)) profile.studios[0].primary=true;
-    onChange?.(profile);
-    alert("Profilo aggiornato nella demo. Il salvataggio su Supabase verrà collegato nella fase backend.");
+    try {
+      if(!onSave)throw new Error("Salvataggio non ancora disponibile.");
+      await onSave(profile);
+      onChange?.(profile);
+      alert("Profilo professionale aggiornato.");
+    }catch(error){alert(error.message||"Salvataggio non riuscito.");}
   });
 }
