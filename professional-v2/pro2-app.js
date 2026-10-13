@@ -1,6 +1,7 @@
 await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
+import {loadPatientOverview,renderPatientOverview} from "./patient-overview-live.js";
 import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261013";
 let patientRecords=[];
 let patientsPhase="loading";
@@ -132,8 +133,15 @@ function showView(route){
     renderProfilePage(profileView,professionalProfile);
     bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
-    // La scheda clinica non è ancora migrata: impedisci il recupero dei dati demo.
-    location.hash="#patients";
+    if(route.tab!=="panoramica"){location.hash=`#patient/${encodeURIComponent(route.id)}/panoramica`;return;}
+    patientDetailView.textContent="Caricamento panoramica…";
+    void (async()=>{
+      try{
+        await patientsLoading;
+        const data=await loadPatientOverview(route.id,patientRecords);
+        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id)renderPatientOverview(patientDetailView,data);
+      }catch(error){patientDetailView.textContent=error.message||"Errore caricamento paziente.";}
+    })();
   }
 }
 
@@ -182,6 +190,7 @@ function renderPatients(){
     if(next) next.setSelectionRange(next.value.length,next.value.length);
   });
 
+  patientsView.querySelectorAll("[data-patient-id]").forEach(row=>row.addEventListener("click",()=>{location.hash=`#patient/${encodeURIComponent(row.dataset.patientId)}/panoramica`;}));
   patientsView.querySelector("[data-new-patient]")?.addEventListener("click",()=>{
     openNewPatientDialog(patientsView,{onCreate:createRealPatient});
   });
@@ -243,7 +252,7 @@ function renderDashboardSearch(){
     button.addEventListener("click",()=>{
       dashboardSearch.value="";
       closeDashboardSearch();
-      location.hash="#patients";
+      location.hash=`#patient/${encodeURIComponent(button.dataset.dashboardPatientId)}/panoramica`;
     });
   });
 }
