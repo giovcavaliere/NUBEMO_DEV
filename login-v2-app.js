@@ -47,7 +47,12 @@
       window.location.replace('admin2.html');
       return;
     }
-    if (profile.role === 'professional') {\n      leaving = true;\n      window.location.replace('pro2.html');\n      return;\n    }\n    // Il percorso paziente 2.0 viene attivato separatamente.
+    if (profile.role === 'professional') {
+      leaving = true;
+      window.location.replace('pro2.html');
+      return;
+    }
+    // Il percorso paziente 2.0 viene attivato separatamente.
     loginView.hidden = true;
     unavailable.hidden = false;
     $('login-area-role').textContent = profile.role === 'professional' ? 'Professionista' : 'Paziente';
