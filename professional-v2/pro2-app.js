@@ -6,7 +6,7 @@ import {openNewPatientDialog} from "./patient-create-view.js?v=patient-avatar-20
 import {getPatientData} from "./patient-detail-data.js?v=pathways-20261009";
 import {getPatientViewModel} from "./patient-detail-model.js";
 import {renderPatientDetail} from "./patient-detail-view.js?v=clinical-pdf-editorial-20261009";
-import {renderSupportPage,sendSupport} from "./support-view.js";
+import {renderSupportPage,sendSupport} from "./support-view.js?v=support-migration-20261013";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
 import {loadProfessionalProfile,saveProfessionalProfile,updateProfessionalMedia} from "./profile-service.js?v=profile-media-20261013";
 import {agendaState,renderAgendaPage,bindAgendaPage,addAgendaEvent} from "./agenda-view.js";
