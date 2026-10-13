@@ -177,6 +177,21 @@
       return rows;
     }
 
+    async function publishPrivacy({version,title,file}) {
+      const v=String(version||'').trim(), t=String(title||'').trim();
+      if(!v || v.length>40 || !t || t.length>120) throw new Error('Versione o titolo non validi.');
+      if(!file || file.type!=='application/pdf' || file.size<1 || file.size>10485760) throw new Error('Seleziona un PDF valido fino a 10 MB.');
+      await verifyAccess();
+      const path='nubemo/'+crypto.randomUUID()+'.pdf';
+      const uploaded=await request(client.storage.from('privacy-documents').upload(path,file,{
+        upsert:false,contentType:'application/pdf',cacheControl:'0'
+      }));
+      if(uploaded.error) throw new Error('Caricamento PDF non riuscito: '+uploaded.error.message);
+      const published=await request(client.rpc('admin2_publish_privacy',{p_version:v,p_title:t,p_path:path}));
+      if(published.error || !published.data) throw new Error('PDF caricato ma pubblicazione non completata. Verifica versione e stato prima di riprovare.');
+      return published.data;
+    }
+
     async function createPrivacyUrl(documentRow) {
       if (documentRow?.document_type !== 'nubemo' || documentRow.active !== true ||
         documentRow.storage_bucket !== 'privacy-documents' || !documentRow.storage_path?.startsWith('nubemo/')) {
@@ -228,7 +243,7 @@
     }
 
     function onAuthChange(callback) { return client.auth.onAuthStateChange(callback).data.subscription; }
-    return Object.freeze({ verifyAccess, listProfessionals, getManagement, manage, saveDefaultPatientLimit, loadCurrentPrivacy, loadAcceptances, createPrivacyUrl, getAdminAvatarUrl, saveOwnIdentity, uploadAdminAvatar, signOut, onAuthChange });
+    return Object.freeze({ verifyAccess, listProfessionals, getManagement, manage, saveDefaultPatientLimit, loadCurrentPrivacy, loadAcceptances, publishPrivacy, createPrivacyUrl, getAdminAvatarUrl, saveOwnIdentity, uploadAdminAvatar, signOut, onAuthChange });
   }
 
   window.NubemoAdminServices = Object.freeze({ create, AccessError });
