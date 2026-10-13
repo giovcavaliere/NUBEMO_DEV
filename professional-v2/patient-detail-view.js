@@ -57,7 +57,7 @@ function renderKpis(model){
     ["Peso iniziale",kpis.initialWeight==null?"—":`${fmtNumber(kpis.initialWeight)} kg`,"Prima misurazione valida","calendar"],
     ["Peso attuale",kpis.currentWeight==null?"—":`${fmtNumber(kpis.currentWeight)} kg`,"Ultima misurazione valida","chart"],
     ["Variazione",kpis.change==null?"—":`${kpis.change>0?"+":""}${fmtNumber(kpis.change)} kg`,kpis.changePercent==null?"Nessun confronto":`${kpis.changePercent>0?"+":""}${fmtNumber(kpis.changePercent)}% dall’inizio`,"leaf"],
-    ["Aderenza diario",`${kpis.adherence.percentage}%`,`${kpis.adherence.completed} giorni su ${kpis.adherence.considered}`,"check"],
+    ["Aderenza diario",kpis.adherence.considered?`${kpis.adherence.percentage}%`:"—",kpis.adherence.considered?`${kpis.adherence.completed} giorni su ${kpis.adherence.considered}`:"Nessun diario registrato","check"],
     ["Visite completate",String(kpis.completedVisits),"Visite salvate","patients"],
     ["Prossimo appuntamento",kpis.nextAppointment?fmtDate(kpis.nextAppointment.startsAt,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—",kpis.nextAppointment?.title||"Nessun appuntamento", "calendar"]
   ];
@@ -318,6 +318,54 @@ function bindNotes(root,model,onChange){
   }));
 }
 
+// Panoramica reale: stessa struttura grafica approvata, nessuna azione o sorgente demo.
+export function renderLivePatientOverview(root,{patient,link,pathways}){
+  const active=pathways.find(item=>item.status==="active");
+  const startedAt=active?.pathway_start_date||active?.started_at||null;
+  const model={
+    data:{
+      identity:{id:patient.id,firstName:patient.first_name,lastName:patient.last_name,
+        birthDate:null,sex:null,avatar:null,status:link.status==="pending"?"pending":link.status==="ended"?"terminated":"active"},
+      journey:{startedAt,summary:null}
+    },
+    age:patient.age,
+    journeyDays:startedAt?Math.max(1,Math.floor((Date.now()-new Date(startedAt).getTime())/86400000)+1):null,
+    firstVisit:null,lastControl:null,
+    kpis:{completedVisits:0,change:null,initialWeight:null,currentWeight:null,changePercent:null,
+      adherence:{percentage:0,completed:0,considered:0},nextAppointment:null},
+    timeline:[],focus:[],weightSeries:[],
+    composition:{values:{
+      weight:{value:null,unit:"kg",delta:null},bodyFat:{value:null,unit:"%",delta:null},
+      muscleMass:{value:null,unit:"%",delta:null},bcm:{value:null,unit:"%",delta:null}},lastBiaDate:null}
+  };
+  const name=escapeHtml([patient.first_name,patient.last_name].filter(Boolean).join(" "));
+  const pathwayCard=active
+    ? `<section class="pathway-card is-active"><div class="pathway-card-main"><span class="pathway-symbol" aria-hidden="true">✓</span><div><span class="pathway-eyebrow">PERCORSO ATTUALE</span><h2>Percorso in corso</h2><p>Inizio: ${fmtDate(startedAt)}</p></div></div></section>`
+    : `<section class="pathway-card pathway-card-empty"><div class="pathway-card-main"><span class="pathway-symbol" aria-hidden="true">↗</span><div><span class="pathway-eyebrow">PERCORSO</span><h2>Nessun percorso attivo</h2><p>L'anagrafica del paziente è disponibile. L'apertura manuale del percorso sarà attivata nella prossima fase.</p></div></div></section>`;
+  const history=pathways.filter(item=>item.status==="ended");
+  const historyCard=history.length
+    ? `<section class="detail-panel">${sectionHeading("calendar","Storico percorsi")}${history.map(item=>`<p>Concluso · ${fmtDate(item.ended_at||item.created_at)}</p>`).join("")}</section>`
+    : "";
+  root.innerHTML=`<div class="patient-detail">
+    <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${name}</span></nav>
+    ${renderHeader(model)}
+    <nav class="detail-tabs" aria-label="Sezioni paziente">
+      ${tabs.map(([key,label])=>key==="panoramica"
+        ?`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" class="active" aria-current="page">${label}</a>`
+        :`<span title="Sezione in migrazione" aria-disabled="true">${label}</span>`).join("")}
+    </nav>
+    <div class="detail-content"><div class="detail-overview">
+      <div class="pathway-management">${pathwayCard}${historyCard}</div>
+      ${renderKpis(model)}
+      <div class="detail-overview-top">${renderTimeline(model)}${renderFocus(model)}</div>
+      <div class="detail-overview-lower">
+        <section class="detail-panel">${sectionHeading("chart","Andamento recente","Peso nelle ultime rilevazioni.")}${renderWeightChart(model.weightSeries)}</section>
+        ${renderComposition(model)}
+        <section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Funzionalità disponibili dopo la migrazione.")}<p class="detail-empty">Le funzioni cliniche saranno attivate dopo il collegamento a Supabase.</p></section>
+      </div>
+    </div></div>
+  </div>`;
+}
 export function renderPatientDetail(root,model,activeTab="panoramica",onIdentityChange=()=>{}){
   const {id,firstName,lastName}=model.data.identity;
   const tab=tabs.some(([key])=>key===activeTab)?activeTab:"panoramica";
