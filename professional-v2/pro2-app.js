@@ -1,6 +1,7 @@
 await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
+import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261013";
 let patientRecords=[];
 let patientsPhase="loading";
 let patientsError="";
@@ -136,6 +137,19 @@ function showView(route){
   }
 }
 
+async function createRealPatient(values){
+  const client=window.nubemoSupabase;
+  const {data,error}=await client.functions.invoke("pro2-create-patient",{body:values});
+  if(error)throw new Error("Creazione paziente non riuscita: "+error.message);
+  if(!data?.ok)throw new Error(data?.error||"Creazione paziente non riuscita.");
+  patientRecords=await loadOwnPatients();
+  patientState.status=data.invited?"pending":"active";
+  patientState.query="";
+  patientState.documentsOnly=false;
+  renderDashboardSearch();
+  renderPatients();
+}
+
 function renderPatients(){
   if(patientsPhase!=="ready"){
     patientsView.textContent=patientsPhase==="error"?patientsError:"Caricamento pazienti…";
@@ -167,6 +181,9 @@ function renderPatients(){
     if(next) next.setSelectionRange(next.value.length,next.value.length);
   });
 
+  patientsView.querySelector("[data-new-patient]")?.addEventListener("click",()=>{
+    openNewPatientDialog(patientsView,{onCreate:createRealPatient});
+  });
   patientsView.querySelector("[data-patient-sort]")?.addEventListener("change",event=>{
     patientState.sortBy=event.target.value==="name"?"name":"created";
     renderPatients();
