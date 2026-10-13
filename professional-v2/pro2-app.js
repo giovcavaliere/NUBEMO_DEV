@@ -8,7 +8,7 @@ import {getPatientViewModel} from "./patient-detail-model.js";
 import {renderPatientDetail} from "./patient-detail-view.js?v=clinical-pdf-editorial-20261009";
 import {renderSupportPage,sendSupport} from "./support-view.js";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js";
-import {loadProfessionalProfile,saveProfessionalProfile} from "./profile-service.js";
+import {loadProfessionalProfile,saveProfessionalProfile} from "./profile-service.js?v=profile-load-fix-20261013";
 import {agendaState,renderAgendaPage,bindAgendaPage,addAgendaEvent} from "./agenda-view.js";
 import {appointmentState,renderAppointmentPage,bindAppointmentPage} from "./appointment-view.js";
 
