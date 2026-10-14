@@ -66,7 +66,7 @@ export function bindRealPathway(root,patientId,pathways,onSaved){
   const key=item.objectiveKey||"weight_loss";
   // Mantiene le stesse classi e gerarchie del form approvato.
   return `<div class="pathway-dialog-fields">
-   <label><span>Data di inizio</span><input name="startedAt" type="date" value="${escapeHtml(item.startedAt||new Date().toLocaleDateString("en-CA"))}" required></label>
+   <label><span>Data di inizio</span><input name="startedAt" type="date" value="${escapeHtml(item.startedAt||new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10))}" required></label>
    <label><span>Obiettivo principale</span><select name="objectiveKey">${OBJECTIVES.map(([value,label])=>`<option value="${value}" ${key===value?"selected":""}>${escapeHtml(label)}</option>`).join("")}</select></label>
    <label class="pathway-custom-objective" data-pathway-custom hidden><span>Specifica obiettivo</span><input name="customObjective" value="${escapeHtml(item.customObjective||"")}" maxlength="100"></label>
    <label class="pathway-note-field"><span>Nota obiettivo <small>(facoltativa)</small></span><textarea name="objectiveNote" rows="4" maxlength="300" placeholder="Breve indicazione utile per contestualizzare il percorso.">${escapeHtml(item.objectiveNote||"")}</textarea></label>
