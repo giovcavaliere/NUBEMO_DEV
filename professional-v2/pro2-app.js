@@ -20,6 +20,7 @@ import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./
 import {loadProfessionalProfile,saveProfessionalProfile,updateProfessionalMedia} from "./profile-service.js?v=profile-clean-20261013";
 import {agendaState,renderAgendaPage,bindAgendaPage,setAgendaEvents} from "./agenda-view.js";
 import {loadRealAgenda,loadRealDraftPatients,createRealDraft,createRealAppointment,saveRealVisit,updateRealAppointment,deleteRealAppointment} from "./agenda-live-service.js";
+import {openLiveAgendaEditor} from "./agenda-event-editor.js";
 import {appointmentState,renderAppointmentPage,bindAppointmentPage,setAppointmentPatients} from "./appointment-view.js";
 
 const dashboardView=document.getElementById("dashboardView");
@@ -42,7 +43,7 @@ const dashboardSearchResults=document.querySelector("[data-dashboard-search-resu
 function openNewAppointment(prefill={}){
   appointmentState.patientIds=[];
   appointmentState.type="first";
-  appointmentState.date=prefill.date||appointmentState.date||"2026-10-06";
+  appointmentState.date=prefill.date||(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");})();
   appointmentState.time=prefill.time||"11:00";
   appointmentState.duration=Number(professionalProfile.firstVisit||60);
   appointmentState.modality="studio";
@@ -120,7 +121,13 @@ function showView(route){
         if(currentRoute().name!=="agenda")return;
         setAgendaEvents(events);
         renderAgendaPage(agendaView,{profile:professionalProfile,state:agendaState});
-        bindAgendaPage(agendaView,{profile:professionalProfile,state:agendaState,onNewAppointment:prefill=>openNewAppointment(prefill||{})});
+        bindAgendaPage(agendaView,{
+          profile:professionalProfile,state:agendaState,onNewAppointment:prefill=>openNewAppointment(prefill||{}),
+          onOpenAppointment:event=>openLiveAgendaEditor(agendaView,event,{
+            update:updateRealAppointment,remove:deleteRealAppointment,
+            refresh:()=>{if(currentRoute().name==="agenda")showView(currentRoute());}
+          })
+        });
       }catch(error){if(currentRoute().name==="agenda")agendaView.textContent=error.message||"Impossibile caricare Agenda.";}
     })();
   }else if(route.name==="appointment"){
