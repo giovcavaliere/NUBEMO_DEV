@@ -3,7 +3,7 @@ import {getProgressViewModel} from "./patient-progress-model.js";
 import {renderMeasurements,bindMeasurements} from "./patient-measurements-view.js?v=live-measures-20261014";
 import {getMeasurementsViewModel} from "./patient-measurements-model.js";
 import {renderPlan,bindPlan} from "./patient-plan-view.js";
-import {renderVisits,bindVisits} from "./patient-visits-view.js";
+import {renderVisits,bindVisits} from "./patient-visits-view.js?v=live-visits-20261014";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
 import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
@@ -394,7 +394,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
   .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
  root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
   ${renderHeader(livePatientHeaderModel(overview,{sex:real.record.sex}))}
-  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure"||key==="andamento")
+  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="visite"||key==="misure"||key==="andamento")
    ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
    :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
   <div class="detail-content">${protectedHtml}</div></div>`;
@@ -449,11 +449,26 @@ export function renderLivePatientProgress(root,overview,measurements,goalWeight=
  root.innerHTML=`<div class="patient-detail">
  <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</span></nav>
  ${renderHeader(livePatientHeaderModel(overview))}
- <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>["panoramica","profilo","misure","andamento","note"].includes(key)
+ <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>["panoramica","profilo","visite","misure","andamento","note"].includes(key)
  ?`<a href="${route(patient.id,key)}" class="${key==="andamento"?"active":""}" ${key==="andamento"?'aria-current="page"':""}>${label}</a>`
  :`<a href="${route(patient.id,"andamento")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
  <div class="detail-content">${renderProgress(model)}</div></div>`;
  bindProgress(root,data,model);
+}
+export function renderLivePatientVisits(root,overview,events,actions){
+ const patient=overview.patient;
+ const model={data:{identity:{id:patient.id,firstName:patient.first_name,lastName:patient.last_name},visits:[]}};
+ const completed=events.filter(e=>e.patientIds?.includes(patient.id)&&e.visitRecords?.[patient.id]?.registered).length;
+ const header=livePatientHeaderModel(overview);
+ header.kpis.completedVisits=completed;
+ root.innerHTML=`<div class="patient-detail">
+ <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</span></nav>
+ ${renderHeader(header)}
+ <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>["panoramica","profilo","visite","misure","andamento","note"].includes(key)
+ ?`<a href="${route(patient.id,key)}" class="${key==="visite"?"active":""}" ${key==="visite"?'aria-current="page"':""}>${label}</a>`
+ :`<a href="${route(patient.id,"visite")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
+ <div class="detail-content">${renderVisits(model,events)}</div></div>`;
+ bindVisits(root,model,actions.refresh,{save:actions.save,update:actions.update,remove:actions.remove},events);
 }
 export function renderLivePatientMeasures(root,overview,measurements,actions){
  const patient=overview.patient;
@@ -462,7 +477,7 @@ export function renderLivePatientMeasures(root,overview,measurements,actions){
  root.innerHTML=`<div class="patient-detail">
  <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</span></nav>
  ${renderHeader(livePatientHeaderModel(overview))}
- <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(["panoramica","profilo","misure","andamento","note"].includes(key))
+ <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(["panoramica","profilo","visite","misure","andamento","note"].includes(key))
  ?`<a href="${route(patient.id,key)}" class="${key==="misure"?"active":""}" ${key==="misure"?'aria-current="page"':""}>${label}</a>`
  :`<a href="${route(patient.id,"misure")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
  <div class="detail-content">${renderMeasurements(viewModel)}</div></div>`;
@@ -514,7 +529,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},
     <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${name}</span></nav>
     ${renderHeader(model)}
     <nav class="detail-tabs" aria-label="Sezioni paziente">
-      ${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure"||key==="andamento")
+      ${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="visite"||key==="misure"||key==="andamento")
         ?`<a href="${route(patient.id,key)}" class="${activeTab===key?"active":""}" ${activeTab===key?'aria-current="page"':""}>${label}</a>`
         :`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" aria-disabled="true" tabindex="-1" title="Sezione in migrazione" onclick="return false">${label}</a>`).join("")}
     </nav>
