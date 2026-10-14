@@ -1,6 +1,6 @@
 await window.NUBEMO_PRO2_AUTH_READY;
 
-import {loadOwnPatients} from "./patients-service.js?v=quick-drafts-list-20261014";
+import {loadOwnPatients} from "./patients-service.js?v=upcoming-visits-20261014";
 import {loadPatientOverview} from "./patient-overview-live.js";
 import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=visit-agenda-final-20261014";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
