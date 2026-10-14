@@ -85,7 +85,8 @@ function eventMarkup(event,startMinutes){
   const top=(eventStart-startMinutes)*PIXELS_PER_MINUTE;
   const height=Math.max(30,Number(event.duration)||30)*PIXELS_PER_MINUTE;
   const short=Number(event.duration)<=30?" short":"";
-  return `<button type="button" class="agenda-event ${event.type}${short}" data-agenda-event-id="${escapeText(event.id)}"
+  const type=["first","control","personal"].includes(event.type)?event.type:"unknown";
+  return `<button type="button" class="agenda-event ${type}${short}" data-agenda-event-id="${escapeText(event.id)}"
     style="--event-top:${top};--event-height:${height}">
     <strong>${escapeText(event.name)}</strong>
     <span>${escapeText(event.meta)}</span>
