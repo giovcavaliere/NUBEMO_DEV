@@ -1,4 +1,5 @@
-import {patientRecords} from "./patients-data.js";
+let patientRecords=[];
+export function setAppointmentPatients(rows){patientRecords=Array.isArray(rows)?rows:[];}
 
 const esc=(value="")=>String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 const fullName=p=>[p?.first_name,p?.last_name].filter(Boolean).join(" ");
@@ -14,7 +15,7 @@ export const appointmentState={
   studioId:"",
   notes:"",
   couple:false,
-  reminder:true
+  reminder:false
 };
 
 function studioLabel(studio){
@@ -167,9 +168,9 @@ export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
 
         <section class="appointment-toggles single">
           <label class="appointment-toggle-row ${!reminderAvailable?"is-disabled":""}" title="${!patients.length&&!personal?"Seleziona un paziente":(!reminderAvailable&&!personal?(state.couple&&patients.length<2?"Seleziona entrambi i pazienti":"Uno o più pazienti non hanno un indirizzo email"):"")}">
-            <input type="checkbox" data-appointment-reminder ${state.reminder?"checked":""} ${reminderAvailable?"":"disabled"}>
+            <input type="checkbox" data-appointment-reminder disabled>
             <span class="appointment-switch"></span>
-            <span><strong>Invia promemoria via mail</strong><small>${personal?"Non disponibile per impegni personali":(!patients.length?"Seleziona un paziente":(state.couple&&patients.length<2?"Seleziona anche il secondo paziente":(reminderAvailable?(state.couple?"Invia un promemoria via email a entrambi i pazienti":"Invia un promemoria all'indirizzo email del paziente"):"Email non disponibile per uno o più pazienti")))}</small></span>
+            <span><strong>Promemoria via email · non ancora attivo</strong><small>${personal?"Non disponibile per impegni personali":(!patients.length?"Seleziona un paziente":(state.couple&&patients.length<2?"Seleziona anche il secondo paziente":(reminderAvailable?(state.couple?"Invia un promemoria via email a entrambi i pazienti":"Invia un promemoria all'indirizzo email del paziente"):"Email non disponibile per uno o più pazienti")))}</small></span>
           </label>
         </section>
 
@@ -204,17 +205,17 @@ export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
           <label><span>Nome <em>*</em></span><input data-draft-field="firstName" autocomplete="given-name"></label>
           <label><span>Cognome <em>*</em></span><input data-draft-field="lastName" autocomplete="family-name"></label>
           <label><span>Telefono</span><input data-draft-field="phone" type="tel" autocomplete="tel"></label>
-          <label><span>Email</span><input data-draft-field="email" type="email" autocomplete="email"></label>
+          
         </div>
-        <p class="draft-hint">L'email è facoltativa. Senza email il promemoria dell'appuntamento non sarà disponibile.</p>
+        <p class="draft-hint">Il Draft rapido richiede nome, cognome e telefono. I promemoria email non sono ancora attivi.</p>
         <div class="draft-actions"><button type="button" class="appointment-cancel" data-draft-close>Annulla</button><button type="button" class="appointment-save" data-draft-save>Crea Draft</button></div>
       </section>
     </div>
   </div>`;
 }
 
-export function bindAppointmentPage(root,{profile,state=appointmentState,onCancel,onSave}={}){
-  const rerender=()=>{renderAppointmentPage(root,{profile,state});bindAppointmentPage(root,{profile,state,onCancel,onSave})};
+export function bindAppointmentPage(root,{profile,state=appointmentState,onCancel,onSave,onCreateDraft}={}){
+  const rerender=()=>{renderAppointmentPage(root,{profile,state});bindAppointmentPage(root,{profile,state,onCancel,onSave,onCreateDraft})};
   root.querySelectorAll("[data-appointment-cancel]").forEach(b=>b.addEventListener("click",()=>onCancel?.()));
   root.querySelectorAll("[data-appointment-type]").forEach(button=>button.addEventListener("click",()=>{
     const next=button.dataset.appointmentType;
@@ -266,33 +267,37 @@ export function bindAppointmentPage(root,{profile,state=appointmentState,onCance
   const overlay=root.querySelector("[data-draft-overlay]");
   root.querySelector("[data-draft-open]")?.addEventListener("click",()=>{overlay.hidden=false;overlay.querySelector("[data-draft-field='firstName']")?.focus()});
   root.querySelectorAll("[data-draft-close]").forEach(b=>b.addEventListener("click",()=>{overlay.hidden=true}));
-  root.querySelector("[data-draft-save]")?.addEventListener("click",()=>{
-    const val=k=>root.querySelector(`[data-draft-field="${k}"]`)?.value.trim()||"";
-    const firstName=val("firstName"),lastName=val("lastName"),phone=val("phone"),email=val("email");
-    if(!firstName||!lastName){alert("Nome e cognome sono obbligatori per creare il Draft.");return}
-    if(email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){alert("Inserisci un indirizzo email valido oppure lascia il campo vuoto.");return}
-    const draft={id:`draft-${Date.now()}`,first_name:firstName,last_name:lastName,status:"draft",created_at:new Date().toISOString(),code:`DRAFT-${String(patientRecords.filter(p=>p.status==="draft").length+1).padStart(2,"0")}`,phone,email,avatar:""};
-    patientRecords.unshift(draft);
-    addPatientToState(state,draft.id);
-    state.reminder=reminderIsAvailable(state,selectedPatients(state),false);
-    rerender();
+  root.querySelector("[data-draft-save]")?.addEventListener("click",async()=>{
+    const val=k=>root.querySelector('[data-draft-field="'+k+'"]')?.value.trim()||"";
+    const firstName=val("firstName"),lastName=val("lastName"),phone=val("phone");
+    if(!firstName||!lastName||!phone){alert("Nome, cognome e telefono sono obbligatori.");return;}
+    const button=root.querySelector("[data-draft-save]");button.disabled=true;
+    try{
+      if(!onCreateDraft)throw Error("Creazione draft non disponibile");
+      const draft=await onCreateDraft({firstName,lastName,phone});
+      patientRecords.unshift(draft);
+      addPatientToState(state,draft.id);
+      state.reminder=false;
+      rerender();
+    }catch(error){alert(error.message||"Creazione draft non riuscita");button.disabled=false;}
   });
-
-  root.querySelector("[data-appointment-form]")?.addEventListener("submit",event=>{
+  root.querySelector("[data-appointment-form]")?.addEventListener("submit",async event=>{
     event.preventDefault();
     const patients=selectedPatients(state);
     const patient=patients[0]||null;
     if(state.type!=="personal"&&!patient){alert("Seleziona un paziente oppure crea un Draft rapido.");return}
     if(state.type!=="personal"&&state.couple&&patients.length!==2){alert("Per un appuntamento di coppia devi selezionare due pazienti.");return}
     if(!state.date||!state.time||!state.duration){alert("Compila data, ora e durata.");return}
-    onSave?.({
+    const saveButton=root.querySelector("[data-appointment-form] [type=submit]");
+    if(saveButton)saveButton.disabled=true;
+    try{await onSave?.({
       date:state.date,start:state.time,duration:Number(state.duration),
       type:state.type==="first"?"first":state.type==="control"?"control":"personal",
       name:state.type==="personal"?"Impegno personale":patients.map(fullName).join(" + "),
       meta:state.type==="personal"?`Impegno personale · ${state.duration} min`:`${typeInfo(state.type).title} · ${state.duration} min`,
       patientId:patient?.id||null,patientIds:patients.map(item=>item.id),modality:state.type==="personal"?null:state.modality,
       studioId:state.type==="personal"?null:state.studioId,notes:state.notes,couple:!!state.couple,
-      reminderEmail:!!state.reminder
-    });
+      reminderEmail:false
+    });}catch(error){alert(error.message||"Salvataggio appuntamento non riuscito.");if(saveButton)saveButton.disabled=false;}
   });
 }
