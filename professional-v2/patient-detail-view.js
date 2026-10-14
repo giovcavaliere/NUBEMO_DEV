@@ -326,7 +326,7 @@ function bindLiveNotes(root,notes,active,actions){
     dialog.className="detail-dialog note-dialog";
     dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${remove?"<p>Confermi l’eliminazione della nota?</p>":`<div class="note-form"><label>Nota<textarea name="noteText" required rows="8">${escapeHtml(currentText)}</textarea></label></div>`}<footer><button type="button" data-close>Annulla</button><button type="submit">${remove?"Elimina":"Salva"}</button></footer><p data-note-error role="alert"></p></form>`;
     root.append(dialog);dialog.showModal();
-    dialog.querySelector("[data-close]").addEventListener("click",()=>dialog.close());
+    dialog.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
     dialog.addEventListener("close",()=>dialog.remove(),{once:true});
     dialog.querySelector("form").addEventListener("submit",async event=>{
       event.preventDefault();
