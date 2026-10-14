@@ -3,7 +3,7 @@ const controls=(event,locked)=>`<div class="visit-appointment-form">
 <label>Tipo appuntamento<select name="type" ${locked?"disabled":""}>${(event.type==="personal"?[["personal","Impegno personale"]]:[["first","Prima visita"],["control","Controllo"]]).map(([type,label])=>`<option value="${type}" ${event.type===type?"selected":""}>${label}</option>`).join("")}</select></label>
 <label>Data<input type="date" name="date" required value="${esc(event.date)}" ${locked?"disabled":""}></label>
 <label>Ora<input type="time" name="start" required value="${esc(event.start)}" ${locked?"disabled":""}></label>
-<label>Durata (minuti)<select name="duration" ${locked?"disabled":""}>${[15,30,45,60,90,120,180,240].filter(n=>n===event.duration||n>0).map(n=>`<option value="${n}" ${n===event.duration?"selected":""}>${n} minuti</option>`).join("")}</select></label>
+<label>Durata (minuti)<select name="duration" ${locked?"disabled":""}>${[...new Set([15,30,45,60,90,120,180,240,360,Number(event.duration)])].filter(n=>n>0).sort((a,b)=>a-b).map(n=>`<option value="${n}" ${n===event.duration?"selected":""}>${n} minuti</option>`).join("")}</select></label>
 <label class="visit-form-wide">Note appuntamento<textarea name="notes" rows="4">${esc(event.notes)}</textarea></label></div>`;
 export function openLiveAgendaEditor(root,event,api){
  const locked=!!event.appointmentLocked;
