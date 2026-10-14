@@ -314,6 +314,7 @@ function renderDashboardSearch(){
   }
 
   const matches=patientRecords
+    .filter(patient=>!patient.isQuickDraft)
     .filter(patient=>`${patient.first_name} ${patient.last_name}`.toLocaleLowerCase("it").includes(query))
     .slice(0,6);
 
