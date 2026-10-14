@@ -364,7 +364,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
  Object.entries(fieldMap).forEach(([key,column])=>{a[key]=c[column]??"";});
  ["obesity","diabetes","hypertension","cardiovascular","dyslipidemia","thyroid"].forEach(key=>a.family[key]=c["family_"+key]??null);
  const identity={id:patient.id,firstName:real.profile.first_name,lastName:real.profile.last_name,birthDate:real.record.birth_date,sex:real.record.sex,height:real.record.height_cm,
-  phone:real.profile.phone,email:real.profile.email,nubemoAccountStatus:real.profile.status};
+  phone:real.profile.phone,email:real.profile.email,nubemoAccountStatus:real.profile.auth_user_id?(real.profile.status==="active"?"active":"pending"):"inactive"};
  const privacy={consent:{status:real.privacy?"signed":"missing",signedAt:real.privacy?.uploaded_at||null},
   communications:{email:false},reminders:{email:false},consentManagement:null,
   administrativeNotes:null};
