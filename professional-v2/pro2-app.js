@@ -2,7 +2,7 @@ await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
 import {loadPatientOverview} from "./patient-overview-live.js";
-import {renderLivePatientOverview,renderLivePatientProfile} from "./patient-detail-view.js?v=live-profile-auth-20261014";
+import {renderLivePatientOverview,renderLivePatientProfile} from "./patient-detail-view.js?v=profile-dialog-unified-20261014";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=live-profile-auth-20261014";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
 import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261013";
