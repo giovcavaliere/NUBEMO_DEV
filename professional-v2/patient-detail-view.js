@@ -1,5 +1,6 @@
 import {renderProgress,bindProgress} from "./patient-progress-view.js";
-import {renderMeasurements,bindMeasurements} from "./patient-measurements-view.js";
+import {renderMeasurements,bindMeasurements} from "./patient-measurements-view.js?v=live-measures-20261014";
+import {getMeasurementsViewModel} from "./patient-measurements-model.js";
 import {renderPlan,bindPlan} from "./patient-plan-view.js";
 import {renderVisits,bindVisits} from "./patient-visits-view.js";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
@@ -376,7 +377,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
   .replace('Comunicazioni</dt><dd>Non attive','Comunicazioni</dt><dd>Non registrate')
   .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
  root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
-  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo")
+  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure")
    ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
    :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
   <div class="detail-content">${protectedHtml}</div></div>`;
@@ -423,6 +424,39 @@ export function renderLivePatientProfile(root,overview,real,actions){
    :`<div class="detail-anamnesis-editor">${fields}</div>`;
   open(title,body,data=>{const values={};keys.forEach(key=>values[key]=key.startsWith("family.")?data.has(key):data.get(key));return actions.saveClinical(values);},true);
  }));
+}
+export function renderLivePatientMeasures(root,overview,measurements,actions){
+ const patient=overview.patient;
+ const hasActive=overview.pathways.some(p=>p.status==="active");
+ const viewModel=getMeasurementsViewModel({measurements});
+ root.innerHTML=`<div class="patient-detail">
+ <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</span></nav>
+ <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(["panoramica","profilo","misure","note"].includes(key))
+ ?`<a href="${route(patient.id,key)}" class="${key==="misure"?"active":""}" ${key==="misure"?'aria-current="page"':""}>${label}</a>`
+ :`<a href="${route(patient.id,"misure")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
+ <div class="detail-content">${renderMeasurements(viewModel)}</div></div>`;
+ const attachLiveDialog=(container,dialog,onSave)=>{
+  container.append(dialog);
+  const form=dialog.querySelector("form");
+  form.removeAttribute("method");
+  dialog.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
+  dialog.addEventListener("close",()=>dialog.remove(),{once:true});
+  form.addEventListener("submit",async event=>{
+   event.preventDefault();
+   if(!form.reportValidity())return;
+   const button=form.querySelector('[type="submit"]');button.disabled=true;
+   let errorNode=dialog.querySelector("[data-live-measure-error]");
+   if(!errorNode){errorNode=document.createElement("p");errorNode.dataset.liveMeasureError="";errorNode.setAttribute("role","alert");form.append(errorNode);}
+   try{await onSave(new FormData(form));dialog.close();}catch(error){errorNode.textContent=error.message||"Operazione non riuscita";button.disabled=false;}
+  });
+  dialog.showModal();
+ };
+ bindMeasurements(root,{measurements},viewModel,actions.refresh,attachLiveDialog,actions);
+ if(!hasActive){
+  const add=root.querySelector("[data-measure-new]");
+  if(add){add.disabled=true;add.title="È necessario un percorso attivo";}
+  root.querySelectorAll("[data-measure-edit],[data-measure-delete]").forEach(button=>button.disabled=true);
+ }
 }
 export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},activeTab="panoramica",actions={}){
   const active=pathways.find(item=>item.status==="active");
