@@ -3,6 +3,7 @@ export function setAppointmentPatients(rows){patientRecords=Array.isArray(rows)?
 
 const esc=(value="")=>String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 const fullName=p=>[p?.first_name,p?.last_name].filter(Boolean).join(" ");
+const patientKind=p=>p?.isDraft||p?.isQuickDraft?"Draft rapido":p?.status==="active"?"Paziente attivo":p?.status==="pending"?"In attesa":p?.status==="terminated"?"Percorso terminato":"Paziente";
 const defaultDate=()=>new Date().toISOString().slice(0,10);
 
 export const appointmentState={
@@ -73,7 +74,7 @@ function studiosOptions(profile,state){
 function patientResultMarkup(patient){
   return `<button type="button" class="appointment-patient-result" data-appointment-patient="${esc(patient.id)}">
     <span class="appointment-avatar">${patient.avatar?`<img src="${esc(patient.avatar)}" alt="">`:`<b>${esc((patient.first_name?.[0]||"")+(patient.last_name?.[0]||""))}</b>`}</span>
-    <span><strong>${esc(fullName(patient))}</strong><small>${esc(patient.code||"Draft")} ${patient.email?"· "+esc(patient.email):"· Nessuna email"}</small></span>
+    <span><strong>${esc(fullName(patient))}</strong><small>${esc(patientKind(patient))} ${patient.email?"· "+esc(patient.email):"· Nessuna email"}</small></span>
     <span class="appointment-result-arrow">›</span>
   </button>`;
 }
@@ -82,7 +83,7 @@ function selectedPatientMarkup(patient,index,total){
   const role=total>1?(index===0?"Paziente 1":"Paziente 2"):"Paziente selezionato";
   return '<div class="appointment-selected-patient">'
     +'<span class="appointment-avatar">'+(patient.avatar?'<img src="'+esc(patient.avatar)+'" alt="">':'<b>'+esc((patient.first_name?.[0]||"")+(patient.last_name?.[0]||""))+'</b>')+'</span>'
-    +'<span><small class="appointment-patient-role">'+role+'</small><strong>'+esc(fullName(patient))+'</strong><small>'+esc(patient.code||"Draft")+(patient.email?' · '+esc(patient.email):' · Nessuna email')+'</small></span>'
+    +'<span><small class="appointment-patient-role">'+role+'</small><strong>'+esc(fullName(patient))+'</strong><small>'+esc(patientKind(patient))+(patient.email?' · '+esc(patient.email):' · Nessuna email')+'</small></span>'
     +'<button type="button" aria-label="Rimuovi paziente" data-appointment-patient-clear="'+esc(patient.id)+'">×</button>'
     +'</div>';
 }
