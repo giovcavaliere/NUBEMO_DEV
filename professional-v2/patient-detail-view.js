@@ -5,7 +5,7 @@ import {renderVisits,bindVisits} from "./patient-visits-view.js";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
 import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
-import {pathwayViewModel,bindRealPathway} from "./patient-pathways-live.js";
+import {pathwayViewModel,bindRealPathway} from "./patient-pathways-live.js?v=pathway-dialog-fix-20261014";
 import {renderClinicalPdfAction,bindClinicalPdf} from "./patient-clinical-pdf-view.js?v=clinical-pdf-editorial-20261009";
 
 const tabs=[
