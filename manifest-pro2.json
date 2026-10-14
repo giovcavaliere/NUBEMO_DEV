@@ -1,0 +1,24 @@
+{
+  "id": "./index2.html",
+  "name": "NUBEMO Professional 2.0",
+  "short_name": "NUBEMO Pro",
+  "start_url": "./index2.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4eee5",
+  "theme_color": "#0c5449",
+  "icons": [
+    {
+      "src": "assets/nubemo-n-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/nubemo-n-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
