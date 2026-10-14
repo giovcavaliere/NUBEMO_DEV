@@ -38,6 +38,6 @@ export async function saveLiveClinical(patientId,pathwayId,values){
  }
  // A pathway has at most one clinical profile; update existing row, otherwise insert.
  const existing=await checked(client().from("patient_clinical_profiles").select("patient_id").eq("patient_id",patientId).eq("pathway_id",pathwayId).maybeSingle(),"Verifica anamnesi");
- if(existing)await checked(client().from("patient_clinical_profiles").update(payload).eq("patient_id",patientId).eq("pathway_id",pathwayId),"Salvataggio anamnesi");
+ if(existing){const {patient_id,pathway_id,...changes}=payload;await checked(client().from("patient_clinical_profiles").update(changes).eq("patient_id",patientId).eq("pathway_id",pathwayId),"Salvataggio anamnesi");}
  else await checked(client().from("patient_clinical_profiles").insert(payload),"Creazione anamnesi");
 }
