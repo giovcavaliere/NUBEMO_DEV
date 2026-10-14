@@ -5,6 +5,7 @@ import {renderVisits,bindVisits} from "./patient-visits-view.js";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
 import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
+import {pathwayViewModel,bindRealPathway} from "./patient-pathways-live.js";
 import {renderClinicalPdfAction,bindClinicalPdf} from "./patient-clinical-pdf-view.js?v=clinical-pdf-editorial-20261009";
 
 const tabs=[
@@ -372,13 +373,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},
       muscleMass:{value:null,unit:"%",delta:null},bcm:{value:null,unit:"%",delta:null}},lastBiaDate:null}
   };
   const name=escapeHtml([patient.first_name,patient.last_name].filter(Boolean).join(" "));
-  const pathwayCard=active
-    ? `<section class="pathway-card is-active"><div class="pathway-card-main"><span class="pathway-symbol" aria-hidden="true">✓</span><div><span class="pathway-eyebrow">PERCORSO ATTUALE</span><h2>Percorso in corso</h2><p>Inizio: ${fmtDate(startedAt)}</p></div></div></section>`
-    : `<section class="pathway-card pathway-card-empty"><div class="pathway-card-main"><span class="pathway-symbol" aria-hidden="true">↗</span><div><span class="pathway-eyebrow">PERCORSO</span><h2>Nessun percorso attivo</h2><p>L'anagrafica del paziente è disponibile. L'apertura manuale del percorso sarà attivata nella prossima fase.</p></div></div></section>`;
-  const history=pathways.filter(item=>item.status==="ended");
-  const historyCard=history.length
-    ? `<section class="detail-panel">${sectionHeading("calendar","Storico percorsi")}${history.map(item=>`<p>Concluso · ${fmtDate(item.ended_at||item.created_at)}</p>`).join("")}</section>`
-    : "";
+  const livePathways=pathwayViewModel(pathways);
   root.innerHTML=`<div class="patient-detail">
     <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${name}</span></nav>
     ${renderHeader(model)}
@@ -388,7 +383,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},
         :`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" aria-disabled="true" tabindex="-1" title="Sezione in migrazione" onclick="return false">${label}</a>`).join("")}
     </nav>
     <div class="detail-content">${activeTab==="note"?renderNotes(model):`<div class="detail-overview">
-      <div class="pathway-management">${pathwayCard}${historyCard}</div>
+      ${renderPathwayManagement(livePathways)}
       ${renderKpis(model)}
       <div class="detail-overview-top">${renderTimeline(model)}${renderFocus(model)}</div>
       <div class="detail-overview-lower">
@@ -399,6 +394,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},
     </div>`}</div>
   </div>`;
   if(activeTab==="note")bindLiveNotes(root,notes,active,actions);
+  if(activeTab==="panoramica")bindRealPathway(root,patient.id,pathways,actions.pathwaySaved||(()=>{}));
 }
 export function renderPatientDetail(root,model,activeTab="panoramica",onIdentityChange=()=>{}){
   const {id,firstName,lastName}=model.data.identity;
