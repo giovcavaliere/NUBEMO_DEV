@@ -60,13 +60,13 @@ function numberField(label,key,measurement,{percentage=false}={}){
   return `<label><span>${label}</span><input name="${key}" type="number" inputmode="decimal" min="${percentage?0:.1}" ${percentage?'max="100"':""} step="0.01" value="${escapeHtml(measurement?.[key]??"")}" placeholder="Facoltativo"></label>`;
 }
 
-function openMeasurementDialog(root,data,viewModel,onChange,attachDialog,id=null){
+function openMeasurementDialog(root,data,viewModel,onChange,attachDialog,id=null,api=null){
   const existing=id?data.measurements.find(item=>item.id===id):null;
   const now=new Date(),localDate=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
   const localTime=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog detail-dialog-wide measure-dialog";
-  dialog.innerHTML=`<form method="dialog"><header><h2>${existing?"Modifica misurazione":"Nuova misurazione"}</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Solo la data è obbligatoria. Modifiche demo disponibili fino al ricaricamento della pagina.</p>
+  dialog.innerHTML=`<form method="dialog"><header><h2>${existing?"Modifica misurazione":"Nuova misurazione"}</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Solo la data è obbligatoria. I valori mancanti non vengono stimati.</p>
     <div class="measure-form-body">
       <fieldset><legend>Rilevazione</legend><div class="measure-form-grid"><label><span>Data *</span><input name="date" type="date" required value="${escapeHtml(existing?.date||localDate)}"></label><label><span>Ora</span><input name="time" type="time" value="${escapeHtml(existing?existing.time||"":localTime)}"></label>${numberField("Peso (kg)","weight",existing)}${numberField("Altezza (cm)","height",existing)}</div>
         <div class="measure-form-hint"><span>BMI: <output data-measure-bmi>—</output> · richiede peso e altezza di questa rilevazione.</span>${viewModel.lastHeight?`<button type="button" data-measure-use-height>Usa altezza ${viewModel.lastHeight.value} cm del ${escapeHtml(viewModel.lastHeight.dateText)}</button>`:""}</div>
@@ -87,6 +87,7 @@ function openMeasurementDialog(root,data,viewModel,onChange,attachDialog,id=null
   updatePreview();
   attachDialog(root,dialog,values=>{
     const measurement=measurementFromForm(values,existing);
+    if(api) return api.save(measurement).then(onChange);
     if(existing) data.measurements[data.measurements.findIndex(item=>item.id===id)]=measurement;
     else data.measurements.push(measurement);
     onChange();
@@ -94,21 +95,22 @@ function openMeasurementDialog(root,data,viewModel,onChange,attachDialog,id=null
   });
 }
 
-function openDeleteDialog(root,data,row,onChange,attachDialog){
+function openDeleteDialog(root,data,row,onChange,attachDialog,api=null){
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog measure-delete-dialog";
   dialog.innerHTML=`<form method="dialog"><header><h2>Elimina misurazione</h2><button type="button" data-close aria-label="Chiudi">×</button></header><p>Eliminare la misurazione del <strong>${escapeHtml(row.dateText)}${row.timeText!=="—"?` alle ${escapeHtml(row.timeText)}`:""}</strong>? Verrà rimossa dallo storico e dai grafici.</p><footer><button type="button" data-close autofocus>Annulla</button><button type="submit" value="save">Elimina</button></footer></form>`;
   attachDialog(root,dialog,()=>{
+    if(api) return api.remove(row.id).then(onChange);
     data.measurements=data.measurements.filter(item=>item.id!==row.id);
     onChange();
     root.querySelector("[data-measure-new]")?.focus({preventScroll:true});
   });
 }
 
-export function bindMeasurements(root,data,model,onChange,attachDialog){
-  root.querySelector("[data-measure-new]")?.addEventListener("click",()=>openMeasurementDialog(root,data,model,onChange,attachDialog));
-  root.querySelectorAll("[data-measure-edit]").forEach(button=>button.addEventListener("click",()=>openMeasurementDialog(root,data,model,onChange,attachDialog,button.dataset.measureEdit)));
-  root.querySelectorAll("[data-measure-delete]").forEach(button=>button.addEventListener("click",()=>openDeleteDialog(root,data,model.rows.find(row=>row.id===button.dataset.measureDelete),onChange,attachDialog)));
+export function bindMeasurements(root,data,model,onChange,attachDialog,api=null){
+  root.querySelector("[data-measure-new]")?.addEventListener("click",()=>openMeasurementDialog(root,data,model,onChange,attachDialog,null,api));
+  root.querySelectorAll("[data-measure-edit]").forEach(button=>button.addEventListener("click",()=>openMeasurementDialog(root,data,model,onChange,attachDialog,button.dataset.measureEdit,api)));
+  root.querySelectorAll("[data-measure-delete]").forEach(button=>button.addEventListener("click",()=>openDeleteDialog(root,data,model.rows.find(row=>row.id===button.dataset.measureDelete),onChange,attachDialog,api)));
   root.querySelectorAll(".measure-history-details").forEach(details=>details.addEventListener("toggle",()=>{
     if(details.open) root.querySelectorAll(".measure-history-details").forEach(other=>{if(other!==details) other.open=false});
   }));
