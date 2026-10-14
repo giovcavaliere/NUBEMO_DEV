@@ -2,7 +2,8 @@ await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
 import {loadPatientOverview} from "./patient-overview-live.js";
-import {renderLivePatientOverview} from "./patient-detail-view.js?v=live-tabs-20261013";
+import {renderLivePatientOverview} from "./patient-detail-view.js?v=notes-live-20261014";
+import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js";
 import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261013";
 let patientRecords=[];
 let patientsPhase="loading";
@@ -134,13 +135,20 @@ function showView(route){
     renderProfilePage(profileView,professionalProfile);
     bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
-    if(route.tab!=="panoramica"){location.hash=`#patient/${encodeURIComponent(route.id)}/panoramica`;return;}
-    patientDetailView.textContent="Caricamento panoramica…";
+    if(!["panoramica","note"].includes(route.tab)){location.hash=`#patient/${encodeURIComponent(route.id)}/panoramica`;return;}
+    patientDetailView.textContent="Caricamento scheda paziente…";
     void (async()=>{
       try{
         await patientsLoading;
         const data=await loadPatientOverview(route.id,patientRecords);
-        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id)renderLivePatientOverview(patientDetailView,data);
+        const active=data.pathways.find(p=>p.status==="active");
+        const notes=route.tab==="note"?await loadRealNotes(route.id,active?.id):[];
+        const refresh=()=>{if(currentRoute().id===route.id)showView(currentRoute());};
+        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab)
+          renderLivePatientOverview(patientDetailView,{...data,notes},route.tab,{
+            save:async(id,content)=>{await saveRealNote(route.id,active?.id,id,content);refresh();},
+            remove:async id=>{await deleteRealNote(route.id,active?.id,id);refresh();}
+          });
       }catch(error){patientDetailView.textContent=error.message||"Errore caricamento paziente.";}
     })();
   }
