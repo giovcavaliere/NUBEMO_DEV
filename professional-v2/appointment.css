@@ -1,5 +1,5 @@
 /* NUBEMO Professional 2.0 — Nuovo appuntamento */
-.appointment-view[hidden]{display:none!important}.appointment-view{width:100%}
+.appointment-view[hidden]{display:none!important}.appointment-view{width:100%}.appointment-view button,.appointment-view input,.appointment-view select,.appointment-view textarea{font-family:inherit}
 .appointment-page{display:grid;gap:12px}.appointment-breadcrumb{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:11px}
 .appointment-breadcrumb button{border:0;background:transparent;padding:0;color:var(--muted);cursor:pointer}.appointment-breadcrumb strong{color:var(--text)}
 .appointment-head h1{margin:0;font-size:clamp(27px,2.1vw,32px);letter-spacing:-.025em;line-height:1.15;font-weight:650}
