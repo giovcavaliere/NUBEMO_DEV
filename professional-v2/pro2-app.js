@@ -2,7 +2,7 @@ await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
 import {loadPatientOverview} from "./patient-overview-live.js";
-import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress} from "./patient-detail-view.js?v=progress-tabs-20261014";
+import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=live-visits-20261014";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=profile-save-fix-20261014";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
@@ -151,7 +151,7 @@ function showView(route){
     renderProfilePage(profileView,professionalProfile);
     bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
-    if(!["panoramica","note","profilo","misure","andamento"].includes(route.tab)){location.hash=`#patient/${encodeURIComponent(route.id)}/panoramica`;return;}
+    if(!["panoramica","note","profilo","visite","misure","andamento"].includes(route.tab)){location.hash=`#patient/${encodeURIComponent(route.id)}/panoramica`;return;}
     patientDetailView.textContent="Caricamento scheda paziente…";
     void (async()=>{
       try{
@@ -168,7 +168,16 @@ function showView(route){
           if(goalError)throw Error("Impossibile leggere l'obiettivo peso: "+goalError.message);
           goalWeight=goal?.goal_weight_kg==null?null:Number(goal.goal_weight_kg);
         }
+        const visitsEvents=route.tab==="visite"?await loadRealAgenda(patientRecords):[];
         const refresh=()=>{if(currentRoute().id===route.id)showView(currentRoute());};
+        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab==="visite"){
+          renderLivePatientVisits(patientDetailView,data,visitsEvents,{
+            refresh,
+            save:saveRealVisit,
+            update:updateRealAppointment,
+            remove:deleteRealAppointment
+          });
+        }
         if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab==="andamento"){
           renderLivePatientProgress(patientDetailView,data,measurements,goalWeight);
         }
@@ -184,7 +193,7 @@ function showView(route){
             saveClinical:async values=>{if(!liveProfile.editable)throw Error("È necessario un percorso attivo.");await saveLiveClinical(route.id,liveProfile.pathwayId,values);refresh();}
           });
         }
-        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab&&!["profilo","misure","andamento"].includes(route.tab))
+        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab&&!["profilo","visite","misure","andamento"].includes(route.tab))
           renderLivePatientOverview(patientDetailView,{...data,notes},route.tab,{
             save:async(id,content)=>{await saveRealNote(route.id,active?.id,id,content);refresh();},
             remove:async id=>{await deleteRealNote(route.id,active?.id,id);refresh();},
