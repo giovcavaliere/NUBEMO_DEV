@@ -181,6 +181,10 @@ function showView(route){
       try{
         await patientsLoading;
         const data=await loadPatientOverview(route.id,patientRecords);
+        const {data:completedRows,error:completedError}=await window.nubemoSupabase
+          .from("appointment_visits").select("id").eq("patient_id",route.id);
+        if(completedError)throw Error("Impossibile verificare le visite completate: "+completedError.message);
+        data.completedVisits=completedRows?.length??0;
         const active=data.pathways.find(p=>p.status==="active");
         const notes=route.tab==="note"?await loadRealNotes(route.id,active?.id):[];
         const liveProfile=route.tab==="profilo"?await loadLivePatientProfile(route.id,data):null;
