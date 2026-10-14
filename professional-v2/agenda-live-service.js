@@ -7,8 +7,10 @@ async function checked(promise,context){const {data,error}=await promise;if(erro
 const dateTime=(date,time)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^\d{2}:\d{2}$/.test(time))throw Error("Data e ora non valide.");const local=new Date(date+"T"+time+":00");if(Number.isNaN(local.getTime()))throw Error("Data e ora non valide.");return local.toISOString();};
 const timeString=iso=>new Date(iso).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",hour12:false});
 const dateString=iso=>{const d=new Date(iso);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
-export async function loadRealDraftPatients(){
- const rows=await checked(client().from("professional_patient_drafts").select("id,first_name,last_name,phone,status").eq("status","draft").order("created_at",{ascending:false}),"Caricamento draft");
+export async function loadRealDraftPatients(onlyOpen=true){
+ let query=client().from("professional_patient_drafts").select("id,first_name,last_name,phone,status,converted_patient_id");
+ if(onlyOpen)query=query.eq("status","draft");
+ const rows=await checked(query.order("created_at",{ascending:false}),"Caricamento draft");
  return (rows||[]).map(d=>({...d,email:"",isDraft:true}));
 }
 export async function createRealDraft(values){
@@ -23,7 +25,7 @@ export async function loadRealAgenda(patients=[]){
   checked(client().from("appointments").select("id,starts_at,ends_at,appointment_type,status,notes,modality,studio_id,reminder_email_requested").is("deleted_at",null).order("starts_at",{ascending:true}),"Caricamento Agenda"),
   checked(client().from("appointment_patients").select("id,appointment_id,patient_id,draft_patient_id,pathway_id"),"Associazioni appuntamenti"),
   checked(client().from("appointment_visits").select("id,appointment_patient_id,appointment_id,patient_id,visit_note,registered_at"),"Registrazioni visite"),
-  loadRealDraftPatients()
+  loadRealDraftPatients(false)
  ]);
  const byPatient=new Map([...patients,...drafts].map(x=>[x.id,x]));
  return (appointments||[]).filter(a=>!["cancelled","canceled"].includes(a.status)).map(a=>{
