@@ -10,7 +10,7 @@ export async function loadPatientOverview(patientId,patients){
  if(proError||!pro)throw Error("Professionista non disponibile.");
  const {data:link,error:linkError}=await client.from("professional_patients").select("id,status,created_at").eq("professional_id",pro.id).eq("patient_id",patientId).single();
  if(linkError||!link)throw Error("Paziente non autorizzato.");
- const {data:pathways,error:pathwayError}=await client.from("patient_pathways").select("id,status,started_at,ended_at,pathway_start_date,created_at").eq("professional_patient_id",link.id).order("created_at",{ascending:false});
+ const {data:pathways,error:pathwayError}=await client.from("patient_pathways").select("id,status,started_at,ended_at,pathway_start_date,created_at,objective_key,custom_objective,objective_note,closing_note").eq("professional_patient_id",link.id).order("created_at",{ascending:false});
  if(pathwayError)throw Error("Impossibile caricare i percorsi reali.");
  return {patient,link,pathways:pathways||[]};
 }
