@@ -49,13 +49,12 @@ export async function saveRealVisit(appointmentId,patientId,note){
  return checked(client().rpc("save_professional_visit",{p_appointment_id:appointmentId,p_patient_id:patientId,p_visit_note:note}),"Salvataggio visita");
 }
 export async function updateRealAppointment(event,values,{correction=false}={}){
- const start=dateTime(values.date,values.start),end=new Date(new Date(start).getTime()+Number(values.duration)*60000).toISOString();
- if(correction){
-  await checked(client().rpc("correct_registered_visit_datetime",{p_appointment_id:event.id,p_starts_at:start,p_ends_at:end}),"Correzione appuntamento");
- }
- const payload={notes:values.notes};
- if(!event.appointmentLocked){Object.assign(payload,{appointment_type:values.type,starts_at:start,ends_at:end});}
- await checked(client().from("appointments").update(payload).eq("id",event.id).is("deleted_at",null),"Modifica appuntamento");
+ const start=dateTime(values.date,values.start);
+ const end=new Date(new Date(start).getTime()+Number(values.duration)*60000).toISOString();
+ await checked(client().rpc("pro2_update_appointment",{
+  p_appointment_id:event.id,p_starts_at:start,p_ends_at:end,p_type:values.type,
+  p_notes:values.notes||"",p_correction:!!correction
+ }),"Modifica appuntamento");
 }
 export async function deleteRealAppointment(id){
  await checked(client().rpc("soft_delete_own_professional_appointment",{p_appointment_id:id}),"Eliminazione appuntamento");
