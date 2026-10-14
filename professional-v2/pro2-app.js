@@ -18,8 +18,9 @@ import {renderPatientsPage} from "./patients-view.js?v=live-overview-20261013";
 import {renderSupportPage,sendSupport} from "./support-view.js?v=support-migration-20261013";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js?v=profile-clean-20261013";
 import {loadProfessionalProfile,saveProfessionalProfile,updateProfessionalMedia} from "./profile-service.js?v=profile-clean-20261013";
-import {agendaState,renderAgendaPage,bindAgendaPage,addAgendaEvent} from "./agenda-view.js";
-import {appointmentState,renderAppointmentPage,bindAppointmentPage} from "./appointment-view.js";
+import {agendaState,renderAgendaPage,bindAgendaPage,setAgendaEvents} from "./agenda-view.js";
+import {loadRealAgenda,loadRealDraftPatients,createRealDraft,createRealAppointment,saveRealVisit,updateRealAppointment,deleteRealAppointment} from "./agenda-live-service.js";
+import {appointmentState,renderAppointmentPage,bindAppointmentPage,setAppointmentPatients} from "./appointment-view.js";
 
 const dashboardView=document.getElementById("dashboardView");
 const patientsView=document.getElementById("patientsView");
@@ -111,24 +112,37 @@ function showView(route){
   if(route.name==="patients"){
     renderPatients();
   }else if(route.name==="agenda"){
-    renderAgendaPage(agendaView,{profile:professionalProfile,state:agendaState});
-    bindAgendaPage(agendaView,{
-      profile:professionalProfile,
-      state:agendaState,
-      onNewAppointment:prefill=>{openNewAppointment(prefill||{})}
-    });
+    agendaView.textContent="Caricamento Agenda…";
+    void (async()=>{
+      try{
+        await patientsLoading;
+        const events=await loadRealAgenda(patientRecords);
+        if(currentRoute().name!=="agenda")return;
+        setAgendaEvents(events);
+        renderAgendaPage(agendaView,{profile:professionalProfile,state:agendaState});
+        bindAgendaPage(agendaView,{profile:professionalProfile,state:agendaState,onNewAppointment:prefill=>openNewAppointment(prefill||{})});
+      }catch(error){if(currentRoute().name==="agenda")agendaView.textContent=error.message||"Impossibile caricare Agenda.";}
+    })();
   }else if(route.name==="appointment"){
-    renderAppointmentPage(appointmentView,{profile:professionalProfile,state:appointmentState});
-    bindAppointmentPage(appointmentView,{
-      profile:professionalProfile,
-      state:appointmentState,
-      onCancel:()=>{location.hash="#agenda"},
-      onSave:event=>{
-        addAgendaEvent(event);
-        alert("Appuntamento aggiunto alla demo NUBEMO 2.0.");
-        location.hash="#agenda";
-      }
-    });
+    appointmentView.textContent="Caricamento pazienti…";
+    void (async()=>{
+      try{
+        await patientsLoading;
+        const drafts=await loadRealDraftPatients();
+        if(currentRoute().name!=="appointment")return;
+        setAppointmentPatients([...patientRecords.filter(p=>p.status==="active"),...drafts]);
+        renderAppointmentPage(appointmentView,{profile:professionalProfile,state:appointmentState});
+        bindAppointmentPage(appointmentView,{
+          profile:professionalProfile,state:appointmentState,
+          onCancel:()=>{location.hash="#agenda";},
+          onCreateDraft:createRealDraft,
+          onSave:async event=>{
+            await createRealAppointment(event,await loadRealDraftPatients());
+            location.hash="#agenda";
+          }
+        });
+      }catch(error){if(currentRoute().name==="appointment")appointmentView.textContent=error.message||"Impossibile caricare il modulo appuntamenti.";}
+    })();
   }else if(route.name==="support"){
     renderSupportPage(supportView);
     supportView.querySelector("#sendSupport")?.addEventListener("click",()=>{void sendSupport(supportView)});
