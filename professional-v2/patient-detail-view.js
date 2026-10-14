@@ -390,10 +390,10 @@ export function renderLivePatientProfile(root,overview,real,actions){
  };
  root.querySelectorAll(".detail-accordion").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)root.querySelectorAll(".detail-accordion").forEach(o=>{if(o!==d)o.open=false;});}));
  root.querySelector("[data-edit-identity]")?.addEventListener("click",()=>open("Anagrafica",
-  `<div class="detail-identity-form"><div class="detail-identity-row"><label>Nome<input name="firstName" required value="${escapeHtml(identity.firstName)}"></label><label>Cognome<input name="lastName" required value="${escapeHtml(identity.lastName)}"></label></div>
-   <div class="detail-identity-row"><label>Data di nascita<input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label><label>Sesso<select name="sex">${["","Maschio","Femmina","Altro","Preferisco non indicarlo"].map(v=>`<option value="${escapeHtml(v)}" ${identity.sex===v?"selected":""}>${escapeHtml(v||"Non indicato")}</option>`).join("")}</select></label></div>
-   <div class="detail-identity-row"><label>Altezza (cm)<input name="height" type="number" min="50" max="250" step="0.1" value="${escapeHtml(identity.height??"")}"></label><label>Telefono<input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label></div>
-   <div class="detail-identity-row"><label>Email<input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label></div></div>`,
+  `<div class="detail-identity-form"><div class="detail-identity-row"><label><span>Nome</span><input name="firstName" required value="${escapeHtml(identity.firstName)}"></label><label><span>Cognome</span><input name="lastName" required value="${escapeHtml(identity.lastName)}"></label></div>
+   <div class="detail-identity-row"><label><span>Data di nascita</span><input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label><label><span>Sesso</span><select name="sex">${["","Maschio","Femmina","Altro","Preferisco non indicarlo"].map(v=>`<option value="${escapeHtml(v)}" ${identity.sex===v?"selected":""}>${escapeHtml(v||"Non indicato")}</option>`).join("")}</select></label></div>
+   <div class="detail-identity-row"><label><span>Altezza (cm)</span><input name="height" type="number" min="50" max="250" step="0.1" value="${escapeHtml(identity.height??"")}"></label><label><span>Telefono</span><input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label></div>
+   <div class="detail-identity-row"><label><span>Email</span><input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label></div></div>`,
   data=>actions.saveIdentity(Object.fromEntries(data)),true));
  const sections={
   weightGoals:["Obiettivi e storia del peso",["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight","objectives"]],
@@ -407,13 +407,20 @@ export function renderLivePatientProfile(root,overview,real,actions){
  else root.querySelectorAll("[data-edit-profile-section]").forEach(button=>button.addEventListener("click",()=>{
   const entry=sections[button.dataset.editProfileSection];if(!entry)return;
   const [title,keys]=entry;
-  const body=`<div class="detail-anamnesis-editor">${keys.map(key=>{
-   if(key.startsWith("family.")){const k=key.slice(7);return `<label class="detail-check-field"><input type="checkbox" name="${key}" ${a.family[k]===true?"checked":""}><span>${escapeHtml(k)}</span></label>`;}
-   const value=a[key]??"";const label=labels[key]||key;
-   if(key==="activityFactor")return `<label>${label}<select name="${key}">${[["","Non impostato"],["1.2","Sedentario"],["1.375","Leggermente attivo"],["1.55","Moderatamente attivo"],["1.725","Molto attivo"],["1.9","Estremamente attivo"]].map(([v,l])=>`<option value="${v}" ${String(value)===v?"selected":""}>${l}</option>`).join("")}</select></label>`;
-   if(["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight"].includes(key))return `<label>${label}<input type="number" step="0.1" name="${key}" value="${escapeHtml(value)}"></label>`;
-   return `<label>${label}<textarea name="${key}" rows="3">${escapeHtml(value)}</textarea></label>`;
-  }).join("")}</div>`;
+  const familyLabels={obesity:"Obesità",diabetes:"Diabete",hypertension:"Ipertensione",cardiovascular:"Cardiovascolare",dyslipidemia:"Dislipidemie",thyroid:"Tiroide"};
+  const fields=keys.map(key=>{
+   if(key.startsWith("family.")){
+    const k=key.slice(7);
+    return `<label class="detail-family-option"><input type="checkbox" name="${key}" ${a.family[k]===true?"checked":""}><span class="detail-family-option-box"><span class="detail-family-option-check">✓</span><strong>${familyLabels[k]}</strong></span></label>`;
+   }
+   const value=a[key]??"",label=labels[key]||key;
+   if(key==="activityFactor")return anamnesisInput(key,label,value,{options:[["","Non impostato"],["1.2","Sedentario"],["1.375","Leggermente attivo"],["1.55","Moderatamente attivo"],["1.725","Molto attivo"],["1.9","Estremamente attivo"]]});
+   if(["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight"].includes(key))return anamnesisInput(key,label,value,{type:"number",step:"0.1"});
+   return anamnesisInput(key,label,value,{rows:3,wide:["objectives","diagnosis"].includes(key)});
+  }).join("");
+  const body=keys[0]?.startsWith("family.")
+   ?`<div class="detail-anamnesis-editor"><fieldset class="detail-family-editor"><legend>Familiarità</legend><div class="detail-family-options">${fields}</div></fieldset></div>`
+   :`<div class="detail-anamnesis-editor">${fields}</div>`;
   open(title,body,data=>{const values={};keys.forEach(key=>values[key]=key.startsWith("family.")?data.has(key):data.get(key));return actions.saveClinical(values);},true);
  }));
 }
