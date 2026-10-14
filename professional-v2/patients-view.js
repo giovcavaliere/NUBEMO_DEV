@@ -126,13 +126,13 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
               <span class="patient-meta patient-weight">
                 <small>Peso attuale</small>
                 <strong>${escapeHtml(patient.weight??"—")}</strong>
-                <em class="${String(patient.weightDelta).startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta || "—")}</em>
+                ${patient.weightDelta!=null&&patient.weightDelta!==""?`<em class="${String(patient.weightDelta).startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta)}</em>`:""}
               </span>
               <span class="patient-meta">
                 <small>${patient.isQuickDraft?"Tipologia":status==="active"?"Prossima visita":"Stato percorso"}</small>
                 <strong>${patient.isQuickDraft?"Draft rapido":status==="active"?escapeHtml(patient.nextVisit || "—"):escapeHtml(STATUS_LABELS[patient.status])}</strong>
               </span>
-              <span class="patient-arrow">${patient.isQuickDraft?"—":"›"}</span>
+              ${patient.isQuickDraft?"":'<span class="patient-arrow">›</span>'}
             ${patient.isQuickDraft?"</div>":"</button>"}
           `).join("") : '<div class="patient-empty">'+(records.length?'Nessun paziente corrisponde ai filtri.':'Nessun paziente associato. La creazione paziente sarà attivata nella prossima fase.')+'</div>'}
         </div>
