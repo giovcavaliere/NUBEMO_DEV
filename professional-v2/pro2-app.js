@@ -117,6 +117,7 @@ function showView(route){
     void (async()=>{
       try{
         await Promise.all([patientsLoading,profileLoading]);
+        if(patientsPhase!=="ready")throw Error("Impossibile caricare le anagrafiche autorizzate.");
         if(!profileReady)throw Error("Impossibile caricare le impostazioni dello studio.");
         const events=await loadRealAgenda(patientRecords);
         if(currentRoute().name!=="agenda")return;
@@ -136,6 +137,7 @@ function showView(route){
     void (async()=>{
       try{
         await Promise.all([patientsLoading,profileLoading]);
+        if(patientsPhase!=="ready")throw Error("Impossibile caricare le anagrafiche autorizzate.");
         if(!profileReady)throw Error("Impossibile caricare le impostazioni dello studio.");
         const drafts=await loadRealDraftPatients();
         if(currentRoute().name!=="appointment")return;
