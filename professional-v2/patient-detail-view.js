@@ -514,7 +514,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},
     <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${name}</span></nav>
     ${renderHeader(model)}
     <nav class="detail-tabs" aria-label="Sezioni paziente">
-      ${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure")
+      ${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure"||key==="andamento")
         ?`<a href="${route(patient.id,key)}" class="${activeTab===key?"active":""}" ${activeTab===key?'aria-current="page"':""}>${label}</a>`
         :`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" aria-disabled="true" tabindex="-1" title="Sezione in migrazione" onclick="return false">${label}</a>`).join("")}
     </nav>
