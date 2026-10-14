@@ -1,5 +1,9 @@
 const client=()=>window.nubemoSupabase;
-async function checked(promise,context){const {data,error}=await promise;if(error)throw Error(context+": "+error.message);return data;}
+async function checked(promise,context){const {data,error}=await promise;if(error){
+ if(error.code==="23P01"||/pro2_appointments_no_overlap|conflicting key value violates exclusion constraint/i.test(error.message||""))
+  throw Error("La fascia oraria è già occupata da un altro appuntamento. Scegli un orario libero.");
+ throw Error(context+": "+error.message);
+}return data;}
 const dateTime=(date,time)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^\d{2}:\d{2}$/.test(time))throw Error("Data e ora non valide.");const local=new Date(date+"T"+time+":00");if(Number.isNaN(local.getTime()))throw Error("Data e ora non valide.");return local.toISOString();};
 const timeString=iso=>new Date(iso).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",hour12:false});
 const dateString=iso=>{const d=new Date(iso);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
