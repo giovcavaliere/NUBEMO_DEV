@@ -61,8 +61,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-700);outline-
   min-width:0;
 }
 .side-inner{
-  position:sticky;
-  top:0;
+  position:static;
   height:min(100vh,780px);
   height:min(100svh,780px);
   padding:24px 14px 20px;
