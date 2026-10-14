@@ -18,9 +18,9 @@ import {renderPatientsPage} from "./patients-view.js?v=live-overview-20261013";
 import {renderSupportPage,sendSupport} from "./support-view.js?v=support-migration-20261013";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js?v=profile-clean-20261013";
 import {loadProfessionalProfile,saveProfessionalProfile,updateProfessionalMedia} from "./profile-service.js?v=profile-clean-20261013";
-import {agendaState,renderAgendaPage,bindAgendaPage,setAgendaEvents} from "./agenda-view.js?v=agenda-live-20261014";
-import {loadRealAgenda,loadRealDraftPatients,createRealDraft,createRealAppointment,saveRealVisit,updateRealAppointment,deleteRealAppointment} from "./agenda-live-service.js";
-import {openLiveAgendaEditor} from "./agenda-event-editor.js";
+import {agendaState,renderAgendaPage,bindAgendaPage,setAgendaEvents} from "./agenda-view.js?v=agenda-ui-final-20261014";
+import {loadRealAgenda,loadRealDraftPatients,createRealDraft,createRealAppointment,saveRealVisit,updateRealAppointment,deleteRealAppointment} from "./agenda-live-service.js?v=agenda-service-final-20261014";
+import {openLiveAgendaEditor} from "./agenda-event-editor.js?v=agenda-editor-final-20261014";
 import {appointmentState,renderAppointmentPage,bindAppointmentPage,setAppointmentPatients} from "./appointment-view.js?v=appointment-live-20261014";
 
 const dashboardView=document.getElementById("dashboardView");
