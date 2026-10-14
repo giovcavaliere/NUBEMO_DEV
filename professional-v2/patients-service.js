@@ -36,6 +36,28 @@ export async function loadOwnPatients(){
    if(error)throw new Error('Impossibile leggere i profili dei pazienti.');
    profiles.push(...(data||[]));
  }
+ const futureFrom=new Date().toISOString();
+ const {data:futureAppointments,error:appointmentsError}=await client.from("appointments")
+   .select("id,starts_at").is("deleted_at",null).gte("starts_at",futureFrom)
+   .order("starts_at",{ascending:true}).limit(500);
+ if(appointmentsError)throw new Error("Impossibile leggere i prossimi appuntamenti.");
+ const futureIds=(futureAppointments||[]).map(a=>a.id);
+ const futureLinks=[];
+ for(let i=0;i<futureIds.length;i+=100){
+   const {data,error}=await client.from("appointment_patients")
+     .select("appointment_id,patient_id").in("appointment_id",futureIds.slice(i,i+100));
+   if(error)throw new Error("Impossibile leggere le associazioni degli appuntamenti.");
+   futureLinks.push(...(data||[]));
+ }
+ const appointmentsById=new Map((futureAppointments||[]).map(a=>[a.id,a]));
+ const nextByPatient=new Map();
+ for(const link of futureLinks){
+   const appointment=appointmentsById.get(link.appointment_id);
+   if(!link.patient_id||!appointment||nextByPatient.has(link.patient_id))continue;
+   nextByPatient.set(link.patient_id,new Intl.DateTimeFormat("it-IT",{
+     day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"
+   }).format(new Date(appointment.starts_at)));
+ }
  const byPatient=new Map(patientRows.map(p=>[p.id,p]));
  const byProfile=new Map(profiles.map(p=>[p.id,p]));
  const today=new Date();
@@ -54,7 +76,7 @@ export async function loadOwnPatients(){
    return {id:patient.id,first_name:person.first_name||'',last_name:person.last_name||'',
       email:person.email||'',phone:person.phone||'',age,
       status,created_at:patient.created_at||link.created_at,
-      weight:null,weightDelta:null,nextVisit:null,unreadDocuments:null,avatar:null};
+      weight:null,weightDelta:null,nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:null,avatar:null};
  }).filter(Boolean);
  return [...fullRecords,...quickDraftRecords];
 }
