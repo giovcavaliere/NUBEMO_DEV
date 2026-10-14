@@ -354,6 +354,21 @@ function bindLiveNotes(root,notes,active,actions){
     if(note)open("Elimina nota","",()=>actions.remove(note.id),true);
   }));
 }
+function livePatientHeaderModel(overview,demographics={}){
+ const {patient,link,pathways}=overview;
+ const active=pathways.find(item=>item.status==="active");
+ const startedAt=active?.pathway_start_date||active?.started_at||null;
+ return {
+  data:{identity:{
+   id:patient.id,firstName:patient.first_name,lastName:patient.last_name,
+   sex:demographics.sex||null,status:link.status==="ended"?"terminated":link.status==="pending"?"pending":"active"
+  },journey:{startedAt,summary:null}},
+  age:patient.age,firstVisit:null,lastControl:null,
+  journeyDays:startedAt?Math.max(1,Math.floor((Date.now()-new Date(startedAt).getTime())/86400000)+1):null,
+  kpis:{completedVisits:0,change:null}
+ };
+}
+
 export function renderLivePatientProfile(root,overview,real,actions){
  const {patient,link,pathways}=overview;
  const c=real.clinical||{};
@@ -377,6 +392,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
   .replace('Comunicazioni</dt><dd>Non attive','Comunicazioni</dt><dd>Non registrate')
   .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
  root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
+  ${renderHeader(livePatientHeaderModel(overview,{sex:real.record.sex}))}
   <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure")
    ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
    :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
@@ -431,6 +447,7 @@ export function renderLivePatientMeasures(root,overview,measurements,actions){
  const viewModel=getMeasurementsViewModel({measurements});
  root.innerHTML=`<div class="patient-detail">
  <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</span></nav>
+ ${renderHeader(livePatientHeaderModel(overview))}
  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(["panoramica","profilo","misure","note"].includes(key))
  ?`<a href="${route(patient.id,key)}" class="${key==="misure"?"active":""}" ${key==="misure"?'aria-current="page"':""}>${label}</a>`
  :`<a href="${route(patient.id,"misure")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
@@ -483,7 +500,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},
     <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${name}</span></nav>
     ${renderHeader(model)}
     <nav class="detail-tabs" aria-label="Sezioni paziente">
-      ${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo")
+      ${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure")
         ?`<a href="${route(patient.id,key)}" class="${activeTab===key?"active":""}" ${activeTab===key?'aria-current="page"':""}>${label}</a>`
         :`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" aria-disabled="true" tabindex="-1" title="Sezione in migrazione" onclick="return false">${label}</a>`).join("")}
     </nav>
