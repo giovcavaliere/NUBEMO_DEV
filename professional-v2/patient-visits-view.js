@@ -154,7 +154,7 @@ function openAppointmentDialog(root,event,data,onChange,api=null){
     <label>Tipo visita<select name="type" ${locked?"disabled":""}><option value="first" ${event.type==="first"?"selected":""}>Prima visita</option><option value="control" ${event.type==="control"?"selected":""}>Controllo</option></select></label>
     <label>Data<input name="date" type="date" value="${esc(event.date)}" ${dateDisabled?"disabled":""}></label>
     <label>Ora<input name="start" type="time" value="${esc(event.start)}" ${dateDisabled?"disabled":""}></label>
-    <label>Durata<select name="duration" ${dateDisabled?"disabled":""}>${[15,30,45,60,90,120].map(value=>`<option value="${value}" ${Number(event.duration)===value?"selected":""}>${value} minuti</option>`).join("")}</select></label>
+    <label>Durata<select name="duration" ${dateDisabled?"disabled":""}>${[...new Set([15,30,45,60,90,120,180,240,360,Number(event.duration)])].filter(value=>value>0).sort((a,b)=>a-b).map(value=>`<option value="${value}" ${Number(event.duration)===value?"selected":""}>${value} minuti</option>`).join("")}</select></label>
     <label class="visit-form-wide">Note appuntamento<textarea name="notes" rows="4">${esc(event.notes||"")}</textarea></label>
   </div>
   ${locked?`<div class="visit-dialog-lock">${icon("check")}<span>Visita registrata: l’appuntamento non è eliminabile e data, ora e durata sono bloccate.</span></div>`:""}`;
