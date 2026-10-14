@@ -3,7 +3,7 @@ import {getProgressViewModel} from "./patient-progress-model.js";
 import {renderMeasurements,bindMeasurements} from "./patient-measurements-view.js?v=live-measures-20261014";
 import {getMeasurementsViewModel} from "./patient-measurements-model.js";
 import {renderPlan,bindPlan} from "./patient-plan-view.js";
-import {renderVisits,bindVisits} from "./patient-visits-view.js?v=live-visits-20261014";
+import {renderVisits,bindVisits} from "./patient-visits-view.js?v=visits-final-20261014";
 import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathway-archive-20261009";
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
 import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
