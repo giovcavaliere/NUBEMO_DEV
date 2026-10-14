@@ -126,7 +126,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
               <span class="patient-meta patient-weight">
                 <small>Peso attuale</small>
                 <strong>${escapeHtml(patient.weight??"—")}</strong>
-                ${patient.weightDelta!=null&&patient.weightDelta!==""?`<em class="${String(patient.weightDelta).startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta)}</em>`:""}
+                ${!patient.isQuickDraft?`<em class="${String(patient.weightDelta??"").startsWith("+")?"up":"down"}">${escapeHtml(patient.weightDelta??"—")}</em>`:""}
               </span>
               <span class="patient-meta">
                 <small>${patient.isQuickDraft?"Tipologia":status==="active"?"Prossima visita":"Stato percorso"}</small>
