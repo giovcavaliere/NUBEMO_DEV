@@ -116,7 +116,8 @@ function showView(route){
     agendaView.textContent="Caricamento Agenda…";
     void (async()=>{
       try{
-        await patientsLoading;
+        await Promise.all([patientsLoading,profileLoading]);
+        if(!profileReady)throw Error("Impossibile caricare le impostazioni dello studio.");
         const events=await loadRealAgenda(patientRecords);
         if(currentRoute().name!=="agenda")return;
         setAgendaEvents(events);
@@ -134,7 +135,8 @@ function showView(route){
     appointmentView.textContent="Caricamento pazienti…";
     void (async()=>{
       try{
-        await patientsLoading;
+        await Promise.all([patientsLoading,profileLoading]);
+        if(!profileReady)throw Error("Impossibile caricare le impostazioni dello studio.");
         const drafts=await loadRealDraftPatients();
         if(currentRoute().name!=="appointment")return;
         setAppointmentPatients([...patientRecords.filter(p=>p.status==="active"),...drafts]);
@@ -206,7 +208,7 @@ function showView(route){
             remove:async id=>{await deleteRealNote(route.id,active?.id,id);refresh();},
             pathwaySaved:refresh
           });
-      }catch(error){patientDetailView.textContent=error.message||"Errore caricamento paziente.";}
+      }catch(error){const now=currentRoute();if(now.name==="patient-detail"&&now.id===route.id&&now.tab===route.tab)patientDetailView.textContent=error.message||"Errore caricamento paziente.";}
     })();
   }
 }
