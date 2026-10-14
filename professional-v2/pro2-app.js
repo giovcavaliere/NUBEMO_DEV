@@ -2,7 +2,7 @@ await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
 import {loadPatientOverview} from "./patient-overview-live.js";
-import {renderLivePatientOverview} from "./patient-detail-view.js?v=notes-live-20261014";
+import {renderLivePatientOverview} from "./patient-detail-view.js?v=pathways-live-20261014";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js";
 import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261013";
 let patientRecords=[];
@@ -147,7 +147,8 @@ function showView(route){
         if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab)
           renderLivePatientOverview(patientDetailView,{...data,notes},route.tab,{
             save:async(id,content)=>{await saveRealNote(route.id,active?.id,id,content);refresh();},
-            remove:async id=>{await deleteRealNote(route.id,active?.id,id);refresh();}
+            remove:async id=>{await deleteRealNote(route.id,active?.id,id);refresh();},
+            pathwaySaved:refresh
           });
       }catch(error){patientDetailView.textContent=error.message||"Errore caricamento paziente.";}
     })();
