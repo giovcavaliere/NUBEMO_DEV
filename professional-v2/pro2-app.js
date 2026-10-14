@@ -2,7 +2,7 @@ await window.NUBEMO_PRO2_AUTH_READY;
 
 import {loadOwnPatients} from "./patients-service.js";
 import {loadPatientOverview} from "./patient-overview-live.js";
-import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=live-visits-20261014";
+import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=visits-final-20261014";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=profile-save-fix-20261014";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
@@ -18,10 +18,10 @@ import {renderPatientsPage} from "./patients-view.js?v=live-overview-20261013";
 import {renderSupportPage,sendSupport} from "./support-view.js?v=support-migration-20261013";
 import {professionalProfile,initials,renderProfilePage,bindProfilePage} from "./profile-view.js?v=profile-clean-20261013";
 import {loadProfessionalProfile,saveProfessionalProfile,updateProfessionalMedia} from "./profile-service.js?v=profile-clean-20261013";
-import {agendaState,renderAgendaPage,bindAgendaPage,setAgendaEvents} from "./agenda-view.js";
+import {agendaState,renderAgendaPage,bindAgendaPage,setAgendaEvents} from "./agenda-view.js?v=agenda-live-20261014";
 import {loadRealAgenda,loadRealDraftPatients,createRealDraft,createRealAppointment,saveRealVisit,updateRealAppointment,deleteRealAppointment} from "./agenda-live-service.js";
 import {openLiveAgendaEditor} from "./agenda-event-editor.js";
-import {appointmentState,renderAppointmentPage,bindAppointmentPage,setAppointmentPatients} from "./appointment-view.js";
+import {appointmentState,renderAppointmentPage,bindAppointmentPage,setAppointmentPatients} from "./appointment-view.js?v=appointment-live-20261014";
 
 const dashboardView=document.getElementById("dashboardView");
 const patientsView=document.getElementById("patientsView");
