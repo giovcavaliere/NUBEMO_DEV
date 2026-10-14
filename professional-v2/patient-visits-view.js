@@ -1,5 +1,5 @@
 
-import {getAgendaEvents} from "./agenda-view.js?v=agenda-live-20261014";
+import {getAgendaEvents} from "./agenda-view.js?v=agenda-ui-final-20261014";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 const icon=name=>`<svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-${name}"/></svg>`;
