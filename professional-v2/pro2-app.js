@@ -111,7 +111,20 @@ function showView(route){
   }
 
   if(route.name==="patients"){
-    renderPatients();
+    patientsView.textContent="Aggiornamento elenco pazienti…";
+    void (async()=>{
+      try{
+        await patientsLoading;
+        const updated=await loadOwnPatients();
+        if(currentRoute().name!=="patients")return;
+        patientRecords=updated;patientsPhase="ready";patientsError="";
+        renderPatients();renderDashboardSearch();
+      }catch(error){
+        if(currentRoute().name!=="patients")return;
+        patientsPhase="error";patientsError=error.message||"Aggiornamento elenco non riuscito.";
+        renderPatients();
+      }
+    })();
   }else if(route.name==="agenda"){
     agendaView.textContent="Caricamento Agenda…";
     void (async()=>{
