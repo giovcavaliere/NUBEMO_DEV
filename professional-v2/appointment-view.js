@@ -8,7 +8,7 @@ const defaultDate=()=>new Date().toISOString().slice(0,10);
 export const appointmentState={
   patientIds:[],
   type:"first",
-  date:"2026-10-06",
+  date:defaultDate(),
   time:"11:00",
   duration:60,
   modality:"studio",
@@ -170,7 +170,7 @@ export function renderAppointmentPage(root,{profile,state=appointmentState}={}){
           <label class="appointment-toggle-row ${!reminderAvailable?"is-disabled":""}" title="${!patients.length&&!personal?"Seleziona un paziente":(!reminderAvailable&&!personal?(state.couple&&patients.length<2?"Seleziona entrambi i pazienti":"Uno o più pazienti non hanno un indirizzo email"):"")}">
             <input type="checkbox" data-appointment-reminder disabled>
             <span class="appointment-switch"></span>
-            <span><strong>Promemoria via email · non ancora attivo</strong><small>${personal?"Non disponibile per impegni personali":(!patients.length?"Seleziona un paziente":(state.couple&&patients.length<2?"Seleziona anche il secondo paziente":(reminderAvailable?(state.couple?"Invia un promemoria via email a entrambi i pazienti":"Invia un promemoria all'indirizzo email del paziente"):"Email non disponibile per uno o più pazienti")))}</small></span>
+            <span><strong>Promemoria via email · non ancora attivo</strong><small>Invio automatico non ancora disponibile.</small></span>
           </label>
         </section>
 
