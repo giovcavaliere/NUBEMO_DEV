@@ -112,7 +112,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
 
         <div class="patient-list">
           ${rows.length ? rows.map(patient=>`
-            <button type="button" class="patient-row" data-patient-id="${patient.id}">
+            ${patient.isQuickDraft?`<div class="patient-row" aria-label="Draft rapido senza scheda paziente">`:`<button type="button" class="patient-row" data-patient-id="${patient.id}">`}
               ${patientAvatar(patient)}
               <span class="patient-main">
                 <strong>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</strong>
@@ -132,8 +132,8 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
                 <small>${status==="active"?"Prossima visita":"Stato percorso"}</small>
                 <strong>${status==="active"?escapeHtml(patient.nextVisit || "—"):escapeHtml(STATUS_LABELS[patient.status])}</strong>
               </span>
-              <span class="patient-arrow">›</span>
-            </button>
+              <span class="patient-arrow">${patient.isQuickDraft?"Draft rapido":"›"}</span>
+            ${patient.isQuickDraft?"</div>":"</button>"}
           `).join("") : '<div class="patient-empty">'+(records.length?'Nessun paziente corrisponde ai filtri.':'Nessun paziente associato. La creazione paziente sarà attivata nella prossima fase.')+'</div>'}
         </div>
       </section>
