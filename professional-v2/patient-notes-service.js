@@ -28,8 +28,8 @@ export async function saveRealNote(patientId,pathwayId,id,content){
 }
 export async function deleteRealNote(patientId,pathwayId,id){
  if(!pathwayId)throw Error("Nessun percorso attivo.");
- const professionalId=await ownProfessional();
- const {error}=await db().from("professional_notes").update({deleted_at:new Date().toISOString()})
- .eq("id",id).eq("patient_id",patientId).eq("pathway_id",pathwayId).eq("professional_id",professionalId);
+ const {error}=await db().rpc("pro2_soft_delete_professional_note",{
+  p_note_id:id,p_patient_id:patientId,p_pathway_id:pathwayId
+ });
  if(error)throw Error("Eliminazione non riuscita: "+error.message);
 }
