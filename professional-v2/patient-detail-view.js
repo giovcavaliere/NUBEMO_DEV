@@ -1,4 +1,5 @@
 import {renderProgress,bindProgress} from "./patient-progress-view.js";
+import {getProgressViewModel} from "./patient-progress-model.js";
 import {renderMeasurements,bindMeasurements} from "./patient-measurements-view.js?v=live-measures-20261014";
 import {getMeasurementsViewModel} from "./patient-measurements-model.js";
 import {renderPlan,bindPlan} from "./patient-plan-view.js";
@@ -393,7 +394,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
   .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
  root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
   ${renderHeader(livePatientHeaderModel(overview,{sex:real.record.sex}))}
-  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure")
+  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="misure"||key==="andamento")
    ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
    :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
   <div class="detail-content">${protectedHtml}</div></div>`;
@@ -441,6 +442,19 @@ export function renderLivePatientProfile(root,overview,real,actions){
   open(title,body,data=>{const values={};keys.forEach(key=>values[key]=key.startsWith("family.")?data.has(key):data.get(key));return actions.saveClinical(values);},true);
  }));
 }
+export function renderLivePatientProgress(root,overview,measurements,goalWeight=null){
+ const patient=overview.patient;
+ const data={measurements,profile:{anamnesis:{goalWeight}}};
+ const model=getProgressViewModel(data);
+ root.innerHTML=`<div class="patient-detail">
+ <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</span></nav>
+ ${renderHeader(livePatientHeaderModel(overview))}
+ <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>["panoramica","profilo","misure","andamento","note"].includes(key)
+ ?`<a href="${route(patient.id,key)}" class="${key==="andamento"?"active":""}" ${key==="andamento"?'aria-current="page"':""}>${label}</a>`
+ :`<a href="${route(patient.id,"andamento")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
+ <div class="detail-content">${renderProgress(model)}</div></div>`;
+ bindProgress(root,data,model);
+}
 export function renderLivePatientMeasures(root,overview,measurements,actions){
  const patient=overview.patient;
  const hasActive=overview.pathways.some(p=>p.status==="active");
@@ -448,7 +462,7 @@ export function renderLivePatientMeasures(root,overview,measurements,actions){
  root.innerHTML=`<div class="patient-detail">
  <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</span></nav>
  ${renderHeader(livePatientHeaderModel(overview))}
- <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(["panoramica","profilo","misure","note"].includes(key))
+ <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(["panoramica","profilo","misure","andamento","note"].includes(key))
  ?`<a href="${route(patient.id,key)}" class="${key==="misure"?"active":""}" ${key==="misure"?'aria-current="page"':""}>${label}</a>`
  :`<a href="${route(patient.id,"misure")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
  <div class="detail-content">${renderMeasurements(viewModel)}</div></div>`;
