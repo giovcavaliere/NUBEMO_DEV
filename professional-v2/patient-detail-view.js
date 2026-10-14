@@ -372,7 +372,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
  // Consensi: non inventare preferenze email né permettere di modificare una firma registrata.
  const original=renderProfile(model);
  const protectedHtml=original
-  .replace(/<button type="button" class="detail-edit-button" data-edit-administration>[\\s\\S]*?<\\/button>/,"")
+  .replace(/<button type="button" class="detail-edit-button" data-edit-administration>[\s\S]*?<\/button>/,"")
   .replace('Comunicazioni</dt><dd>Non attive','Comunicazioni</dt><dd>Non registrate')
   .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
  root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
