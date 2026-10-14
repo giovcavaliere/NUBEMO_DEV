@@ -9,7 +9,17 @@ export async function loadOwnPatients(){
  const {data:links,error:linksError}=await client.from('professional_patients')
    .select('patient_id,status,created_at').eq('professional_id',professional.id);
  if(linksError)throw new Error('Impossibile caricare i pazienti associati.');
- if(!links?.length)return [];
+ const {data:quickDrafts,error:draftError}=await client.from("professional_patient_drafts")
+   .select("id,first_name,last_name,phone,status,created_at")
+   .eq("professional_id",professional.id).eq("status","draft");
+ if(draftError)throw new Error("Impossibile caricare i Draft rapidi.");
+ const quickDraftRecords=(quickDrafts||[]).map(item=>({
+   id:item.id,first_name:item.first_name||"",last_name:item.last_name||"",
+   phone:item.phone||"",email:"",age:null,status:"draft",isQuickDraft:true,
+   created_at:item.created_at,weight:null,weightDelta:null,nextVisit:null,
+   unreadDocuments:null,avatar:null
+ }));
+ if(!links?.length)return quickDraftRecords;
  const ids=[...new Set(links.map(link=>link.patient_id).filter(Boolean))];
  const patientRows=[];
  for(let i=0;i<ids.length;i+=100){
@@ -29,7 +39,7 @@ export async function loadOwnPatients(){
  const byPatient=new Map(patientRows.map(p=>[p.id,p]));
  const byProfile=new Map(profiles.map(p=>[p.id,p]));
  const today=new Date();
- return links.map(link=>{
+ const fullRecords=links.map(link=>{
    const patient=byPatient.get(link.patient_id);
    const person=patient&&byProfile.get(patient.profile_id);
    if(!patient||!person)return null;
@@ -46,4 +56,5 @@ export async function loadOwnPatients(){
       status,created_at:patient.created_at||link.created_at,
       weight:null,weightDelta:null,nextVisit:null,unreadDocuments:null,avatar:null};
  }).filter(Boolean);
+ return [...fullRecords,...quickDraftRecords];
 }
