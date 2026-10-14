@@ -178,7 +178,7 @@ function renderProfile(model){
   </div>`;
 
   const familySection=`<div class="detail-family-grid">
-    ${[["Obesità",family.obesity],["Diabete",family.diabetes],["Ipertensione",family.hypertension],["Cardiovascolare",family.cardiovascular],["Dislipidemie",family.dyslipidemia],["Tiroide",family.thyroid]].map(([label,value])=>`<div><span>${escapeHtml(label)}</span><strong class="${value?"yes":"no"}">${value?"Sì":"No"}</strong></div>`).join("")}
+    ${[["Obesità",family.obesity],["Diabete",family.diabetes],["Ipertensione",family.hypertension],["Cardiovascolare",family.cardiovascular],["Dislipidemie",family.dyslipidemia],["Tiroide",family.thyroid]].map(([label,value])=>`<div><span>${escapeHtml(label)}</span><strong class="${value?"yes":"no"}">${value===null||value===undefined?"—":value?"Sì":"No"}</strong></div>`).join("")}
   </div>`;
 
   const pathologicalSection=`<div class="detail-clinical-grid detail-clinical-grid-wide">
@@ -193,7 +193,7 @@ function renderProfile(model){
   return `<div class="detail-profile">
     <div class="detail-profile-column">
       <section class="detail-panel detail-identity">${sectionHeading("profile","Anagrafica")}
-        <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Altezza",identity.height!==""&&identity.height!=null?`${identity.height} cm`:"—")}${field("Telefono",identity.phone)}${field("Email",identity.email)}${field("Account NUBEMO",{active:"Attivo",pending:"Invito in attesa",inactive:"Non attivo"}[identity.nubemoAccountStatus]||"Non attivo")}${field("Calorie visibili al paziente",identity.showCaloriesToPatient?"Sì":"No")}</dl>
+        <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Altezza",identity.height!==""&&identity.height!=null?`${identity.height} cm`:"—")}${field("Telefono",identity.phone)}${field("Email",identity.email)}${field("Account NUBEMO",{active:"Attivo",pending:"Invito in attesa",inactive:"Non attivo"}[identity.nubemoAccountStatus]||"Non attivo")}${model.live?"":field("Calorie visibili al paziente",identity.showCaloriesToPatient?"Sì":"No")}</dl>
         <button type="button" class="detail-inline-action" data-edit-identity>Vedi / Modifica anagrafica <span aria-hidden="true">›</span></button>
       </section>
 
@@ -352,6 +352,70 @@ function bindLiveNotes(root,notes,active,actions){
     const note=notes.find(n=>n.id===button.dataset.deleteNote);
     if(note)open("Elimina nota","",()=>actions.remove(note.id),true);
   }));
+}
+export function renderLivePatientProfile(root,overview,real,actions){
+ const {patient,link,pathways}=overview;
+ const c=real.clinical||{};
+ const a={family:{}};
+ const fieldMap={
+  goalWeight:"goal_weight_kg",minWeight:"min_weight_kg",maxWeight:"max_weight_kg",reasonableWeight:"reasonable_weight_kg",theoreticalWeight:"theoretical_weight_kg",objectives:"objectives",
+  work:"work",activity:"activity",activityFactor:"activity_factor",smoking:"smoking",alcohol:"alcohol",diagnosis:"diagnosis",bowel:"bowel",metabolism:"metabolism",feeg:"feeg",impedance:"impedance",
+  previousDiets:"previous_diets",allergies:"allergies",medications:"medications",giIssues:"gi_issues",pastConditions:"past_conditions",observations:"observations"};
+ Object.entries(fieldMap).forEach(([key,column])=>{a[key]=c[column]??"";});
+ ["obesity","diabetes","hypertension","cardiovascular","dyslipidemia","thyroid"].forEach(key=>a.family[key]=c["family_"+key]??null);
+ const identity={id:patient.id,firstName:real.profile.first_name,lastName:real.profile.last_name,birthDate:real.record.birth_date,sex:real.record.sex,height:real.record.height_cm,
+  phone:real.profile.phone,email:real.profile.email,nubemoAccountStatus:real.profile.status};
+ const privacy={consent:{status:real.privacy?"signed":"missing",signedAt:real.privacy?.uploaded_at||null},
+  communications:{email:false},reminders:{email:false},consentManagement:null,
+  administrativeNotes:null};
+ const model={data:{identity,profile:{anamnesis:a},privacy},live:true};
+ // Consensi: non inventare preferenze email né permettere di modificare una firma registrata.
+ const original=renderProfile(model);
+ const protectedHtml=original
+  .replace(/<button type="button" class="detail-edit-button" data-edit-administration>[\\s\\S]*?<\\/button>/,"")
+  .replace('Comunicazioni</dt><dd>Non attive','Comunicazioni</dt><dd>Non registrate')
+  .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
+ root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
+  <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo")
+   ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
+   :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
+  <div class="detail-content">${protectedHtml}</div></div>`;
+ const open=(title,body,onSave,wide=false)=>{
+  const dialog=document.createElement("dialog");dialog.className="detail-dialog"+(wide?" detail-dialog-wide":"");
+  dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${body}<footer><button type="button" data-close>Annulla</button><button type="submit">Salva</button></footer><p data-live-error role="alert"></p></form>`;
+  root.append(dialog);dialog.showModal();
+  dialog.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>dialog.close()));
+  dialog.addEventListener("close",()=>dialog.remove(),{once:true});
+  dialog.querySelector("form").addEventListener("submit",async e=>{e.preventDefault();const btn=dialog.querySelector("[type=submit]");btn.disabled=true;try{await onSave(new FormData(dialog.querySelector("form")));dialog.close();}catch(error){dialog.querySelector("[data-live-error]").textContent=error.message||"Salvataggio non riuscito";btn.disabled=false;}});
+ };
+ root.querySelectorAll(".detail-accordion").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)root.querySelectorAll(".detail-accordion").forEach(o=>{if(o!==d)o.open=false;});}));
+ root.querySelector("[data-edit-identity]")?.addEventListener("click",()=>open("Anagrafica",
+  `<div class="detail-identity-form"><div class="detail-identity-row"><label>Nome<input name="firstName" required value="${escapeHtml(identity.firstName)}"></label><label>Cognome<input name="lastName" required value="${escapeHtml(identity.lastName)}"></label></div>
+   <div class="detail-identity-row"><label>Data di nascita<input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label><label>Sesso<select name="sex">${["","Maschio","Femmina","Altro","Preferisco non indicarlo"].map(v=>`<option value="${escapeHtml(v)}" ${identity.sex===v?"selected":""}>${escapeHtml(v||"Non indicato")}</option>`).join("")}</select></label></div>
+   <div class="detail-identity-row"><label>Altezza (cm)<input name="height" type="number" min="50" max="250" step="0.1" value="${escapeHtml(identity.height??"")}"></label><label>Telefono<input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label></div>
+   <div class="detail-identity-row"><label>Email<input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label></div></div>`,
+  data=>actions.saveIdentity(Object.fromEntries(data)),true));
+ const sections={
+  weightGoals:["Obiettivi e storia del peso",["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight","objectives"]],
+  lifestyle:["Stile di vita",["work","activity","activityFactor","smoking","alcohol"]],
+  clinical:["Dati clinici aggiuntivi",["diagnosis","bowel","metabolism","feeg","impedance"]],
+  family:["Familiarità",["family.obesity","family.diabetes","family.hypertension","family.cardiovascular","family.dyslipidemia","family.thyroid"]],
+  pathological:["Anamnesi patologica",["previousDiets","allergies","medications","giIssues","pastConditions","observations"]]
+ };
+ const labels={goalWeight:"Peso obiettivo (kg)",minWeight:"Peso minimo storico (kg)",maxWeight:"Peso massimo storico (kg)",reasonableWeight:"Peso ragionevole / concordato (kg)",theoreticalWeight:"Peso teorico (kg)",objectives:"Obiettivi",work:"Attività lavorativa",activity:"Attività fisica abituale",activityFactor:"Livello attività",smoking:"Fumo",alcohol:"Alcol",diagnosis:"Diagnosi / motivo",bowel:"Alvo",metabolism:"Metabolismo basale",feeg:"FEEG / fabbisogno",impedance:"Impedenziometria",previousDiets:"Diete pregresse",allergies:"Allergie / intolleranze",medications:"Farmaci / integrazione",giIssues:"Disturbi gastrointestinali",pastConditions:"Patologie / interventi pregressi",observations:"Osservazioni"};
+ if(!real.editable)root.querySelectorAll("[data-edit-profile-section]").forEach(b=>{b.disabled=true;b.title="È necessario un percorso attivo";});
+ else root.querySelectorAll("[data-edit-profile-section]").forEach(button=>button.addEventListener("click",()=>{
+  const entry=sections[button.dataset.editProfileSection];if(!entry)return;
+  const [title,keys]=entry;
+  const body=`<div class="detail-anamnesis-editor">${keys.map(key=>{
+   if(key.startsWith("family.")){const k=key.slice(7);return `<label class="detail-check-field"><input type="checkbox" name="${key}" ${a.family[k]===true?"checked":""}><span>${escapeHtml(k)}</span></label>`;}
+   const value=a[key]??"";const label=labels[key]||key;
+   if(key==="activityFactor")return `<label>${label}<select name="${key}">${[["","Non impostato"],["1.2","Sedentario"],["1.375","Leggermente attivo"],["1.55","Moderatamente attivo"],["1.725","Molto attivo"],["1.9","Estremamente attivo"]].map(([v,l])=>`<option value="${v}" ${String(value)===v?"selected":""}>${l}</option>`).join("")}</select></label>`;
+   if(["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight"].includes(key))return `<label>${label}<input type="number" step="0.1" name="${key}" value="${escapeHtml(value)}"></label>`;
+   return `<label>${label}<textarea name="${key}" rows="3">${escapeHtml(value)}</textarea></label>`;
+  }).join("")}</div>`;
+  open(title,body,data=>{const values={};keys.forEach(key=>values[key]=key.startsWith("family.")?data.has(key):data.get(key));return actions.saveClinical(values);},true);
+ }));
 }
 export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},activeTab="panoramica",actions={}){
   const active=pathways.find(item=>item.status==="active");
