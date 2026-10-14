@@ -36,8 +36,8 @@ function visitRecord(event,patientId){
   if(event.visitRegistered)return {registered:true,note:event.visitNote||"",registeredAt:event.visitRegisteredAt||null};
   return {registered:false,note:"",registeredAt:null};
 }
-function visitEvents(data){
-  return getAgendaEvents().filter(event=>belongsToPatient(event,data)).sort((a,b)=>`${b.date}T${b.start}`.localeCompare(`${a.date}T${a.start}`));
+function visitEvents(data,events=getAgendaEvents()){
+  return events.filter(event=>belongsToPatient(event,data)).sort((a,b)=>`${b.date}T${b.start}`.localeCompare(`${a.date}T${a.start}`));
 }
 function statusMarkup(record){
   return record.registered?'<span class="visit-status registered">Visita registrata</span>':'<span class="visit-status pending">Da registrare</span>';
@@ -59,9 +59,9 @@ function listItem(event,data,selected){
   </button>`;
 }
 
-export function renderVisits(model){
+export function renderVisits(model,eventsSource=getAgendaEvents()){
   const data=model.data;
-  const events=visitEvents(data);
+  const events=visitEvents(data,eventsSource);
   const patientId=String(data.identity.id);
   const requested=selectedVisitByPatient.get(patientId);
   const selected=events.find(event=>String(event.id)===String(requested))||events[0]||null;
@@ -144,7 +144,7 @@ function overlaps(a,b){
   return aStart<bEnd&&bStart<aEnd;
 }
 
-function openAppointmentDialog(root,event,data,onChange){
+function openAppointmentDialog(root,event,data,onChange,api=null){
   const patientId=String(data.identity.id);
   const record=visitRecord(event,patientId);
   const locked=!!event.appointmentLocked||record.registered;
@@ -183,20 +183,39 @@ function openAppointmentDialog(root,event,data,onChange){
     onChange();
   });
 
-  dialog.querySelector("[data-delete-appointment]")?.addEventListener("click",()=>{
+  if(api){
+    dialog.querySelector("form").addEventListener("submit",async eventSubmit=>{
+      eventSubmit.preventDefault();
+      const form=dialog.querySelector("form"),values=new FormData(form),button=form.querySelector('[type="submit"]');
+      const payload={
+        type:locked?event.type:String(values.get("type")||event.type),
+        date:dateDisabled?event.date:String(values.get("date")||event.date),
+        start:dateDisabled?event.start:String(values.get("start")||event.start),
+        duration:dateDisabled?event.duration:Number(values.get("duration")||event.duration),
+        notes:String(values.get("notes")||"").trim()
+      };
+      button.disabled=true;
+      try{await api.update(event,payload,{correction:locked&&correction});correctionModeByEvent.delete(String(event.id));dialog.close("cancel");onChange();}
+      catch(error){alert(error.message||"Modifica non riuscita.");button.disabled=false;}
+    });
+  }
+  dialog.querySelector("[data-delete-appointment]")?.addEventListener("click",async()=>{
     if(!confirm("Vuoi eliminare questo appuntamento?"))return;
+    if(api){
+      try{await api.remove(event.id);selectedVisitByPatient.delete(patientId);dialog.close("cancel");onChange();}
+      catch(error){alert(error.message||"Eliminazione non riuscita.");}
+      return;
+    }
     const events=getAgendaEvents(),index=events.indexOf(event);
     if(index>=0)events.splice(index,1);
-    selectedVisitByPatient.delete(patientId);
-    dialog.close();
-    onChange();
+    selectedVisitByPatient.delete(patientId);dialog.close();onChange();
   });
   dialog.querySelector("[data-enable-correction]")?.addEventListener("click",()=>{
     if(!confirm("Vuoi sbloccare data, ora e durata per correggere questa visita registrata?"))return;
     correctionModeByEvent.add(String(event.id));
     dialog.close();
     onChange();
-    setTimeout(()=>openAppointmentDialog(root,event,data,onChange),0);
+    setTimeout(()=>openAppointmentDialog(root,event,data,onChange,api),0);
   });
   dialog.querySelector("[data-cancel-correction]")?.addEventListener("click",()=>{
     correctionModeByEvent.delete(String(event.id));
@@ -213,7 +232,7 @@ function syncCompletedVisit(data,event,record){
   else data.visits.push({id:`visit-${event.id}-${data.identity.id}`,...payload});
 }
 
-function openVisitDialog(root,event,data,onChange){
+function openVisitDialog(root,event,data,onChange,api=null){
   const patientId=String(data.identity.id);
   const current=visitRecord(event,patientId);
   const firstSave=!current.registered;
@@ -224,7 +243,7 @@ function openVisitDialog(root,event,data,onChange){
     <div class="visit-register-form"><label>Nota visita<textarea name="visitNote" rows="7" placeholder="Inserisci le note relative alla visita">${esc(current.note||"")}</textarea></label></div>
     ${firstSave?'<p class="visit-register-help">Il primo salvataggio registra formalmente la visita e rende l’appuntamento collegato non eliminabile.</p>':'<p class="visit-register-help registered">La visita è già registrata. Puoi aggiornare la nota visita.</p>'}`;
   const footer='<button type="button" data-close>Annulla</button><button type="submit" value="save">Salva visita</button>';
-  makeDialog(root,"visit-register-dialog",firstSave?"Registra visita":"Visita registrata",firstSave?"Registra la visita collegata all’appuntamento in Agenda.":"Consulta o aggiorna la nota della visita.",body,footer,dialog=>{
+  const dialog=makeDialog(root,"visit-register-dialog",firstSave?"Registra visita":"Visita registrata",firstSave?"Registra la visita collegata all’appuntamento in Agenda.":"Consulta o aggiorna la nota della visita.",body,footer,dialog=>{
     if(dialog.returnValue!=="save")return;
     const values=new FormData(dialog.querySelector("form"));
     event.visitRecords=event.visitRecords&&typeof event.visitRecords==="object"?event.visitRecords:{};
@@ -234,11 +253,22 @@ function openVisitDialog(root,event,data,onChange){
     syncCompletedVisit(data,event,record);
     onChange();
   });
+  if(api){
+    dialog.querySelector("form").addEventListener("submit",async eventSubmit=>{
+      eventSubmit.preventDefault();
+      const form=dialog.querySelector("form"),button=form.querySelector('[type="submit"]');
+      button.disabled=true;
+      try{
+        await api.save(event.id,patientId,String(new FormData(form).get("visitNote")||"").trim());
+        dialog.close("cancel");onChange();
+      }catch(error){alert(error.message||"Registrazione visita non riuscita.");button.disabled=false;}
+    });
+  }
 }
 
-export function bindVisits(root,model,onChange){
+export function bindVisits(root,model,onChange,api=null,eventsSource=getAgendaEvents()){
   const data=model.data;
   root.querySelectorAll("[data-select-visit]").forEach(button=>button.addEventListener("click",()=>{selectedVisitByPatient.set(String(data.identity.id),button.dataset.selectVisit);onChange();}));
-  root.querySelectorAll("[data-edit-appointment]").forEach(button=>button.addEventListener("click",()=>{const event=getAgendaEvents().find(item=>String(item.id)===String(button.dataset.editAppointment));if(event)openAppointmentDialog(root,event,data,onChange);}));
-  root.querySelectorAll("[data-open-visit]").forEach(button=>button.addEventListener("click",()=>{const event=getAgendaEvents().find(item=>String(item.id)===String(button.dataset.openVisit));if(event)openVisitDialog(root,event,data,onChange);}));
+  root.querySelectorAll("[data-edit-appointment]").forEach(button=>button.addEventListener("click",()=>{const event=eventsSource.find(item=>String(item.id)===String(button.dataset.editAppointment));if(event)openAppointmentDialog(root,event,data,onChange,api);}));
+  root.querySelectorAll("[data-open-visit]").forEach(button=>button.addEventListener("click",()=>{const event=eventsSource.find(item=>String(item.id)===String(button.dataset.openVisit));if(event)openVisitDialog(root,event,data,onChange,api);}));
 }
