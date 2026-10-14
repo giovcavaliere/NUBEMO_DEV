@@ -85,7 +85,7 @@ function eventMarkup(event,startMinutes){
   const top=(eventStart-startMinutes)*PIXELS_PER_MINUTE;
   const height=Math.max(30,Number(event.duration)||30)*PIXELS_PER_MINUTE;
   const short=Number(event.duration)<=30?" short":"";
-  return `<button type="button" class="agenda-event ${event.type}${short}" tabindex="-1"
+  return `<button type="button" class="agenda-event ${event.type}${short}" data-agenda-event-id="${escapeText(event.id)}"
     style="--event-top:${top};--event-height:${height}">
     <strong>${escapeText(event.name)}</strong>
     <span>${escapeText(event.meta)}</span>
@@ -124,7 +124,7 @@ function periodLabel(days,state){
   }
   const first=days[0],last=days.at(-1);
   return {
-    main:first&&last?`${first.label} – ${last.label} 2026`:"Settimana",
+    main:first&&last?`${first.label} – ${last.label} ${new Date(last.date+"T12:00:00").getFullYear()}`:"Settimana",
     sub:`${days.length} giorni lavorativi`
   };
 }
@@ -233,10 +233,10 @@ export function renderAgendaPage(root,{profile,state=agendaState}={}){
   `;
 }
 
-export function bindAgendaPage(root,{profile,state=agendaState,onNewAppointment}={}){
+export function bindAgendaPage(root,{profile,state=agendaState,onNewAppointment,onOpenAppointment}={}){
   const rerender=()=>{
     renderAgendaPage(root,{profile,state});
-    bindAgendaPage(root,{profile,state,onNewAppointment});
+    bindAgendaPage(root,{profile,state,onNewAppointment,onOpenAppointment});
   };
 
   root.querySelectorAll("[data-agenda-mode]").forEach(button=>{
@@ -286,6 +286,9 @@ export function bindAgendaPage(root,{profile,state=agendaState,onNewAppointment}
     rerender();
   });
 
+  root.querySelectorAll("[data-agenda-event-id]").forEach(button=>{
+    button.addEventListener("click",()=>{const event=agendaEvents.find(item=>item.id===button.dataset.agendaEventId);if(event)onOpenAppointment?.(event);});
+  });
   root.querySelectorAll("[data-agenda-slot]").forEach(slot=>{
     slot.addEventListener("click",()=>{
       onNewAppointment?.({date:slot.dataset.date,time:slot.dataset.time});
