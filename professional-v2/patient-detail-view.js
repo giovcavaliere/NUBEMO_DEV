@@ -319,14 +319,47 @@ function bindNotes(root,model,onChange){
 }
 
 // Panoramica reale: stessa struttura grafica approvata, nessuna azione o sorgente demo.
-export function renderLivePatientOverview(root,{patient,link,pathways}){
+function bindLiveNotes(root,notes,active,actions){
+  const open=(title,currentText,confirm,remove=false)=>{
+    const dialog=document.createElement("dialog");
+    dialog.className="detail-dialog note-dialog";
+    dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${remove?"<p>Confermi l’eliminazione della nota?</p>":`<div class="note-form"><label>Nota<textarea name="noteText" required rows="8">${escapeHtml(currentText)}</textarea></label></div>`}<footer><button type="button" data-close>Annulla</button><button type="submit">${remove?"Elimina":"Salva"}</button></footer><p data-note-error role="alert"></p></form>`;
+    root.append(dialog);dialog.showModal();
+    dialog.querySelector("[data-close]").addEventListener("click",()=>dialog.close());
+    dialog.addEventListener("close",()=>dialog.remove(),{once:true});
+    dialog.querySelector("form").addEventListener("submit",async event=>{
+      event.preventDefault();
+      const content=dialog.querySelector("textarea")?.value.trim()||"";
+      if(!remove&&!content)return;
+      const button=dialog.querySelector("[type=submit]");button.disabled=true;
+      try{await confirm(content);dialog.close();}catch(error){dialog.querySelector("[data-note-error]").textContent=error.message||"Errore";button.disabled=false;}
+    });
+  };
+  if(!active){
+    const button=root.querySelector("[data-new-note]");
+    if(button){button.disabled=true;button.title="È necessario un percorso attivo";}
+    const description=root.querySelector(".notes-empty p");
+    if(description)description.textContent="Le note saranno disponibili dopo l’apertura di un percorso.";
+    return;
+  }
+  root.querySelector("[data-new-note]")?.addEventListener("click",()=>open("Nuova nota","",text=>actions.save(null,text)));
+  root.querySelectorAll("[data-edit-note]").forEach(button=>button.addEventListener("click",()=>{
+    const note=notes.find(n=>n.id===button.dataset.editNote);
+    if(note)open("Modifica nota",note.text,text=>actions.save(note.id,text));
+  }));
+  root.querySelectorAll("[data-delete-note]").forEach(button=>button.addEventListener("click",()=>{
+    const note=notes.find(n=>n.id===button.dataset.deleteNote);
+    if(note)open("Elimina nota","",()=>actions.remove(note.id),true);
+  }));
+}
+export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},activeTab="panoramica",actions={}){
   const active=pathways.find(item=>item.status==="active");
   const startedAt=active?.pathway_start_date||active?.started_at||null;
   const model={
     data:{
       identity:{id:patient.id,firstName:patient.first_name,lastName:patient.last_name,
         birthDate:null,sex:null,avatar:null,status:link.status==="pending"?"pending":link.status==="ended"?"terminated":"active"},
-      journey:{startedAt,summary:null}
+      journey:{startedAt,summary:null},notes
     },
     age:patient.age,
     journeyDays:startedAt?Math.max(1,Math.floor((Date.now()-new Date(startedAt).getTime())/86400000)+1):null,
@@ -350,11 +383,11 @@ export function renderLivePatientOverview(root,{patient,link,pathways}){
     <nav class="detail-breadcrumb" aria-label="Percorso"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${name}</span></nav>
     ${renderHeader(model)}
     <nav class="detail-tabs" aria-label="Sezioni paziente">
-      ${tabs.map(([key,label])=>key==="panoramica"
-        ?`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" class="active" aria-current="page">${label}</a>`
+      ${tabs.map(([key,label])=>(key==="panoramica"||key==="note")
+        ?`<a href="${route(patient.id,key)}" class="${activeTab===key?"active":""}" ${activeTab===key?'aria-current="page"':""}>${label}</a>`
         :`<a href="#patient/${encodeURIComponent(patient.id)}/panoramica" aria-disabled="true" tabindex="-1" title="Sezione in migrazione" onclick="return false">${label}</a>`).join("")}
     </nav>
-    <div class="detail-content"><div class="detail-overview">
+    <div class="detail-content">${activeTab==="note"?renderNotes(model):`<div class="detail-overview">
       <div class="pathway-management">${pathwayCard}${historyCard}</div>
       ${renderKpis(model)}
       <div class="detail-overview-top">${renderTimeline(model)}${renderFocus(model)}</div>
@@ -363,8 +396,9 @@ export function renderLivePatientOverview(root,{patient,link,pathways}){
         ${renderComposition(model)}
         <section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Funzionalità disponibili dopo la migrazione.")}<p class="detail-empty">Le funzioni cliniche saranno attivate dopo il collegamento a Supabase.</p></section>
       </div>
-    </div></div>
+    </div>`}</div>
   </div>`;
+  if(activeTab==="note")bindLiveNotes(root,notes,active,actions);
 }
 export function renderPatientDetail(root,model,activeTab="panoramica",onIdentityChange=()=>{}){
   const {id,firstName,lastName}=model.data.identity;
