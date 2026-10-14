@@ -78,11 +78,11 @@
 .pathway-history-sheet footer{display:flex;justify-content:flex-end;margin-top:20px}
 .pathway-history-sheet footer button{min-height:42px;font-size:12px}
 .pathway-history-dialog :is(button,summary):focus-visible{outline:2px solid var(--green-700);outline-offset:3px}
-.pathway-closing-note{display:grid;gap:5px;margin-top:14px;color:var(--muted);font-size:10px}
+.pathway-closing-note{display:grid;gap:5px;margin-top:14px;margin-bottom:22px;color:var(--muted);font-size:10px}
 .pathway-closing-note span{display:block}
 .pathway-closing-note small{font-size:9px;font-weight:400}
 .pathway-closing-note textarea{display:block;width:100%;min-height:92px;box-sizing:border-box;margin:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;line-height:1.45;resize:vertical}
-.pathway-dialog-fields{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}
+.pathway-dialog-fields{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px;margin-bottom:22px}
 .pathway-dialog-fields label{display:grid;grid-template-rows:18px auto;gap:5px;min-width:0;align-self:start;color:var(--muted);font-size:10px}
 .pathway-dialog-fields label>span{display:flex;align-items:flex-end;min-height:18px;line-height:1.2}
 .pathway-dialog-fields input,.pathway-dialog-fields select,.pathway-dialog-fields textarea{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;margin:0;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit}
