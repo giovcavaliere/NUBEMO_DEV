@@ -377,7 +377,7 @@
 .measure-history-expanded dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;margin:0}
 .measure-history-expanded dt{font-size:10px;color:var(--muted)}
 .measure-history-expanded dd{margin:4px 0 0;font-size:11px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
-.measure-form-body{display:grid;gap:15px;max-height:58vh;overflow:auto;margin:18px 0;padding:2px}
+.measure-form-body{display:grid;gap:15px;margin:18px 0;padding:2px}
 .measure-form-body fieldset{margin:0;padding:13px;border:1px solid var(--line);border-radius:12px;min-width:0}
 .measure-form-body legend{padding:0 6px;font-size:12px;font-weight:650;color:var(--green-800)}
 .measure-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
