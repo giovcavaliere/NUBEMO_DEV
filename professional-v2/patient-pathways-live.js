@@ -44,7 +44,7 @@ export function bindRealPathway(root,patientId,pathways,onSaved){
   dialog.className="detail-dialog pathway-dialog";
   dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${body}<footer><button type="button" data-close>Annulla</button><button type="submit">${escapeHtml(submitText)}</button></footer><p role="alert" data-pathway-error></p></form>`;
   root.append(dialog);
-  dialog.querySelector("[data-close]").addEventListener("click",()=>dialog.close());
+  dialog.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
   dialog.addEventListener("close",()=>dialog.remove(),{once:true});
   dialog.querySelector("form").addEventListener("submit",async event=>{
    event.preventDefault();
