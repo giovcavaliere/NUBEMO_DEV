@@ -366,7 +366,7 @@ function livePatientHeaderModel(overview,demographics={}){
   },journey:{startedAt,summary:null}},
   age:patient.age,firstVisit:null,lastControl:null,
   journeyDays:startedAt?Math.max(1,Math.floor((Date.now()-new Date(startedAt).getTime())/86400000)+1):null,
-  kpis:{completedVisits:0,change:null}
+  kpis:{completedVisits:overview.completedVisits??0,change:null}
  };
 }
 
@@ -504,7 +504,7 @@ export function renderLivePatientMeasures(root,overview,measurements,actions){
   root.querySelectorAll("[data-measure-edit],[data-measure-delete]").forEach(button=>button.disabled=true);
  }
 }
-export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},activeTab="panoramica",actions={}){
+export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],completedVisits=0},activeTab="panoramica",actions={}){
   const active=pathways.find(item=>item.status==="active");
   const startedAt=active?.pathway_start_date||active?.started_at||null;
   const model={
@@ -516,7 +516,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[]},
     age:patient.age,
     journeyDays:startedAt?Math.max(1,Math.floor((Date.now()-new Date(startedAt).getTime())/86400000)+1):null,
     firstVisit:null,lastControl:null,
-    kpis:{completedVisits:0,change:null,initialWeight:null,currentWeight:null,changePercent:null,
+    kpis:{completedVisits,change:null,initialWeight:null,currentWeight:null,changePercent:null,
       adherence:{percentage:0,completed:0,considered:0},nextAppointment:null},
     timeline:[],focus:[],weightSeries:[],
     composition:{values:{
