@@ -397,7 +397,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
   data=>actions.saveIdentity(Object.fromEntries(data)),true));
  const sections={
   weightGoals:["Obiettivi e storia del peso",["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight","objectives"]],
-  lifestyle:["Stile di vita",["work","activity","activityFactor","smoking","alcohol"]],
+  lifestyle:["Stile di vita",["work","activity","alcohol","smoking","activityFactor"]],
   clinical:["Dati clinici aggiuntivi",["diagnosis","bowel","metabolism","feeg","impedance"]],
   family:["Familiarità",["family.obesity","family.diabetes","family.hypertension","family.cardiovascular","family.dyslipidemia","family.thyroid"]],
   pathological:["Anamnesi patologica",["previousDiets","allergies","medications","giIssues","pastConditions","observations"]]
