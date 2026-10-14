@@ -2,6 +2,7 @@ const TODAY=new Date();
 const ISO_TODAY=`${TODAY.getFullYear()}-${String(TODAY.getMonth()+1).padStart(2,"0")}-${String(TODAY.getDate()).padStart(2,"0")}`;
 const WEEK_START=(()=>{const d=new Date(TODAY);d.setDate(d.getDate()-(d.getDay()+6)%7);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`})();
 
+const escapeText=value=>String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 const PIXELS_PER_HALF_HOUR=35;
 const PIXELS_PER_MINUTE=PIXELS_PER_HALF_HOUR/30;
 
@@ -86,8 +87,8 @@ function eventMarkup(event,startMinutes){
   const short=Number(event.duration)<=30?" short":"";
   return `<button type="button" class="agenda-event ${event.type}${short}" tabindex="-1"
     style="--event-top:${top};--event-height:${height}">
-    <strong>${event.name}</strong>
-    <span>${event.meta}</span>
+    <strong>${escapeText(event.name)}</strong>
+    <span>${escapeText(event.meta)}</span>
   </button>`;
 }
 
