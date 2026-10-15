@@ -204,7 +204,7 @@ function renderProfile(model){
   return `<div class="detail-profile">
     <div class="detail-profile-column">
       <section class="detail-panel detail-identity">${sectionHeading("profile","Anagrafica")}
-        <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Altezza",identity.height!==""&&identity.height!=null?`${identity.height} cm`:"—")}${field("Telefono",identity.phone)}${field("Email",identity.email)}${field("Account NUBEMO",{active:"Attivo",pending:"Invito in attesa",inactive:"Non attivo"}[identity.nubemoAccountStatus]||"Non attivo")}${model.live?"":field("Calorie visibili al paziente",identity.showCaloriesToPatient?"Sì":"No")}</dl>
+        <dl class="detail-fields">${field("Nome",identity.firstName)}${field("Cognome",identity.lastName)}${field("Data di nascita",fmtDate(identity.birthDate))}${field("Sesso",identity.sex)}${field("Altezza",identity.height!==""&&identity.height!=null?`${identity.height} cm`:"—")}${field("Telefono",identity.phone)}${field("Email",identity.email)}${field("Account NUBEMO",{active:"Attivo",pending:"Invito in attesa",inactive:"Non attivo"}[identity.nubemoAccountStatus]||"Non attivo")}${field("Calorie visibili al paziente",identity.showCaloriesToPatient?"Sì":"No")}</dl>
         <button type="button" class="detail-inline-action" data-edit-identity>Vedi / Modifica anagrafica <span aria-hidden="true">›</span></button>
       </section>
 
