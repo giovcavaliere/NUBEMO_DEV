@@ -415,6 +415,21 @@ export function renderLivePatientProfile(root,overview,real,actions){
   dialog.addEventListener("close",()=>dialog.remove(),{once:true});
   dialog.querySelector("form").addEventListener("submit",async e=>{e.preventDefault();const btn=dialog.querySelector("[type=submit]");btn.disabled=true;try{await onSave(new FormData(dialog.querySelector("form")));dialog.close();}catch(error){dialog.querySelector("[data-live-error]").textContent=error.message||"Salvataggio non riuscito";btn.disabled=false;}});
  };
+ if(real.profile.auth_user_id&&!real.profile.activation_completed_at&&link.status!=="ended"){
+  const identityFields=root.querySelector(".detail-content .detail-fields");
+  if(identityFields){
+   const panel=document.createElement("div");
+   panel.className="detail-activation-action";
+   panel.innerHTML='<button type="button" class="detail-edit-button" data-resend-patient-invite>Reinvia invito NUBEMO</button>';
+   identityFields.insertAdjacentElement("afterend",panel);
+   panel.querySelector("[data-resend-patient-invite]").addEventListener("click",async event=>{
+    const button=event.currentTarget;
+    if(!window.confirm("Inviare un nuovo link di attivazione all’email del paziente?"))return;
+    button.disabled=true;
+    try{await actions.resendInvite();button.textContent="Invito reinviato";}catch(error){window.alert(error.message||"Reinvio non riuscito");button.disabled=false;}
+   });
+  }
+ }
  if(!real.profile.auth_user_id&&link.status!=="ended"){
   const identityFields=root.querySelector(".detail-content .detail-fields");
   if(identityFields){
