@@ -1,0 +1,98 @@
+// Patient 2.0 Home — approved demo markup; live Supabase-only figures.
+const db=()=>window.nubemoSupabase;
+const el=(q)=>document.querySelector("#patientHomeView "+q);
+const fmt=v=>v==null?"—":Number(v).toLocaleString("it-IT",{minimumFractionDigits:1,maximumFractionDigits:1});
+const num=v=>v==null||v===""?null:Number.isFinite(Number(v))?Number(v):null;
+const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
+const date=val=>new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short"}).format(new Date(val+"T12:00:00"));
+const query=async q=>{const {data,error}=await q;if(error)throw error;return data||[];};
+const quotes=['La costanza batte la giornata perfetta.','Un risultato lento resta un risultato.','La direzione conta più della velocità.','Guarda la tendenza, non il singolo numero.','Misurare serve a capire, non a giudicare.','Un giorno alla volta è una misura sorprendentemente efficace.'];
+let chartPoints=[],currentRange="7d";
+const setText=(q,value)=>{const n=el(q);if(n)n.textContent=value;};
+const metric=(i,value,note)=>{const card=el(".patient-kpi-grid .kpi-card:nth-child("+i+")");if(!card)return;card.querySelector("strong").textContent=value;if(note!=null)card.querySelector("small").textContent=note;};
+function drawChart(){
+ const host=el("#patientWeightChart");if(!host)return;
+ const limits={"7d":7,"1m":30,"3m":90,all:null};const span=limits[currentRange];
+ const end=new Date(today()+"T12:00:00"),start=span?new Date(end.getTime()-(span-1)*86400000):null;
+ const points=chartPoints.filter(x=>!start||new Date(x.day+"T12:00:00")>=start);
+ el(".patient-range")?.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.weightRange===currentRange));
+ if(!points.length){host.innerHTML='<p class="agenda-note">Nessuna rilevazione del peso in questo periodo.</p>';return;}
+ if(points.length===1){host.innerHTML='<div class="patient-chart-latest"><span>Peso <strong>'+fmt(points[0].weight)+' kg</strong></span><span>'+date(points[0].day)+'</span></div>';return;}
+ const left=46,right=454,top=34,bottom=225;
+ const nums=points.map(p=>p.weight),low=Math.min(...nums),high=Math.max(...nums),pad=Math.max(1,(high-low)*.25),min=low-pad,max=high+pad;
+ const x=i=>left+(i*(right-left)/(points.length-1)),y=v=>top+(max-v)*(bottom-top)/(max-min);
+ const coords=points.map((p,i)=>[x(i),y(p.weight)]),path=coords.map(([x,y],i)=>(i?"L ":"M ")+x.toFixed(2)+" "+y.toFixed(2)).join(" ");
+ const area=path+" L "+right+" "+bottom+" L "+left+" "+bottom+" Z";
+ const selected=[0,Math.floor((points.length-1)/2),points.length-1];
+ host.innerHTML='<div class="patient-chart-core" role="img" aria-label="Andamento reale del peso"><span class="patient-chart-axis-title">Peso (kg)</span><div class="patient-chart-plot"><svg viewBox="46 34 408 191" preserveAspectRatio="none" aria-hidden="true">'+
+ Array.from({length:5},(_,i)=>{const v=min+(max-min)*i/4,yy=y(v);return '<line x1="46" x2="454" y1="'+yy+'" y2="'+yy+'" class="patient-chart-grid"/>';}).join("")+
+ '<path d="'+area+'" class="patient-chart-area"/><path d="'+path+'" class="patient-chart-line"/></svg>'+
+ Array.from({length:5},(_,i)=>{const v=min+(max-min)*i/4;return '<span class="patient-chart-axis patient-chart-tick" style="--patient-y:'+y(v).toFixed(2)+'">'+fmt(v)+'</span>';}).join("")+
+ coords.map(([xx,yy],i)=>'<span class="patient-chart-dot" style="--patient-x:'+xx.toFixed(2)+';--patient-y:'+yy.toFixed(2)+'" title="'+fmt(points[i].weight)+' kg"></span>').join("")+
+ selected.map((index,i)=>'<span class="patient-chart-axis patient-chart-date patient-chart-date-'+(i===0?"start":i===2?"end":"middle")+'" style="--patient-x:'+x(index).toFixed(2)+'">'+date(points[index].day)+'</span>').join("")+'</div></div>'+
+ '<div class="patient-chart-latest"><span><i class="patient-chart-legend-dot"></i>Peso <strong>'+fmt(points.at(-1).weight)+' kg</strong></span></div>';
+}
+let bound=false;
+export async function mountPatientHome(ctx){
+ const root=el("");if(!root)return;
+ if(!bound){bound=true;root.addEventListener("click",e=>{const b=e.target.closest("[data-weight-range]");if(b){currentRange=b.dataset.weightRange;drawChart();}
+ if(e.target.closest("[data-patient-home-measures]")){const inp=document.querySelector('[data-patient-route="diary"]');if(inp)location.hash="#diario";}
+ if(e.target.closest("[data-patient-home-appointment]")){const badge=el(".patient-welcome-badge");if(badge)badge.scrollIntoView({behavior:"smooth",block:"center"});}
+ });}
+ const patientId=ctx.patient.id;
+ const now=today();
+ const {data:active,error:activeError}=await db().rpc("current_active_pathway_id");if(activeError)throw activeError;
+ const requests=[
+  db().from("patient_measurements").select("measured_at,weight_kg").eq("patient_id",patientId).is("deleted_at",null).not("weight_kg","is",null).order("measured_at"),
+  db().from("diary_entries").select("entry_date,weight_kg,breakfast,morning_snack,lunch,afternoon_snack,dinner,total_kcal,calorie_quality").eq("patient_id",patientId).is("deleted_at",null).order("entry_date",{ascending:false}).limit(365),
+  db().from("patient_clinical_profiles").select("goal_weight_kg").eq("patient_id",patientId).eq("pathway_id",active||"00000000-0000-0000-0000-000000000000").maybeSingle(),
+  db().from("nutrition_plans").select("id,title,valid_from,pathway_id,status").eq("patient_id",patientId).is("deleted_at",null).order("valid_from",{ascending:false}).limit(50),
+  db().from("documents").select("id,category,uploaded_by_user_id").eq("patient_id",patientId).is("deleted_at",null).limit(500),
+  db().from("document_read_status").select("document_id,read_at").eq("profile_id",ctx.profile.id).limit(500),
+  db().from("appointment_patients").select("appointment_id").eq("patient_id",patientId)
+ ];
+ const results=await Promise.all(requests);
+ for(const r of results)if(r.error)throw Error("Home: "+r.error.message);
+ const [measurements,diary,clinical,plans,docs,reads,appointmentLinks]=results.map(r=>r.data);
+ const map=new Map();
+ for(const d of diary||[])if(num(d.weight_kg)>0)map.set(d.entry_date,{day:d.entry_date,weight:num(d.weight_kg),priority:0});
+ for(const m of measurements||[])if(num(m.weight_kg)>0)map.set(m.measured_at,{day:m.measured_at,weight:num(m.weight_kg),priority:1});
+ chartPoints=[...map.values()].sort((a,b)=>a.day.localeCompare(b.day));
+ const first=chartPoints[0]?.weight??null,last=chartPoints.at(-1)?.weight??null,goal=num(clinical?.goal_weight_kg),diff=first!=null&&last!=null?last-first:null;
+ const dateFormat=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+ const h=new Date();const greeting=h.getHours()<12?"Buongiorno":h.getHours()<18?"Buon pomeriggio":"Buonasera";
+ setText(".patient-welcome h1",greeting+", "+(ctx.profile.first_name||"")+" 👋");
+ const welcome=el(".patient-welcome p");if(welcome)welcome.textContent=dateFormat.format(h)+" · Ecco come sta andando il tuo percorso";
+ setText("#patientDailyQuote","“"+quotes[Math.floor((Date.UTC(h.getFullYear(),h.getMonth(),h.getDate())-Date.UTC(2026,0,1))/86400000%quotes.length+quotes.length)%quotes.length]+"”");
+ metric(1,last==null?"—":fmt(last)+" kg",diff==null?"Nessun confronto":(diff>0?"+":"")+fmt(diff)+" kg dall'inizio");
+ const height=num(ctx.patient.height_cm);metric(2,last&&height?fmt(last/((height/100)**2)):"—",height?"calcolato sull'ultimo peso":"Altezza non disponibile");
+ metric(3,goal==null?"—":fmt(goal)+" kg",goal==null?"Obiettivo non impostato":"definito con il professionista");
+ const todayEntry=(diary||[]).find(d=>d.entry_date===now),meals=["breakfast","morning_snack","lunch","afternoon_snack","dinner"],done=meals.filter(k=>String(todayEntry?.[k]||"").trim()).length;
+ metric(4,done+" / 5",done===1?"pasto registrato":"pasti registrati oggi");
+ const progress=el(".patient-progress-card"),numbers=progress?.querySelectorAll(".patient-progress-metric strong");
+ if(numbers?.length===3){numbers[0].textContent=first==null?"—":fmt(first)+" kg";numbers[1].textContent=diff==null?"—":(diff>0?"+":"")+fmt(diff)+" kg";numbers[2].textContent=goal==null||last==null?"—":fmt(Math.max(0,last-goal))+" kg";}
+ const ratio=first!=null&&last!=null&&goal!=null&&first>goal?Math.max(0,Math.min(100,(first-last)/(first-goal)*100)):null,ring=el(".patient-progress-ring");
+ if(ring){ring.style.setProperty("--progress",ratio??0);ring.querySelector("strong").textContent=ratio==null?"—":fmt(ratio)+"%";ring.querySelector("span").textContent=ratio==null?"Obiettivo assente":"completato";}
+ setText(".patient-calorie-value",todayEntry?.total_kcal==null?"—":Math.round(todayEntry.total_kcal).toLocaleString("it-IT")+" kcal");
+ setText(".patient-calorie-status",todayEntry?.calorie_quality==="good"?"Stima buona":todayEntry?.calorie_quality==="partial"?"Stima parziale":"Stima non disponibile");
+ setText(".patient-calorie-bmr strong","—");
+ drawChart();
+ setText(".patient-diary-summary + .patient-diary-actions", ""); // actions are rebuilt below
+ const actionBox=el(".patient-diary-actions");
+ if(actionBox)actionBox.innerHTML='<button class="patient-primary" type="button" data-patient-route="diary" data-patient-diary-mode="edit">Aggiungi / modifica giornata</button>';
+ const diaryCard=el(".patient-diary-summary")?.closest(".module");
+ if(diaryCard){const p=diaryCard.querySelector(".agenda-note");if(p)p.textContent=done+" pasti su 5 registrati oggi";}
+ el(".patient-diary-summary")?.querySelectorAll(".patient-meal-status").forEach((node,i)=>{const filled=!!String(todayEntry?.[meals[i]]||"").trim();node.classList.toggle("pending",!filled);node.querySelector("span").textContent=filled?"✓":"·";});
+ const currentPlan=(plans||[]).find(p=>p.status==="active"&&p.pathway_id===active);
+ const plan=el(".patient-home-grid:nth-of-type(4) .patient-quick-row");
+ if(plan){plan.querySelector("strong").textContent=currentPlan?.title||"Nessun piano attivo";plan.querySelector("small").textContent=currentPlan?.valid_from?"In vigore dal "+date(currentPlan.valid_from):"Consulta la sezione Piano";}
+ const seen=new Set((reads||[]).filter(x=>x.read_at).map(x=>x.document_id));
+ const unread=(docs||[]).filter(d=>d.category!=="plan"&&d.uploaded_by_user_id!==ctx.user.id&&!seen.has(d.id)).length;
+ const quick=el(".patient-home-grid:last-of-type .patient-quick-list");
+ if(quick){const rows=quick.querySelectorAll(".patient-quick-row");if(rows[1])rows[1].querySelector("small").textContent=unread?unread+" documenti da leggere":"Nessun documento da leggere";}
+ const apIds=(appointmentLinks||[]).map(x=>x.appointment_id);
+ let next=null;if(apIds.length){const appointments=await query(db().from("appointments").select("starts_at,appointment_type").in("id",apIds).is("deleted_at",null).gte("starts_at",new Date().toISOString()).order("starts_at").limit(1));next=appointments[0]||null;}
+ const textNext=next?new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}).format(new Date(next.starts_at)):"Nessuna visita programmata";
+ setText(".patient-welcome-badge",next?"Prossima visita · "+textNext:textNext);
+ if(quick){const rows=quick.querySelectorAll(".patient-quick-row");if(rows[0])rows[0].querySelector("small").textContent=textNext;}
+}
