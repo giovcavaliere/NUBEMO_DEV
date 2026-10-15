@@ -10,10 +10,12 @@ async function checked(query,reason){const {data,error}=await query;if(error)thr
 export async function loadLivePatientProfile(patientId,overview){
  const pathway=overview.pathways.find(p=>p.status==="active")||overview.pathways.find(p=>p.status==="pending");
  const record=await checked(client().from("patients").select("id,profile_id,birth_date,sex,height_cm,status,fiscal_code,address,postal_code,city,province,show_calories_to_patient").eq("id",patientId).single(),"Anagrafica");
- const profile=await checked(client().from("profiles").select("first_name,last_name,email,phone,status,auth_user_id,activation_completed_at").eq("id",record.profile_id).single(),"Contatti");
+ const profile=await checked(client().from("profiles").select("first_name,last_name,email,phone,status,auth_user_id,activation_completed_at,patient_avatar_path").eq("id",record.profile_id).single(),"Contatti");
  const clinical=pathway?await checked(client().from("patient_clinical_profiles").select(COLUMNS.join(",")).eq("patient_id",patientId).eq("pathway_id",pathway.id).maybeSingle(),"Anamnesi"):null;
  const privacy=await checked(client().from("patient_professional_privacy").select("id,uploaded_at,original_filename,professional_privacy_document_id").eq("professional_patient_id",overview.link.id).order("uploaded_at",{ascending:false}).limit(1),"Privacy");
- return {record,profile,clinical,privacy:privacy?.[0]||null,pathwayId:pathway?.id||null,editable:overview.link.status!=="ended"&&pathway?.status==="active"};
+ const preferences=await checked(client().from("patient_contact_preferences").select("communications_email,reminders_email,updated_at").eq("profile_id",record.profile_id).maybeSingle(),"Preferenze paziente");
+ const nubemoPrivacy=await checked(client().from("privacy_acceptances").select("status,accepted_at,privacy_document_id").eq("profile_id",record.profile_id).eq("status","accepted").order("accepted_at",{ascending:false}).limit(1),"Presa visione NUBEMO");
+ return {record,profile,clinical,privacy:privacy?.[0]||null,preferences:preferences||null,nubemoPrivacy:nubemoPrivacy?.[0]||null,pathwayId:pathway?.id||null,editable:overview.link.status!=="ended"&&pathway?.status==="active"};
 }
 export async function saveLivePatientIdentity(patientId,profileId,values){
  const first_name=String(values.firstName||"").trim(),last_name=String(values.lastName||"").trim();
