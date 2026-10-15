@@ -162,8 +162,8 @@ document.addEventListener("click",async e=>{
  if(route){
   e.preventDefault();
   const tab=route.dataset.patientRoute;
-  if(tab==="plan"||tab==="profile"||tab==="documents"){
-   const hash=tab==="plan"?"#piano":tab==="documents"?"#documenti":"#profilo";
+  if(tab==="plan"||tab==="profile"||tab==="documents"||tab==="diary"){
+   const hash=tab==="plan"?"#piano":tab==="documents"?"#documenti":tab==="diary"?"#diario":"#profilo";
    if(location.hash!==hash)location.hash=hash;
    else await navigate();
   }else dialog("Sezione in migrazione",'<p class="patient-demo-message">Questa sezione sarà collegata ai dati reali durante i prossimi passaggi della migrazione Patient 2.0.</p>');
