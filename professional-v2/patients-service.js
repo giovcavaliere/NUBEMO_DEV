@@ -32,7 +32,7 @@ export async function loadOwnPatients(){
  const profiles=[];
  for(let i=0;i<profileIds.length;i+=100){
    const {data,error}=await client.from('profiles')
-     .select('id,first_name,last_name,email,phone').in('id',profileIds.slice(i,i+100));
+     .select('id,first_name,last_name,email,phone,auth_user_id,activation_completed_at').in('id',profileIds.slice(i,i+100));
    if(error)throw new Error('Impossibile leggere i profili dei pazienti.');
    profiles.push(...(data||[]));
  }
