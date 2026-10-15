@@ -1,3 +1,4 @@
+import {extractPdfText,parseLabValues} from "./lab-pdf-extractor.js?v=legacy-lab-20261015";
 import {renderDocuments,labFields} from "./patient-documents-view.js?v=plan-document-link-20261015";
 import {renderLivePatientOverview} from "./patient-detail-view.js";
 import {loadDocuments,uploadDocument,openDocument,deleteDocument,saveLaboratoryValues} from "./patient-documents-live-service.js?v=plan-nav-20261015";
@@ -58,14 +59,31 @@ export async function renderLivePatientDocuments(root,overview){
   content.querySelectorAll("[data-register-analysis]").forEach(b=>{
    const doc=state.documents.find(x=>x.id===b.dataset.registerAnalysis);
    if(!active||doc?.pathway_id!==active.id){b.disabled=true;b.title="Analisi storica in sola lettura";return;}
-   b.addEventListener("click",()=>{
+   b.addEventListener("click",async()=>{
     const report=state.laboratoryReports.find(r=>r.documentId===doc.id);
     const inputs=labFields.map(([key,label])=>'<label>'+esc(label)+'<input name="'+key+'" value="'+esc(report?.values?.[key]||"")+'"></label>').join("");
-    openDialog(content,'<form><header><h2>Registra valori analisi</h2><button type="button" data-close>×</button></header>'+
+    const dialog=openDialog(content,'<form><header><h2>Registra valori analisi</h2><button type="button" data-close>×</button></header>'+
+     '<p data-pdf-lab-status role="status">Lettura automatica del PDF in corso…</p>'+
      '<div class="documents-upload-form"><label>Data referto<input name="reportDate" type="date" value="'+esc(report?.reportDate||doc.date)+'" required></label>'+
      inputs+'<label class="documents-wide">Note<textarea rows="3" name="notes">'+esc(report?.notes||"")+'</textarea></label></div>'+
      '<footer><button type="button" data-close>Annulla</button><button type="submit">Salva valori</button></footer></form>',
      async values=>{await saveLaboratoryValues(doc,report,values,labFields);await reload();});
+    const status=dialog.querySelector("[data-pdf-lab-status]");
+    try{
+      if(!doc.original_filename?.toLowerCase().endsWith(".pdf")&&!doc.fileName?.toLowerCase().endsWith(".pdf"))throw Error("Il file non è un PDF.");
+      const downloaded=await window.nubemoSupabase.storage.from(doc.storage_bucket).download(doc.storage_path);
+      if(downloaded.error||!downloaded.data)throw downloaded.error||Error("Download PDF non riuscito.");
+      const extracted=await extractPdfText(downloaded.data);
+      const recognized=parseLabValues(extracted);
+      let matched=0;
+      for(const [key] of labFields){
+        const input=dialog.querySelector('[name="'+key+'"]');
+        if(input&&!input.value&&recognized[key]){input.value=recognized[key];matched++;}
+      }
+      status.textContent=matched?matched+" valori riconosciuti dal PDF. Verifica i dati e conferma il salvataggio.":"Nessun nuovo valore riconosciuto automaticamente. Puoi completare i campi manualmente.";
+    }catch(error){
+      status.textContent="Lettura automatica non disponibile: "+(error.message||"errore PDF")+". Puoi compilare i campi manualmente.";
+    }
    });
   });
  };
