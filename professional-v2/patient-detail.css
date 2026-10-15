@@ -93,6 +93,8 @@
 .detail-activity time{white-space:nowrap}
 .detail-profile{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:14px;align-items:start}
 .detail-profile-column{display:grid;gap:14px;align-content:start;min-width:0}
+.detail-live-patient-avatar{display:flex;justify-content:center;align-items:center;min-height:110px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--green-soft-2)}
+.detail-live-patient-avatar img{width:96px;height:96px;object-fit:cover;border-radius:22px;border:1px solid rgba(50,90,70,.15)}
 .detail-profile .detail-panel{padding:18px}
 .detail-fields{margin:0;display:grid;gap:0}
 .detail-field{display:grid;grid-template-columns:minmax(110px,.75fr) minmax(0,1fr);gap:12px;padding:10px 2px;border-top:1px solid var(--line);font-size:12px;line-height:1.4}
