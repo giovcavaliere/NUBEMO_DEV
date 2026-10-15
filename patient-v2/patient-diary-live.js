@@ -75,9 +75,14 @@ function updateEnergy(){
 }
 
 function openEditor(date){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>localDate())throw Error("Seleziona una data valida, non futura.");
+ const existing=dayByDate(date);
+ if(existing&&existing.pathway_id!==context.activePathway)throw Error("Questa giornata appartiene a un percorso concluso ed è in sola lettura.");
  active=date;editable=true;
  const day=dayByDate(date);
  live("edit");
+ const dateInput=root().querySelector("[data-diary-entry-date]");
+ dateInput.max=localDate();dateInput.value=date;
  const header=root().querySelector('[data-diary-panel="edit"] .patient-diary-header');
  header.querySelector("h1").textContent=day?"Modifica giornata":"Aggiungi giornata";
  header.querySelector("p").textContent=pretty(date)+" · Prima le abitudini, poi i pasti.";
@@ -196,6 +201,7 @@ function showSaveReview(onConfirm){
 
 async function save(){
  if(!active||!context.activePathway)throw Error("Nessun percorso attivo disponibile.");
+ if(active>localDate())throw Error("Non è possibile salvare una giornata futura.");
  const day=dayByDate(active);
  if(day&&day.pathway_id!==context.activePathway)throw Error("Le giornate di un percorso concluso non sono modificabili.");
  const field=k=>root().querySelector('[data-diary-edit-field="'+k+'"]')?.value.trim()||"";
@@ -226,6 +232,12 @@ export async function mountPatientDiary(ctx){
  context.activePathway=data||null;
  const wrapper=root();if(wrapper.dataset.liveDiaryBound!=="true"){
  wrapper.dataset.liveDiaryBound="true";
+ wrapper.addEventListener("change",e=>{
+  if(!e.target.matches("[data-diary-entry-date]"))return;
+  const selected=e.target.value;
+  if(!selected){e.target.value=active;return;}
+  try{openEditor(selected);}catch(error){e.target.value=active;alert(error.message);}
+ });
  wrapper.addEventListener("input",e=>{
   if(e.target.matches("[data-diary-history-search]")){filter=e.target.value.toLowerCase().trim();renderHistory();}
   if(e.target.matches("[data-diary-meal-text]")){updateEnergy();syncFavoriteButtons();}
