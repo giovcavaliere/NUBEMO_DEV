@@ -52,6 +52,11 @@
       window.location.replace('pro2.html');
       return;
     }
+    if (profile.role === 'patient') {
+      leaving = true;
+      window.location.replace('patient2-live.html');
+      return;
+    }
     // Il percorso paziente 2.0 viene attivato separatamente.
     loginView.hidden = true;
     unavailable.hidden = false;
