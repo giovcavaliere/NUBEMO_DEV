@@ -534,9 +534,12 @@ export function renderLivePatientMeasures(root,overview,measurements,actions){
   root.querySelectorAll("[data-measure-edit],[data-measure-delete]").forEach(button=>button.disabled=true);
  }
 }
-export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],completedVisits=0,recentActivity=[],activityError=""},activeTab="panoramica",actions={}){
+export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],completedVisits=0,recentActivity=[],activityError="",adherence=null,nextAppointment=null},activeTab="panoramica",actions={}){
   const active=pathways.find(item=>item.status==="active");
   const startedAt=active?.pathway_start_date||active?.started_at||null;
+  const snapshot=patient.weightSnapshot||null;
+  const initialWeight=snapshot?.first?.weight??null;
+  const currentWeight=snapshot?.last?.weight??null;
   const model={
     data:{
       identity:{id:patient.id,firstName:patient.first_name,lastName:patient.last_name,
@@ -546,11 +549,11 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],c
     age:patient.age,
     journeyDays:startedAt?Math.max(1,Math.floor((Date.now()-new Date(startedAt).getTime())/86400000)+1):null,
     firstVisit:null,lastControl:null,
-    kpis:{completedVisits,change:null,initialWeight:null,currentWeight:null,changePercent:null,
-      adherence:{percentage:0,completed:0,considered:0},nextAppointment:null},
-    timeline:[],focus:[],weightSeries:[],activity:recentActivity,activityError,
+    kpis:{completedVisits,change:snapshot?.change??null,initialWeight,currentWeight,changePercent:snapshot?.changePercent??null,
+      adherence:adherence||{percentage:0,completed:0,considered:0},nextAppointment},
+    timeline:[],focus:[],weightSeries:(snapshot?.series||[]).map(item=>({date:item.date,value:item.weight})),activity:recentActivity,activityError,
     composition:{values:{
-      weight:{value:null,unit:"kg",delta:null},bodyFat:{value:null,unit:"%",delta:null},
+      weight:{value:currentWeight,unit:"kg",delta:snapshot?.change??null},bodyFat:{value:null,unit:"%",delta:null},
       muscleMass:{value:null,unit:"%",delta:null},bcm:{value:null,unit:"%",delta:null}},lastBiaDate:null}
   };
   const name=escapeHtml([patient.first_name,patient.last_name].filter(Boolean).join(" "));
