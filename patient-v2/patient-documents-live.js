@@ -59,8 +59,8 @@ async function upload(el){
  const path=state.patientId+"/"+state.activePathway+"/"+crypto.randomUUID()+"-"+safeName(file.name);
  const bucket=db().storage.from("patient-documents");
  const u=await bucket.upload(path,file,{upsert:false,contentType:file.type});if(u.error)throw u.error;
- const subtype=cat==="analysis"?"blood_test":cat==="report"?"health_other":"health_other";
- const insert=await db().from("documents").insert({patient_id:state.patientId,pathway_id:state.activePathway,category:"health",sub_category:subtype,title,document_date:form.elements.date.value,original_filename:file.name,mime_type:file.type,size_bytes:file.size,storage_bucket:"patient-documents",storage_path:path,uploaded_by_user_id:state.userId});
+ const subtype=cat==="analysis"?"blood_test":cat==="report"?"health_other":null;
+ const insert=await db().from("documents").insert({patient_id:state.patientId,pathway_id:state.activePathway,category:cat==="other"?"other":"health",sub_category:subtype,title,document_date:form.elements.date.value,original_filename:file.name,mime_type:file.type,size_bytes:file.size,storage_bucket:"patient-documents",storage_path:path,uploaded_by_user_id:state.userId});
  if(insert.error){await bucket.remove([path]);throw insert.error;}
 }
 async function openDoc(doc){
