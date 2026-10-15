@@ -1,3 +1,4 @@
+import {mountPatientDocuments} from "./patient-documents-live.js?v=documents-live-20261015";
 // NUBEMO Patient 2.0 — Profilo live. Nessun dato demo, solo sessione paziente e Supabase DEV.
 import {mountPatientPlan} from "./patient-plan-live.js?v=patient-note-20261015";
 const client=window.nubemoSupabase;
@@ -129,7 +130,7 @@ function openSupport(){
 }
 async function navigate(){
  if(!context)return;
- const tab=location.hash==="#piano"?"plan":"profile";
+ const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":"profile";
  document.querySelectorAll("[data-patient-view]").forEach(view=>{view.hidden=view.dataset.patientView!==tab;});
  document.querySelectorAll("[data-patient-route]").forEach(link=>{
   const selected=link.dataset.patientRoute===tab;
@@ -138,6 +139,7 @@ async function navigate(){
   else link.removeAttribute("aria-current");
  });
  if(tab==="plan")await mountPatientPlan(context.patient.id);
+ if(tab==="documents")await mountPatientDocuments(context);
 }
 window.addEventListener("hashchange",()=>navigate().catch(error=>showError(error.message)));
 document.addEventListener("click",async e=>{
@@ -158,8 +160,8 @@ document.addEventListener("click",async e=>{
  if(route){
   e.preventDefault();
   const tab=route.dataset.patientRoute;
-  if(tab==="plan"||tab==="profile"){
-   const hash=tab==="plan"?"#piano":"#profilo";
+  if(tab==="plan"||tab==="profile"||tab==="documents"){
+   const hash=tab==="plan"?"#piano":tab==="documents"?"#documenti":"#profilo";
    if(location.hash!==hash)location.hash=hash;
    else await navigate();
   }else dialog("Sezione in migrazione",'<p class="patient-demo-message">Questa sezione sarà collegata ai dati reali durante i prossimi passaggi della migrazione Patient 2.0.</p>');
