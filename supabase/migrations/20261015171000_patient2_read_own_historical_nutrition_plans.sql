@@ -1,0 +1,8 @@
+-- Patient 2.0: read-only historical published meal plans, strictly own patient.
+create policy nutrition_plans_select_own_history on public.nutrition_plans for select to authenticated
+using (deleted_at is null and patient_id=public.current_patient_id() and exists (
+select 1 from public.patient_pathways pw where pw.id=nutrition_plans.pathway_id and pw.patient_id=public.current_patient_id() and pw.status in ('active','ended')));
+create policy nutrition_plan_documents_select_own_history on public.nutrition_plan_documents for select to authenticated
+using (exists(select 1 from public.nutrition_plans np join public.patient_pathways pw on pw.id=np.pathway_id where np.id=nutrition_plan_documents.nutrition_plan_id and np.deleted_at is null and np.patient_id=public.current_patient_id() and pw.patient_id=np.patient_id and pw.status in ('active','ended')));
+create policy documents_select_own_plan_history on public.documents for select to authenticated
+using (deleted_at is null and category='plan' and patient_id=public.current_patient_id() and exists(select 1 from public.patient_pathways pw where pw.id=documents.pathway_id and pw.patient_id=public.current_patient_id() and pw.status in ('active','ended')) and exists (select 1 from public.nutrition_plan_documents l join public.nutrition_plans np on np.id=l.nutrition_plan_id where l.document_id=documents.id and np.patient_id=documents.patient_id and np.deleted_at is null));
