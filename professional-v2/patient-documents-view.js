@@ -37,7 +37,7 @@ function renderDocument(doc,data){
       <span class="documents-file-icon">${icon("document")}</span>
       <div><strong>${esc(doc.title||doc.fileName||"Documento")}</strong><small>${esc(doc.fileName||"Documento allegato")}</small></div>
     </div>
-    <div class="documents-cell documents-category-cell"><small>Categoria</small><span class="documents-category documents-category-${esc(doc.category)}">${esc(categoryLabel[doc.category]||"Altro")}</span></div>
+    <div class="documents-cell documents-category-cell"><small>Caricato da</small><span>${esc(doc.uploadedBy==="professional"?"Professionista":doc.uploadedBy==="patient"?"Paziente":"Non disponibile")}</span></div>
     <div class="documents-cell documents-date-cell"><small>Data</small><time datetime="${esc(doc.date||"")}">${fmtDate(doc.date)}</time></div>
     <div class="documents-cell documents-status-cell"><small>Stato</small><span class="documents-status documents-status-${status.tone}">${status.label}</span></div>
     <div class="documents-actions" aria-label="Azioni documento">
@@ -78,7 +78,7 @@ export function renderDocuments(model){
     </div>
 
     <section class="documents-table">
-      <div class="documents-table-head"><span>Documento</span><span>Categoria</span><span>Data</span><span>Stato</span><span>Azioni</span></div>
+      <div class="documents-table-head"><span>Documento</span><span>Caricato da</span><span>Data</span><span>Stato</span><span>Azioni</span></div>
       <div class="documents-list">${docs.length?docs.map(doc=>renderDocument(doc,data)).join(""):`<div class="documents-empty">${unreadOnly?"Nessun documento da leggere in questa categoria.":"Nessun documento in questa categoria."}</div>`}</div>
     </section>
   </div>`;
