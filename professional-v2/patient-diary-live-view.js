@@ -1,6 +1,6 @@
 import {renderDiary,bindDiary} from "./patient-diary-view.js?v=live-icons-20261015";
 import {getDiaryViewModel} from "./patient-diary-model.js";
-import {loadLivePatientDiary} from "./patient-diary-live-service.js";
+import {loadLivePatientDiary} from "./patient-diary-live-service.js?v=food-breakdown-20261015";
 import {renderLivePatientOverview} from "./patient-detail-view.js";
 const selectedDates=new Map();
 export async function renderLivePatientDiary(root,overview){
