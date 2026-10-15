@@ -58,6 +58,28 @@ export async function loadOwnPatients(){
      day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"
    }).format(new Date(appointment.starts_at)));
  }
+ // Count only documents uploaded by the patient and still unread by this professional.
+ const unreadByPatient=new Map();
+ const eligibleDocs=[];
+ for(let i=0;i<ids.length;i+=100){
+   const {data,error}=await client.from("documents")
+     .select("id,patient_id,uploaded_by_user_id").in("patient_id",ids.slice(i,i+100))
+     .is("deleted_at",null);
+   if(error)throw new Error("Impossibile verificare i documenti da leggere.");
+   eligibleDocs.push(...(data||[]).filter(d=>d.uploaded_by_user_id!==identity.auth_user_id));
+ }
+ if(eligibleDocs.length){
+   const docIds=eligibleDocs.map(d=>d.id);
+   const readIds=new Set();
+   for(let i=0;i<docIds.length;i+=100){
+     const {data,error}=await client.from("document_read_status")
+       .select("document_id").eq("profile_id",identity.id).not("read_at","is",null)
+       .in("document_id",docIds.slice(i,i+100));
+     if(error)throw new Error("Impossibile verificare lo stato di lettura.");
+     (data||[]).forEach(row=>readIds.add(row.document_id));
+   }
+   eligibleDocs.forEach(d=>{if(!readIds.has(d.id))unreadByPatient.set(d.patient_id,(unreadByPatient.get(d.patient_id)||0)+1);});
+ }
  const byPatient=new Map(patientRows.map(p=>[p.id,p]));
  const byProfile=new Map(profiles.map(p=>[p.id,p]));
  const today=new Date();
@@ -77,7 +99,7 @@ export async function loadOwnPatients(){
    return {id:patient.id,first_name:person.first_name||'',last_name:person.last_name||'',
       email:person.email||'',phone:person.phone||'',age,
       status,created_at:patient.created_at||link.created_at,
-      weight:null,weightDelta:null,nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:null,avatarPath:person.patient_avatar_path||null,avatar:null};
+      weight:null,weightDelta:null,nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:unreadByPatient.get(patient.id)||0,avatarPath:person.patient_avatar_path||null,avatar:null};
  }).filter(Boolean);
  await Promise.all(fullRecords.filter(item=>item.avatarPath).map(async item=>{
   const signed=await client.storage.from("patient-avatars").createSignedUrl(item.avatarPath,1800);
