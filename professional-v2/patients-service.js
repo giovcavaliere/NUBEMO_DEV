@@ -1,3 +1,4 @@
+import {loadPatientWeightSnapshots} from "./patient-weight-live.js?v=weights-20261015";
 // Elenco pazienti Professional 2.0: esclusivamente relazioni autorizzate da RLS.
 const client=window.nubemoSupabase;
 export async function loadOwnPatients(){
@@ -83,6 +84,7 @@ export async function loadOwnPatients(){
    }
    eligibleDocs.forEach(d=>{if(!readIds.has(d.id))unreadByPatient.set(d.patient_id,(unreadByPatient.get(d.patient_id)||0)+1);});
  }
+ const weights=await loadPatientWeightSnapshots(client,ids);
  const byPatient=new Map(patientRows.map(p=>[p.id,p]));
  const byProfile=new Map(profiles.map(p=>[p.id,p]));
  const today=new Date();
@@ -102,7 +104,7 @@ export async function loadOwnPatients(){
    return {id:patient.id,first_name:person.first_name||'',last_name:person.last_name||'',
       email:person.email||'',phone:person.phone||'',age,
       status,created_at:patient.created_at||link.created_at,
-      weight:null,weightDelta:null,nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:unreadByPatient.get(patient.id)||0,avatarPath:person.patient_avatar_path||null,avatar:null};
+      weight:weights.get(patient.id)?.label||"—",weightDelta:weights.get(patient.id)?.delta||"—",nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:unreadByPatient.get(patient.id)||0,avatarPath:person.patient_avatar_path||null,avatar:null};
  }).filter(Boolean);
  await Promise.all(fullRecords.filter(item=>item.avatarPath).map(async item=>{
   const signed=await client.storage.from("patient-avatars").createSignedUrl(item.avatarPath,1800);
