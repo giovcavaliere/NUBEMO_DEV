@@ -4,7 +4,7 @@ import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=diary-live-
 import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=patient-note-20261015";
 await window.NUBEMO_PRO2_AUTH_READY;
 
-import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=lab-parser-20261015";
+import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=lab-dialog-fix-20261015";
 import {loadOwnPatients} from "./patients-service.js?v=unread-filter-20261015";
 import {loadPatientOverview,loadPatientRecentActivity} from "./patient-overview-live.js?v=overview-activity-20261015";
 import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=avatar-shared-20261015";
