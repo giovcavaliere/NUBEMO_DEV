@@ -35,7 +35,7 @@ export async function renderLivePatientPlans(root,overview){
   body.querySelectorAll("[data-delete-plan]").forEach(b=>{
    const p=plans.find(x=>x.id===b.dataset.deletePlan);
    if(!p||!active||p.pathwayId!==active.id){b.disabled=true;b.title="Piano storico in sola lettura";return;}
-   b.addEventListener("click",()=>modal("Elimina piano",'<p>Eliminare "'+escape(p.title)+'" e il PDF associato dalla cartella? L’operazione sarà registrata come eliminazione logica.</p>','Elimina',async()=>{await removePlan(p);await refresh();}));
+   b.addEventListener("click",()=>modal("Elimina piano",'<p>Eliminare "'+escape(p.title)+'" dallo storico dei piani? Il PDF associato sarà conservato nella cartella documenti.</p>','Elimina',async()=>{await removePlan(p);await refresh();}));
   });
  }
  draw();
