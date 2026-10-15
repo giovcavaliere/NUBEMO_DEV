@@ -1,4 +1,5 @@
 // NUBEMO Patient 2.0 — Profilo live. Nessun dato demo, solo sessione paziente e Supabase DEV.
+import {mountPatientPlan} from "./patient-plan-live.js?v=plan-live-20261015";
 const client=window.nubemoSupabase;
 const $=(q,root=document)=>root.querySelector(q);
 const $$=(q,root=document)=>[...root.querySelectorAll(q)];
@@ -42,6 +43,7 @@ async function load(){
  if(r.error)throw r.error;
  context={user,profile,patient,document,acceptance,prefs:r.data};
  render();
+ await navigate();
 }
 async function renderAvatar(){
  const {profile,user}=context;
@@ -125,6 +127,19 @@ function openSupport(){
  layer.remove();dialog("Richiesta inviata",'<p class="patient-demo-message">La richiesta è stata inviata all’assistenza NUBEMO.</p>');
  };
 }
+async function navigate(){
+ if(!context)return;
+ const tab=location.hash==="#piano"?"plan":"profile";
+ document.querySelectorAll("[data-patient-view]").forEach(view=>{view.hidden=view.dataset.patientView!==tab;});
+ document.querySelectorAll("[data-patient-route]").forEach(link=>{
+  const selected=link.dataset.patientRoute===tab;
+  link.classList.toggle("active",selected);
+  if(selected)link.setAttribute("aria-current","page");
+  else link.removeAttribute("aria-current");
+ });
+ if(tab==="plan")await mountPatientPlan(context.patient.id);
+}
+window.addEventListener("hashchange",()=>navigate().catch(error=>showError(error.message)));
 document.addEventListener("click",async e=>{
  const action=e.target.closest("[data-patient-profile-action]");
  if(action){
@@ -142,7 +157,12 @@ document.addEventListener("click",async e=>{
  const route=e.target.closest("[data-patient-route]");
  if(route){
   e.preventDefault();
-  if(route.dataset.patientRoute!=="profile"){dialog("Sezione in migrazione",'<p class="patient-demo-message">Questa sezione sarà collegata ai dati reali durante i prossimi passaggi della migrazione Patient 2.0.</p>');}
+  const tab=route.dataset.patientRoute;
+  if(tab==="plan"||tab==="profile"){
+   const hash=tab==="plan"?"#piano":"#profilo";
+   if(location.hash!==hash)location.hash=hash;
+   else await navigate();
+  }else dialog("Sezione in migrazione",'<p class="patient-demo-message">Questa sezione sarà collegata ai dati reali durante i prossimi passaggi della migrazione Patient 2.0.</p>');
  }
 });
 document.addEventListener("change",async e=>{
