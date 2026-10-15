@@ -132,7 +132,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
                 <small>${patient.isQuickDraft?"Tipologia":status==="active"?"Prossima visita":"Stato percorso"}</small>
                 <strong>${patient.isQuickDraft?"Draft rapido":status==="active"?escapeHtml(patient.nextVisit || "—"):escapeHtml(STATUS_LABELS[patient.status])}</strong>
               </span>
-              ${patient.isQuickDraft?"":'<span class="patient-arrow">›</span>'}
+              ${patient.isQuickDraft?`<button type="button" class="patient-new" data-convert-draft="${escapeHtml(patient.id)}" aria-label="Converti ${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)} in paziente">Converti in paziente</button>`:'<span class="patient-arrow">›</span>'}
             ${patient.isQuickDraft?"</div>":"</button>"}
           `).join("") : '<div class="patient-empty">'+(records.length?'Nessun paziente corrisponde ai filtri.':'Nessun paziente associato. La creazione paziente sarà attivata nella prossima fase.')+'</div>'}
         </div>
