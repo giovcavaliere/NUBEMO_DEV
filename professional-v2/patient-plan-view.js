@@ -52,7 +52,7 @@ export function renderPlan(model){
       </aside>
       ${selected?`<section class="plan-detail-card">
         <header class="plan-detail-head"><div><div class="plan-detail-title-line"><h3>${esc(selected.title||"Piano alimentare")}</h3><span class="plan-status ${selectedStatus.className}">${selectedStatus.label}</span></div><p>${selected.validFrom?`Valido dal ${fmtDate(selected.validFrom)}`:"Decorrenza non indicata"}</p></div>
-          <div class="plan-detail-actions"><button type="button" data-open-plan="${esc(selected.id)}">${icon("document")}<span>Apri PDF</span></button><button type="button" class="plan-danger" data-delete-plan="${esc(selected.id)}"><span>Elimina</span></button></div></header>
+          <div class="plan-detail-actions"><button type="button" class="plan-danger" data-delete-plan="${esc(selected.id)}"><span>Elimina</span></button></div></header>
         <div class="plan-file-box"><span class="plan-file-icon">${icon("document")}</span><span><strong>${esc(selected.fileName||"Piano alimentare.pdf")}</strong><small>Documento PDF del piano</small></span><button type="button" data-open-plan="${esc(selected.id)}">Apri</button></div>
         <section class="plan-note-box"><header><div><span>Nota interna</span><small>Non visibile al paziente</small></div><button type="button" data-edit-plan-note="${esc(selected.id)}">${icon("edit")}<span>Modifica</span></button></header><p>${selected.professionalNote?esc(selected.professionalNote):"Nessuna nota inserita."}</p></section>
       </section>`:""}
