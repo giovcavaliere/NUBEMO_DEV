@@ -59,9 +59,9 @@ export async function loadOwnPatients(){
    }).format(new Date(appointment.starts_at)));
  }
  // Count only documents uploaded by the patient and still unread by this professional.
- const {data:sessionUser,error:sessionError}=await client.auth.getUser();
- if(sessionError||!sessionUser?.user)throw new Error("Sessione non valida.");
- const professionalUserId=sessionUser.user.id;
+ const patientAuthById=new Map(patientRows.map(patient=>[
+   patient.id,profiles.find(profile=>profile.id===patient.profile_id)?.auth_user_id||null
+ ]));
  const unreadByPatient=new Map();
  const eligibleDocs=[];
  for(let i=0;i<ids.length;i+=100){
@@ -69,7 +69,7 @@ export async function loadOwnPatients(){
      .select("id,patient_id,uploaded_by_user_id").in("patient_id",ids.slice(i,i+100))
      .is("deleted_at",null);
    if(error)throw new Error("Impossibile verificare i documenti da leggere.");
-   eligibleDocs.push(...(data||[]).filter(d=>d.uploaded_by_user_id!==professionalUserId));
+   eligibleDocs.push(...(data||[]).filter(d=>patientAuthById.get(d.patient_id)!=null&&d.uploaded_by_user_id===patientAuthById.get(d.patient_id)));
  }
  if(eligibleDocs.length){
    const docIds=eligibleDocs.map(d=>d.id);
