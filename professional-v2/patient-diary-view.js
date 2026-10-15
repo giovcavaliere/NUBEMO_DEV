@@ -6,8 +6,8 @@ const rangeDate=value=>value?new Intl.DateTimeFormat("it-IT",{day:"numeric",mont
 const confidenceLabels={high:"Buona",medium:"Media",low:"Bassa",none:"Non disponibile"};
 
 function confidenceBadge(value){
-  const key=["high","medium","low"].includes(value)?value:"low";
-  return `<span class="diary-confidence diary-confidence-${key}">${confidenceLabels[value]||"Bassa"}</span>`;
+  const key=["high","medium","low","none"].includes(value)?value:"none";
+  return `<span class="diary-confidence diary-confidence-${key}">${confidenceLabels[value]||"Non disponibile"}</span>`;
 }
 
 function renderDayRow(day,selected){
@@ -21,7 +21,7 @@ function renderDayRow(day,selected){
 }
 
 function mealIcon(key){
-  return {breakfast:"cup",snack1:"leaf",lunch:"patients",snack2:"leaf",dinner:"document"}[key]||"document";
+  return {breakfast:"☕",snack1:"🍎",lunch:"🍝",snack2:"🍎",dinner:"🍽️"}[key]||"🍽️";
 }
 
 function renderComponent(component){
@@ -37,20 +37,20 @@ function renderComponent(component){
 function renderMeal(meal){
   return `<article class="diary-meal">
     <header>
-      <span class="diary-meal-icon">${icon(mealIcon(meal.key))}</span>
+      <span class="diary-meal-icon"><span role="img" aria-label="${escapeHtml(meal.label)}">${mealIcon(meal.key)}</span></span>
       <div><strong>${escapeHtml(meal.label)}</strong>${meal.time?`<small>${escapeHtml(meal.time)}</small>`:""}</div>
       <strong class="diary-meal-total">${Number.isFinite(meal.kcal)?`${Math.round(meal.kcal)} kcal`:"—"}</strong>
     </header>
     ${meal.originalText?`<p class="diary-original"><span>Testo del paziente</span>“${escapeHtml(meal.originalText)}”</p>`:""}
     <div class="diary-components">
-      ${meal.components.length?meal.components.map(renderComponent).join(""):'<p class="diary-no-analysis">Nessun dettaglio interpretabile disponibile.</p>'}
+      ${meal.components.length?meal.components.map(renderComponent).join(""):'<p class="diary-no-analysis">Nessun dettaglio calorico per singolo alimento disponibile.</p>'}
     </div>
   </article>`;
 }
 
 function renderSelected(day){
   if(!day) return '<section class="diary-detail diary-empty"><strong>Nessun diario disponibile</strong><p>Quando il paziente compila il Diario, i dati appariranno qui in sola lettura.</p></section>';
-  const message=day.unresolvedCount
+  const message=day.confidence==="none"?"Stima dettagliata e attendibilità non disponibili nei dati registrati.":day.unresolvedCount
     ?"La stima utilizza le componenti riconosciute. Le voci non interpretabili non vengono incluse nel totale."
     :day.estimatedCount
       ?"Le calorie sono stimate in base alle quantità indicate o a porzioni standard configurate."
@@ -83,7 +83,7 @@ export function renderDiary(model){
       </div>
       <div class="diary-info">
         <span aria-hidden="true">i</span>
-        <p>Le calorie sono stimate automaticamente da NUBEMO. Il livello di attendibilità dipende dalla precisione delle quantità e dalla chiarezza degli alimenti inseriti dal paziente.</p>
+        <p>I valori calorici riportati provengono dalle stime registrate nel Diario. Quando la stima o la sua attendibilità non sono disponibili, viene mostrato un trattino.</p>
       </div>
     </section>
 
