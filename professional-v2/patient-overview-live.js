@@ -113,3 +113,25 @@ export async function loadOverviewMetrics(patientId,activePathwayId){
  }
  return {adherence,nextAppointment};
 }
+
+export async function loadOverviewComposition(patientId,pathwayIds){
+ const client=window.nubemoSupabase;
+ if(!pathwayIds?.length)return null;
+ const {data,error}=await client.from("patient_measurements")
+ .select("id,measured_at,measured_time,weight_kg,fm_pct,mm_pct,bcm_pct")
+ .eq("patient_id",patientId).in("pathway_id",pathwayIds)
+ .is("deleted_at",null).order("measured_at",{ascending:false})
+ .order("measured_time",{ascending:false,nullsFirst:false}).limit(200);
+ if(error)throw Error("Impossibile leggere la composizione corporea: "+error.message);
+ const rows=data||[];
+ const number=v=>v===null||v===undefined||v===""?null:Number.isFinite(Number(v))?Number(v):null;
+ const metrics={bodyFat:"fm_pct",muscleMass:"mm_pct",bcm:"bcm_pct"};
+ const values={};
+ for(const [key,column] of Object.entries(metrics)){
+  const available=rows.filter(row=>number(row[column])!==null);
+  const current=available[0],previous=available[1];
+  values[key]={value:current?number(current[column]):null,unit:"%",delta:previous?number(current[column])-number(previous[column]):null};
+ }
+ const bia=rows.find(row=>Object.values(metrics).some(column=>number(row[column])!==null));
+ return {values,lastBiaDate:bia?.measured_at||null};
+}
