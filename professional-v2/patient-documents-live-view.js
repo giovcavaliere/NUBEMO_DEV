@@ -1,6 +1,6 @@
-import {renderDocuments,labFields} from "./patient-documents-view.js";
+import {renderDocuments,labFields} from "./patient-documents-view.js?v=plan-document-link-20261015";
 import {renderLivePatientOverview} from "./patient-detail-view.js";
-import {loadDocuments,uploadDocument,openDocument,deleteDocument,saveLaboratoryValues} from "./patient-documents-live-service.js";
+import {loadDocuments,uploadDocument,openDocument,deleteDocument,saveLaboratoryValues} from "./patient-documents-live-service.js?v=plan-document-link-20261015";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
 function openDialog(root,html,save){
