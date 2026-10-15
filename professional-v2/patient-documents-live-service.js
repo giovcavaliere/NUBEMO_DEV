@@ -23,8 +23,9 @@ export async function uploadDocument(patientId,pathway,file,title,date,category)
  const path=patientId+"/"+pathway.id+"/"+crypto.randomUUID()+"-"+fileName(file.name);
  const bucket=db().storage.from("patient-documents");
  const uploaded=await bucket.upload(path,file,{upsert:false,contentType:file.type});if(uploaded.error)throw uploaded.error;
- const sub=category==="analysis"?"blood_test":"health_other";
- const {error}=await db().from("documents").insert({patient_id:patientId,pathway_id:pathway.id,category:"health",sub_category:sub,title,document_date:date,original_filename:file.name,mime_type:file.type,size_bytes:file.size,storage_bucket:"patient-documents",storage_path:path,uploaded_by_user_id:uid});
+ const sub=category==="analysis"?"blood_test":category==="report"?"health_other":null;
+ const dbCategory=category==="other"?"other":"health";
+ const {error}=await db().from("documents").insert({patient_id:patientId,pathway_id:pathway.id,category:dbCategory,sub_category:sub,title,document_date:date,original_filename:file.name,mime_type:file.type,size_bytes:file.size,storage_bucket:"patient-documents",storage_path:path,uploaded_by_user_id:uid});
  if(error){await bucket.remove([path]);throw error;}
 }
 export async function openDocument(doc){
