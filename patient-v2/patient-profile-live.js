@@ -134,7 +134,7 @@ function openSupport(){
 async function navigate(){
  if(!context)return;
  const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":location.hash==="#diario"?"diary":location.hash==="#home"||!location.hash?"home":"profile";
- document.querySelectorAll("[data-patient-view]").forEach(view=>{view.hidden=view.dataset.patientView!==tab;});
+ document.querySelectorAll("[data-patient-view]").forEach(view=>{view.hidden=view.dataset.patientView!==tab||tab==="home";});
  document.querySelectorAll("[data-patient-route]").forEach(link=>{
   const selected=link.dataset.patientRoute===tab;
   link.classList.toggle("active",selected);
@@ -147,7 +147,10 @@ async function navigate(){
   const openToday=openDiaryFromHome;openDiaryFromHome=false;
   await mountPatientDiary(context,{openToday});
  }
- if(tab==="home")await mountPatientHome(context);
+ if(tab==="home"){
+  try{await mountPatientHome(context);document.querySelector("#patientHomeView").hidden=false;}
+  catch(error){const home=document.querySelector("#patientHomeView");if(home){home.innerHTML='<div class="module" role="alert">Impossibile caricare la Home: '+esc(error.message||"Errore di lettura dati")+'. Riapri la Home per riprovare.</div>';home.hidden=false;}throw error;}
+ }
 }
 window.addEventListener("hashchange",()=>navigate().catch(error=>showError(error.message)));
 document.addEventListener("click",async e=>{
