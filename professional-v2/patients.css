@@ -185,6 +185,14 @@
   text-align:left;
   cursor:pointer;
 }
+.patient-row-draft{grid-template-columns:46px minmax(0,1fr) auto;cursor:default}
+.patient-row-draft .patient-meta{display:none}
+.patient-draft-convert{justify-self:end;align-self:center;max-width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:10px;background:var(--green-800);color:#fff;font-size:11px;font-weight:650;line-height:1.25;white-space:normal;text-align:center;cursor:pointer}
+.patient-draft-convert:hover{background:var(--green-900)}
+@media(max-width:720px){
+  .patient-row-draft{grid-template-columns:40px minmax(0,1fr) auto;gap:9px}
+  .patient-draft-convert{width:auto;max-width:120px;padding:8px 10px;font-size:10px}
+}
 .patient-row:first-child{border-top:0}
 .patient-row:hover{background:rgba(237,242,233,.48)}
 .patient-avatar{
