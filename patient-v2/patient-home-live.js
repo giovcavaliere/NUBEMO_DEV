@@ -77,18 +77,17 @@ export async function mountPatientHome(ctx){
  setText(".patient-calorie-status",todayEntry?.calorie_quality==="good"?"Stima buona":todayEntry?.calorie_quality==="partial"?"Stima parziale":"Stima non disponibile");
  setText(".patient-calorie-bmr strong","—");
  drawChart();
- setText(".patient-diary-summary + .patient-diary-actions", ""); // actions are rebuilt below
  const actionBox=el(".patient-diary-actions");
  if(actionBox)actionBox.innerHTML='<button class="patient-primary" type="button" data-patient-route="diary" data-patient-diary-mode="edit">Aggiungi / modifica giornata</button>';
  const diaryCard=el(".patient-diary-summary")?.closest(".module");
  if(diaryCard){const p=diaryCard.querySelector(".agenda-note");if(p)p.textContent=done+" pasti su 5 registrati oggi";}
  el(".patient-diary-summary")?.querySelectorAll(".patient-meal-status").forEach((node,i)=>{const filled=!!String(todayEntry?.[meals[i]]||"").trim();node.classList.toggle("pending",!filled);node.querySelector("span").textContent=filled?"✓":"·";});
  const currentPlan=(plans||[]).find(p=>p.status==="active"&&p.pathway_id===active);
- const plan=el(".patient-home-grid:nth-of-type(4) .patient-quick-row");
+ const plan=el(".patient-home-grid .patient-quick-list .patient-quick-row");
  if(plan){plan.querySelector("strong").textContent=currentPlan?.title||"Nessun piano attivo";plan.querySelector("small").textContent=currentPlan?.valid_from?"In vigore dal "+date(currentPlan.valid_from):"Consulta la sezione Piano";}
  const seen=new Set((reads||[]).filter(x=>x.read_at).map(x=>x.document_id));
  const unread=(docs||[]).filter(d=>d.category!=="plan"&&d.uploaded_by_user_id!==ctx.user.id&&!seen.has(d.id)).length;
- const quick=el(".patient-home-grid:last-of-type .patient-quick-list");
+ const quick=[...document.querySelectorAll("#patientHomeView .patient-quick-list")].at(-1);
  if(quick){const rows=quick.querySelectorAll(".patient-quick-row");if(rows[1])rows[1].querySelector("small").textContent=unread?unread+" documenti da leggere":"Nessun documento da leggere";}
  const apIds=(appointmentLinks||[]).map(x=>x.appointment_id);
  let next=null;if(apIds.length){const appointments=await query(db().from("appointments").select("starts_at,appointment_type").in("id",apIds).is("deleted_at",null).gte("starts_at",new Date().toISOString()).order("starts_at").limit(1));next=appointments[0]||null;}
