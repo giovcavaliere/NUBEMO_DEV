@@ -534,12 +534,13 @@ export function renderLivePatientMeasures(root,overview,measurements,actions){
   root.querySelectorAll("[data-measure-edit],[data-measure-delete]").forEach(button=>button.disabled=true);
  }
 }
-export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],completedVisits=0,recentActivity=[],activityError="",adherence=null,nextAppointment=null},activeTab="panoramica",actions={}){
+export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],completedVisits=0,recentActivity=[],activityError="",adherence=null,nextAppointment=null,composition=null},activeTab="panoramica",actions={}){
   const active=pathways.find(item=>item.status==="active");
   const startedAt=active?.pathway_start_date||active?.started_at||null;
   const snapshot=patient.weightSnapshot||null;
   const initialWeight=snapshot?.first?.weight??null;
   const currentWeight=snapshot?.last?.weight??null;
+  const otherComposition=composition?.values||{};
   const model={
     data:{
       identity:{id:patient.id,firstName:patient.first_name,lastName:patient.last_name,
@@ -553,8 +554,8 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],c
       adherence:adherence||{percentage:0,completed:0,considered:0},nextAppointment},
     timeline:[],focus:[],weightSeries:(snapshot?.series||[]).map(item=>({date:item.date,value:item.weight})),activity:recentActivity,activityError,
     composition:{values:{
-      weight:{value:currentWeight,unit:"kg",delta:snapshot?.change??null},bodyFat:{value:null,unit:"%",delta:null},
-      muscleMass:{value:null,unit:"%",delta:null},bcm:{value:null,unit:"%",delta:null}},lastBiaDate:null}
+      weight:{value:currentWeight,unit:"kg",delta:snapshot?.change??null},bodyFat:otherComposition.bodyFat||{value:null,unit:"%",delta:null},
+      muscleMass:otherComposition.muscleMass||{value:null,unit:"%",delta:null},bcm:otherComposition.bcm||{value:null,unit:"%",delta:null}},lastBiaDate:composition?.lastBiaDate||null}
   };
   const name=escapeHtml([patient.first_name,patient.last_name].filter(Boolean).join(" "));
   const livePathways=pathwayViewModel(pathways);
