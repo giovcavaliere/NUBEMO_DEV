@@ -13,6 +13,8 @@ export async function renderLivePatientPlans(root,overview){
  const patientId=overview.patient.id;
  const active=overview.pathways.find(p=>p.status==="active");
  let plans=await loadLivePlans(patientId,overview.pathways);
+ const pendingPlan=sessionStorage.getItem("nubemo-pro2-select-plan-"+patientId);
+ if(pendingPlan){selectRealPlan(patientId,pendingPlan);sessionStorage.removeItem("nubemo-pro2-select-plan-"+patientId);}
  renderLivePatientOverview(root,overview,"piano",{});
  const body=root.querySelector(".detail-content");
  const model={data:{identity:{id:patientId},nutritionPlans:plans}};
