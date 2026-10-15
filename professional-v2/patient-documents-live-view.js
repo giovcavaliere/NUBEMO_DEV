@@ -4,7 +4,7 @@ import {loadDocuments,uploadDocument,openDocument,deleteDocument,saveLaboratoryV
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
 function openDialog(root,html,save){
- const el=document.createElement("dialog");el.className="detail-dialog documents-upload-dialog";el.innerHTML=html;root.append(el);
+ const el=document.createElement("dialog");el.className="detail-dialog documents-upload-dialog";el.innerHTML=html;document.body.append(el);
  el.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>el.close()));
  el.addEventListener("close",()=>el.remove(),{once:true});
  const form=el.querySelector("form");
