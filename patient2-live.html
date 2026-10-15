@@ -278,6 +278,226 @@
           </section>
 
           
+<div id="patientHomeView" data-patient-view="home">
+          <header class="welcome patient-welcome">
+            <div>
+              <h1>Buongiorno, Giovanni <span class="wave">👋</span></h1>
+              <p>Venerdì 9 ottobre 2026 <span>·</span> Ecco come sta andando il tuo percorso</p>
+            </div>
+            <div class="patient-welcome-badge">
+              <svg class="icon"><use href="#icon-calendar"/></svg>
+              Prossima visita · 15 ottobre · ore 18:30
+            </div>
+          </header>
+
+          <section class="patient-daily-quote" aria-labelledby="daily-quote-title">
+            <span class="patient-quote-icon" aria-hidden="true"><svg class="icon"><use href="#icon-leaf"/></svg></span>
+            <div>
+              <h2 id="daily-quote-title">Frase del giorno</h2>
+              <blockquote id="patientDailyQuote">“Ogni piccolo passo ripetuto con costanza costruisce il risultato.”</blockquote>
+            </div>
+          </section>
+
+          <section class="kpi-grid patient-kpi-grid">
+            <article class="kpi-card">
+              <div class="kpi-icon green"><svg class="icon"><use href="#icon-weight"/></svg></div>
+              <div class="kpi-copy">
+                <span>Peso attuale</span>
+                <strong>106,6 kg</strong>
+                <small>−2,8 kg dall'inizio</small>
+              </div>
+            </article>
+
+            <article class="kpi-card">
+              <div class="kpi-icon peach"><svg class="icon"><use href="#icon-chart"/></svg></div>
+              <div class="kpi-copy">
+                <span>BMI attuale</span>
+                <strong>32,9</strong>
+                <small>calcolato sull'ultimo peso</small>
+              </div>
+            </article>
+
+            <article class="kpi-card">
+              <div class="kpi-icon green"><svg class="icon"><use href="#icon-target"/></svg></div>
+              <div class="kpi-copy">
+                <span>Obiettivo</span>
+                <strong>85,0 kg</strong>
+                <small>definito con il professionista</small>
+              </div>
+            </article>
+
+            <article class="kpi-card">
+              <div class="kpi-icon peach"><svg class="icon"><use href="#icon-diary"/></svg></div>
+              <div class="kpi-copy">
+                <span>Diario di oggi</span>
+                <strong>3 / 5</strong>
+                <small>pasti già registrati</small>
+              </div>
+            </article>
+          </section>
+
+          <section class="patient-home-grid">
+            <article class="module patient-progress-card">
+              <div class="patient-progress-copy">
+                <div class="module-title">
+                  <span class="module-icon"><svg class="icon"><use href="#icon-target"/></svg></span>
+                  <h2>Il tuo progresso</h2>
+                </div>
+                <p class="patient-progress-note">Avanzamento verso l'obiettivo concordato per il percorso attivo.</p>
+
+                <div class="patient-progress-body">
+                  <div class="patient-progress-metric">
+                    <span>Peso iniziale</span>
+                    <strong>109,4 kg</strong>
+                  </div>
+                  <div class="patient-progress-metric">
+                    <span>Variazione</span>
+                    <strong>−2,8 kg</strong>
+                  </div>
+                  <div class="patient-progress-metric">
+                    <span>Da raggiungere</span>
+                    <strong>21,6 kg</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="patient-progress-ring" style="--progress:11.5">
+                <strong>11,5%</strong>
+                <span>completato</span>
+              </div>
+            </article>
+
+            <article class="module patient-calorie-card">
+              <div class="module-head">
+                <div class="module-title">
+                  <span class="module-icon"><svg class="icon"><use href="#icon-fire"/></svg></span>
+                  <h2>Calorie di oggi</h2>
+                </div>
+              </div>
+              <div class="patient-calorie-value">1.650 kcal</div>
+              <p class="patient-calorie-caption">Stima basata sugli alimenti inseriti nel diario di oggi.</p>
+              <div class="patient-calorie-bmr">
+                <span>BMR a riposo</span>
+                <strong>1.980 kcal</strong>
+                <small>metabolismo basale stimato</small>
+              </div>
+              <span class="patient-calorie-status">Stima buona</span>
+            </article>
+          </section>
+
+          <section class="patient-home-grid">
+            <article class="module patient-chart-card">
+              <div class="patient-chart-head">
+                <div class="module-title">
+                  <span class="module-icon"><svg class="icon"><use href="#icon-chart"/></svg></span>
+                  <div class="patient-chart-copy">
+                    <h2>Andamento peso</h2>
+                    <small>Le tue rilevazioni nel tempo</small>
+                  </div>
+                </div>
+                <div class="patient-range" aria-label="Intervallo grafico">
+                  <button class="active" type="button" data-weight-range="7d">7 gg</button>
+                  <button type="button" data-weight-range="1m">1 mese</button>
+                  <button type="button" data-weight-range="3m">3 mesi</button>
+                  <button type="button" data-weight-range="all">Tutto</button>
+                </div>
+              </div>
+
+              <div class="patient-weight-chart" id="patientWeightChart" aria-label="Grafico demo andamento peso"></div>
+            </article>
+
+            <article class="module">
+              <div class="module-head">
+                <div class="module-title">
+                  <span class="module-icon"><svg class="icon"><use href="#icon-diary"/></svg></span>
+                  <h2>Diario di oggi</h2>
+                </div>
+                <button class="link-button" type="button" data-patient-route="diary">Apri diario →</button>
+              </div>
+              <p class="agenda-note">3 pasti su 5 già registrati</p>
+
+              <div class="patient-diary-summary">
+                <div class="patient-meal-status"><span>✓</span><small>Colazione</small></div>
+                <div class="patient-meal-status"><span>✓</span><small>Spuntino</small></div>
+                <div class="patient-meal-status"><span>✓</span><small>Pranzo</small></div>
+                <div class="patient-meal-status pending"><span>·</span><small>Spuntino</small></div>
+                <div class="patient-meal-status pending"><span>·</span><small>Cena</small></div>
+              </div>
+
+              <div class="patient-diary-actions">
+                <button class="patient-primary" type="button" data-patient-route="diary" data-patient-diary-mode="edit">Aggiungi giornata</button>
+                <button class="patient-secondary" type="button" data-patient-home-measures>
+                  <svg class="icon" style="display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:5px"><use href="#icon-measure"/></svg>
+                  Aggiungi misure
+                </button>
+              </div>
+            </article>
+          </section>
+
+          <section class="patient-home-grid">
+            <article class="module">
+              <div class="module-head">
+                <div class="module-title">
+                  <span class="module-icon"><svg class="icon"><use href="#icon-plan"/></svg></span>
+                  <h2>Piano alimentare</h2>
+                </div>
+                <button class="link-button" type="button" data-patient-route="plan">Apri piano →</button>
+              </div>
+              <div class="patient-quick-list">
+                <div class="patient-quick-row">
+                  <div class="patient-quick-icon"><svg class="icon"><use href="#icon-plan"/></svg></div>
+                  <div>
+                    <strong>Piano alimentare ottobre</strong>
+                    <small>Attivo · valido dal 1 ottobre</small>
+                  </div>
+                  <button class="link-button" type="button" data-patient-route="plan">Apri</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="module">
+              <div class="module-head">
+                <div class="module-title">
+                  <span class="module-icon"><svg class="icon"><use href="#icon-check"/></svg></span>
+                  <h2>Prossime cose utili</h2>
+                </div>
+              </div>
+              <div class="patient-quick-list">
+                <div class="patient-quick-row">
+                  <div class="patient-quick-icon peach"><svg class="icon"><use href="#icon-calendar"/></svg></div>
+                  <div>
+                    <strong>Prossima visita</strong>
+                    <small>15 ottobre · ore 18:30</small>
+                  </div>
+                  <button class="link-button" type="button" data-patient-home-appointment>Dettagli</button>
+                </div>
+                <div class="patient-quick-row">
+                  <div class="patient-quick-icon"><svg class="icon"><use href="#icon-document"/></svg></div>
+                  <div>
+                    <strong>Documenti</strong>
+                    <small>1 nuovo documento da leggere</small>
+                  </div>
+                  <button class="link-button" type="button" data-patient-route="documents">Apri</button>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section class="module patient-support-card" aria-labelledby="patient-support-title">
+            <div class="patient-support-icon" aria-hidden="true">
+              <svg class="icon"><use href="#icon-support"/></svg>
+            </div>
+            <div class="patient-support-copy">
+              <span class="patient-view-eyebrow">Assistenza NUBEMO</span>
+              <h2 id="patient-support-title">Hai bisogno di aiuto?</h2>
+              <p>Segnala un problema o richiedi supporto direttamente al servizio NUBEMO.</p>
+            </div>
+            <button class="patient-primary patient-support-action" type="button" data-patient-profile-action="support">
+              Richiedi assistenza
+            </button>
+          </section>
+          </div>
+
+          
           <section class="patient-static-view patient-plan-page" data-patient-view="plan" hidden>
             <header class="patient-view-head"><div><span class="patient-view-eyebrow">Area paziente</span><h1>Piano alimentare</h1><p>I piani pubblicati dal tuo professionista, attuali e precedenti.</p></div></header>
             <div data-patient-plan-content aria-live="polite"></div>
