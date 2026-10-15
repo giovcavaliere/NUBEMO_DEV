@@ -1,3 +1,4 @@
+import {mountPatientDiary} from "./patient-diary-live.js?v=diary-20261015";
 import {mountPatientDocuments} from "./patient-documents-live.js?v=documents-pathway-20261015";
 // NUBEMO Patient 2.0 — Profilo live. Nessun dato demo, solo sessione paziente e Supabase DEV.
 import {mountPatientPlan} from "./patient-plan-live.js?v=patient-note-20261015";
@@ -130,7 +131,7 @@ function openSupport(){
 }
 async function navigate(){
  if(!context)return;
- const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":"profile";
+ const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":location.hash==="#diario"?"diary":"profile";
  document.querySelectorAll("[data-patient-view]").forEach(view=>{view.hidden=view.dataset.patientView!==tab;});
  document.querySelectorAll("[data-patient-route]").forEach(link=>{
   const selected=link.dataset.patientRoute===tab;
@@ -140,6 +141,7 @@ async function navigate(){
  });
  if(tab==="plan")await mountPatientPlan(context.patient.id);
  if(tab==="documents")await mountPatientDocuments(context);
+ if(tab==="diary")await mountPatientDiary(context);
 }
 window.addEventListener("hashchange",()=>navigate().catch(error=>showError(error.message)));
 document.addEventListener("click",async e=>{
