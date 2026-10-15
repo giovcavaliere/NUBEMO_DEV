@@ -1,3 +1,4 @@
+import {renderLiveDashboard} from "./dashboard-live-view.js?v=dashboard-live-20261015";
 import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=diary-live-20261015";
 import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=plan-nav-20261015";
 await window.NUBEMO_PRO2_AUTH_READY;
@@ -113,7 +114,19 @@ function showView(route){
     closeDashboardSearch();
   }
 
-  if(route.name==="patients"){
+  if(route.name==="dashboard"){
+    void (async()=>{try{
+      await patientsLoading;
+      if(patientsPhase!=="ready")throw Error(patientsError||"Pazienti non disponibili");
+      if(currentRoute().name!=="dashboard")return;
+      await renderLiveDashboard(dashboardView,patientRecords);
+    }catch(error){
+      if(currentRoute().name!=="dashboard")return;
+      dashboardView.querySelectorAll(".kpi-grid .kpi-card strong, .priority-row b").forEach(node=>node.textContent="—");
+      const list=dashboardView.querySelector(".home-grid .module.agenda .agenda-list");
+      if(list)list.textContent="Impossibile caricare i dati della Dashboard: "+(error.message||"Errore");
+    }})();
+  }else if(route.name==="patients"){
     patientsView.textContent="Aggiornamento elenco pazienti…";
     void (async()=>{
       try{
