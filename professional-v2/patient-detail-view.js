@@ -390,7 +390,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
  Object.entries(fieldMap).forEach(([key,column])=>{a[key]=c[column]??"";});
  ["obesity","diabetes","hypertension","cardiovascular","dyslipidemia","thyroid"].forEach(key=>a.family[key]=c["family_"+key]??null);
  const identity={id:patient.id,firstName:real.profile.first_name,lastName:real.profile.last_name,birthDate:real.record.birth_date,sex:real.record.sex,height:real.record.height_cm,
-  phone:real.profile.phone,email:real.profile.email,fiscalCode:real.record.fiscal_code,address:real.record.address,postalCode:real.record.postal_code,city:real.record.city,province:real.record.province,showCaloriesToPatient:real.record.show_calories_to_patient,nubemoAccountStatus:real.profile.auth_user_id?(real.profile.status==="active"?"active":"pending"):"inactive"};
+  phone:real.profile.phone,email:real.profile.email,fiscalCode:real.record.fiscal_code,address:real.record.address,postalCode:real.record.postal_code,city:real.record.city,province:real.record.province,showCaloriesToPatient:real.record.show_calories_to_patient,nubemoAccountStatus:real.profile.auth_user_id?(real.profile.activation_completed_at?"active":"pending"):"inactive"};
  const privacy={consent:{status:real.privacy?"signed":"missing",signedAt:real.privacy?.uploaded_at||null},
   communications:{email:false},reminders:{email:false},consentManagement:null,
   administrativeNotes:null};
@@ -415,6 +415,18 @@ export function renderLivePatientProfile(root,overview,real,actions){
   dialog.addEventListener("close",()=>dialog.remove(),{once:true});
   dialog.querySelector("form").addEventListener("submit",async e=>{e.preventDefault();const btn=dialog.querySelector("[type=submit]");btn.disabled=true;try{await onSave(new FormData(dialog.querySelector("form")));dialog.close();}catch(error){dialog.querySelector("[data-live-error]").textContent=error.message||"Salvataggio non riuscito";btn.disabled=false;}});
  };
+ if(!real.profile.auth_user_id&&link.status!=="ended"){
+  const identityFields=root.querySelector(".detail-content .detail-fields");
+  if(identityFields){
+   const panel=document.createElement("div");
+   panel.className="detail-activation-action";
+   panel.innerHTML='<button type="button" class="detail-edit-button" data-activate-patient>NUBEMO · Invia invito al paziente</button>';
+   identityFields.insertAdjacentElement("afterend",panel);
+   panel.querySelector("[data-activate-patient]").addEventListener("click",()=>open("Attiva account NUBEMO",
+    `<div class="detail-identity-form"><p>L'invito verrà inviato all'indirizzo email indicato. Il paziente imposterà autonomamente la password. Non verrà aperto alcun percorso.</p><label><span>Email paziente *</span><input name="email" type="email" required value="${escapeHtml(identity.email||"")}"></label></div>`,
+    async values=>{await actions.activate(String(values.get("email")||"").trim());},false));
+  }
+ }
  root.querySelectorAll(".detail-accordion").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)root.querySelectorAll(".detail-accordion").forEach(o=>{if(o!==d)o.open=false;});}));
  root.querySelector("[data-edit-identity]")?.addEventListener("click",()=>open("Anagrafica",
   `<div class="detail-identity-form">
