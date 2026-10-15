@@ -3,7 +3,7 @@ async function query(promise){const {data,error}=await promise;if(error)throw er
 async function auth(){const {data,error}=await client().auth.getUser();if(error||!data.user)throw Error("Sessione non valida");return data.user;}
 export async function loadLivePlans(patientId,pathways){
  const ids=pathways.map(x=>x.id);if(!ids.length)return [];
- const plans=await query(client().from("nutrition_plans").select("id,patient_id,professional_id,pathway_id,title,status,valid_from,valid_to,created_at").eq("patient_id",patientId).in("pathway_id",ids).is("deleted_at",null).order("valid_from",{ascending:false}));
+ const plans=await query(client().from("nutrition_plans").select("id,patient_id,professional_id,pathway_id,title,status,valid_from,valid_to,created_at,patient_note").eq("patient_id",patientId).in("pathway_id",ids).is("deleted_at",null).order("valid_from",{ascending:false}));
  if(!plans.length)return [];
  const privateNotes=await query(client().from("nutrition_plan_private_notes").select("plan_id,note").in("plan_id",plans.map(p=>p.id)));
  const notesByPlan=new Map(privateNotes.map(x=>[x.plan_id,x.note]));
@@ -13,11 +13,11 @@ export async function loadLivePlans(patientId,pathways){
  const docsById=new Map(docs.map(d=>[d.id,d]));
  return plans.map(plan=>{
   const doc=links.filter(l=>l.nutrition_plan_id===plan.id).map(l=>docsById.get(l.document_id)).find(d=>d&&d.pathway_id===plan.pathway_id);
-  return {id:plan.id,pathwayId:plan.pathway_id,title:plan.title,validFrom:plan.valid_from,validTo:plan.valid_to,professionalNote:notesByPlan.get(plan.id)||"",fileName:doc?.original_filename||"Documento non disponibile",document:doc||null,status:plan.status};
+  return {id:plan.id,patientId:plan.patient_id,pathwayId:plan.pathway_id,title:plan.title,validFrom:plan.valid_from,validTo:plan.valid_to,professionalNote:notesByPlan.get(plan.id)||"",patientNote:plan.patient_note||"",fileName:doc?.original_filename||"Documento non disponibile",document:doc||null,status:plan.status};
  });
 }
 const safeName=s=>String(s).normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g,"_").slice(0,130);
-export async function publishPlan(patientId,pathway,file,title,validFrom,note){
+export async function publishPlan(patientId,pathway,file,title,validFrom,note,patientNote=""){
  if(pathway?.status!=="active")throw Error("Per pubblicare è necessario un percorso attivo.");
  if(!title.trim()||!validFrom||!file)throw Error("Compila tutti i campi richiesti.");
  if(file.type!=="application/pdf"||!file.name.toLowerCase().endsWith(".pdf")||file.size>20*1024*1024||file.size===0)throw Error("Seleziona un PDF valido, massimo 20 MB.");
@@ -29,7 +29,7 @@ export async function publishPlan(patientId,pathway,file,title,validFrom,note){
  let documentId=null,planId=null;
  try{
   const {data:document,error:docErr}=await client().from("documents").insert({patient_id:patientId,pathway_id:pathway.id,category:"plan",sub_category:"meal_plan",title:title.trim(),document_date:validFrom,valid_from:validFrom,original_filename:file.name,mime_type:"application/pdf",size_bytes:file.size,storage_bucket:"patient-documents",storage_path:path,uploaded_by_user_id:user.id}).select("id").single();if(docErr)throw docErr;documentId=document.id;
-  const {data:plan,error:planErr}=await client().from("nutrition_plans").insert({patient_id:patientId,pathway_id:pathway.id,professional_id:pro.id,title:title.trim(),valid_from:validFrom,status:"active"}).select("id").single();if(planErr)throw planErr;planId=plan.id;
+  const {data:plan,error:planErr}=await client().from("nutrition_plans").insert({patient_id:patientId,pathway_id:pathway.id,professional_id:pro.id,title:title.trim(),valid_from:validFrom,status:"active",patient_note:String(patientNote||"").trim()}).select("id").single();if(planErr)throw planErr;planId=plan.id;
   const {error:linkErr}=await client().from("nutrition_plan_documents").insert({nutrition_plan_id:planId,document_id:documentId});if(linkErr)throw linkErr;
   if(note.trim()){const {error:noteErr}=await client().from("nutrition_plan_private_notes").insert({plan_id:planId,note:note.trim()});if(noteErr)throw noteErr;}
  }catch(error){
@@ -47,6 +47,12 @@ export async function openPlanFile(plan){
 }
 export async function updatePlanNote(plan,note){
  const {error}=await client().from("nutrition_plan_private_notes").upsert({plan_id:plan.id,note:note.trim(),updated_at:new Date().toISOString()},{onConflict:"plan_id"});if(error)throw error;
+}
+export async function updatePatientPlanNote(plan,note){
+ const value=String(note||"").trim();
+ if(value.length>4000)throw Error("La nota per il paziente non può superare 4000 caratteri.");
+ const {error}=await client().from("nutrition_plans").update({patient_note:value||null}).eq("id",plan.id).eq("patient_id",plan.patientId);
+ if(error)throw error;
 }
 export async function removePlan(plan){
  const {error}=await client().rpc("soft_delete_associated_nutrition_plan",{p_plan_id:plan.id});if(error)throw error;
