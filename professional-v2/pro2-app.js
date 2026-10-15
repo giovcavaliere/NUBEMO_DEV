@@ -5,9 +5,9 @@ import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=patient-note
 await window.NUBEMO_PRO2_AUTH_READY;
 
 import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=lab-dialog-fix-20261015";
-import {loadOwnPatients} from "./patients-service.js?v=unread-filter-20261015";
-import {loadPatientOverview,loadPatientRecentActivity} from "./patient-overview-live.js?v=overview-activity-20261015";
-import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=avatar-shared-20261015";
+import {loadOwnPatients} from "./patients-service.js?v=weight-kpi-20261015";
+import {loadPatientOverview,loadPatientRecentActivity,loadOverviewMetrics} from "./patient-overview-live.js?v=overview-kpi-20261015";
+import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=overview-kpi-20261015";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=patient-profile-shared-20261015";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
@@ -203,6 +203,8 @@ function showView(route){
         if(completedError)throw Error("Impossibile verificare le visite completate: "+completedError.message);
         data.completedVisits=completedRows?.length??0;
         if(route.tab==="panoramica"){
+          const activePathway=data.pathways.find(p=>p.status==="active");
+          Object.assign(data,await loadOverviewMetrics(route.id,activePathway?.id));
           try{data.recentActivity=await loadPatientRecentActivity(data);}
           catch(error){data.activityError="Impossibile caricare le attività recenti. Riprova ad aggiornare la pagina.";console.error("Attività recenti:",error);}
         }
