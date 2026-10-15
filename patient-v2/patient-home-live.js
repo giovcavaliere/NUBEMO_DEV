@@ -50,9 +50,14 @@ export async function mountPatientHome(ctx){
   db().from("document_read_status").select("document_id,read_at").eq("profile_id",ctx.profile.id).limit(500),
   db().from("appointment_patients").select("appointment_id").eq("patient_id",patientId)
  ];
- const results=await Promise.all(requests);
- for(const r of results)if(r.error)throw Error("Home: "+r.error.message);
- const [measurements,diary,clinical,plans,docs,reads,appointmentLinks]=results.map(r=>r.data);
+ const results=await Promise.allSettled(requests);
+ const sources=["misurazioni","diario","obiettivo","piano","documenti","letture","agenda"];
+ const values=results.map((result,i)=>{
+  if(result.status==="rejected"){console.error("Home Patient: "+sources[i],result.reason);return null;}
+  if(result.value.error){console.error("Home Patient: "+sources[i],result.value.error);return null;}
+  return result.value.data;
+ });
+ const [measurements,diary,clinical,plans,docs,reads,appointmentLinks]=values;
  const map=new Map();
  for(const d of diary||[])if(num(d.weight_kg)>0)map.set(d.entry_date,{day:d.entry_date,weight:num(d.weight_kg),priority:0});
  for(const m of measurements||[])if(num(m.weight_kg)>0)map.set(m.measured_at,{day:m.measured_at,weight:num(m.weight_kg),priority:1});
