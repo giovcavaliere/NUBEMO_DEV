@@ -32,7 +32,7 @@ export async function loadOwnPatients(){
  const profiles=[];
  for(let i=0;i<profileIds.length;i+=100){
    const {data,error}=await client.from('profiles')
-     .select('id,first_name,last_name,email,phone,auth_user_id,activation_completed_at').in('id',profileIds.slice(i,i+100));
+     .select('id,first_name,last_name,email,phone,auth_user_id,activation_completed_at,patient_avatar_path').in('id',profileIds.slice(i,i+100));
    if(error)throw new Error('Impossibile leggere i profili dei pazienti.');
    profiles.push(...(data||[]));
  }
@@ -77,7 +77,11 @@ export async function loadOwnPatients(){
    return {id:patient.id,first_name:person.first_name||'',last_name:person.last_name||'',
       email:person.email||'',phone:person.phone||'',age,
       status,created_at:patient.created_at||link.created_at,
-      weight:null,weightDelta:null,nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:null,avatar:null};
+      weight:null,weightDelta:null,nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:null,avatarPath:person.patient_avatar_path||null,avatar:null};
  }).filter(Boolean);
+ await Promise.all(fullRecords.filter(item=>item.avatarPath).map(async item=>{
+  const signed=await client.storage.from("patient-avatars").createSignedUrl(item.avatarPath,1800);
+  if(!signed.error&&signed.data?.signedUrl)item.avatar=signed.data.signedUrl;
+ }));
  return [...fullRecords,...quickDraftRecords];
 }
