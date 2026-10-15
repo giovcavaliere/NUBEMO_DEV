@@ -62,6 +62,20 @@
       return;
     }
 
+    const params = new URLSearchParams((entry.search || '').replace(/^\?/, ''));
+    const tokenHash = params.get('token_hash');
+    if (tokenHash) {
+      if (params.get('type') !== 'recovery') {
+        showInvalid('Tipo di collegamento non valido.');
+        return;
+      }
+      const verified = await client.auth.verifyOtp({ token_hash:tokenHash, type:'recovery' });
+      if (verified.error || !verified.data?.session) {
+        showInvalid('Il collegamento è scaduto o già utilizzato. Richiedi un nuovo invito.');
+        return;
+      }
+      window.history.replaceState(null, '', window.location.pathname);
+    }
     const session = await waitForSession();
     if (!session) {
       showInvalid('Il link non è valido o è scaduto. Chiedi al tuo professionista un nuovo invito.');
