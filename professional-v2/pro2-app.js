@@ -7,7 +7,7 @@ await window.NUBEMO_PRO2_AUTH_READY;
 import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=plan-nav-20261015";
 import {loadOwnPatients} from "./patients-service.js?v=invitation-fields-20261015";
 import {loadPatientOverview,loadPatientRecentActivity} from "./patient-overview-live.js?v=overview-activity-20261015";
-import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=activation-dialog-20261015";
+import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=invite-resend-20261015";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=patient-activation-20261015";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
@@ -249,7 +249,8 @@ function showView(route){
           renderLivePatientProfile(patientDetailView,data,liveProfile,{
             saveIdentity:async values=>{await saveLivePatientIdentity(route.id,liveProfile.record.profile_id,values);patientRecords=await loadOwnPatients();refresh();},
             saveClinical:async values=>{if(!liveProfile.editable)throw Error("È necessario un percorso attivo.");await saveLiveClinical(route.id,liveProfile.pathwayId,values);refresh();},
-            activate:async email=>{const {data,error}=await window.nubemoSupabase.functions.invoke("pro2-activate-patient",{body:{patient_id:route.id,email}});if(error)throw Error("Invito non riuscito: "+error.message);if(!data?.ok)throw Error(data?.error||"Invito non riuscito");refresh();}
+            activate:async email=>{const {data,error}=await window.nubemoSupabase.functions.invoke("pro2-activate-patient",{body:{patient_id:route.id,email}});if(error)throw Error("Invito non riuscito: "+error.message);if(!data?.ok)throw Error(data?.error||"Invito non riuscito");refresh();},
+            resendInvite:async()=>{const {data,error}=await window.nubemoSupabase.functions.invoke("patient-invite-status",{body:{action:"resend",patient_id:route.id}});if(error)throw Error("Reinvio non riuscito: "+error.message);if(!data?.ok)throw Error(data?.error||"Reinvio non riuscito");}
           });
         }
         if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab&&!["profilo","visite","misure","andamento","documenti","piano","diario"].includes(route.tab))
