@@ -34,7 +34,7 @@ function findCalorieFood(segment){
  const crea=window.nubemoFoodCatalog.findCrea(segment);
  const s=calorieNormalize(segment);
  let matches=[];
- for(const food of PATIENT_CALORIE_FOODS){
+ for(const food of window.nubemoFoodCatalog.nubemoFoods){
    for(const name of food.names){
      const idx=s.indexOf(name);
      if(idx>=0)matches.push({...food,matchedName:name,matchIndex:idx});
