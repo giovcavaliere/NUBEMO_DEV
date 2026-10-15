@@ -115,7 +115,7 @@ function renderComposition(model){
 function renderNextActions(model,{live=false}={}){
   const actions=[["Apri visita","visite","calendar"],["Leggi referti","documenti","document"],["Controlla diario","diario","check"],["Aggiungi misure","misure","chart"]];
   return `<section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Accessi rapidi alla scheda.")}
-    ${renderClinicalPdfAction({disabled:live})}<div class="detail-actions">${actions.map(([label,target,symbol])=>`<a ${live&&target==="diario"?'role="link" aria-disabled="true" tabindex="-1" title="La tab Diario non è ancora migrata."':`href="${route(model.data.identity.id,target)}"`}>${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
+    ${renderClinicalPdfAction({disabled:live})}<div class="detail-actions">${actions.map(([label,target,symbol])=>`<a href="${route(model.data.identity.id,target)}">${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
   </section>`;
 }
 
