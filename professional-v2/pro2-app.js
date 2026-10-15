@@ -1,3 +1,4 @@
+import {loadPatientWeightSnapshots} from "./patient-weight-live.js?v=weights-20261015";
 import {openDraftConversion} from "./patient-draft-convert-view.js?v=convert-draft-20261015";
 import {renderLiveDashboard} from "./dashboard-live-view.js?v=dashboard-live-20261015";
 import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=food-breakdown-20261015";
@@ -198,6 +199,10 @@ function showView(route){
       try{
         await patientsLoading;
         const data=await loadPatientOverview(route.id,patientRecords);
+        if(route.tab==="panoramica"){
+          const snapshots=await loadPatientWeightSnapshots(window.nubemoSupabase,[route.id]);
+          data.patient.weightSnapshot=snapshots.get(route.id)||null;
+        }
         const {data:completedRows,error:completedError}=await window.nubemoSupabase
           .from("appointment_visits").select("id").eq("patient_id",route.id);
         if(completedError)throw Error("Impossibile verificare le visite completate: "+completedError.message);
