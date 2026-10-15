@@ -149,7 +149,17 @@ function recallFavorites(type){
 
 function openHistory(date){
  const d=dayByDate(date);if(!d)return;
- const detail=keys.map(([,key],i)=>'<article><strong>'+labels[i]+'</strong><small>'+esc(d[key]||"Non compilato")+'</small></article>').join("");
+ const detail=keys.map(([form,key],i)=>{
+  const meal=String(d[key]||"").trim();
+  if(!meal)return '<article><strong>'+labels[i]+'</strong><small>Non compilato</small></article>';
+  const estimate=calorieReady?calorieEstimateText(meal):null;
+  const items=estimate?.items||[];
+  const details=items.map(item=>{
+    const resolved=item.status==="calculated"||item.status==="genericQuantity";
+    return '<div class="patient-diary-food-detail"><span>'+esc(item.label||item.segment)+'</span><span>'+esc(item.quantity||"")+'</span><strong>'+(resolved?Math.round(item.calories)+" kcal":"Non stimabile")+'</strong></div>';
+  }).join("");
+  return '<article><strong>'+labels[i]+'</strong><small>'+esc(meal)+'</small>'+details+'</article>';
+ }).join("");
  const el=dialog(pretty(date),(d.weight_kg??"—")+" kg · "+calorieText(d),'<div class="patient-diary-history-detail">'+detail+'</div><div class="patient-diary-history-actions">'+
  (d.pathway_id===context.activePathway?'<button class="patient-secondary" type="button" data-history-edit>Modifica</button><button class="patient-secondary patient-diary-danger" type="button" data-history-delete>Elimina</button>':'<span>Giornata storica in sola lettura</span>')+'</div>');
  el.querySelector("[data-history-edit]")?.addEventListener("click",()=>{el.remove();openEditor(date);});
