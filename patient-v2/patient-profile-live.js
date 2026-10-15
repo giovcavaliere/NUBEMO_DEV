@@ -50,11 +50,13 @@ async function renderAvatar(){
  $('[data-live-patient-initials]').textContent=initials;
  const small=$("[data-live-avatar-initials]");
  if(small)small.textContent=initials;
- if(!profile.patient_avatar_path){target.innerHTML='<span data-live-avatar-initials>'+esc(initials)+'</span>';return;}
+ if(!profile.patient_avatar_path){target.innerHTML='<span data-live-avatar-initials>'+esc(initials)+'</span>';const side=$("[data-live-patient-initials]");if(side)side.textContent=initials;return;}
  const r=await client.storage.from("patient-avatars").createSignedUrl(profile.patient_avatar_path,600);
  if(r.error||!r.data?.signedUrl){showError("Foto profilo non disponibile: riprova più tardi.");return;}
  target.innerHTML='<img alt="Foto profilo">';
  target.querySelector("img").src=r.data.signedUrl;
+ const sidebar=$("[data-live-patient-initials]");
+ if(sidebar){sidebar.innerHTML='<img alt="">';sidebar.querySelector("img").src=r.data.signedUrl;}
 }
 function render(){
  const {profile,patient,document,acceptance,prefs}=context;
