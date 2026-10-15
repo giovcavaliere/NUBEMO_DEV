@@ -133,7 +133,7 @@ function openSupport(){
 }
 async function navigate(){
  if(!context)return;
- const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":location.hash==="#diario"?"diary":location.hash==="#home"||!location.hash?"home":"profile";
+ const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":location.hash==="#diario"?"diary":location.hash==="#home"?"home":"profile";
  document.querySelectorAll("[data-patient-view]").forEach(view=>{view.hidden=view.dataset.patientView!==tab||tab==="home";});
  document.querySelectorAll("[data-patient-route]").forEach(link=>{
   const selected=link.dataset.patientRoute===tab;
