@@ -300,6 +300,10 @@ function renderPatients(){
     });
   });
 
+  patientsView.querySelector("[data-patient-doc-filter]")?.addEventListener("click",()=>{
+    patientState.documentsOnly=!patientState.documentsOnly;
+    renderPatients();
+  });
   const search=patientsView.querySelector("[data-patient-search]");
   search?.addEventListener("input",event=>{
     patientState.query=event.target.value;
