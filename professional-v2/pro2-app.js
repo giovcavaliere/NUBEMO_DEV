@@ -1,3 +1,4 @@
+import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=diary-live-20261015";
 import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=plan-nav-20261015";
 await window.NUBEMO_PRO2_AUTH_READY;
 
@@ -177,7 +178,7 @@ function showView(route){
     renderProfilePage(profileView,professionalProfile);
     bindProfilePage(profileView,{profile:professionalProfile,onSave:saveProfessionalProfile,onMedia:updateProfessionalMedia,onChange:profile=>{updateProfessionalIdentity(profile);}});
   }else if(route.name==="patient-detail"){
-    if(!["panoramica","note","profilo","visite","misure","andamento","documenti","piano"].includes(route.tab)){location.hash=`#patient/${encodeURIComponent(route.id)}/panoramica`;return;}
+    if(!["panoramica","note","profilo","visite","misure","andamento","documenti","piano","diario"].includes(route.tab)){location.hash=`#patient/${encodeURIComponent(route.id)}/panoramica`;return;}
     patientDetailView.textContent="Caricamento scheda paziente…";
     void (async()=>{
       try{
@@ -204,6 +205,9 @@ function showView(route){
         }
         const visitsEvents=route.tab==="visite"?await loadRealAgenda(patientRecords):[];
         const refresh=()=>{if(currentRoute().id===route.id)showView(currentRoute());};
+        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab==="diario"){
+          await renderLivePatientDiary(patientDetailView,data);
+        }
         if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab==="piano"){
           await renderLivePatientPlans(patientDetailView,data);
         }
@@ -233,7 +237,7 @@ function showView(route){
             saveClinical:async values=>{if(!liveProfile.editable)throw Error("È necessario un percorso attivo.");await saveLiveClinical(route.id,liveProfile.pathwayId,values);refresh();}
           });
         }
-        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab&&!["profilo","visite","misure","andamento","documenti","piano"].includes(route.tab))
+        if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab&&!["profilo","visite","misure","andamento","documenti","piano","diario"].includes(route.tab))
           renderLivePatientOverview(patientDetailView,{...data,notes},route.tab,{
             save:async(id,content)=>{await saveRealNote(route.id,active?.id,id,content);refresh();},
             remove:async id=>{await deleteRealNote(route.id,active?.id,id);refresh();},
