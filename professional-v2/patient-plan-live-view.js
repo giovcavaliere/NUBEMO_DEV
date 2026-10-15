@@ -4,9 +4,9 @@ import {loadLivePlans,publishPlan,openPlanFile,updatePlanNote,removePlan} from "
 const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function modal(title,body,saveLabel,onSave){
  const d=document.createElement("dialog");d.className="detail-dialog plan-dialog";
- d.innerHTML='<form><header><h2>'+escape(title)+'</h2><button type="button" data-close aria-label="Chiudi">×</button></header>'+body+'<footer><button type="button" data-close>Annulla</button><button type="submit">'+escape(saveLabel)+'</button></footer><p data-error role="alert"></p></form>';
- document.body.append(d);d.querySelector("[data-close]").addEventListener("click",()=>d.close());d.addEventListener("close",()=>d.remove(),{once:true});
- d.querySelector("form").addEventListener("submit",async e=>{e.preventDefault();const button=d.querySelector('[type="submit"]');button.disabled=true;try{await onSave(new FormData(d.querySelector("form")),d);d.close();}catch(error){d.querySelector("[data-error]").textContent=error.message||"Operazione non riuscita";button.disabled=false;}});
+ d.innerHTML='<form><header><h2>'+escape(title)+'</h2><button type="button" data-close aria-label="Chiudi">×</button></header>'+body+'<footer><button type="button" data-close>Annulla</button><button type="submit" data-plan-submit>'+escape(saveLabel)+'</button></footer><p data-error role="alert"></p></form>';
+ document.body.append(d);d.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",event=>{event.preventDefault();d.close();}));d.addEventListener("close",()=>d.remove(),{once:true});
+ d.querySelector("form").addEventListener("submit",async e=>{e.preventDefault();const button=d.querySelector('[data-plan-submit]');button.disabled=true;try{await onSave(new FormData(d.querySelector("form")),d);d.close();}catch(error){d.querySelector("[data-error]").textContent=error.message||"Operazione non riuscita";button.disabled=false;}});
  d.showModal();
 }
 export async function renderLivePatientPlans(root,overview){
