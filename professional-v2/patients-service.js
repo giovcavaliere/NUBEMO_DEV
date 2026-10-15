@@ -72,7 +72,8 @@ export async function loadOwnPatients(){
      if(today.getMonth()<birthday.getMonth()||(today.getMonth()===birthday.getMonth()&&today.getDate()<birthday.getDate()))age--;
    }
    const draft=patient.status==='draft';
-   const status=link.status==='ended'?'terminated':draft?'draft':link.status==='pending'?'pending':'active';
+   const invitationPending=Boolean(person.auth_user_id&&!person.activation_completed_at);
+   const status=link.status==='ended'?'terminated':draft?'draft':link.status==='pending'||invitationPending?'pending':'active';
    return {id:patient.id,first_name:person.first_name||'',last_name:person.last_name||'',
       email:person.email||'',phone:person.phone||'',age,
       status,created_at:patient.created_at||link.created_at,
