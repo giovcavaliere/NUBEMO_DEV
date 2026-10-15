@@ -96,3 +96,4 @@ export function bindPlan(root,model,onChange){
   root.querySelectorAll("[data-edit-plan-note]").forEach(button=>button.addEventListener("click",()=>{const plan=model.data.nutritionPlans.find(item=>item.id===button.dataset.editPlanNote);if(plan)openNote(root,model,plan,onChange);}));
   root.querySelectorAll("[data-delete-plan]").forEach(button=>button.addEventListener("click",()=>{const plan=model.data.nutritionPlans.find(item=>item.id===button.dataset.deletePlan);if(plan)openDelete(root,model,plan,onChange);}));
 }
+export function selectRealPlan(patientId,planId){selectedPlanByPatient.set(patientId,planId);}
