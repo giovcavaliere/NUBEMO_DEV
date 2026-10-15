@@ -250,7 +250,7 @@ function showView(route){
             saveIdentity:async values=>{await saveLivePatientIdentity(route.id,liveProfile.record.profile_id,values);patientRecords=await loadOwnPatients();refresh();},
             saveClinical:async values=>{if(!liveProfile.editable)throw Error("È necessario un percorso attivo.");await saveLiveClinical(route.id,liveProfile.pathwayId,values);refresh();},
             activate:async email=>{const {data,error}=await window.nubemoSupabase.functions.invoke("pro2-activate-patient",{body:{patient_id:route.id,email}});if(error)throw Error("Invito non riuscito: "+error.message);if(!data?.ok)throw Error(data?.error||"Invito non riuscito");refresh();},
-            resendInvite:async()=>{const {data,error}=await window.nubemoSupabase.functions.invoke("patient-invite-status",{body:{action:"resend",patient_id:route.id}});if(error)throw Error("Reinvio non riuscito: "+error.message);if(!data?.ok)throw Error(data?.error||"Reinvio non riuscito");}
+            resendInvite:async()=>{const {data,error}=await window.nubemoSupabase.functions.invoke("patient-invite-status",{body:{action:"resend",patient_id:route.id}});if(error){const detail=await error.context?.json?.().catch(()=>null);throw Error(detail?.error||"Reinvio non riuscito: "+error.message);}if(!data?.ok)throw Error(data?.error||"Reinvio non riuscito");}
           });
         }
         if(currentRoute().name==="patient-detail"&&currentRoute().id===route.id&&currentRoute().tab===route.tab&&!["profilo","visite","misure","andamento","documenti","piano","diario"].includes(route.tab))
