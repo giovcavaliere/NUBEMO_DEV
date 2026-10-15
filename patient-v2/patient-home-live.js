@@ -34,9 +34,8 @@ function drawChart(){
 }
 let bound=false;
 export async function mountPatientHome(ctx){
- const root=el("");if(!root)return;
+ const root=document.querySelector("#patientHomeView");if(!root)return;
  if(!bound){bound=true;root.addEventListener("click",e=>{const b=e.target.closest("[data-weight-range]");if(b){currentRange=b.dataset.weightRange;drawChart();}
- if(e.target.closest("[data-patient-home-measures]")){const inp=document.querySelector('[data-patient-route="diary"]');if(inp)location.hash="#diario";}
  if(e.target.closest("[data-patient-home-appointment]")){const badge=el(".patient-welcome-badge");if(badge)badge.scrollIntoView({behavior:"smooth",block:"center"});}
  });}
  const patientId=ctx.patient.id;
@@ -77,13 +76,15 @@ export async function mountPatientHome(ctx){
  setText(".patient-calorie-status",todayEntry?.calorie_quality==="good"?"Stima buona":todayEntry?.calorie_quality==="partial"?"Stima parziale":"Stima non disponibile");
  setText(".patient-calorie-bmr strong","—");
  drawChart();
- const actionBox=el(".patient-diary-actions");
- if(actionBox)actionBox.innerHTML='<button class="patient-primary" type="button" data-patient-route="diary" data-patient-diary-mode="edit">Aggiungi / modifica giornata</button>';
+ const measuresAction=el("[data-patient-home-measures]");
+ if(measuresAction){measuresAction.disabled=true;measuresAction.title="Le misure si registrano tramite il professionista.";}
+ const appointmentAction=el("[data-patient-home-appointment]");
+ if(appointmentAction){appointmentAction.disabled=true;appointmentAction.title="Dettagli della visita non ancora disponibili nell’area paziente.";}
  const diaryCard=el(".patient-diary-summary")?.closest(".module");
  if(diaryCard){const p=diaryCard.querySelector(".agenda-note");if(p)p.textContent=done+" pasti su 5 registrati oggi";}
  el(".patient-diary-summary")?.querySelectorAll(".patient-meal-status").forEach((node,i)=>{const filled=!!String(todayEntry?.[meals[i]]||"").trim();node.classList.toggle("pending",!filled);node.querySelector("span").textContent=filled?"✓":"·";});
  const currentPlan=(plans||[]).find(p=>p.status==="active"&&p.pathway_id===active);
- const plan=el(".patient-home-grid .patient-quick-list .patient-quick-row");
+ const plan=[...document.querySelectorAll("#patientHomeView .patient-quick-list")][0]?.querySelector(".patient-quick-row");
  if(plan){plan.querySelector("strong").textContent=currentPlan?.title||"Nessun piano attivo";plan.querySelector("small").textContent=currentPlan?.valid_from?"In vigore dal "+date(currentPlan.valid_from):"Consulta la sezione Piano";}
  const seen=new Set((reads||[]).filter(x=>x.read_at).map(x=>x.document_id));
  const unread=(docs||[]).filter(d=>d.category!=="plan"&&d.uploaded_by_user_id!==ctx.user.id&&!seen.has(d.id)).length;
