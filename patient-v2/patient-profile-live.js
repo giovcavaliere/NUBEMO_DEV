@@ -8,6 +8,7 @@ const $=(q,root=document)=>root.querySelector(q);
 const $$=(q,root=document)=>[...root.querySelectorAll(q)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let context=null;
+let openDiaryFromHome=false;
 const showError=msg=>{const p=$("[data-profile-feedback]")||document.createElement("p");p.dataset.profileFeedback="";p.textContent=msg;p.setAttribute("role","alert");p.style.color="#983c37";if(!p.isConnected)$(".patient-profile-page .patient-view-head")?.append(p);};
 const field=(key,value)=>{const el=$('[data-profile-field="'+key+'"]');if(el)el.textContent=value==null||value===""?"—":String(value);};
 const fmtDate=d=>d?new Date(d+"T12:00:00").toLocaleDateString("it-IT"):"—";
@@ -142,7 +143,10 @@ async function navigate(){
  });
  if(tab==="plan")await mountPatientPlan(context.patient.id);
  if(tab==="documents")await mountPatientDocuments(context);
- if(tab==="diary")await mountPatientDiary(context);
+ if(tab==="diary"){
+  const openToday=openDiaryFromHome;openDiaryFromHome=false;
+  await mountPatientDiary(context,{openToday});
+ }
  if(tab==="home")await mountPatientHome(context);
 }
 window.addEventListener("hashchange",()=>navigate().catch(error=>showError(error.message)));
@@ -164,6 +168,7 @@ document.addEventListener("click",async e=>{
  if(route){
   e.preventDefault();
   const tab=route.dataset.patientRoute;
+  if(tab==="diary"&&route.hasAttribute("data-patient-diary-mode"))openDiaryFromHome=true;
   if(tab==="plan"||tab==="profile"||tab==="documents"||tab==="diary"||tab==="home"){
    const hash=tab==="plan"?"#piano":tab==="documents"?"#documenti":tab==="diary"?"#diario":tab==="home"?"#home":"#profilo";
    if(location.hash!==hash)location.hash=hash;
