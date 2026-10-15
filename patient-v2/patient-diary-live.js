@@ -1,3 +1,4 @@
+import {calorieReviewMessage} from "./diary-calorie-review.js?v=review-20261015";
 import {calorieEstimateDay,calorieEstimateText} from "./diary-calorie-engine.js?v=calorie-20261015";
 // Diario Patient 2.0: DOM identico alla demo, contenuti da Supabase DEV.
 const db=()=>window.nubemoSupabase;
@@ -166,6 +167,23 @@ async function refresh(){
  if(req!==latestRequest)return;
  days=rows||[];updateSummary();renderHistory();
 }
+function showSaveReview(onConfirm){
+ const meals=Object.fromEntries(keys.map(([form])=>[form,root().querySelector('[data-diary-meal-text="'+form+'"]')?.value.trim()||""]));
+ const hasMeals=Object.values(meals).some(Boolean);
+ if(!hasMeals){onConfirm();return;}
+ const estimate=calorieReady?calorieEstimateDay(meals):null;
+ const overlay=dialog("Controllo calorie","Verifica il riconoscimento dei pasti prima di registrare la giornata.",
+  '<div class="patient-diary-review-message" role="status"></div><div class="patient-diary-history-actions">'+
+  '<button type="button" class="patient-secondary" data-diary-review-correct>Correggi</button>'+
+  '<button type="button" class="patient-primary" data-diary-review-save>Salva comunque</button></div>');
+ const message=overlay.querySelector(".patient-diary-review-message");
+ message.textContent=estimate?calorieReviewMessage(estimate):"Stima calorie temporaneamente non disponibile. I pasti verranno registrati senza un calcolo attendibile.";
+ overlay.querySelector("[data-diary-review-correct]").addEventListener("click",()=>overlay.remove());
+ overlay.querySelector("[data-diary-review-save]").addEventListener("click",()=>{
+  overlay.remove();onConfirm();
+ });
+}
+
 async function save(){
  if(!active||!context.activePathway)throw Error("Nessun percorso attivo disponibile.");
  const day=dayByDate(active);
@@ -216,15 +234,18 @@ export async function mountPatientDiary(ctx){
   if(e.target.closest("[data-diary-save]")){
     const btn=e.target.closest("button");
     if(btn.disabled)return;
-    btn.disabled=true;
-    const initialLabel=btn.textContent;
-    btn.textContent="Salvataggio…";
-    let feedback=wrapper.querySelector("[data-diary-save-feedback]");
-    if(!feedback){feedback=document.createElement("p");feedback.dataset.diarySaveFeedback="";feedback.setAttribute("role","status");wrapper.querySelector(".patient-diary-save-actions").append(feedback);}
-    feedback.textContent="Invio e verifica della giornata…";
-    try{await save();feedback.textContent="";}
-    catch(err){feedback.textContent="Salvataggio non completato: "+(err.message||"Errore sconosciuto");}
-    finally{btn.disabled=false;btn.textContent=initialLabel;}
+    const persist=async()=>{
+      btn.disabled=true;
+      const initialLabel=btn.textContent;
+      btn.textContent="Salvataggio…";
+      let feedback=wrapper.querySelector("[data-diary-save-feedback]");
+      if(!feedback){feedback=document.createElement("p");feedback.dataset.diarySaveFeedback="";feedback.setAttribute("role","status");wrapper.querySelector(".patient-diary-save-actions").append(feedback);}
+      feedback.textContent="Invio e verifica della giornata…";
+      try{await save();feedback.textContent="";}
+      catch(err){feedback.textContent="Salvataggio non completato: "+(err.message||"Errore sconosciuto");}
+      finally{btn.disabled=false;btn.textContent=initialLabel;}
+    };
+    showSaveReview(persist);
   }
  });
  }
