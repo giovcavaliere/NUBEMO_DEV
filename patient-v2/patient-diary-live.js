@@ -1,3 +1,4 @@
+import {calorieEstimateDay,calorieEstimateText} from "./diary-calorie-engine.js?v=calorie-20261015";
 // Diario Patient 2.0: DOM identico alla demo, contenuti da Supabase DEV.
 const db=()=>window.nubemoSupabase;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -9,6 +10,7 @@ const pretty=d=>new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short",yea
 const quality=v=>v==="good"?"Buona":v==="partial"?"Parziale":v==="none"?"Non stimata":v||"Non stimata";
 const number=s=>{const v=String(s??"").trim().replace(",",".");if(!v)return null;const n=Number(v);return Number.isFinite(n)?n:null;};
 let context=null,days=[],favorites=[],active=null,editable=false,filter="",latestRequest=0;
+let calorieReady=false;
 const query=async q=>{const {data,error}=await q;if(error)throw error;return data;};
 function toast(message){const el=document.createElement("p");el.className="patient-diary-toast";el.textContent=message;document.body.append(el);setTimeout(()=>el.remove(),2600);}
 function live(panel){root().querySelectorAll("[data-diary-panel]").forEach(el=>el.hidden=el.dataset.diaryPanel!==panel);}
@@ -47,14 +49,30 @@ function renderHistory(){
  const empty=root().querySelector("[data-diary-history-empty]");
  if(empty)empty.hidden=visible!==0;
 }
-function updateEnergy(){
- const day=active?dayByDate(active):null;
- const current=keys.some(([field,key])=>root().querySelector('[data-diary-meal-text="'+field+'"]')?.value.trim()!==(day?.[key]||""));
- const calories=root().querySelector("#patientDiaryCalories");
- const quality=root().querySelector("#patientDiaryQuality");
- if(calories)calories.textContent=current?"—":calorieText(day);
- if(quality)quality.textContent=current?"Da ricalcolare":day?.calorie_quality?quality(day.calorie_quality):"—";
+function calorieValues(){
+ const meals=Object.fromEntries(keys.map(([form])=>[form,root().querySelector('[data-diary-meal-text="'+form+'"]')?.value.trim()||""]));
+ if(!calorieReady)return null;
+ const total=calorieEstimateDay(meals);
+ const estimate=type=>{
+  const value=calorieEstimateText(meals[type]);
+  return value.calculated+value.genericQuantity>0?Math.round(value.calories):null;
+ };
+ return {
+  breakfast_kcal:estimate("breakfast"),morning_snack_kcal:estimate("snack1"),
+  lunch_kcal:estimate("lunch"),afternoon_snack_kcal:estimate("snack2"),dinner_kcal:estimate("dinner"),
+  total_kcal:total.calculated+total.genericQuantity>0?Math.round(total.calories):null,
+  calorie_quality:total.quality,
+  calorie_calculated_at:new Date().toISOString()
+ };
 }
+function updateEnergy(){
+ const calories=root().querySelector("#patientDiaryCalories");
+ const label=root().querySelector("#patientDiaryQuality");
+ const estimate=calorieValues();
+ if(calories)calories.textContent=estimate?.total_kcal==null?"—":estimate.total_kcal.toLocaleString("it-IT")+" kcal";
+ if(label)label.textContent=estimate?quality(estimate.calorie_quality):"Stima non disponibile";
+}
+
 function openEditor(date){
  active=date;editable=true;
  const day=dayByDate(date);
@@ -156,9 +174,11 @@ async function save(){
  const weight=number(field("weight")),water=number(field("water"));
  if((weight!==null&&(weight<20||weight>400))||(water!==null&&(water<0||water>20)))throw Error("Controlla i valori di peso e acqua.");
  const data={patient_id:context.patient.id,pathway_id:context.activePathway,entry_date:active,weight_kg:weight,water,coffee:Number(root().querySelector("#patientDiaryCoffee").textContent),sweetener:field("sweetener"),notes:field("notes"),...Object.fromEntries(keys.map(([from,to])=>[to,root().querySelector('[data-diary-meal-text="'+from+'"]').value.trim()]))};
+ const estimates=calorieValues();
+ if(estimates)Object.assign(data,estimates);
  if(day){
   const changed=keys.some(([,key])=>data[key]!==day[key]);
-  const payload={...data,...(changed?{total_kcal:null,calorie_quality:null,breakfast_kcal:null,morning_snack_kcal:null,lunch_kcal:null,afternoon_snack_kcal:null,dinner_kcal:null,calorie_calculated_at:null}:{})};
+  const payload={...data,...(!estimates&&changed?{total_kcal:null,calorie_quality:null,breakfast_kcal:null,morning_snack_kcal:null,lunch_kcal:null,afternoon_snack_kcal:null,dinner_kcal:null,calorie_calculated_at:null}:{})};
   const updated=await query(db().from("diary_entries").update(payload).eq("id",day.id).eq("patient_id",context.patient.id).select("id"));
   if(!updated?.length)throw Error("Modifica non autorizzata: nessuna giornata aggiornata.");
  }else{
@@ -208,5 +228,14 @@ export async function mountPatientDiary(ctx){
   }
  });
  }
- await Promise.all([refresh(),refreshFavorites()]);live("overview");
+ await Promise.all([refresh(),refreshFavorites()]);
+ try{
+  if(!window.nubemoFoodCatalog)throw Error("Catalogo alimenti non caricato");
+  await window.nubemoFoodCatalog.load(db());
+  calorieReady=true;
+ }catch(error){
+  calorieReady=false;
+  console.error("Calcolo calorie Diario Patient 2.0:",error);
+ }
+ live("overview");
 }
