@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="professional-v2/patient-documents.css?v=pro2-documents-rebuild-20261006">
   <link rel="stylesheet" href="patient-v2/documents.css?v=patient2-documents-20261011">
   <link rel="stylesheet" href="patient-v2/diary.css?v=patient2-diary-search-history-20261010">
-  <title>NUBEMO Patient 2.0 · Profilo</title>
+  <title>NUBEMO Patient 2.0</title>
 </head>
 <body>
   <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -95,6 +95,10 @@
             <button class="compact-exit" type="button" aria-label="Esci" title="Esci"><svg class="icon"><use href="#icon-logout"/></svg></button>
           </div>
 
+          <section class="patient-static-view patient-plan-page" data-patient-view="plan" hidden>
+            <header class="patient-view-head"><div><span class="patient-view-eyebrow">Area paziente</span><h1>Piano alimentare</h1><p>I piani pubblicati dal tuo professionista, attuali e precedenti.</p></div></header>
+            <div data-patient-plan-content aria-live="polite"></div>
+          </section>
           <section class="patient-static-view patient-profile-page" data-patient-view="profile">
             <header class="patient-view-head">
               <div>
@@ -223,6 +227,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=nubemo-env-20260919"></script>
   <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
-  <script type="module" src="patient-v2/patient-profile-live.js?v=avatar-header-20261015"></script>
+  <script type="module" src="patient-v2/patient-profile-live.js?v=plan-nav-20261015"></script>
 </body>
 </html>
