@@ -1,0 +1,2 @@
+drop policy if exists documents_insert_own_active_patient on public.documents;
+create policy documents_insert_own_active_patient on public.documents for insert to authenticated with check(deleted_at is null and patient_id=public.current_patient_id() and pathway_id=public.current_active_pathway_id() and public.pathway_matches_patient(pathway_id,patient_id) and uploaded_by_user_id=auth.uid() and ((category='health' and sub_category in ('blood_test','health_other')) or (category='other' and sub_category is null)));
