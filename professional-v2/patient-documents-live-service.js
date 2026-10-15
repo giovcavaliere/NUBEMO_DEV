@@ -11,13 +11,14 @@ export async function loadDocuments(patientId,pathways){
  const livePlans=planIds.length?await rows(db().from("nutrition_plans").select("id,deleted_at").in("id",planIds)):[];
  const activePlanIds=new Set(livePlans.filter(plan=>plan.deleted_at===null).map(plan=>plan.id));
  const linkedActiveDocuments=new Set(planDocs.filter(link=>activePlanIds.has(link.nutrition_plan_id)).map(link=>link.document_id));
+ const planForDocument=new Map(planDocs.filter(link=>activePlanIds.has(link.nutrition_plan_id)).map(link=>[link.document_id,link.nutrition_plan_id]));
  const profile=window.NUBEMO_PRO2_PROFILE?.id;
  const reads=profile&&documents.length?await rows(db().from("document_read_status").select("document_id,read_at").eq("profile_id",profile).in("document_id",documents.map(d=>d.id))):[];
  const readMap=new Map(reads.map(r=>[r.document_id,r.read_at]));
  const uid=await userId();
  const reports=await rows(db().from("laboratory_reports").select("id,document_id,report_date,status").eq("patient_id",patientId).in("pathway_id",ids).is("deleted_at",null));
  const values=reports.length?await rows(db().from("laboratory_values").select("report_id,test_code,test_name,value_text,notes").in("report_id",reports.map(r=>r.id))):[];
- return {documents:documents.map(d=>({...d,linkedToActivePlan:linkedActiveDocuments.has(d.id),isPlanDocument:d.category==="plan"||d.sub_category==="meal_plan",category:d.sub_category==="blood_test"?"analysis":d.sub_category==="health_other"?"report":"other",date:d.document_date||d.created_at.slice(0,10),fileName:d.original_filename,uploadedBy:d.uploaded_by_user_id===uid?"professional":"patient",unread:d.uploaded_by_user_id!==uid&&!readMap.get(d.id)})),
+ return {documents:documents.map(d=>({...d,linkedToActivePlan:linkedActiveDocuments.has(d.id),linkedPlanId:planForDocument.get(d.id)||null,isPlanDocument:d.category==="plan"||d.sub_category==="meal_plan",category:d.sub_category==="blood_test"?"analysis":d.sub_category==="health_other"?"report":"other",date:d.document_date||d.created_at.slice(0,10),fileName:d.original_filename,uploadedBy:d.uploaded_by_user_id===uid?"professional":"patient",unread:d.uploaded_by_user_id!==uid&&!readMap.get(d.id)})),
   laboratoryReports:reports.map(r=>({id:r.id,documentId:r.document_id,reportDate:r.report_date,status:r.status,values:Object.fromEntries(values.filter(v=>v.report_id===r.id).map(v=>[v.test_code||v.test_name,v.value_text||""])),notes:values.find(v=>v.report_id===r.id&&v.test_code==="__notes__")?.notes||""}))};
 }
 export async function uploadDocument(patientId,pathway,file,title,date,category){
