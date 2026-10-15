@@ -392,7 +392,8 @@ export function renderLivePatientProfile(root,overview,real,actions){
  const identity={id:patient.id,firstName:real.profile.first_name,lastName:real.profile.last_name,birthDate:real.record.birth_date,sex:real.record.sex,height:real.record.height_cm,
   phone:real.profile.phone,email:real.profile.email,fiscalCode:real.record.fiscal_code,address:real.record.address,postalCode:real.record.postal_code,city:real.record.city,province:real.record.province,showCaloriesToPatient:real.record.show_calories_to_patient,nubemoAccountStatus:real.profile.auth_user_id?(real.profile.activation_completed_at?"active":"pending"):"inactive"};
  const privacy={consent:{status:real.privacy?"signed":"missing",signedAt:real.privacy?.uploaded_at||null},
-  communications:{email:false},reminders:{email:false},consentManagement:null,
+  communications:{email:!!real.preferences?.communications_email},reminders:{email:!!real.preferences?.reminders_email},
+  consentManagement:real.preferences?.updated_at?{updatedAt:real.preferences.updated_at,updatedBy:"patient"}:null,
   administrativeNotes:null};
  const model={data:{identity,profile:{anamnesis:a},privacy},live:true};
  // Consensi: non inventare preferenze email né permettere di modificare una firma registrata.
@@ -401,14 +402,25 @@ export function renderLivePatientProfile(root,overview,real,actions){
  const protectedHtml=original
   .replace('<button type="button" class="detail-inline-action" data-edit-identity>',inviteMarkup+'<button type="button" class="detail-inline-action" data-edit-identity>')
   .replace(/<button type="button" class="detail-edit-button" data-edit-administration>[\s\S]*?<\/button>/,"")
-  .replace('Comunicazioni</dt><dd>Non attive','Comunicazioni</dt><dd>Non registrate')
-  .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
+  .replace('Comunicazioni</dt><dd>Non attive',real.preferences?'Comunicazioni</dt><dd>Non attive':'Comunicazioni</dt><dd>Non registrate')
+  .replace('Promemoria appuntamenti</dt><dd>Non attivi',real.preferences?'Promemoria appuntamenti</dt><dd>Non attivi':'Promemoria appuntamenti</dt><dd>Non registrati')
+  .replace('<div class="detail-profile-column">',`<div class="detail-profile-column">${real.profile.patient_avatar_path?'<div class="detail-live-patient-avatar"><img data-professional-patient-avatar alt="Foto profilo paziente"></div>':''}`)
+  .replace('Consenso privacy</dt>',`Consenso privacy professionista</dt>`);
+
  root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
   ${renderHeader(livePatientHeaderModel(overview,{sex:real.record.sex}))}
   <nav class="detail-tabs" aria-label="Sezioni paziente">${tabs.map(([key,label])=>(key==="panoramica"||key==="note"||key==="profilo"||key==="visite"||key==="misure"||key==="andamento"||key==="documenti"||key==="piano"||key==="diario")
    ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
    :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
   <div class="detail-content">${protectedHtml}</div></div>`;
+ if(real.profile.patient_avatar_path){
+  window.nubemoSupabase.storage.from("patient-avatars").createSignedUrl(real.profile.patient_avatar_path,600)
+   .then(({data,error})=>{
+    const preview=root.querySelector("[data-professional-patient-avatar]");
+    if(preview&&!error&&data?.signedUrl)preview.src=data.signedUrl;
+    else preview?.closest(".detail-live-patient-avatar")?.remove();
+   }).catch(()=>root.querySelector(".detail-live-patient-avatar")?.remove());
+ }
  const open=(title,body,onSave,wide=false,activation=false)=>{
   const dialog=document.createElement("dialog");dialog.className="detail-dialog"+(wide?" detail-dialog-wide":"")+(activation?" detail-dialog-activation":"");
   dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${body}<footer><button type="button" data-close>Annulla</button><button type="submit">${activation?"Invia invito":"Salva"}</button></footer><p data-live-error role="alert"></p></form>`;
