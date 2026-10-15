@@ -407,9 +407,9 @@ export function renderLivePatientProfile(root,overview,real,actions){
    ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
    :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
   <div class="detail-content">${protectedHtml}</div></div>`;
- const open=(title,body,onSave,wide=false)=>{
-  const dialog=document.createElement("dialog");dialog.className="detail-dialog"+(wide?" detail-dialog-wide":"");
-  dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${body}<footer><button type="button" data-close>Annulla</button><button type="submit">Salva</button></footer><p data-live-error role="alert"></p></form>`;
+ const open=(title,body,onSave,wide=false,activation=false)=>{
+  const dialog=document.createElement("dialog");dialog.className="detail-dialog"+(wide?" detail-dialog-wide":"")+(activation?" detail-dialog-activation":"");
+  dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${body}<footer><button type="button" data-close>Annulla</button><button type="submit">${activation?"Invia invito":"Salva"}</button></footer><p data-live-error role="alert"></p></form>`;
   root.append(dialog);dialog.showModal();
   dialog.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>dialog.close()));
   dialog.addEventListener("close",()=>dialog.remove(),{once:true});
@@ -423,8 +423,8 @@ export function renderLivePatientProfile(root,overview,real,actions){
    panel.innerHTML='<button type="button" class="detail-edit-button" data-activate-patient>NUBEMO · Invia invito al paziente</button>';
    identityFields.insertAdjacentElement("afterend",panel);
    panel.querySelector("[data-activate-patient]").addEventListener("click",()=>open("Attiva account NUBEMO",
-    `<div class="detail-identity-form"><p>L'invito verrà inviato all'indirizzo email indicato. Il paziente imposterà autonomamente la password. Non verrà aperto alcun percorso.</p><label><span>Email paziente *</span><input name="email" type="email" required value="${escapeHtml(identity.email||"")}"></label></div>`,
-    async values=>{await actions.activate(String(values.get("email")||"").trim());},false));
+    `<div class="detail-activation-form"><p>L'invito verrà inviato all'indirizzo email indicato. Il paziente imposterà autonomamente la password. Non verrà aperto alcun percorso.</p><label><span>Email paziente <b aria-hidden="true">*</b></span><input name="email" type="email" required autocomplete="email" placeholder="nome@esempio.it" value="${escapeHtml(identity.email||"")}"></label></div>`,
+    async values=>{await actions.activate(String(values.get("email")||"").trim());},false,true));
   }
  }
  root.querySelectorAll(".detail-accordion").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)root.querySelectorAll(".detail-accordion").forEach(o=>{if(o!==d)o.open=false;});}));
