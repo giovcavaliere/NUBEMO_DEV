@@ -130,6 +130,16 @@ function periodLabel(days,state){
   };
 }
 
+function todayAgendaKpis(){
+  const now=new Date();
+  const today=iso(now);
+  const events=agendaEvents.filter(event=>event.date===today);
+  const first=events.filter(event=>event.type==="first").length;
+  const control=events.filter(event=>event.type==="control").length;
+  const personal=events.filter(event=>event.type==="personal").length;
+  return {total:events.length,first,control,personal};
+}
+
 export function renderAgendaPage(root,{profile,state=agendaState}={}){
   const days=daysForMode(profile,state);
   const start=Math.max(6,clampHour(profile?.dayStart,8));
@@ -138,6 +148,7 @@ export function renderAgendaPage(root,{profile,state=agendaState}={}){
   const totalMinutes=Math.max(60,(end-start)*60);
   const agendaHeight=totalMinutes*PIXELS_PER_MINUTE;
   const label=periodLabel(days,state);
+  const kpis=todayAgendaKpis();
 
   const heads=days.map(day=>`
     <div class="agenda-day-head">
@@ -198,10 +209,10 @@ export function renderAgendaPage(root,{profile,state=agendaState}={}){
       </header>
 
       <section class="agenda-kpis" aria-label="Riepilogo agenda">
-        <article class="agenda-kpi"><span>Oggi</span><strong>8</strong><small>appuntamenti totali</small></article>
-        <article class="agenda-kpi"><span>Prime visite</span><strong>2</strong><small>previste oggi</small></article>
-        <article class="agenda-kpi"><span>Controlli</span><strong>5</strong><small>previsti oggi</small></article>
-        <article class="agenda-kpi"><span>Personali</span><strong>1</strong><small>impegno personale</small></article>
+        <article class="agenda-kpi"><span>Oggi</span><strong>${kpis.total}</strong><small>impegni totali oggi</small></article>
+        <article class="agenda-kpi"><span>Prime visite</span><strong>${kpis.first}</strong><small>previste oggi</small></article>
+        <article class="agenda-kpi"><span>Controlli</span><strong>${kpis.control}</strong><small>previsti oggi</small></article>
+        <article class="agenda-kpi"><span>Personali</span><strong>${kpis.personal}</strong><small>impegni personali oggi</small></article>
       </section>
 
       <section class="agenda-calendar-card">
