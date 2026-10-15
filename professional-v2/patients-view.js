@@ -104,7 +104,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
               <option value="name" ${sortBy==="name"?"selected":""}>Nome / Cognome</option>
             </select>
           </label>
-          <button type="button" class="patient-doc-filter" disabled title="Filtro documenti disponibile dopo la migrazione Documenti">
+          <button type="button" class="patient-doc-filter ${documentsOnly?"active":""}" data-patient-doc-filter aria-pressed="${documentsOnly}" title="Mostra soltanto i pazienti con documenti da leggere">
             <span class="patient-doc-toggle" aria-hidden="true"><span></span></span>
             <span>Solo con documenti da leggere</span>
           </button>
