@@ -33,7 +33,7 @@
 
   function routeArea(role) {
     if (role === 'professional') return window.location.replace('pro2.html');
-    if (role === 'patient') return window.location.replace('patient2.html');
+    if (role === 'patient') return window.location.replace('patient2-live.html');
     if (role === 'admin') return window.location.replace('admin2.html');
     return window.location.replace('index2.html');
   }
