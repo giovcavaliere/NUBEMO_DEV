@@ -1,6 +1,6 @@
 import {renderPlan,selectRealPlan} from "./patient-plan-view.js?v=plan-single-open-20261015";
 import {renderLivePatientOverview} from "./patient-detail-view.js";
-import {loadLivePlans,publishPlan,openPlanFile,updatePlanNote,removePlan} from "./patient-plan-live-service.js?v=plan-private-notes-20261015";
+import {loadLivePlans,publishPlan,openPlanFile,updatePlanNote,updatePatientPlanNote,removePlan} from "./patient-plan-live-service.js?v=plan-private-notes-20261015";
 const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function modal(title,body,saveLabel,onSave){
  const d=document.createElement("dialog");d.className="detail-dialog plan-dialog";
@@ -24,8 +24,8 @@ export async function renderLivePatientPlans(root,overview){
   body.querySelectorAll("[data-select-plan]").forEach(b=>b.addEventListener("click",()=>{selectRealPlan(patientId,b.dataset.selectPlan);draw();}));
   body.querySelectorAll("[data-upload-plan]").forEach(b=>{
    if(!active){b.disabled=true;b.title="Richiede un percorso attivo";return;}
-   b.addEventListener("click",()=>modal("Carica nuovo piano",'<p>Pubblica un nuovo piano alimentare PDF per il paziente.</p><div class="plan-form"><label>File PDF<input name="file" type="file" accept="application/pdf,.pdf" required></label><label>Titolo piano<input name="title" required maxlength="200"></label><label>Valido dal<input name="validFrom" type="date" required></label><label>Nota professionista <small>Non visibile al paziente</small><textarea name="note" rows="4"></textarea></label></div>','Pubblica piano',async(data,dialog)=>{
-    await publishPlan(patientId,active,dialog.querySelector('[name="file"]').files[0],String(data.get("title")||""),String(data.get("validFrom")||""),String(data.get("note")||""));await refresh();
+   b.addEventListener("click",()=>modal("Carica nuovo piano",'<p>Pubblica un nuovo piano alimentare PDF per il paziente.</p><div class="plan-form"><label>File PDF<input name="file" type="file" accept="application/pdf,.pdf" required></label><label>Titolo piano<input name="title" required maxlength="200"></label><label>Valido dal<input name="validFrom" type="date" required></label><label>Nota interna <small>Non visibile al paziente</small><textarea name="note" rows="4"></textarea></label><label>Nota per il paziente <small>Visibile nella sua area NUBEMO</small><textarea name="patientNote" maxlength="4000" rows="4"></textarea></label></div>','Pubblica piano',async(data,dialog)=>{
+    await publishPlan(patientId,active,dialog.querySelector('[name="file"]').files[0],String(data.get("title")||""),String(data.get("validFrom")||""),String(data.get("note")||""),String(data.get("patientNote")||""));await refresh();
    }));
   });
   body.querySelectorAll("[data-open-plan]").forEach(b=>b.addEventListener("click",async()=>{const p=plans.find(x=>x.id===b.dataset.openPlan);if(!p)return;try{await openPlanFile(p);}catch(error){alert(error.message||"Impossibile aprire il piano");}}));
@@ -33,6 +33,11 @@ export async function renderLivePatientPlans(root,overview){
    const p=plans.find(x=>x.id===b.dataset.editPlanNote);
    if(!p||!active||p.pathwayId!==active.id){b.disabled=true;b.title="Piano storico in sola lettura";return;}
    b.addEventListener("click",()=>modal("Nota del piano",'<p>Nota interna, non visibile al paziente.</p><div class="plan-form"><label>Nota<textarea name="note" rows="6">'+escape(p.professionalNote)+'</textarea></label></div>','Salva nota',async values=>{await updatePlanNote(p,String(values.get("note")||""));await refresh();}));
+  });
+  body.querySelectorAll("[data-edit-patient-plan-note]").forEach(b=>{
+   const plan=plans.find(x=>x.id===b.dataset.editPatientPlanNote);
+   if(!plan||!active||plan.pathwayId!==active.id){b.disabled=true;b.title="Piano storico in sola lettura";return;}
+   b.addEventListener("click",()=>modal("Nota per il paziente",'<p>Questa nota sarà visibile al paziente nella sua area NUBEMO.</p><div class="plan-form"><label>Indicazioni per il paziente<textarea name="patientNote" maxlength="4000" rows="6">'+escape(plan.patientNote||"")+'</textarea></label></div>','Salva nota',async values=>{await updatePatientPlanNote(plan,String(values.get("patientNote")||""));await refresh();}));
   });
   body.querySelectorAll("[data-delete-plan]").forEach(b=>{
    const p=plans.find(x=>x.id===b.dataset.deletePlan);
