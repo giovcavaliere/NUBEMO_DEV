@@ -7,7 +7,7 @@ const root=()=>document.querySelector('[data-patient-view="diary"]');
 const localDate=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
 const pretty=d=>new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short",year:"numeric"}).format(new Date(d+"T12:00:00"));
 const number=s=>{const v=String(s??"").trim().replace(",",".");if(!v)return null;const n=Number(v);return Number.isFinite(n)?n:null;};
-let context=null,days=[],active=null,editable=false,filter="",latestRequest=0;
+let context=null,days=[],favorites=[],active=null,editable=false,filter="",latestRequest=0;
 const query=async q=>{const {data,error}=await q;if(error)throw error;return data;};
 function toast(message){const el=document.createElement("p");el.className="patient-diary-toast";el.textContent=message;document.body.append(el);setTimeout(()=>el.remove(),2600);}
 function live(panel){root().querySelectorAll("[data-diary-panel]").forEach(el=>el.hidden=el.dataset.diaryPanel!==panel);}
@@ -71,6 +71,7 @@ function openEditor(date){
  // Values shown only when already calculated and saved; no demo estimates.
  const bmr=root().querySelector(".patient-diary-energy-row > div:nth-child(2) strong");
  if(bmr)bmr.textContent="—";
+ syncFavoriteButtons();
  updateEnergy();
 }
 function dialog(title,subtitle,body){
@@ -80,6 +81,52 @@ function dialog(title,subtitle,body){
  document.body.append(el);el.querySelector(".patient-diary-dialog-close").onclick=()=>el.remove();
  el.addEventListener("click",e=>{if(e.target===el)el.remove();});return el;
 }
+
+function syncFavoriteButtons(){
+ keys.forEach(([type])=>{
+  const input=root().querySelector('[data-diary-meal-text="'+type+'"]');
+  const button=root().querySelector('[data-diary-favorite-toggle="'+type+'"]');
+  if(!button)return;
+  const on=!!input?.value.trim()&&favorites.some(f=>f.meal_type===type&&f.meal_text===input.value.trim());
+  button.classList.toggle("active",on);
+  button.setAttribute("aria-pressed",String(on));
+  button.textContent=on?"★":"☆";
+ });
+}
+async function toggleFavorite(type){
+ const input=root().querySelector('[data-diary-meal-text="'+type+'"]');
+ const mealText=input?.value.trim();
+ if(!mealText){toast("Scrivi prima il pasto.");return;}
+ if(!context.activePathway){toast("Serve un percorso attivo.");return;}
+ const existing=favorites.find(f=>f.meal_type===type&&f.meal_text===mealText);
+ if(existing)await query(db().from("patient_meal_favorites").delete().eq("id",existing.id));
+ else await query(db().from("patient_meal_favorites").insert({patient_id:context.patient.id,meal_type:type,meal_text:mealText}));
+ await refreshFavorites();
+ toast(existing?"Preferito rimosso.":"Pasto salvato nei preferiti.");
+}
+async function refreshFavorites(){
+ favorites=await query(db().from("patient_meal_favorites").select("id,meal_type,meal_text").eq("patient_id",context.patient.id))||[];
+ syncFavoriteButtons();
+}
+function recallFavorites(type){
+ const rows=favorites.filter(f=>f.meal_type===type);
+ let matched=rows;
+ const result=dialog("Richiama preferito","Scegli un pasto salvato per questa tipologia.",'<input class="patient-diary-dialog-search" type="search" placeholder="Cerca…"><div class="patient-diary-dialog-list"></div>');
+ const list=result.querySelector(".patient-diary-dialog-list");
+ function render(){
+  list.innerHTML=matched.length?matched.map(f=>'<button class="patient-diary-dialog-option" type="button" data-favorite-id="'+esc(f.id)+'"><span>★</span><strong>'+esc(f.meal_text)+'</strong><b>Usa</b></button>').join(""):'<p>Nessun preferito.</p>';
+ }
+ result.querySelector("input").addEventListener("input",e=>{matched=rows.filter(f=>f.meal_text.toLowerCase().includes(e.target.value.toLowerCase()));render();});
+ result.addEventListener("click",e=>{
+  const button=e.target.closest("[data-favorite-id]");if(!button)return;
+  const chosen=rows.find(f=>f.id===button.dataset.favoriteId);
+  const input=root().querySelector('[data-diary-meal-text="'+type+'"]');
+  if(chosen&&input){input.value=chosen.meal_text;updateEnergy();syncFavoriteButtons();}
+  result.remove();
+ });
+ render();
+}
+
 function openHistory(date){
  const d=dayByDate(date);if(!d)return;
  const detail=keys.map(([,key],i)=>'<article><strong>'+labels[i]+'</strong><small>'+esc(d[key]||"Non compilato")+'</small></article>').join("");
@@ -126,13 +173,17 @@ export async function mountPatientDiary(ctx){
  wrapper.dataset.liveDiaryBound="true";
  wrapper.addEventListener("input",e=>{
   if(e.target.matches("[data-diary-history-search]")){filter=e.target.value.toLowerCase().trim();renderHistory();}
-  if(e.target.matches("[data-diary-meal-text]"))updateEnergy();
+  if(e.target.matches("[data-diary-meal-text]")){updateEnergy();syncFavoriteButtons();}
  });
  wrapper.addEventListener("click",async e=>{
   const mode=e.target.closest("[data-patient-diary-mode]");
   if(mode){if(mode.dataset.patientDiaryMode==="overview")live("overview");else if(context.activePathway)openEditor(localDate());else alert("Non è presente un percorso attivo.");return;}
   const row=e.target.closest("[data-diary-history-date]");
   if(row){openHistory(row.dataset.diaryHistoryDate);return;}
+  const fav=e.target.closest("[data-diary-favorite-toggle]");
+  if(fav){try{await toggleFavorite(fav.dataset.diaryFavoriteToggle)}catch(err){alert(err.message)}return;}
+  const recall=e.target.closest("[data-diary-favorite-open]");
+  if(recall){recallFavorites(recall.dataset.diaryFavoriteOpen);return;}
   const coffee=e.target.closest("[data-diary-coffee]");
   if(coffee){const el=wrapper.querySelector("#patientDiaryCoffee");el.textContent=String(Math.max(0,Number(el.textContent)+Number(coffee.dataset.diaryCoffee)));return;}
   if(e.target.closest("[data-diary-save]")){
@@ -141,5 +192,5 @@ export async function mountPatientDiary(ctx){
   }
  });
  }
- await refresh();live("overview");
+ await Promise.all([refresh(),refreshFavorites()]);live("overview");
 }
