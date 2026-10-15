@@ -112,7 +112,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
 
         <div class="patient-list">
           ${rows.length ? rows.map(patient=>`
-            ${patient.isQuickDraft?`<div class="patient-row" aria-label="Draft rapido senza scheda paziente">`:`<button type="button" class="patient-row" data-patient-id="${patient.id}">`}
+            ${patient.isQuickDraft?`<div class="patient-row patient-row-draft" aria-label="Draft rapido senza scheda paziente">`:`<button type="button" class="patient-row" data-patient-id="${patient.id}">`}
               ${patientAvatar(patient)}
               <span class="patient-main">
                 <strong>${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)}</strong>
@@ -132,7 +132,7 @@ export function renderPatientsPage(root,{records,status="active",query="",docume
                 <small>${patient.isQuickDraft?"Tipologia":status==="active"?"Prossima visita":"Stato percorso"}</small>
                 <strong>${patient.isQuickDraft?"Draft rapido":status==="active"?escapeHtml(patient.nextVisit || "—"):escapeHtml(STATUS_LABELS[patient.status])}</strong>
               </span>
-              ${patient.isQuickDraft?`<button type="button" class="patient-new" data-convert-draft="${escapeHtml(patient.id)}" aria-label="Converti ${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)} in paziente">Converti in paziente</button>`:'<span class="patient-arrow">›</span>'}
+              ${patient.isQuickDraft?`<button type="button" class="patient-draft-convert" data-convert-draft="${escapeHtml(patient.id)}" aria-label="Converti ${escapeHtml(patient.first_name)} ${escapeHtml(patient.last_name)} in paziente">Converti in paziente</button>`:'<span class="patient-arrow">›</span>'}
             ${patient.isQuickDraft?"</div>":"</button>"}
           `).join("") : '<div class="patient-empty">'+(records.length?'Nessun paziente corrisponde ai filtri.':'Nessun paziente associato. La creazione paziente sarà attivata nella prossima fase.')+'</div>'}
         </div>
