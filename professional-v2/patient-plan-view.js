@@ -9,8 +9,9 @@ function todayKey(){const d=new Date();return `${d.getFullYear()}-${String(d.get
 function getPlanState(data){
   const plans=[...(data.nutritionPlans||[])].sort((a,b)=>dateValue(b.validFrom)-dateValue(a.validFrom));
   const today=todayKey();
-  const current=plans.find(plan=>plan.validFrom&&plan.validFrom<=today)||null;
-  const future=plans.filter(plan=>plan.validFrom&&plan.validFrom>today);
+  const eligible=plan=>!["archived","expired","draft"].includes(plan.status);
+  const current=plans.find(plan=>eligible(plan)&&plan.validFrom&&plan.validFrom<=today&&(!plan.validTo||plan.validTo>=today))||null;
+  const future=plans.filter(plan=>eligible(plan)&&plan.validFrom&&plan.validFrom>today);
   const previous=plans.filter(plan=>plan!==current&&!future.includes(plan));
   return {plans,current,future,previous,today};
 }
