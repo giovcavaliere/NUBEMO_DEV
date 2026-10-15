@@ -46,5 +46,5 @@ export async function updatePlanNote(plan,note){
  const {error}=await client().from("nutrition_plans").update({professional_note:note.trim()||null}).eq("id",plan.id);if(error)throw error;
 }
 export async function removePlan(plan){
- const {error}=await client().rpc("soft_delete_own_professional_nutrition_plan",{p_plan_id:plan.id});if(error)throw error;
+ const {error}=await client().rpc("soft_delete_associated_nutrition_plan",{p_plan_id:plan.id});if(error)throw error;
 }
