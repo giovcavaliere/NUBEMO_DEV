@@ -1,4 +1,4 @@
-import {dailyMotivationalQuote} from "./daily-quotes.js?v=home-20261015";
+import {dailyMotivationalQuote} from "./daily-quotes.js?v=quotes-fixed-20261015";
 // Patient 2.0 Home — approved demo markup; live Supabase-only figures.
 const db=()=>window.nubemoSupabase;
 const el=(q)=>document.querySelector("#patientHomeView "+q);
