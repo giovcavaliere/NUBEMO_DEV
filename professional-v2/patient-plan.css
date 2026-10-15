@@ -59,7 +59,11 @@
 .plan-empty>div{min-width:0;flex:1}
 .plan-empty strong{display:block;color:var(--green-950);font-size:13px}
 .plan-empty p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.5}
-.plan-dialog{width:min(600px,calc(100% - 28px))}
+.plan-dialog{width:min(600px,calc(100% - 28px));max-height:min(85vh,800px);overflow:hidden}
+.plan-dialog form{display:flex;flex-direction:column;max-height:min(85vh,800px);min-height:0}
+.plan-dialog form>header,.plan-dialog form>footer{flex-shrink:0}
+.plan-dialog form>footer{margin-top:12px}
+.plan-dialog .plan-form{overflow-y:auto;min-height:0;overscroll-behavior:contain}
 .plan-form{display:grid;gap:12px;margin:17px 0}
 .plan-form label{display:grid;gap:6px;color:var(--muted);font-size:11px}
 .plan-form label>small{font-size:9px}
