@@ -1,4 +1,4 @@
-import {renderPlan,selectRealPlan} from "./patient-plan-view.js";
+import {renderPlan,selectRealPlan} from "./patient-plan-view.js?v=plan-dates-20261015";
 import {renderLivePatientOverview} from "./patient-detail-view.js";
 import {loadLivePlans,publishPlan,openPlanFile,updatePlanNote,removePlan} from "./patient-plan-live-service.js";
 const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
