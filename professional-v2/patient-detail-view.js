@@ -397,7 +397,9 @@ export function renderLivePatientProfile(root,overview,real,actions){
  const model={data:{identity,profile:{anamnesis:a},privacy},live:true};
  // Consensi: non inventare preferenze email né permettere di modificare una firma registrata.
  const original=renderProfile(model);
+ const inviteMarkup=link.status==="ended"?"":real.profile.auth_user_id?(real.profile.activation_completed_at?"":`<div class="detail-activation-action"><button type="button" class="detail-edit-button" data-resend-patient-invite>Reinvia invito NUBEMO</button></div>`):`<div class="detail-activation-action"><button type="button" class="detail-edit-button" data-activate-patient>NUBEMO · Invia invito al paziente</button></div>`;
  const protectedHtml=original
+  .replace('<button type="button" class="detail-inline-action" data-edit-identity>',inviteMarkup+'<button type="button" class="detail-inline-action" data-edit-identity>')
   .replace(/<button type="button" class="detail-edit-button" data-edit-administration>[\s\S]*?<\/button>/,"")
   .replace('Comunicazioni</dt><dd>Non attive','Comunicazioni</dt><dd>Non registrate')
   .replace('Promemoria appuntamenti</dt><dd>Non attivi','Promemoria appuntamenti</dt><dd>Non registrati');
@@ -415,33 +417,17 @@ export function renderLivePatientProfile(root,overview,real,actions){
   dialog.addEventListener("close",()=>dialog.remove(),{once:true});
   dialog.querySelector("form").addEventListener("submit",async e=>{e.preventDefault();const btn=dialog.querySelector("[type=submit]");btn.disabled=true;try{await onSave(new FormData(dialog.querySelector("form")));dialog.close();}catch(error){dialog.querySelector("[data-live-error]").textContent=error.message||"Salvataggio non riuscito";btn.disabled=false;}});
  };
- if(real.profile.auth_user_id&&!real.profile.activation_completed_at&&link.status!=="ended"){
-  const identityFields=root.querySelector(".detail-content .detail-fields");
-  if(identityFields){
-   const panel=document.createElement("div");
-   panel.className="detail-activation-action";
-   panel.innerHTML='<button type="button" class="detail-edit-button" data-resend-patient-invite>Reinvia invito NUBEMO</button>';
-   identityFields.insertAdjacentElement("afterend",panel);
-   panel.querySelector("[data-resend-patient-invite]").addEventListener("click",async event=>{
-    const button=event.currentTarget;
-    if(!window.confirm("Inviare un nuovo link di attivazione all’email del paziente?"))return;
-    button.disabled=true;
-    try{await actions.resendInvite();button.textContent="Invito reinviato";}catch(error){window.alert(error.message||"Reinvio non riuscito");button.disabled=false;}
-   });
-  }
- }
- if(!real.profile.auth_user_id&&link.status!=="ended"){
-  const identityFields=root.querySelector(".detail-content .detail-fields");
-  if(identityFields){
-   const panel=document.createElement("div");
-   panel.className="detail-activation-action";
-   panel.innerHTML='<button type="button" class="detail-edit-button" data-activate-patient>NUBEMO · Invia invito al paziente</button>';
-   identityFields.insertAdjacentElement("afterend",panel);
-   panel.querySelector("[data-activate-patient]").addEventListener("click",()=>open("Attiva account NUBEMO",
-    `<div class="detail-activation-form"><p>L'invito verrà inviato all'indirizzo email indicato. Il paziente imposterà autonomamente la password. Non verrà aperto alcun percorso.</p><label><span>Email paziente <b aria-hidden="true">*</b></span><input name="email" type="email" required autocomplete="email" placeholder="nome@esempio.it" value="${escapeHtml(identity.email||"")}"></label></div>`,
-    async values=>{await actions.activate(String(values.get("email")||"").trim());},false,true));
-  }
- }
+ const inviteAction=root.querySelector("[data-resend-patient-invite]");
+ if(inviteAction)inviteAction.addEventListener("click",async()=>{
+  if(!window.confirm("Inviare un nuovo link di attivazione all’email del paziente?"))return;
+  inviteAction.disabled=true;
+  try{await actions.resendInvite();inviteAction.textContent="Invito reinviato";}
+  catch(error){window.alert(error.message||"Reinvio non riuscito");inviteAction.disabled=false;}
+ });
+ const activateAction=root.querySelector("[data-activate-patient]");
+ if(activateAction)activateAction.addEventListener("click",()=>open("Attiva account NUBEMO",
+  `<div class="detail-activation-form"><p>L'invito verrà inviato all'indirizzo email indicato. Il paziente imposterà autonomamente la password. Non verrà aperto alcun percorso.</p><label><span>Email paziente <b aria-hidden="true">*</b></span><input name="email" type="email" required autocomplete="email" placeholder="nome@esempio.it" value="${escapeHtml(identity.email||"")}"></label></div>`,
+  async values=>{await actions.activate(String(values.get("email")||"").trim());},false,true));
  root.querySelectorAll(".detail-accordion").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)root.querySelectorAll(".detail-accordion").forEach(o=>{if(o!==d)o.open=false;});}));
  root.querySelector("[data-edit-identity]")?.addEventListener("click",()=>open("Anagrafica",
   `<div class="detail-identity-form">
