@@ -5,7 +5,7 @@ import {loadOwnPatients} from "./patients-service.js?v=upcoming-visits-20261014"
 import {loadPatientOverview,loadPatientRecentActivity} from "./patient-overview-live.js?v=overview-activity-20261015";
 import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=overview-activity-20261015";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
-import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=profile-save-fix-20261014";
+import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=identity-fields-20261015";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
 import {openNewPatientDialog} from "./patient-create-view.js?v=real-create-20261013";
 let patientRecords=[];
