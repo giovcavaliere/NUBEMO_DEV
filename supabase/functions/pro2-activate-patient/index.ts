@@ -33,7 +33,7 @@ Deno.serve(async req=>{
  if(duplicateError)return reply({ok:false,error:"Verifica email non riuscita"},500);
  if(duplicates?.length)return reply({ok:false,error:"Email già utilizzata da un altro account"},409);
  // Invitation email is sent only for an explicitly requested activation.
- const {data:invited,error:inviteError}=await admin.auth.admin.inviteUserByEmail(destination,{data:{first_name:profile.first_name,last_name:profile.last_name,intended_role:"patient"},redirectTo:"https://giovcavaliere.github.io/NUBEMO_DEV/set-password-patient2.html"});
+ const {data:invited,error:inviteError}=await admin.auth.admin.inviteUserByEmail(destination,{data:{first_name:profile.first_name,last_name:profile.last_name,intended_role:"patient"},redirectTo:"https://nubemo-pro-2.pages.dev/set-password-patient2.html"});
  if(inviteError||!invited?.user?.id)return reply({ok:false,error:inviteError?.message||"Invito non riuscito"},400);
  const authId=invited.user.id;
  const {data:updated,error:updateError}=await admin.from("profiles").update({auth_user_id:authId,email:destination}).eq("id",profile.id).is("auth_user_id",null).select("id").maybeSingle();
