@@ -1,3 +1,4 @@
+import {openDraftConversion} from "./patient-draft-convert-view.js?v=convert-draft-20261015";
 import {renderLiveDashboard} from "./dashboard-live-view.js?v=dashboard-live-20261015";
 import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=diary-live-20261015";
 import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=plan-nav-20261015";
@@ -307,6 +308,16 @@ function renderPatients(){
   });
 
   patientsView.querySelectorAll("[data-patient-id]").forEach(row=>row.addEventListener("click",()=>{location.hash=`#patient/${encodeURIComponent(row.dataset.patientId)}/panoramica`;}));
+  patientsView.querySelectorAll("[data-convert-draft]").forEach(button=>button.addEventListener("click",()=>{
+    const draft=patientRecords.find(p=>p.isQuickDraft&&p.id===button.dataset.convertDraft);
+    if(!draft)return;
+    openDraftConversion(patientsView,draft,{onConverted:async patientId=>{
+      patientRecords=await loadOwnPatients();
+      patientsPhase="ready";patientState.status="active";patientState.query="";
+      patientState.documentsOnly=false;renderPatients();renderDashboardSearch();
+      location.hash="#patient/"+encodeURIComponent(patientId)+"/panoramica";
+    }});
+  }));
   patientsView.querySelector("[data-new-patient]")?.addEventListener("click",()=>{
     openNewPatientDialog(patientsView,{onCreate:createRealPatient});
   });
