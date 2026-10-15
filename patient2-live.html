@@ -95,6 +95,187 @@
             <button class="compact-exit" type="button" aria-label="Esci" title="Esci"><svg class="icon"><use href="#icon-logout"/></svg></button>
           </div>
 
+<section class="patient-static-view patient-diary-page" data-patient-view="diary" hidden>
+            <div data-diary-panel="overview" class="patient-diary-view">
+              <header class="patient-diary-header">
+                <div>
+                  <span class="patient-view-eyebrow">Area paziente</span>
+                  <h1>Diario</h1>
+                  <p>Oggi, in un colpo d'occhio.</p>
+                </div>
+              </header>
+
+              <section class="patient-diary-summary-card">
+                <div class="patient-diary-summary-head">
+                  <div>
+                    <span class="patient-diary-date">Sabato 10 ottobre</span>
+                    <h2>La tua giornata</h2>
+                  </div>
+                  <span class="patient-diary-progress">In corso</span>
+                </div>
+
+                <div class="patient-diary-summary-grid">
+                  <article>
+                    <span class="patient-diary-summary-icon is-peach"><svg class="icon"><use href="#icon-fire"/></svg></span>
+                    <div><small>Calorie attuali</small><strong>1.205 kcal</strong><span>stima</span></div>
+                  </article>
+                  <article>
+                    <span class="patient-diary-summary-icon"><svg class="icon"><use href="#icon-diary"/></svg></span>
+                    <div><small>Pasti inseriti</small><strong>3 / 5</strong><span>oggi</span></div>
+                  </article>
+                  <article>
+                    <span class="patient-diary-summary-icon"><svg class="icon"><use href="#icon-check"/></svg></span>
+                    <div><small>Pasti attendibili</small><strong>3 / 3</strong><span>inseriti</span></div>
+                  </article>
+                </div>
+
+                <button class="patient-primary patient-diary-open-day" type="button" data-patient-diary-mode="edit">
+                  <svg class="icon"><use href="#icon-diary"/></svg>
+                  Aggiungi / modifica giornata
+                </button>
+              </section>
+    <section class="patient-diary-history-card">
+                <header>
+                  <div>
+                    <span class="patient-view-eyebrow">Storico</span>
+                    <h2>Le tue giornate</h2>
+                    <p>Consulta le giornate già registrate.</p>
+                  </div>
+                </header>
+
+                <div class="search-row patient-diary-search-row">
+                  <label class="patient-search">
+                    <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-search"/></svg>
+                    <input type="search" data-diary-history-search placeholder="Cerca un pasto nello storico..." aria-label="Cerca un pasto nello storico" autocomplete="off">
+                  </label>
+                </div>
+
+                <div class="patient-diary-history-list">
+                  <button type="button" class="patient-diary-history-row" data-diary-history-date="2026-10-09">
+                    <span class="patient-diary-history-date"><strong>Ven 9 ott</strong><small>106,8 kg</small></span>
+                    <span class="patient-diary-history-main"><strong>1.720 kcal</strong><small>5 pasti su 5</small></span>
+                    <span class="patient-diary-confidence is-good">Buona</span>
+                    <span class="patient-diary-chevron">›</span>
+                  </button>
+                  <button type="button" class="patient-diary-history-row" data-diary-history-date="2026-10-08">
+                    <span class="patient-diary-history-date"><strong>Gio 8 ott</strong><small>107,1 kg</small></span>
+                    <span class="patient-diary-history-main"><strong>1.480 kcal</strong><small>4 pasti su 5</small></span>
+                    <span class="patient-diary-confidence is-medium">Media</span>
+                    <span class="patient-diary-chevron">›</span>
+                  </button>
+                  <button type="button" class="patient-diary-history-row" data-diary-history-date="2026-10-07">
+                    <span class="patient-diary-history-date"><strong>Mer 7 ott</strong><small>107,4 kg</small></span>
+                    <span class="patient-diary-history-main"><strong>1.805 kcal</strong><small>5 pasti su 5</small></span>
+                    <span class="patient-diary-confidence is-good">Buona</span>
+                    <span class="patient-diary-chevron">›</span>
+                  </button>
+                </div>
+                <p class="patient-diary-history-empty" data-diary-history-empty hidden>Nessuna giornata trovata.</p>
+              </section>
+            </div>
+
+            <div data-diary-panel="edit" class="patient-diary-view" hidden>
+              <header class="patient-diary-header patient-diary-edit-header">
+                <button class="patient-diary-back" type="button" data-patient-diary-mode="overview">← Diario</button>
+                <div>
+                  <span class="patient-view-eyebrow">Oggi · 10 ottobre</span>
+                  <h1>Aggiungi giornata</h1>
+                  <p>Prima le abitudini, poi i pasti.</p>
+                </div>
+              </header>
+
+              <section class="patient-diary-form-card">
+                <header class="patient-diary-form-head">
+                  <span class="patient-diary-step">01</span>
+                  <div><h2>Abitudini</h2><p>I dati essenziali della giornata.</p></div>
+                </header>
+
+                <div class="patient-diary-habits-grid">
+                  <label><span>Peso</span><div class="patient-diary-unit-input"><input type="text" value="106,6" data-diary-edit-field="weight"><b>kg</b></div></label>
+                  <label><span>Acqua</span><div class="patient-diary-unit-input"><input type="text" value="1,5" data-diary-edit-field="water"><b>L</b></div></label>
+                  <label><span>Caffè</span><div class="patient-diary-counter"><button type="button" data-diary-coffee="-1">−</button><strong id="patientDiaryCoffee">2</strong><button type="button" data-diary-coffee="1">+</button></div></label>
+                  <label><span>Zucchero / dolcificante</span><input type="text" value="Senza zucchero" data-diary-edit-field="sweetener"></label>
+                </div>
+              </section>
+
+              <section class="patient-diary-form-card">
+                <header class="patient-diary-form-head patient-diary-meals-head">
+                  <span class="patient-diary-step">02</span>
+                  <div><h2>Pasti</h2><p>Scrivi liberamente quantità e alimenti.</p></div>
+                </header>
+
+                <div class="patient-diary-energy-row">
+                  <div><small>Calorie attuali</small><strong id="patientDiaryCalories">1.205 kcal</strong></div>
+                  <div><small>BMR a riposo</small><strong>1.980 kcal</strong></div>
+                  <div><small>Attendibilità</small><strong id="patientDiaryQuality">Buona</strong></div>
+                </div>
+
+                <div class="patient-diary-meal-list">
+                  <article class="patient-diary-meal-card" data-diary-meal="breakfast">
+                    <header>
+                      <div><span class="patient-diary-meal-index" role="img" aria-label="Colazione">☕</span><strong>Colazione</strong></div>
+                      <div class="patient-diary-meal-actions">
+                        <button type="button" data-diary-favorite-toggle="breakfast" aria-pressed="false" title="Preferito">☆</button>
+                        <button type="button" data-diary-favorite-open="breakfast">Richiama</button>
+                      </div>
+                    </header>
+                    <textarea data-diary-meal-text="breakfast" placeholder="Cosa hai mangiato?">Yogurt greco 150 g + muesli 45 g + 1 banana</textarea>
+                  </article><article class="patient-diary-meal-card" data-diary-meal="snack1">
+                    <header>
+                      <div><span class="patient-diary-meal-index" role="img" aria-label="Spuntino mattina">🍎</span><strong>Spuntino mattina</strong></div>
+                      <div class="patient-diary-meal-actions">
+                        <button type="button" data-diary-favorite-toggle="snack1" aria-pressed="false" title="Preferito">☆</button>
+                        <button type="button" data-diary-favorite-open="snack1">Richiama</button>
+                      </div>
+                    </header>
+                    <textarea data-diary-meal-text="snack1" placeholder="Cosa hai mangiato?">1 mela + 15 g mandorle</textarea>
+                  </article><article class="patient-diary-meal-card" data-diary-meal="lunch">
+                    <header>
+                      <div><span class="patient-diary-meal-index" role="img" aria-label="Pranzo">🍝</span><strong>Pranzo</strong></div>
+                      <div class="patient-diary-meal-actions">
+                        <button type="button" data-diary-favorite-toggle="lunch" aria-pressed="false" title="Preferito">☆</button>
+                        <button type="button" data-diary-favorite-open="lunch">Richiama</button>
+                      </div>
+                    </header>
+                    <textarea data-diary-meal-text="lunch" placeholder="Cosa hai mangiato?">Pasta al pomodoro 80 g + tonno 100 g + insalata</textarea>
+                  </article><article class="patient-diary-meal-card" data-diary-meal="snack2">
+                    <header>
+                      <div><span class="patient-diary-meal-index" role="img" aria-label="Spuntino pomeriggio">🍎</span><strong>Spuntino pomeriggio</strong></div>
+                      <div class="patient-diary-meal-actions">
+                        <button type="button" data-diary-favorite-toggle="snack2" aria-pressed="false" title="Preferito">☆</button>
+                        <button type="button" data-diary-favorite-open="snack2">Richiama</button>
+                      </div>
+                    </header>
+                    <textarea data-diary-meal-text="snack2" placeholder="Cosa hai mangiato?"></textarea>
+                  </article><article class="patient-diary-meal-card" data-diary-meal="dinner">
+                    <header>
+                      <div><span class="patient-diary-meal-index" role="img" aria-label="Cena">🍽️</span><strong>Cena</strong></div>
+                      <div class="patient-diary-meal-actions">
+                        <button type="button" data-diary-favorite-toggle="dinner" aria-pressed="false" title="Preferito">☆</button>
+                        <button type="button" data-diary-favorite-open="dinner">Richiama</button>
+                      </div>
+                    </header>
+                    <textarea data-diary-meal-text="dinner" placeholder="Cosa hai mangiato?"></textarea>
+                  </article>
+                </div>
+              </section>
+
+              <section class="patient-diary-form-card">
+                <header class="patient-diary-form-head">
+                  <span class="patient-diary-step">03</span>
+                  <div><h2>Sport e note</h2><p>Facoltativo.</p></div>
+                </header>
+                <textarea class="patient-diary-notes-input" data-diary-edit-field="notes" placeholder="Allenamento, sensazioni o altre note utili…">Passeggiata di 40 minuti dopo pranzo.</textarea>
+              </section>
+
+              <div class="patient-diary-save-actions">
+                <button class="patient-secondary" type="button" data-patient-diary-mode="overview">Annulla</button>
+                <button class="patient-primary" type="button" data-diary-save>Salva giornata</button>
+              </div>
+            </div>
+          </section>
+
+          
           <section class="patient-static-view patient-plan-page" data-patient-view="plan" hidden>
             <header class="patient-view-head"><div><span class="patient-view-eyebrow">Area paziente</span><h1>Piano alimentare</h1><p>I piani pubblicati dal tuo professionista, attuali e precedenti.</p></div></header>
             <div data-patient-plan-content aria-live="polite"></div>
@@ -228,6 +409,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=nubemo-env-20260919"></script>
   <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
-  <script type="module" src="patient-v2/patient-profile-live.js?v=documents-pathway-20261015"></script>
+  <script type="module" src="patient-v2/patient-profile-live.js?v=diary-live-20261015"></script>
 </body>
 </html>
