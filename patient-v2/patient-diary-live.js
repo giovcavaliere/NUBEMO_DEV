@@ -226,7 +226,7 @@ async function save(){
  root().scrollIntoView({behavior:"instant",block:"start"});
  toast("Giornata salvata.");
 }
-export async function mountPatientDiary(ctx){
+export async function mountPatientDiary(ctx,{openToday=false}={}){
  context=ctx;root().querySelectorAll("[data-diary-panel]").forEach(el=>el.hidden=true);
  const {data,error}=await db().rpc("current_active_pathway_id");
  if(error)throw error;
@@ -281,5 +281,6 @@ export async function mountPatientDiary(ctx){
   calorieReady=false;
   console.error("Calcolo calorie Diario Patient 2.0:",error);
  }
- live("overview");
+ if(openToday&&context.activePathway)openEditor(localDate());
+ else live("overview");
 }
