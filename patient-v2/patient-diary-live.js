@@ -149,7 +149,7 @@ async function refresh(){
  days=rows||[];updateSummary();renderHistory();
 }
 async function save(){
- if(!active||!context.activePathway)return;
+ if(!active||!context.activePathway)throw Error("Nessun percorso attivo disponibile.");
  const day=dayByDate(active);
  if(day&&day.pathway_id!==context.activePathway)throw Error("Le giornate di un percorso concluso non sono modificabili.");
  const field=k=>root().querySelector('[data-diary-edit-field="'+k+'"]')?.value.trim()||"";
@@ -165,7 +165,11 @@ async function save(){
   const inserted=await query(db().from("diary_entries").insert({...data,created_by_user_id:context.user.id}).select("id"));
   if(!inserted?.length)throw Error("La giornata non risulta salvata.");
  }
- live("overview");await refresh();toast("Giornata salvata.");
+ await refresh();
+ active=null;
+ live("overview");
+ root().scrollIntoView({behavior:"instant",block:"start"});
+ toast("Giornata salvata.");
 }
 export async function mountPatientDiary(ctx){
  context=ctx;root().querySelectorAll("[data-diary-panel]").forEach(el=>el.hidden=true);
@@ -190,8 +194,17 @@ export async function mountPatientDiary(ctx){
   const coffee=e.target.closest("[data-diary-coffee]");
   if(coffee){const el=wrapper.querySelector("#patientDiaryCoffee");el.textContent=String(Math.max(0,Number(el.textContent)+Number(coffee.dataset.diaryCoffee)));return;}
   if(e.target.closest("[data-diary-save]")){
-    const btn=e.target.closest("button");btn.disabled=true;
-    try{await save();}catch(err){alert("Impossibile salvare il diario: "+err.message);}finally{btn.disabled=false;}
+    const btn=e.target.closest("button");
+    if(btn.disabled)return;
+    btn.disabled=true;
+    const initialLabel=btn.textContent;
+    btn.textContent="Salvataggio…";
+    let feedback=wrapper.querySelector("[data-diary-save-feedback]");
+    if(!feedback){feedback=document.createElement("p");feedback.dataset.diarySaveFeedback="";feedback.setAttribute("role","status");wrapper.querySelector(".patient-diary-save-actions").append(feedback);}
+    feedback.textContent="Invio e verifica della giornata…";
+    try{await save();feedback.textContent="";}
+    catch(err){feedback.textContent="Salvataggio non completato: "+(err.message||"Errore sconosciuto");}
+    finally{btn.disabled=false;btn.textContent=initialLabel;}
   }
  });
  }
