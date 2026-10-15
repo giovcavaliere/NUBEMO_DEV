@@ -1,3 +1,4 @@
+import {bindHomeActions,updateHomeActions} from "./patient-home-actions.js?v=home-buttons-20261015";
 import {dailyMotivationalQuote} from "./daily-quotes.js?v=quotes-fixed-20261015";
 // Patient 2.0 Home — approved demo markup; live Supabase-only figures.
 const db=()=>window.nubemoSupabase;
@@ -36,7 +37,7 @@ let bound=false;
 export async function mountPatientHome(ctx){
  const root=document.querySelector("#patientHomeView");if(!root)return;
  if(!bound){bound=true;root.addEventListener("click",e=>{const b=e.target.closest("[data-weight-range]");if(b){currentRange=b.dataset.weightRange;drawChart();}
- if(e.target.closest("[data-patient-home-appointment]")){const badge=el(".patient-welcome-badge");if(badge)badge.scrollIntoView({behavior:"smooth",block:"center"});}
+
  });}
  const patientId=ctx.patient.id;
  const now=today();
@@ -91,9 +92,9 @@ export async function mountPatientHome(ctx){
  setText(".patient-calorie-bmr strong",bmr==null?"—":bmr.toLocaleString("it-IT")+" kcal");
  drawChart();
  const measuresAction=el("[data-patient-home-measures]");
- if(measuresAction){measuresAction.disabled=true;measuresAction.title="Le misure si registrano tramite il professionista.";}
+ 
  const appointmentAction=el("[data-patient-home-appointment]");
- if(appointmentAction){appointmentAction.disabled=true;appointmentAction.title="Dettagli della visita non ancora disponibili nell’area paziente.";}
+ 
  const diaryCard=el(".patient-diary-summary")?.closest(".module");
  if(diaryCard){const p=diaryCard.querySelector(".agenda-note");if(p)p.textContent=done+" pasti su 5 registrati oggi";}
  el(".patient-diary-summary")?.querySelectorAll(".patient-meal-status").forEach((node,i)=>{const filled=!!String(todayEntry?.[meals[i]]||"").trim();node.classList.toggle("pending",!filled);node.querySelector("span").textContent=filled?"✓":"·";});
@@ -109,4 +110,6 @@ export async function mountPatientHome(ctx){
  const textNext=next?new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}).format(new Date(next.starts_at)):"Nessuna visita programmata";
  setText(".patient-welcome-badge",next?"Prossima visita · "+textNext:textNext);
  if(quick){const rows=quick.querySelectorAll(".patient-quick-row");if(rows[0])rows[0].querySelector("small").textContent=textNext;}
+ bindHomeActions({home:root,activePathway:active,nextAppointment:next,currentWeight:last,refresh:()=>mountPatientHome(ctx)});
+ updateHomeActions(root,{nextAppointment:next,currentWeight:last,refresh:()=>mountPatientHome(ctx)});
 }
