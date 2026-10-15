@@ -9,6 +9,10 @@
   margin:0;color:var(--green-950);font-size:30px;line-height:1.1;letter-spacing:-.03em;
 }
 .patient-diary-header p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.patient-diary-date-choice{display:grid;gap:7px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,253,250,.96)}
+.patient-diary-date-choice label{font-size:12px;font-weight:700;color:var(--green-950)}
+.patient-diary-date-choice input{width:100%;min-width:0;min-height:42px;padding:9px 12px;border:1px solid #dde3dd;border-radius:10px;background:#fff;color:var(--green-950);font:inherit}
+.patient-diary-date-choice small{font-size:11px;line-height:1.5;color:var(--muted)}
 .patient-diary-edit-header{grid-template-columns:auto minmax(0,1fr);align-items:start;gap:12px}
 .patient-diary-back{
   min-height:36px;padding:0 11px;border:1px solid var(--line);border-radius:10px;
