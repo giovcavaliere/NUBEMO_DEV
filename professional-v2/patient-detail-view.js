@@ -371,7 +371,7 @@ function livePatientHeaderModel(overview,demographics={}){
  return {
   data:{identity:{
    id:patient.id,firstName:patient.first_name,lastName:patient.last_name,
-   sex:demographics.sex||null,status:link.status==="ended"?"terminated":link.status==="pending"?"pending":"active"
+   sex:demographics.sex||null,avatar:patient.avatar||null,status:link.status==="ended"?"terminated":link.status==="pending"?"pending":"active"
   },journey:{startedAt,summary:null}},
   age:patient.age,firstVisit:null,lastControl:null,
   journeyDays:startedAt?Math.max(1,Math.floor((Date.now()-new Date(startedAt).getTime())/86400000)+1):null,
@@ -412,19 +412,6 @@ export function renderLivePatientProfile(root,overview,real,actions){
    ?`<a href="${route(patient.id,key)}" class="${key==="profilo"?"active":""}" ${key==="profilo"?'aria-current="page"':""}>${label}</a>`
    :`<a href="${route(patient.id,"profilo")}" aria-disabled="true" tabindex="-1" onclick="return false">${label}</a>`).join("")}</nav>
   <div class="detail-content">${protectedHtml}</div></div>`;
- if(real.profile.patient_avatar_path){
-  window.nubemoSupabase.storage.from("patient-avatars").createSignedUrl(real.profile.patient_avatar_path,600)
-   .then(({data,error})=>{
-    const avatar=root.querySelector(".detail-hero .detail-avatar");
-    if(avatar&&!error&&data?.signedUrl){
-      const image=document.createElement("img");
-      image.className="detail-avatar";
-      image.alt="Foto profilo paziente";
-      image.src=data.signedUrl;
-      avatar.replaceWith(image);
-    }
-   }).catch(()=>{});
- }
  const open=(title,body,onSave,wide=false,activation=false)=>{
   const dialog=document.createElement("dialog");dialog.className="detail-dialog"+(wide?" detail-dialog-wide":"")+(activation?" detail-dialog-activation":"");
   dialog.innerHTML=`<form><header><h2>${escapeHtml(title)}</h2><button type="button" data-close aria-label="Chiudi">×</button></header>${body}<footer><button type="button" data-close>Annulla</button><button type="submit">${activation?"Invia invito":"Salva"}</button></footer><p data-live-error role="alert"></p></form>`;
@@ -553,7 +540,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],c
   const model={
     data:{
       identity:{id:patient.id,firstName:patient.first_name,lastName:patient.last_name,
-        birthDate:null,sex:null,avatar:null,status:link.status==="pending"?"pending":link.status==="ended"?"terminated":"active"},
+        birthDate:null,sex:null,avatar:patient.avatar||null,status:link.status==="pending"?"pending":link.status==="ended"?"terminated":"active"},
       journey:{startedAt,summary:null},notes
     },
     age:patient.age,
