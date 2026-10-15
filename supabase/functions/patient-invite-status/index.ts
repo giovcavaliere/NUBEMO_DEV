@@ -99,7 +99,10 @@ export default {
         email,
         options:{redirectTo:INVITE_REDIRECT_URL}
       });
-      const actionLink = generated?.properties?.action_link;
+      const tokenHash = generated?.properties?.hashed_token;
+      const actionLink = tokenHash
+        ? INVITE_REDIRECT_URL + "?type=recovery&token_hash=" + encodeURIComponent(tokenHash)
+        : null;
       if (linkError || !actionLink) {
         console.error("Patient activation link generation failed", linkError);
         return Response.json({ok:false,error:"Impossibile generare il collegamento sicuro di attivazione"}, {status:400});
