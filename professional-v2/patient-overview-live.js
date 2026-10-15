@@ -1,3 +1,5 @@
+import {getRecentActivity} from "./patient-detail-model.js";
+
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
 const date=v=>v?new Intl.DateTimeFormat("it-IT",{day:"2-digit",month:"long",year:"numeric"}).format(new Date(v.length===10?v+"T12:00:00":v)):"Non registrata";
 export async function loadPatientOverview(patientId,patients){
@@ -12,7 +14,43 @@ export async function loadPatientOverview(patientId,patients){
  if(linkError||!link)throw Error("Paziente non autorizzato.");
  const {data:pathways,error:pathwayError}=await client.from("patient_pathways").select("id,status,started_at,ended_at,pathway_start_date,created_at,objective_key,custom_objective,objective_note,closing_note").eq("professional_patient_id",link.id).order("created_at",{ascending:false});
  if(pathwayError)throw Error("Impossibile caricare i percorsi reali.");
- return {patient,link,pathways:pathways||[]};
+ return {patient,link,pathways:pathways||[],professionalId:pro.id};
+}
+
+export async function loadPatientRecentActivity({patient,pathways,professionalId}){
+ const client=window.nubemoSupabase;
+ if(!client||!window.NUBEMO_PRO2_PROFILE?.id||!professionalId)throw Error("Sessione non disponibile.");
+ const ids=pathways.map(p=>p.id);
+ if(!ids.length)return [];
+ const limit=4;
+ const rows=async query=>{const {data,error}=await query;if(error)throw Error("Impossibile caricare le attività recenti: "+error.message);return data||[];};
+ // Each source is restricted to this patient's authorized professional relationship.
+ const [documents,diary,visitLinks]=await Promise.all([
+  rows(client.from("documents").select("id,pathway_id,title,original_filename,uploaded_by_user_id,created_at").eq("patient_id",patient.id).in("pathway_id",ids).is("deleted_at",null).order("created_at",{ascending:false}).limit(limit)),
+  rows(client.from("diary_entries").select("id,pathway_id,entry_date,updated_at,created_at").eq("patient_id",patient.id).in("pathway_id",ids).is("deleted_at",null).order("updated_at",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false}).limit(limit)),
+  rows(client.from("appointment_patients").select("id,pathway_id").eq("patient_id",patient.id).in("pathway_id",ids))
+ ]);
+ const authorIds=[...new Set(documents.map(d=>d.uploaded_by_user_id).filter(Boolean))];
+ const [visits,authors]=await Promise.all([
+  visitLinks.length?rows(client.from("appointment_visits").select("id,appointment_patient_id,registered_at,updated_at,appointments!inner(appointment_type,starts_at)").eq("patient_id",patient.id).eq("professional_id",professionalId).in("appointment_patient_id",visitLinks.map(v=>v.id)).is("appointments.deleted_at",null).order("updated_at",{ascending:false,nullsFirst:false}).order("registered_at",{ascending:false}).limit(limit)):[],
+  authorIds.length?rows(client.from("profiles").select("auth_user_id,role").in("auth_user_id",authorIds)):[]
+ ]);
+ const roles=new Map(authors.map(a=>[a.auth_user_id,a.role]));
+ const paths=new Map(pathways.map(p=>[p.id,p]));
+ const links=new Map(visitLinks.map(v=>[v.id,v.pathway_id]));
+ const historical=pathwayId=>paths.get(pathwayId)?.status==="ended"?" · Percorso concluso":"";
+ const documentActivity=documents.map(d=>{
+  const role=roles.get(d.uploaded_by_user_id);
+  const origin=role==="professional"?"Professionista":role==="patient"?"Paziente":"";
+  return {id:d.id,type:"document",date:d.created_at,title:d.title||d.original_filename||"Documento",
+   description:(role==="professional"?"Caricato dal professionista":role==="patient"?"Caricato dal paziente":"Documento caricato")+historical(d.pathway_id),origin};
+ });
+ const visitActivity=visits.map(v=>({id:v.id,status:"completed",date:v.updated_at||v.registered_at,
+  title:v.appointments?.appointment_type==="first"?"Prima visita":"Visita",
+  description:(v.appointments?.starts_at?"Visita del "+date(v.appointments.starts_at):"Visita registrata")+historical(links.get(v.appointment_patient_id))}));
+ const updates=diary.map(d=>({id:d.id,type:"diary",date:d.updated_at||d.created_at,title:"Diario aggiornato",
+  description:(d.entry_date?"Compilazione del "+date(d.entry_date):"Diario alimentare")+historical(d.pathway_id)}));
+ return getRecentActivity({documents:documentActivity,visits:visitActivity,diary:{updates},activities:[]},{limit});
 }
 export function renderPatientOverview(root,{patient,link,pathways}){
  const name=[patient.first_name,patient.last_name].filter(Boolean).join(" ");

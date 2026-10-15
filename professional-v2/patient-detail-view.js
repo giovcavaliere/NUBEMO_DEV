@@ -8,7 +8,7 @@ import {renderDocuments,bindDocuments} from "./patient-documents-view.js?v=pathw
 import {renderDiary,bindDiary} from "./patient-diary-view.js";
 import {renderPathwayManagement,bindPathwayManagement} from "./patient-pathways-view.js?v=pathway-archive-20261009";
 import {pathwayViewModel,bindRealPathway} from "./patient-pathways-live.js?v=pathway-dialog-fix-20261014";
-import {renderClinicalPdfAction,bindClinicalPdf} from "./patient-clinical-pdf-view.js?v=clinical-pdf-editorial-20261009";
+import {renderClinicalPdfAction,bindClinicalPdf} from "./patient-clinical-pdf-view.js?v=overview-actions-20261015";
 
 const tabs=[
   ["panoramica","Panoramica"],["profilo","Profilo"],["visite","Visite"],
@@ -112,20 +112,29 @@ function renderComposition(model){
   </section>`;
 }
 
-function renderOverview(model){
+function renderNextActions(model,{live=false}={}){
   const actions=[["Apri visita","visite","calendar"],["Leggi referti","documenti","document"],["Controlla diario","diario","check"],["Aggiungi misure","misure","chart"]];
+  return `<section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Accessi rapidi alla scheda.")}
+    ${renderClinicalPdfAction({disabled:live})}<div class="detail-actions">${actions.map(([label,target,symbol])=>`<a ${live&&target==="diario"?'role="link" aria-disabled="true" tabindex="-1" title="La tab Diario non è ancora migrata."':`href="${route(model.data.identity.id,target)}"`}>${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
+  </section>`;
+}
+
+function renderRecentActivity(model){
+  const activity=model.activity||[];
+  return `<section class="detail-panel">${sectionHeading("document","Documenti e attività recenti","Aggiornamenti in ordine cronologico.")}
+    ${model.activityError?`<p class="detail-empty" role="alert">${escapeHtml(model.activityError)}</p>`:activity.length?`<ul class="detail-activity">${activity.map(item=>`<li><span class="detail-activity-icon">${icon(item.type==="email"?"mail":item.type==="visit"?"calendar":"document")}</span><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.description||item.origin||"")}${item.description&&item.origin?` · ${escapeHtml(item.origin)}`:""}</small></span><time datetime="${escapeHtml(item.date)}">${fmtDate(item.date)}</time></li>`).join("")}</ul>`:`<p class="detail-empty">Nessuna attività recente.</p>`}
+  </section>`;
+}
+
+function renderOverview(model){
   return `<div class="detail-overview">${renderPathwayManagement(model)}${renderKpis(model)}
     <div class="detail-overview-top">${renderTimeline(model)}${renderFocus(model)}</div>
     <div class="detail-overview-lower">
       <section class="detail-panel">${sectionHeading("chart","Andamento recente","Peso nelle ultime rilevazioni.")}${renderWeightChart(model.weightSeries)}</section>
       ${renderComposition(model)}
-      <section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Accessi rapidi alla scheda.")}
-        ${renderClinicalPdfAction()}<div class="detail-actions">${actions.map(([label,target,symbol])=>`<a href="${route(model.data.identity.id,target)}">${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
-      </section>
+      ${renderNextActions(model)}
     </div>
-    <section class="detail-panel">${sectionHeading("document","Documenti e attività recenti","Aggiornamenti in ordine cronologico.")}
-      ${model.activity.length?`<ul class="detail-activity">${model.activity.map(item=>`<li><span class="detail-activity-icon">${icon(item.type==="email"?"mail":item.type==="visit"?"calendar":"document")}</span><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.description||item.origin||"")}${item.description&&item.origin?` · ${escapeHtml(item.origin)}`:""}</small></span><time datetime="${escapeHtml(item.date)}">${fmtDate(item.date)}</time></li>`).join("")}</ul>`:`<p class="detail-empty">Nessuna attività recente.</p>`}
-    </section>
+    ${renderRecentActivity(model)}
   </div>`;
 }
 
@@ -504,7 +513,7 @@ export function renderLivePatientMeasures(root,overview,measurements,actions){
   root.querySelectorAll("[data-measure-edit],[data-measure-delete]").forEach(button=>button.disabled=true);
  }
 }
-export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],completedVisits=0},activeTab="panoramica",actions={}){
+export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],completedVisits=0,recentActivity=[],activityError=""},activeTab="panoramica",actions={}){
   const active=pathways.find(item=>item.status==="active");
   const startedAt=active?.pathway_start_date||active?.started_at||null;
   const model={
@@ -518,7 +527,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],c
     firstVisit:null,lastControl:null,
     kpis:{completedVisits,change:null,initialWeight:null,currentWeight:null,changePercent:null,
       adherence:{percentage:0,completed:0,considered:0},nextAppointment:null},
-    timeline:[],focus:[],weightSeries:[],
+    timeline:[],focus:[],weightSeries:[],activity:recentActivity,activityError,
     composition:{values:{
       weight:{value:null,unit:"kg",delta:null},bodyFat:{value:null,unit:"%",delta:null},
       muscleMass:{value:null,unit:"%",delta:null},bcm:{value:null,unit:"%",delta:null}},lastBiaDate:null}
@@ -540,8 +549,9 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],c
       <div class="detail-overview-lower">
         <section class="detail-panel">${sectionHeading("chart","Andamento recente","Peso nelle ultime rilevazioni.")}${renderWeightChart(model.weightSeries)}</section>
         ${renderComposition(model)}
-        <section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Funzionalità disponibili dopo la migrazione.")}<p class="detail-empty">Le funzioni cliniche saranno attivate dopo il collegamento a Supabase.</p></section>
+        ${renderNextActions(model,{live:true})}
       </div>
+      ${renderRecentActivity(model)}
     </div>`}</div>
   </div>`;
   if(activeTab==="note")bindLiveNotes(root,notes,active,actions);

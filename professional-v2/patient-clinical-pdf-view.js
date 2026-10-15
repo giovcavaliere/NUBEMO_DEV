@@ -5,8 +5,8 @@ import {professionalProfile} from "./profile-view.js";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
 const activePathway=model=>(model.data.pathways?.items||[]).find(item=>item.status==="active")||null;
 
-export function renderClinicalPdfAction(){
-  return `<button type="button" class="detail-pdf-action" data-clinical-pdf>
+export function renderClinicalPdfAction({disabled=false}={}){
+  return `<button type="button" class="detail-pdf-action" data-clinical-pdf${disabled?' disabled title="La Cartella PDF 2.0 non è ancora collegata ai dati reali."':""}>
     <svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg>
     <span><strong>Cartella PDF</strong><small>Genera la cartella clinico-nutrizionale</small></span>
     <span aria-hidden="true">›</span>

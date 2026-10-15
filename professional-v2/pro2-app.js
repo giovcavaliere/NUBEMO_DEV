@@ -2,8 +2,8 @@ await window.NUBEMO_PRO2_AUTH_READY;
 
 import {renderLivePatientDocuments} from "./patient-documents-live-view.js";
 import {loadOwnPatients} from "./patients-service.js?v=upcoming-visits-20261014";
-import {loadPatientOverview} from "./patient-overview-live.js";
-import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=live-documents-20261015";
+import {loadPatientOverview,loadPatientRecentActivity} from "./patient-overview-live.js?v=overview-activity-20261015";
+import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=overview-activity-20261015";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=profile-save-fix-20261014";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
@@ -186,6 +186,10 @@ function showView(route){
           .from("appointment_visits").select("id").eq("patient_id",route.id);
         if(completedError)throw Error("Impossibile verificare le visite completate: "+completedError.message);
         data.completedVisits=completedRows?.length??0;
+        if(route.tab==="panoramica"){
+          try{data.recentActivity=await loadPatientRecentActivity(data);}
+          catch(error){data.activityError="Impossibile caricare le attività recenti. Riprova ad aggiornare la pagina.";console.error("Attività recenti:",error);}
+        }
         const active=data.pathways.find(p=>p.status==="active");
         const notes=route.tab==="note"?await loadRealNotes(route.id,active?.id):[];
         const liveProfile=route.tab==="profilo"?await loadLivePatientProfile(route.id,data):null;
