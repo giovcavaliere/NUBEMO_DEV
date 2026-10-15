@@ -1,6 +1,6 @@
-import {renderPlan,selectRealPlan} from "./patient-plan-view.js?v=plan-single-open-20261015";
+import {renderPlan,selectRealPlan} from "./patient-plan-view.js?v=patient-note-20261015";
 import {renderLivePatientOverview} from "./patient-detail-view.js";
-import {loadLivePlans,publishPlan,openPlanFile,updatePlanNote,updatePatientPlanNote,removePlan} from "./patient-plan-live-service.js?v=plan-private-notes-20261015";
+import {loadLivePlans,publishPlan,openPlanFile,updatePlanNote,updatePatientPlanNote,removePlan} from "./patient-plan-live-service.js?v=patient-note-20261015";
 const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function modal(title,body,saveLabel,onSave){
  const d=document.createElement("dialog");d.className="detail-dialog plan-dialog";
