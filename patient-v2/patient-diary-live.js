@@ -6,6 +6,7 @@ const labels=["Colazione","Spuntino mattina","Pranzo","Spuntino pomeriggio","Cen
 const root=()=>document.querySelector('[data-patient-view="diary"]');
 const localDate=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
 const pretty=d=>new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short",year:"numeric"}).format(new Date(d+"T12:00:00"));
+const quality=v=>v==="good"?"Buona":v==="partial"?"Parziale":v==="none"?"Non stimata":v||"Non stimata";
 const number=s=>{const v=String(s??"").trim().replace(",",".");if(!v)return null;const n=Number(v);return Number.isFinite(n)?n:null;};
 let context=null,days=[],favorites=[],active=null,editable=false,filter="",latestRequest=0;
 const query=async q=>{const {data,error}=await q;if(error)throw error;return data;};
@@ -22,7 +23,7 @@ function updateSummary(){
  const metrics=root().querySelectorAll(".patient-diary-summary-grid article strong");
  if(metrics[0])metrics[0].textContent=calorieText(today);
  if(metrics[1])metrics[1].textContent=hasMeal(today)+" / 5";
- if(metrics[2])metrics[2].textContent=today?.calorie_quality||"—";
+ if(metrics[2])metrics[2].textContent=today?.calorie_quality?quality(today.calorie_quality):"—";
  const status=root().querySelector(".patient-diary-progress");
  if(status)status.textContent=today?"Registrata":"Da compilare";
 }
@@ -35,12 +36,12 @@ function renderHistory(){
   return !filter||hay.includes(filter);
  }).map(day=>{
   visible++;
-  const quality=String(day.calorie_quality||"");
-  const isGood=/alta|buona|high|good/i.test(quality);
+  const qualityValue=String(day.calorie_quality||"");
+  const isGood=qualityValue==="good";
   return '<button type="button" class="patient-diary-history-row" data-diary-history-date="'+esc(day.entry_date)+'">'+
   '<span class="patient-diary-history-date"><strong>'+esc(pretty(day.entry_date))+'</strong><small>'+(day.weight_kg==null?"Peso non indicato":esc(day.weight_kg)+" kg")+'</small></span>'+
   '<span class="patient-diary-history-main"><strong>'+calorieText(day)+'</strong><small>'+hasMeal(day)+' pasti su 5</small></span>'+
-  '<span class="patient-diary-confidence '+(isGood?"is-good":"is-medium")+'">'+esc(quality||"Non stimata")+'</span><span class="patient-diary-chevron">›</span></button>';
+  '<span class="patient-diary-confidence '+(isGood?"is-good":"is-medium")+'">'+esc(quality(qualityValue))+'</span><span class="patient-diary-chevron">›</span></button>';
  }).join("");
  list.innerHTML=html;
  const empty=root().querySelector("[data-diary-history-empty]");
@@ -52,7 +53,7 @@ function updateEnergy(){
  const calories=root().querySelector("#patientDiaryCalories");
  const quality=root().querySelector("#patientDiaryQuality");
  if(calories)calories.textContent=current?"—":calorieText(day);
- if(quality)quality.textContent=current?"Da ricalcolare":day?.calorie_quality||"—";
+ if(quality)quality.textContent=current?"Da ricalcolare":day?.calorie_quality?quality(day.calorie_quality):"—";
 }
 function openEditor(date){
  active=date;editable=true;
@@ -158,9 +159,11 @@ async function save(){
  if(day){
   const changed=keys.some(([,key])=>data[key]!==day[key]);
   const payload={...data,...(changed?{total_kcal:null,calorie_quality:null,breakfast_kcal:null,morning_snack_kcal:null,lunch_kcal:null,afternoon_snack_kcal:null,dinner_kcal:null,calorie_calculated_at:null}:{})};
-  await query(db().from("diary_entries").update(payload).eq("id",day.id).eq("patient_id",context.patient.id));
+  const updated=await query(db().from("diary_entries").update(payload).eq("id",day.id).eq("patient_id",context.patient.id).select("id"));
+  if(!updated?.length)throw Error("Modifica non autorizzata: nessuna giornata aggiornata.");
  }else{
-  await query(db().from("diary_entries").insert({...data,created_by_user_id:context.user.id}));
+  const inserted=await query(db().from("diary_entries").insert({...data,created_by_user_id:context.user.id}).select("id"));
+  if(!inserted?.length)throw Error("La giornata non risulta salvata.");
  }
  live("overview");await refresh();toast("Giornata salvata.");
 }
