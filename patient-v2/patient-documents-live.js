@@ -79,7 +79,9 @@ async function openDoc(doc){
 }
 export async function mountPatientDocuments(context){
  state.patientId=context.patient.id;state.profileId=context.profile.id;state.userId=context.user.id;
- state.activePathway=await query(db().rpc("current_active_pathway_id"));
+ const {data:activePathway,error:pathwayError}=await db().rpc("current_active_pathway_id");
+ if(pathwayError)throw pathwayError;
+ state.activePathway=activePathway||null;
  const root=document.querySelector("[data-patient-documents-content]");
  root.onclick=async e=>{
   const f=e.target.closest("[data-patient-document-filter]");if(f){state.filter=f.dataset.patientDocumentFilter;render();return;}
