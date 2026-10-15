@@ -12,7 +12,7 @@ export async function loadDocuments(patientId,pathways){
  const uid=await userId();
  const reports=await rows(db().from("laboratory_reports").select("id,document_id,report_date,status").eq("patient_id",patientId).in("pathway_id",ids).is("deleted_at",null));
  const values=reports.length?await rows(db().from("laboratory_values").select("report_id,test_code,test_name,value_text,notes").in("report_id",reports.map(r=>r.id))):[];
- return {documents:documents.map(d=>({...d,category:d.sub_category==="blood_test"?"analysis":d.sub_category==="health_other"?"report":"other",date:d.document_date||d.created_at.slice(0,10),fileName:d.original_filename,unread:d.uploaded_by_user_id!==uid&&!readMap.get(d.id)})),
+ return {documents:documents.map(d=>({...d,category:d.sub_category==="blood_test"?"analysis":d.sub_category==="health_other"?"report":"other",date:d.document_date||d.created_at.slice(0,10),fileName:d.original_filename,uploadedBy:d.uploaded_by_user_id===uid?"professional":"patient",unread:d.uploaded_by_user_id!==uid&&!readMap.get(d.id)})),
   laboratoryReports:reports.map(r=>({id:r.id,documentId:r.document_id,reportDate:r.report_date,status:r.status,values:Object.fromEntries(values.filter(v=>v.report_id===r.id).map(v=>[v.test_code||v.test_name,v.value_text||""])),notes:values.find(v=>v.report_id===r.id&&v.test_code==="__notes__")?.notes||""}))};
 }
 export async function uploadDocument(patientId,pathway,file,title,date,category){
