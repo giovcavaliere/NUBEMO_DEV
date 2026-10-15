@@ -104,7 +104,7 @@ export async function loadOwnPatients(){
    return {id:patient.id,first_name:person.first_name||'',last_name:person.last_name||'',
       email:person.email||'',phone:person.phone||'',age,
       status,created_at:patient.created_at||link.created_at,
-      weight:weights.get(patient.id)?.label||"—",weightDelta:weights.get(patient.id)?.delta||"—",nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:unreadByPatient.get(patient.id)||0,avatarPath:person.patient_avatar_path||null,avatar:null};
+      weightSnapshot:weights.get(patient.id)||null,weight:weights.get(patient.id)?.label||"—",weightDelta:weights.get(patient.id)?.delta||"—",nextVisit:nextByPatient.get(patient.id)||null,unreadDocuments:unreadByPatient.get(patient.id)||0,avatarPath:person.patient_avatar_path||null,avatar:null};
  }).filter(Boolean);
  await Promise.all(fullRecords.filter(item=>item.avatarPath).map(async item=>{
   const signed=await client.storage.from("patient-avatars").createSignedUrl(item.avatarPath,1800);
