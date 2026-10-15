@@ -1,3 +1,4 @@
+import {dailyMotivationalQuote} from "./daily-quotes.js?v=home-20261015";
 // Patient 2.0 Home — approved demo markup; live Supabase-only figures.
 const db=()=>window.nubemoSupabase;
 const el=(q)=>document.querySelector("#patientHomeView "+q);
@@ -6,7 +7,6 @@ const num=v=>v==null||v===""?null:Number.isFinite(Number(v))?Number(v):null;
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
 const date=val=>new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short"}).format(new Date(val+"T12:00:00"));
 const query=async q=>{const {data,error}=await q;if(error)throw error;return data||[];};
-const quotes=['La costanza batte la giornata perfetta.','Un risultato lento resta un risultato.','La direzione conta più della velocità.','Guarda la tendenza, non il singolo numero.','Misurare serve a capire, non a giudicare.','Un giorno alla volta è una misura sorprendentemente efficace.'];
 let chartPoints=[],currentRange="7d";
 const setText=(q,value)=>{const n=el(q);if(n)n.textContent=value;};
 const metric=(i,value,note)=>{const card=el(".patient-kpi-grid .kpi-card:nth-child("+i+")");if(!card)return;card.querySelector("strong").textContent=value;if(note!=null)card.querySelector("small").textContent=note;};
@@ -62,7 +62,7 @@ export async function mountPatientHome(ctx){
  const h=new Date();const greeting=h.getHours()<12?"Buongiorno":h.getHours()<18?"Buon pomeriggio":"Buonasera";
  setText(".patient-welcome h1",greeting+", "+(ctx.profile.first_name||"")+" 👋");
  const welcome=el(".patient-welcome p");if(welcome)welcome.textContent=dateFormat.format(h)+" · Ecco come sta andando il tuo percorso";
- setText("#patientDailyQuote","“"+quotes[Math.floor((Date.UTC(h.getFullYear(),h.getMonth(),h.getDate())-Date.UTC(2026,0,1))/86400000%quotes.length+quotes.length)%quotes.length]+"”");
+ setText("#patientDailyQuote","“"+dailyMotivationalQuote(h)+"”");
  metric(1,last==null?"—":fmt(last)+" kg",diff==null?"Nessun confronto":(diff>0?"+":"")+fmt(diff)+" kg dall'inizio");
  const height=num(ctx.patient.height_cm);metric(2,last&&height?fmt(last/((height/100)**2)):"—",height?"calcolato sull'ultimo peso":"Altezza non disponibile");
  metric(3,goal==null?"—":fmt(goal)+" kg",goal==null?"Obiettivo non impostato":"definito con il professionista");
@@ -74,7 +74,16 @@ export async function mountPatientHome(ctx){
  if(ring){ring.style.setProperty("--progress",ratio??0);ring.querySelector("strong").textContent=ratio==null?"—":fmt(ratio)+"%";ring.querySelector("span").textContent=ratio==null?"Obiettivo assente":"completato";}
  setText(".patient-calorie-value",todayEntry?.total_kcal==null?"—":Math.round(todayEntry.total_kcal).toLocaleString("it-IT")+" kcal");
  setText(".patient-calorie-status",todayEntry?.calorie_quality==="good"?"Stima buona":todayEntry?.calorie_quality==="partial"?"Stima parziale":"Stima non disponibile");
- setText(".patient-calorie-bmr strong","—");
+ const birth=ctx.patient.birth_date,sex=String(ctx.patient.sex||"").toLowerCase();
+ let bmr=null;
+ if(last!=null&&height&&birth){
+  const b=new Date(birth+"T12:00:00");
+  let age=h.getFullYear()-b.getFullYear();
+  if(h.getMonth()<b.getMonth()||(h.getMonth()===b.getMonth()&&h.getDate()<b.getDate()))age--;
+  const adjustment=["m","male","maschio"].includes(sex)?5:["f","female","femmina"].includes(sex)?-161:null;
+  if(age>0&&age<125&&adjustment!==null)bmr=Math.round(10*last+6.25*height-5*age+adjustment);
+ }
+ setText(".patient-calorie-bmr strong",bmr==null?"—":bmr.toLocaleString("it-IT")+" kcal");
  drawChart();
  const measuresAction=el("[data-patient-home-measures]");
  if(measuresAction){measuresAction.disabled=true;measuresAction.title="Le misure si registrano tramite il professionista.";}
