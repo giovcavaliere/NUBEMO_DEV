@@ -1,4 +1,4 @@
-import {mountPatientDiary} from "./patient-diary-live.js?v=diary-save-v2-20261015";
+import {mountPatientDiary} from "./patient-diary-live.js?v=diary-save-feedback-20261015";
 import {mountPatientDocuments} from "./patient-documents-live.js?v=documents-pathway-20261015";
 // NUBEMO Patient 2.0 — Profilo live. Nessun dato demo, solo sessione paziente e Supabase DEV.
 import {mountPatientPlan} from "./patient-plan-live.js?v=patient-note-20261015";
