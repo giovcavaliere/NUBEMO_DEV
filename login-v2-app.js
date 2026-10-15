@@ -54,7 +54,7 @@
     }
     if (profile.role === 'patient') {
       leaving = true;
-      window.location.replace('privacy2.html');
+      window.location.replace('patient2-live.html#home');
       return;
     }
     // Il percorso paziente 2.0 viene attivato separatamente.
