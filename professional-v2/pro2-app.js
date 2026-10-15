@@ -1,6 +1,6 @@
 import {openDraftConversion} from "./patient-draft-convert-view.js?v=convert-draft-20261015";
 import {renderLiveDashboard} from "./dashboard-live-view.js?v=dashboard-live-20261015";
-import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=diary-live-20261015";
+import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=food-breakdown-20261015";
 import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=patient-note-20261015";
 await window.NUBEMO_PRO2_AUTH_READY;
 
