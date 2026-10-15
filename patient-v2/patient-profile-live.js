@@ -1,5 +1,5 @@
 // NUBEMO Patient 2.0 — Profilo live. Nessun dato demo, solo sessione paziente e Supabase DEV.
-import {mountPatientPlan} from "./patient-plan-live.js?v=active-pathway-20261015";
+import {mountPatientPlan} from "./patient-plan-live.js?v=patient-note-20261015";
 const client=window.nubemoSupabase;
 const $=(q,root=document)=>root.querySelector(q);
 const $$=(q,root=document)=>[...root.querySelectorAll(q)];
