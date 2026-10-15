@@ -6,7 +6,7 @@ let loadedFor=null;
 let documents=new Map();
 function details(plan){
  const doc=documents.get(plan.id);
- return '<div class="patient-plan-note"><strong>Indicazioni del professionista</strong><p>Consulta il piano PDF per le indicazioni alimentari. Le note interne del professionista non sono visibili al paziente.</p></div>'+
+ return (plan.patient_note?'<div class="patient-plan-note"><strong>Le indicazioni del tuo professionista</strong><p>'+escape(plan.patient_note)+'</p></div>':'')+
   '<div class="patient-plan-file"><span class="patient-plan-file-icon"><svg class="icon"><use href="#icon-document"/></svg></span>'+
   '<div class="patient-plan-file-info"><strong>'+escape(doc?.original_filename||"PDF non disponibile")+'</strong><small>'+(doc?"Documento condiviso dal professionista":"Nessun PDF associato")+'</small></div>'+
   (doc?'<div class="patient-plan-file-actions"><button class="patient-secondary" type="button" data-plan-open="'+escape(plan.id)+'">Apri PDF</button><button class="patient-secondary" type="button" data-plan-download="'+escape(plan.id)+'">Scarica</button></div>':"")+'</div>';
@@ -19,7 +19,7 @@ export async function mountPatientPlan(patientId,{reload=false}={}){
  root.innerHTML='<div class="module patient-plan-empty" role="status">Caricamento piani alimentari…</div>';
  try{
   const plans=await checked(client().from("nutrition_plans")
-   .select("id,title,status,pathway_id,valid_from,valid_to,created_at")
+   .select("id,title,status,pathway_id,valid_from,valid_to,created_at,patient_note")
    .eq("patient_id",patientId).is("deleted_at",null)
    .order("valid_from",{ascending:false}));
   const ids=plans.map(x=>x.id);
