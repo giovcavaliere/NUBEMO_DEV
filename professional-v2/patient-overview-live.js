@@ -82,3 +82,34 @@ export function renderPatientOverview(root,{patient,link,pathways}){
    </section>
  </div>`;
 }
+
+export async function loadOverviewMetrics(patientId,activePathwayId){
+ const client=window.nubemoSupabase;
+ const now=new Date();
+ const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
+ const fromDate=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6);
+ const from=[fromDate.getFullYear(),String(fromDate.getMonth()+1).padStart(2,"0"),String(fromDate.getDate()).padStart(2,"0")].join("-");
+ let adherence={percentage:0,completed:0,considered:0};
+ if(activePathwayId){
+  const {data,error}=await client.from("diary_entries").select("entry_date,breakfast,morning_snack,lunch,afternoon_snack,dinner")
+   .eq("patient_id",patientId).eq("pathway_id",activePathwayId).is("deleted_at",null)
+   .gte("entry_date",from).lte("entry_date",today);
+  if(error)throw Error("Impossibile leggere l'aderenza del diario: "+error.message);
+  const validDates=new Set((data||[]).filter(item=>["breakfast","morning_snack","lunch","afternoon_snack","dinner"].some(field=>String(item[field]||"").trim())).map(item=>item.entry_date));
+  const completed=validDates.size,considered=7;
+  adherence={percentage:Math.round(completed/considered*100),completed,considered};
+ }
+ const {data:links,error:linkError}=await client.from("appointment_patients").select("appointment_id").eq("patient_id",patientId);
+ if(linkError)throw Error("Impossibile leggere i prossimi appuntamenti: "+linkError.message);
+ const ids=[...new Set((links||[]).map(item=>item.appointment_id).filter(Boolean))];
+ let nextAppointment=null;
+ if(ids.length){
+  const {data,error}=await client.from("appointments").select("id,starts_at,appointment_type")
+   .in("id",ids).is("deleted_at",null).gte("starts_at",now.toISOString())
+   .order("starts_at",{ascending:true}).limit(1);
+  if(error)throw Error("Impossibile leggere il prossimo appuntamento: "+error.message);
+  const item=data?.[0];
+  if(item)nextAppointment={startsAt:item.starts_at,title:item.appointment_type==="first"?"Prima visita":item.appointment_type==="control"?"Controllo":"Appuntamento"};
+ }
+ return {adherence,nextAppointment};
+}
