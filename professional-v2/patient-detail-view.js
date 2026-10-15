@@ -390,7 +390,7 @@ export function renderLivePatientProfile(root,overview,real,actions){
  Object.entries(fieldMap).forEach(([key,column])=>{a[key]=c[column]??"";});
  ["obesity","diabetes","hypertension","cardiovascular","dyslipidemia","thyroid"].forEach(key=>a.family[key]=c["family_"+key]??null);
  const identity={id:patient.id,firstName:real.profile.first_name,lastName:real.profile.last_name,birthDate:real.record.birth_date,sex:real.record.sex,height:real.record.height_cm,
-  phone:real.profile.phone,email:real.profile.email,nubemoAccountStatus:real.profile.auth_user_id?(real.profile.status==="active"?"active":"pending"):"inactive"};
+  phone:real.profile.phone,email:real.profile.email,fiscalCode:real.record.fiscal_code,address:real.record.address,postalCode:real.record.postal_code,city:real.record.city,province:real.record.province,showCaloriesToPatient:real.record.show_calories_to_patient,nubemoAccountStatus:real.profile.auth_user_id?(real.profile.status==="active"?"active":"pending"):"inactive"};
  const privacy={consent:{status:real.privacy?"signed":"missing",signedAt:real.privacy?.uploaded_at||null},
   communications:{email:false},reminders:{email:false},consentManagement:null,
   administrativeNotes:null};
@@ -417,10 +417,15 @@ export function renderLivePatientProfile(root,overview,real,actions){
  };
  root.querySelectorAll(".detail-accordion").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)root.querySelectorAll(".detail-accordion").forEach(o=>{if(o!==d)o.open=false;});}));
  root.querySelector("[data-edit-identity]")?.addEventListener("click",()=>open("Anagrafica",
-  `<div class="detail-identity-form"><div class="detail-identity-row"><label><span>Nome</span><input name="firstName" required value="${escapeHtml(identity.firstName)}"></label><label><span>Cognome</span><input name="lastName" required value="${escapeHtml(identity.lastName)}"></label></div>
+  `<div class="detail-identity-form">
+   <div class="detail-identity-row"><label><span>Nome</span><input name="firstName" required value="${escapeHtml(identity.firstName)}"></label><label><span>Cognome</span><input name="lastName" required value="${escapeHtml(identity.lastName)}"></label></div>
    <div class="detail-identity-row"><label><span>Data di nascita</span><input name="birthDate" type="date" value="${escapeHtml(identity.birthDate||"")}"></label><label><span>Sesso</span><select name="sex">${["","Maschio","Femmina","Altro","Preferisco non indicarlo"].map(v=>`<option value="${escapeHtml(v)}" ${identity.sex===v?"selected":""}>${escapeHtml(v||"Non indicato")}</option>`).join("")}</select></label></div>
-   <div class="detail-identity-row"><label><span>Altezza (cm)</span><input name="height" type="number" min="50" max="250" step="0.1" value="${escapeHtml(identity.height??"")}"></label><label><span>Telefono</span><input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label></div>
-   <div class="detail-identity-row"><label><span>Email</span><input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label></div></div>`,
+   <div class="detail-identity-row"><label><span>Altezza (cm)</span><input name="height" type="number" min="50" max="250" step="0.1" value="${escapeHtml(identity.height??"")}"></label><label><span>Codice fiscale</span><input name="fiscalCode" maxlength="16" value="${escapeHtml(identity.fiscalCode||"")}"></label></div>
+   <div class="detail-identity-row"><label><span>Indirizzo</span><input name="address" value="${escapeHtml(identity.address||"")}"></label><label><span>CAP</span><input name="postalCode" maxlength="10" value="${escapeHtml(identity.postalCode||"")}"></label></div>
+   <div class="detail-identity-row"><label><span>Città</span><input name="city" value="${escapeHtml(identity.city||"")}"></label><label><span>Provincia</span><input name="province" maxlength="100" value="${escapeHtml(identity.province||"")}"></label></div>
+   <div class="detail-identity-row"><label><span>Telefono</span><input name="phone" type="tel" value="${escapeHtml(identity.phone||"")}"></label><label><span>Email</span><input name="email" type="email" value="${escapeHtml(identity.email||"")}"></label></div>
+   <div class="detail-identity-row detail-identity-row-single"><div class="detail-identity-option"><span>Calorie visibili al paziente</span><label class="detail-identity-option-control"><input name="showCaloriesToPatient" type="checkbox" ${identity.showCaloriesToPatient?"checked":""}><span>Mostra il calcolo delle calorie al paziente</span></label></div></div>
+   </div>`,
   data=>actions.saveIdentity(Object.fromEntries(data)),true));
  const sections={
   weightGoals:["Obiettivi e storia del peso",["goalWeight","minWeight","maxWeight","reasonableWeight","theoreticalWeight","objectives"]],
