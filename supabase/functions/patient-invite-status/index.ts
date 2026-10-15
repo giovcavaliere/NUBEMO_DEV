@@ -93,13 +93,33 @@ export default {
       const email = String(patientProfile.email || authData.user.email || "").trim().toLowerCase();
       if (!email) return Response.json({ ok:false, error:"Email paziente non disponibile" }, { status:400 });
 
-      // Account già esistente: recupero password, non un secondo invito Auth.
-      const { error: recoveryError } = await ctx.supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: INVITE_REDIRECT_URL
+      // Generate a one-time Auth link for the existing account, delivered using the NUBEMO activation email.
+      const { data: generated, error: linkError } = await ctx.supabaseAdmin.auth.admin.generateLink({
+        type:"recovery",
+        email,
+        options:{redirectTo:INVITE_REDIRECT_URL}
       });
-      if (recoveryError) {
-        console.error("Patient activation recovery error:", recoveryError);
-        return Response.json({ ok:false, error:"Invio del link di attivazione non riuscito. Verificare i limiti email Supabase." }, { status:400 });
+      const actionLink = generated?.properties?.action_link;
+      if (linkError || !actionLink) {
+        console.error("Patient activation link generation failed", linkError);
+        return Response.json({ok:false,error:"Impossibile generare il collegamento sicuro di attivazione"}, {status:400});
+      }
+      const mailKey = Deno.env.get("RESEND_API_KEY");
+      const mailFrom = Deno.env.get("RESEND_FROM_EMAIL");
+      if (!mailKey || !mailFrom) return Response.json({ok:false,error:"Servizio email NUBEMO non configurato"}, {status:503});
+      const firstName=String(patientProfile.first_name||"").trim();
+      const greeting=firstName ? `Ciao ${firstName},` : "Ciao,";
+      const escapeHtml=(value:string)=>value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+      const html=`<div style="background:#f5efe6;padding:28px 14px;font-family:Arial,sans-serif;color:#183f36"><div style="max-width:550px;margin:auto;background:#fffdfa;border:1px solid #e9e1d6;border-radius:18px;overflow:hidden"><div style="padding:26px;background:#eaf0e7"><strong style="font-size:23px;letter-spacing:2px;color:#10483e">NUBEMO</strong><div style="font-size:12px;color:#60746c;margin-top:6px">Il tuo percorso, ogni giorno.</div></div><div style="padding:28px"><h1 style="font-size:25px;line-height:1.25;margin:0 0 22px;color:#10483e">Completa l'attivazione NUBEMO</h1><p>${escapeHtml(greeting)}</p><p>Il tuo professionista ti ha invitato ad accedere alla tua area personale NUBEMO.</p><p>Per completare l'attivazione, scegli la tua password tramite il collegamento sicuro qui sotto.</p><p style="margin:28px 0"><a href="${escapeHtml(actionLink)}" style="display:inline-block;background:#1d5c4b;color:white;padding:14px 22px;border-radius:9px;text-decoration:none;font-weight:bold">Attiva il mio account</a></p><p style="font-size:12px;color:#6e7d76">Se non aspettavi questa email, puoi ignorarla. Non condividere il collegamento con altre persone.</p></div></div></div>`;
+      const mailResponse=await fetch("https://api.resend.com/emails",{
+        method:"POST",
+        headers:{"Authorization":`Bearer ${mailKey}`,"Content-Type":"application/json"},
+        body:JSON.stringify({from:mailFrom,to:[email],subject:"NUBEMO — Completa l'attivazione del tuo account",html,
+          text:`${greeting}\n\nIl tuo professionista ti ha invitato ad accedere a NUBEMO. Completa l'attivazione impostando la tua password:\n${actionLink}\n\nSe non aspettavi questa email, puoi ignorarla.`})
+      });
+      if (!mailResponse.ok){
+        console.error("Patient activation mail delivery failed",mailResponse.status);
+        return Response.json({ok:false,error:"Email di attivazione non inviata. Verificare configurazione e limiti del servizio email."},{status:502});
       }
       return Response.json({ ok:true, resent:true, patient_id:patient.id, email });
     }
