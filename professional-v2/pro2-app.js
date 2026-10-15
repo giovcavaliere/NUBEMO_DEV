@@ -1,4 +1,4 @@
-import {renderLivePatientPlans} from "./patient-plan-live-view.js";
+import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=plan-live-20261015";
 await window.NUBEMO_PRO2_AUTH_READY;
 
 import {renderLivePatientDocuments} from "./patient-documents-live-view.js";
