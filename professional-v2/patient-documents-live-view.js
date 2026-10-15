@@ -1,6 +1,6 @@
 import {renderDocuments,labFields} from "./patient-documents-view.js?v=plan-document-link-20261015";
 import {renderLivePatientOverview} from "./patient-detail-view.js";
-import {loadDocuments,uploadDocument,openDocument,deleteDocument,saveLaboratoryValues} from "./patient-documents-live-service.js?v=plan-document-link-20261015";
+import {loadDocuments,uploadDocument,openDocument,deleteDocument,saveLaboratoryValues} from "./patient-documents-live-service.js?v=plan-nav-20261015";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
 function openDialog(root,html,save){
@@ -46,6 +46,7 @@ export async function renderLivePatientDocuments(root,overview){
    const doc=state.documents.find(x=>x.id===b.dataset.openDocument);if(!doc)return;
    try{await openDocument(doc);await reload();}catch(error){alert(error.message||"Impossibile aprire il documento.");}
   }));
+  content.querySelectorAll("[data-go-to-plan]").forEach(b=>b.addEventListener("click",()=>{const planId=b.dataset.goToPlan;if(!planId)return;sessionStorage.setItem("nubemo-pro2-select-plan-"+overview.patient.id,planId);location.hash="#patient/"+encodeURIComponent(overview.patient.id)+"/piano";}));
   content.querySelectorAll("[data-delete-document]").forEach(b=>{
    const doc=state.documents.find(x=>x.id===b.dataset.deleteDocument);
    if(!active||doc?.pathway_id!==active.id){b.disabled=true;b.title="Documento storico in sola lettura";return;}
