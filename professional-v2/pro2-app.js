@@ -5,9 +5,9 @@ import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=plan-nav-202
 await window.NUBEMO_PRO2_AUTH_READY;
 
 import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=plan-nav-20261015";
-import {loadOwnPatients} from "./patients-service.js?v=invitation-fields-20261015";
+import {loadOwnPatients} from "./patients-service.js?v=avatar-shared-20261015";
 import {loadPatientOverview,loadPatientRecentActivity} from "./patient-overview-live.js?v=overview-activity-20261015";
-import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=avatar-header-20261015";
+import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=avatar-shared-20261015";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=patient-profile-shared-20261015";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
