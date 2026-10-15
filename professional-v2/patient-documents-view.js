@@ -43,7 +43,7 @@ function renderDocument(doc,data){
     <div class="documents-actions" aria-label="Azioni documento">
       <button type="button" class="documents-action" data-open-document="${esc(doc.id)}" aria-label="Apri documento" title="Apri documento">${icon("eye")}</button>
       ${doc.category==="analysis"?`<button type="button" class="documents-action documents-action-analysis" data-register-analysis="${esc(doc.id)}" aria-label="${lab?"Modifica valori analisi":"Registra valori analisi"}" title="${lab?"Modifica valori":"Registra valori"}">${icon("lab")}</button>`:""}
-      ${doc.linkedToActivePlan?`<span class="documents-action" title="Gestisci questo piano nella tab Piano" aria-label="Piano gestito nella tab Piano">${icon("document")}</span>`:`<button type="button" class="documents-action documents-action-delete" data-delete-document="${esc(doc.id)}" aria-label="Elimina documento" title="Elimina documento">${icon("trash")}</button>`}
+      ${doc.linkedToActivePlan?`<button type="button" class="documents-action" data-go-to-plan="${esc(doc.linkedPlanId||"")}" aria-label="Vai al piano alimentare" title="Vai al piano alimentare">${icon("document")}</button>`:`<button type="button" class="documents-action documents-action-delete" data-delete-document="${esc(doc.id)}" aria-label="Elimina documento" title="Elimina documento">${icon("trash")}</button>`}
     </div>
   </article>`;
 }
