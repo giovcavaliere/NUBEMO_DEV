@@ -1,3 +1,4 @@
+import {mountPatientHome} from "./patient-home-live.js?v=home-20261015";
 import {mountPatientDiary} from "./patient-diary-live.js?v=diary-date-rebuild-20261015";
 import {mountPatientDocuments} from "./patient-documents-live.js?v=documents-pathway-20261015";
 // NUBEMO Patient 2.0 — Profilo live. Nessun dato demo, solo sessione paziente e Supabase DEV.
@@ -131,7 +132,7 @@ function openSupport(){
 }
 async function navigate(){
  if(!context)return;
- const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":location.hash==="#diario"?"diary":"profile";
+ const tab=location.hash==="#piano"?"plan":location.hash==="#documenti"?"documents":location.hash==="#diario"?"diary":location.hash==="#home"||!location.hash?"home":"profile";
  document.querySelectorAll("[data-patient-view]").forEach(view=>{view.hidden=view.dataset.patientView!==tab;});
  document.querySelectorAll("[data-patient-route]").forEach(link=>{
   const selected=link.dataset.patientRoute===tab;
@@ -142,6 +143,7 @@ async function navigate(){
  if(tab==="plan")await mountPatientPlan(context.patient.id);
  if(tab==="documents")await mountPatientDocuments(context);
  if(tab==="diary")await mountPatientDiary(context);
+ if(tab==="home")await mountPatientHome(context);
 }
 window.addEventListener("hashchange",()=>navigate().catch(error=>showError(error.message)));
 document.addEventListener("click",async e=>{
@@ -162,8 +164,8 @@ document.addEventListener("click",async e=>{
  if(route){
   e.preventDefault();
   const tab=route.dataset.patientRoute;
-  if(tab==="plan"||tab==="profile"||tab==="documents"||tab==="diary"){
-   const hash=tab==="plan"?"#piano":tab==="documents"?"#documenti":tab==="diary"?"#diario":"#profilo";
+  if(tab==="plan"||tab==="profile"||tab==="documents"||tab==="diary"||tab==="home"){
+   const hash=tab==="plan"?"#piano":tab==="documents"?"#documenti":tab==="diary"?"#diario":tab==="home"?"#home":"#profilo";
    if(location.hash!==hash)location.hash=hash;
    else await navigate();
   }else dialog("Sezione in migrazione",'<p class="patient-demo-message">Questa sezione sarà collegata ai dati reali durante i prossimi passaggi della migrazione Patient 2.0.</p>');
