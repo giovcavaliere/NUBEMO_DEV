@@ -404,7 +404,6 @@ export function renderLivePatientProfile(root,overview,real,actions){
   .replace(/<button type="button" class="detail-edit-button" data-edit-administration>[\s\S]*?<\/button>/,"")
   .replace('Comunicazioni</dt><dd>Non attive',real.preferences?'Comunicazioni</dt><dd>Non attive':'Comunicazioni</dt><dd>Non registrate')
   .replace('Promemoria appuntamenti</dt><dd>Non attivi',real.preferences?'Promemoria appuntamenti</dt><dd>Non attivi':'Promemoria appuntamenti</dt><dd>Non registrati')
-  .replace('<div class="detail-profile-column">',`<div class="detail-profile-column">${real.profile.patient_avatar_path?'<div class="detail-live-patient-avatar"><img data-professional-patient-avatar alt="Foto profilo paziente"></div>':''}`)
   .replace('Consenso privacy</dt>',`Consenso privacy professionista</dt>`);
 
  root.innerHTML=`<div class="patient-detail"><nav class="detail-breadcrumb"><a href="#patients">Pazienti</a><span aria-hidden="true">›</span><span>${escapeHtml(identity.firstName)} ${escapeHtml(identity.lastName)}</span></nav>
@@ -416,10 +415,15 @@ export function renderLivePatientProfile(root,overview,real,actions){
  if(real.profile.patient_avatar_path){
   window.nubemoSupabase.storage.from("patient-avatars").createSignedUrl(real.profile.patient_avatar_path,600)
    .then(({data,error})=>{
-    const preview=root.querySelector("[data-professional-patient-avatar]");
-    if(preview&&!error&&data?.signedUrl)preview.src=data.signedUrl;
-    else preview?.closest(".detail-live-patient-avatar")?.remove();
-   }).catch(()=>root.querySelector(".detail-live-patient-avatar")?.remove());
+    const avatar=root.querySelector(".detail-hero .detail-avatar");
+    if(avatar&&!error&&data?.signedUrl){
+      const image=document.createElement("img");
+      image.className="detail-avatar";
+      image.alt="Foto profilo paziente";
+      image.src=data.signedUrl;
+      avatar.replaceWith(image);
+    }
+   }).catch(()=>{});
  }
  const open=(title,body,onSave,wide=false,activation=false)=>{
   const dialog=document.createElement("dialog");dialog.className="detail-dialog"+(wide?" detail-dialog-wide":"")+(activation?" detail-dialog-activation":"");
