@@ -9,7 +9,7 @@ export const clinicalFields={
 async function checked(query,reason){const {data,error}=await query;if(error)throw Error(reason+": "+error.message);return data;}
 export async function loadLivePatientProfile(patientId,overview){
  const pathway=overview.pathways.find(p=>p.status==="active")||overview.pathways.find(p=>p.status==="pending");
- const record=await checked(client().from("patients").select("id,profile_id,birth_date,sex,height_cm,status").eq("id",patientId).single(),"Anagrafica");
+ const record=await checked(client().from("patients").select("id,profile_id,birth_date,sex,height_cm,status,fiscal_code,address,postal_code,city,province,show_calories_to_patient").eq("id",patientId).single(),"Anagrafica");
  const profile=await checked(client().from("profiles").select("first_name,last_name,email,phone,status,auth_user_id").eq("id",record.profile_id).single(),"Contatti");
  const clinical=pathway?await checked(client().from("patient_clinical_profiles").select(COLUMNS.join(",")).eq("patient_id",patientId).eq("pathway_id",pathway.id).maybeSingle(),"Anamnesi"):null;
  const privacy=await checked(client().from("patient_professional_privacy").select("id,uploaded_at,original_filename,professional_privacy_document_id").eq("professional_patient_id",overview.link.id).order("uploaded_at",{ascending:false}).limit(1),"Privacy");
@@ -21,7 +21,7 @@ export async function saveLivePatientIdentity(patientId,profileId,values){
  const height=values.height===""?null:Number(values.height);
  if(height!==null&&(!Number.isFinite(height)||height<50||height>250))throw Error("Altezza non valida.");
  await checked(client().from("profiles").update({first_name,last_name,email:values.email||null,phone:values.phone||null}).eq("id",profileId),"Salvataggio contatti");
- await checked(client().from("patients").update({birth_date:values.birthDate||null,sex:values.sex||null,height_cm:height}).eq("id",patientId),"Salvataggio anagrafica");
+ await checked(client().from("patients").update({birth_date:values.birthDate||null,sex:values.sex||null,height_cm:height,fiscal_code:values.fiscalCode?.trim()||null,address:values.address?.trim()||null,postal_code:values.postalCode?.trim()||null,city:values.city?.trim()||null,province:values.province?.trim()||null,show_calories_to_patient:values.showCaloriesToPatient==="on"}).eq("id",patientId),"Salvataggio anagrafica");
 }
 export async function saveLiveClinical(patientId,pathwayId,values){
  if(!pathwayId)throw Error("È necessario un percorso attivo.");
