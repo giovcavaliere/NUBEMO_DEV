@@ -1,0 +1,1 @@
+alter table public.nutrition_plans add column if not exists patient_note text; comment on column public.nutrition_plans.patient_note is 'Indicazioni pubblicate dal professionista per il paziente; distinta dalle note interne';
