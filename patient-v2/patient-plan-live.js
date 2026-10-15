@@ -36,12 +36,10 @@ export async function mountPatientPlan(patientId,{reload=false}={}){
    const match=links.find(l=>l.nutrition_plan_id===plan.id&&docMap.get(l.document_id)?.pathway_id===plan.pathway_id);
    return [plan.id,match?docMap.get(match.document_id):null];
   }));
-  // The currently valid plan must belong to an active pathway and be marked active.
-  const pathwayIds=[...new Set(plans.map(p=>p.pathway_id).filter(Boolean))];
-  const pathways=pathwayIds.length?await checked(client().from("patient_pathways")
-   .select("id,status").in("id",pathwayIds).eq("patient_id",patientId)):[];
-  const activePaths=new Set(pathways.filter(p=>p.status==="active").map(p=>p.id));
-  const current=plans.find(p=>p.status==="active"&&activePaths.has(p.pathway_id))||null;
+  // Read the active pathway through the existing authenticated Supabase helper.
+  // Patient RLS need not expose the patient_pathways table itself.
+  const activePathway=await checked(client().rpc("current_active_pathway_id"));
+  const current=plans.find(p=>p.status==="active"&&p.pathway_id===activePathway)||null;
   const history=plans.filter(p=>p.id!==current?.id);
   root.innerHTML='<div class="patient-plan-stack">'+
    '<section aria-labelledby="patient-plan-current-heading"><h2 class="patient-plan-section-title" id="patient-plan-current-heading">Piano in vigore</h2>'+
