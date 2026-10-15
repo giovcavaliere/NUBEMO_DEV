@@ -83,6 +83,7 @@ function openEditor(date){
  live("edit");
  const dateInput=root().querySelector("[data-diary-entry-date]");
  dateInput.max=localDate();dateInput.value=date;
+ root().querySelector("[data-diary-date-display]").textContent=pretty(date);
  const header=root().querySelector('[data-diary-panel="edit"] .patient-diary-header');
  header.querySelector("h1").textContent=day?"Modifica giornata":"Aggiungi giornata";
  header.querySelector("p").textContent=pretty(date)+" · Prima le abitudini, poi i pasti.";
