@@ -18,6 +18,7 @@ function openDialog(root,html,save){
   catch(error){msg.textContent=error.message||"Operazione non riuscita.";button.disabled=false;}
  });
  el.showModal();
+ return el;
 }
 export async function renderLivePatientDocuments(root,overview){
  const active=overview.pathways.find(p=>p.status==="active");
