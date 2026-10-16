@@ -5,8 +5,9 @@
   if(!client)throw Error("Connessione NUBEMO non disponibile.");
   const {data:{user},error:authError}=await client.auth.getUser();
   if(authError||!user){location.replace("index2.html");return;}
-  const {data:profile,error:profileError}=await client.from("profiles").select("id,first_name,role,status").eq("auth_user_id",user.id).single();
+  const {data:profile,error:profileError}=await client.from("profiles").select("id,first_name,role,status,activation_completed_at").eq("auth_user_id",user.id).single();
   if(profileError||!profile||profile.role!=="patient"||profile.status!=="active")throw Error("Questo account non è autorizzato per l'area Paziente.");
+  if(!profile.activation_completed_at){await client.auth.signOut({scope:"local"});location.replace("index2.html");return;}
   const {data:patient,error:patientError}=await client.from("patients").select("id").eq("profile_id",profile.id).single();
   if(patientError||!patient)throw Error("Anagrafica paziente non disponibile.");
   // The patient entry must never bypass the shared privacy acceptance gate.
