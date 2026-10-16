@@ -74,10 +74,20 @@ export async function mountPatientHome(ctx){
  metric(3,goal==null?"—":fmt(goal)+" kg",goal==null?"Obiettivo non impostato":"definito con il professionista");
  const todayEntry=(diary||[]).find(d=>d.entry_date===now),meals=["breakfast","morning_snack","lunch","afternoon_snack","dinner"],done=meals.filter(k=>String(todayEntry?.[k]||"").trim()).length;
  metric(4,done+" / 5",done===1?"pasto registrato":"pasti registrati oggi");
- const progress=el(".patient-progress-card"),numbers=progress?.querySelectorAll(".patient-progress-metric strong");
- if(numbers?.length===3){numbers[0].textContent=first==null?"—":fmt(first)+" kg";numbers[1].textContent=diff==null?"—":(diff>0?"+":"")+fmt(diff)+" kg";numbers[2].textContent=goal==null||last==null?"—":fmt(Math.max(0,last-goal))+" kg";}
- const ratio=first!=null&&last!=null&&goal!=null&&first>goal?Math.max(0,Math.min(100,(first-last)/(first-goal)*100)):null,ring=el(".patient-progress-ring");
- if(ring){ring.style.setProperty("--progress",ratio??0);ring.querySelector("strong").textContent=ratio==null?"—":fmt(ratio)+"%";ring.querySelector("span").textContent=ratio==null?"Obiettivo assente":"completato";}
+ const progress=el(".patient-progress-card");
+ if(progress){
+  const showWeight=value=>value==null?"—":fmt(value)+" kg";
+  progress.querySelector("[data-goal-start]").textContent=showWeight(first);
+  progress.querySelector("[data-goal-target]").textContent=showWeight(goal);
+  progress.querySelector("[data-goal-current]").textContent=showWeight(last);
+  progress.querySelector("[data-goal-lost]").textContent=first==null||last==null?"—":showWeight(Math.max(0,first-last));
+  progress.querySelector("[data-goal-remaining]").textContent=goal==null||last==null?"—":showWeight(Math.max(0,last-goal));
+  const ratio=first!=null&&last!=null&&goal!=null&&first>goal?Math.max(0,Math.min(100,(first-last)/(first-goal)*100)):null;
+  const ring=progress.querySelector(".patient-progress-ring");
+  ring.style.setProperty("--progress",ratio??0);
+  ring.querySelector("strong").textContent=ratio==null?"—":fmt(ratio)+"%";
+  ring.querySelector("span").textContent=ratio==null?"Obiettivo assente":"completato";
+ }
  setText(".patient-calorie-value",todayEntry?.total_kcal==null?"—":Math.round(todayEntry.total_kcal).toLocaleString("it-IT")+" kcal");
  setText(".patient-calorie-status",todayEntry?.calorie_quality==="good"?"Stima buona":todayEntry?.calorie_quality==="partial"?"Stima parziale":"Stima non disponibile");
  const birth=ctx.patient.birth_date,sex=String(ctx.patient.sex||"").toLowerCase();
