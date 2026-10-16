@@ -60,7 +60,24 @@ function openClinicalPdfDialog(root,model,overview=null){
     try{
       // Never use the demo model when the patient is loaded from Supabase DEV.
       const source=overview?await loadLiveClinicalPdfData(overview,{diaryMode}):model.data;
-      const normalized=buildClinicalPdfData(source,professionalProfile,{diaryMode});
+      const context=window.nubemoProfessionalContext||{};
+      const profile=context.profile||{};
+      const pro=context.professional||{};
+      const identity={
+        firstName:profile.first_name||professionalProfile.firstName,
+        surname:profile.last_name||professionalProfile.surname,
+        displayName:pro.display_name||professionalProfile.displayName,
+        qualification:pro.qualification||professionalProfile.qualification,
+        taxCode:pro.tax_code||professionalProfile.taxCode,
+        vat:pro.vat_number||professionalProfile.vat,
+        phone:pro.phone||professionalProfile.phone,
+        email:profile.email||professionalProfile.email,
+        address:pro.address||professionalProfile.address,
+        zip:pro.zip||professionalProfile.zip,
+        city:pro.city||professionalProfile.city,
+        province:pro.province||professionalProfile.province
+      };
+      const normalized=buildClinicalPdfData(source,identity,{diaryMode});
       const blob=createClinicalPdf(normalized);
       const safe=normalized.patient.name.replace(/[^A-Za-z0-9_-]+/g,"_")||"Paziente";
       const stamp=new Date().toISOString().slice(0,10).replace(/-/g,"");
