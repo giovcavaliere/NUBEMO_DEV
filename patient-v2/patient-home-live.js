@@ -29,7 +29,7 @@ function drawChart(){
  Array.from({length:5},(_,i)=>{const v=min+(max-min)*i/4,yy=y(v);return '<line x1="46" x2="454" y1="'+yy+'" y2="'+yy+'" class="patient-chart-grid"/>';}).join("")+
  '<path d="'+area+'" class="patient-chart-area"/><path d="'+path+'" class="patient-chart-line"/></svg>'+
  Array.from({length:5},(_,i)=>{const v=min+(max-min)*i/4;return '<span class="patient-chart-axis patient-chart-tick" style="--patient-y:'+y(v).toFixed(2)+'">'+fmt(v)+'</span>';}).join("")+
- coords.map(([xx,yy],i)=>'<span class="patient-chart-dot" style="--patient-x:'+xx.toFixed(2)+';--patient-y:'+yy.toFixed(2)+'" title="'+fmt(points[i].weight)+' kg"></span>').join("")+
+ coords.map(([xx,yy],i)=>'<span class="patient-chart-dot'+(points.length>20?" patient-chart-dot-dense":"")+'" style="--patient-x:'+xx.toFixed(2)+';--patient-y:'+yy.toFixed(2)+'" title="'+fmt(points[i].weight)+' kg"></span>').join("")+
  selected.map((index,i)=>'<span class="patient-chart-axis patient-chart-date patient-chart-date-'+(i===0?"start":i===selected.length-1?"end":"middle")+'" style="--patient-x:'+x(index).toFixed(2)+'">'+date(points[index].day)+'</span>').join("")+'</div></div>'+
  '<div class="patient-chart-latest"><span><i class="patient-chart-legend-dot"></i>Peso <strong>'+fmt(points.at(-1).weight)+' kg</strong></span></div>';
 }
@@ -94,6 +94,7 @@ export async function mountPatientHome(ctx){
   const ratio=first!=null&&last!=null&&goal!=null&&first>goal?Math.max(0,Math.min(100,(first-last)/(first-goal)*100)):null;
   const ring=progress.querySelector(".patient-progress-ring");
   ring.style.setProperty("--progress",ratio??0);
+  ring.classList.toggle("is-no-goal",ratio==null);
   ring.querySelector("strong").textContent=ratio==null?"—":fmt(ratio)+"%";
   ring.querySelector("span").textContent=ratio==null?"Obiettivo assente":"completato";
  }
