@@ -51,8 +51,8 @@ export function buildClinicalPdfData(data,professional,options={}){
   const labs=[...(data.laboratoryReports||[])].filter(row=>row?.reportDate).sort((a,b)=>String(a.reportDate).localeCompare(String(b.reportDate))).slice(-5);
   const latestBia=[...measurements].reverse().find(row=>["bodyFat","muscleMass","ffm","ecm","bcm"].some(key=>finite(row[key])))||null;
   const height=finite(data.identity.height)?Number(data.identity.height):null;
-  const startedAt=Date.parse(activePathway?.startedAt?.slice(0,10)||"");
-  const trendRows=weightRows.filter(row=>Number.isFinite(Date.parse(row.date))&&(!Number.isFinite(startedAt)||Date.parse(row.date)>=startedAt));
+  // Il grafico storico include anche le misurazioni precedenti all’apertura del percorso.
+  const trendRows=weightRows.filter(row=>Number.isFinite(Date.parse(row.date)));
   const trendFirst=trendRows.length?Number(trendRows[0].weight):null;
   const trendCurrent=trendRows.length?Number(trendRows.at(-1).weight):null;
   const bia=latestBia?{
