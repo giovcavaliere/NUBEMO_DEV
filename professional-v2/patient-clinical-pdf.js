@@ -121,16 +121,35 @@ function cover(doc){
   f.text(demographics||"Dati anagrafici non disponibili",{size:10,color:C.muted});
   f.y+=8;f.text(`Documento generato il ${fmtDate(doc.generatedAt)}`,{size:9,color:C.muted});
   const blockTop=Math.max(470,f.y+30);
-  const fields=[pr.displayName||"Professionista",pr.qualification,pr.address,[pr.phone,pr.email].filter(Boolean).join(" · ")].filter(Boolean);
-  const blocks=fields.map((value,i)=>({lines:wrap(value,WIDTH-40,i===0?17:10,i===0?"F2":"F1"),size:i===0?17:10}));
-  const blockHeight=56+blocks.reduce((sum,block)=>sum+block.lines.length*(block.size===17?22:15)+8,0);
+
+  const studio=pr.studio||null;
+  const address=studio?[studio.address,[studio.zip,studio.city].filter(Boolean).join(" "),studio.province?("("+studio.province+")"):""].filter(Boolean).join(" "):pr.address;
+  const fields=[
+    [pr.displayName||"Professionista",17,"F2"],[pr.qualification,10,"F1"],
+    [studio?.name?("Studio principale: "+studio.name):"Studio principale",9,"F2"],
+    [address,9,"F1"],[pr.vat?("P. IVA: "+pr.vat):null,9,"F1"],
+    [pr.taxCode?("C.F.: "+pr.taxCode):null,9,"F1"],
+    [pr.phone?("Tel: "+pr.phone):null,9,"F1"],
+    [pr.email?("Email: "+pr.email):null,9,"F1"]
+  ].filter(row=>!!row[0]);
+  const hasLogo=!!pr.logo?.jpeg;
+  const textAvailable=hasLogo?WIDTH-184:WIDTH-40;
+  const blocks=fields.map(([value,size,font])=>({lines:wrap(value,textAvailable,size,font),size,font}));
+  const blockHeight=57+blocks.reduce((sum,item)=>sum+item.lines.length*(item.size===17?22:13)+5,0);
   if(blockTop+blockHeight<=END){
     f.page+=rect(LEFT,blockTop,WIDTH,blockHeight,C.soft)+rect(LEFT,blockTop,3,blockHeight,C.sage)+txt(LEFT+20,blockTop+27,"A CURA DI",8.5,"F2",C.green);
-    let by=blockTop+55;
-    blocks.forEach((block,i)=>{block.lines.forEach(value=>{f.page+=txt(LEFT+20,by,value,block.size,i===0?"F2":"F1",i===0?C.ink:C.muted);by+=i===0?22:15});by+=8});
+    let by=blockTop+53;
+    blocks.forEach(item=>{item.lines.forEach(value=>{f.page+=txt(LEFT+20,by,value,item.size,item.font,item.size===17?C.ink:C.muted);by+=item.size===17?22:13});by+=5});
+    if(hasLogo){
+      const maxW=142,maxH=Math.min(150,blockHeight-55);
+      const scale=Math.min(maxW/pr.logo.width,maxH/pr.logo.height);
+      const w=pr.logo.width*scale,h=pr.logo.height*scale;
+      const x=RIGHT-18-maxW+(maxW-w)/2,y=blockTop+39+(blockHeight-48-h)/2;
+      f.page+="q "+n(w)+" 0 0 "+n(h)+" "+n(x)+" "+n(PAGE_H-y-h)+" cm /ProfessionalLogo Do Q\n";
+    }
   }else{
     f.y=Math.min(f.y+30,END);f.section("A CURA DI");
-    fields.forEach((value,i)=>f.text(value,{size:i===0?17:10,font:i===0?"F2":"F1",color:i===0?C.ink:C.muted}));
+    fields.forEach(([value,size,font])=>f.text(value,{size,font,color:size===17?C.ink:C.muted}));
   }
   return f.finish();
 }
@@ -264,7 +283,7 @@ function diaryPages(doc){
 
 // Existing PDF object/xref serialization, with one shared logo XObject and
 // WinAnsi font encoding. No second generator or browser print dependency.
-function buildPdf(pageStreams){
+function buildPdf(pageStreams,professionalLogo=null){
   const objects=[];const add=value=>{objects.push(typeof value==="string"?encoder.encode(value):value);return objects.length};
   const streamObject=(body,attributes="")=>{
     const prefix=encoder.encode(`<< ${attributes} /Length ${body.length} >>\nstream\n`),suffix=encoder.encode("\nendstream");
@@ -278,10 +297,11 @@ function buildPdf(pageStreams){
   };
   const f1=embeddedFont(pdfFontRegular),f2=embeddedFont(pdfFontBold),f3=f1;
   const image=streamObject(Uint8Array.from(atob(pdfLogo.data),char=>char.charCodeAt(0)),`/Type /XObject /Subtype /Image /Width ${pdfLogo.width} /Height ${pdfLogo.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode`);
+  const extraImage=professionalLogo?.jpeg?streamObject(Uint8Array.from(atob(professionalLogo.jpeg),char=>char.charCodeAt(0)),"/Type /XObject /Subtype /Image /Width "+professionalLogo.width+" /Height "+professionalLogo.height+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode"):null;
   const pagesObj=add("PAGES"),pageIds=[];
   pageStreams.forEach(stream=>{
     const content=streamObject(encoder.encode(stream));
-    pageIds.push(add(`<< /Type /Page /Parent ${pagesObj} 0 R /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Resources << /Font << /F1 ${f1} 0 R /F2 ${f2} 0 R /F3 ${f3} 0 R >> /XObject << /Logo ${image} 0 R >> >> /Contents ${content} 0 R >>`));
+    pageIds.push(add(`<< /Type /Page /Parent ${pagesObj} 0 R /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Resources << /Font << /F1 ${f1} 0 R /F2 ${f2} 0 R /F3 ${f3} 0 R >> /XObject << /Logo ${image} 0 R ${extraImage?`/ProfessionalLogo ${extraImage} 0 R`:""} >> >> /Contents ${content} 0 R >>`));
   });
   objects[pagesObj-1]=encoder.encode(`<< /Type /Pages /Count ${pageIds.length} /Kids [${pageIds.map(id=>`${id} 0 R`).join(" ")}] >>`);
   const catalog=add(`<< /Type /Catalog /Pages ${pagesObj} 0 R >>`);
@@ -296,7 +316,7 @@ function buildPdf(pageStreams){
 export function createClinicalPdf(doc){
   const pages=[...cover(doc),...profilePages(doc),...anamnesisPages(doc),...measurePages(doc),...labPages(doc),...trendPages(doc),...biaPages(doc)];
   if(doc.diary?.length)pages.push(...diaryPages(doc));
-  return buildPdf(pages.map((stream,index)=>stream+footer(doc,index+1,pages.length)));
+  return buildPdf(pages.map((stream,index)=>stream+footer(doc,index+1,pages.length)),doc.professional?.logo);
 }
 export function openClinicalPdf(blob,fileName){
   const url=URL.createObjectURL(blob),a=document.createElement("a");
