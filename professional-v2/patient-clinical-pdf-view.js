@@ -1,5 +1,5 @@
 import {loadLiveClinicalPdfData} from "./patient-clinical-pdf-live-service.js?v=clinical-pdf-live-20261016";
-import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=clinical-pdf-editorial-20261009";
+import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=clinical-pdf-objectives-20261016";
 import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js?v=clinical-pdf-editorial-20261009";
 import {professionalProfile} from "./profile-view.js";
 
@@ -63,6 +63,19 @@ function openClinicalPdfDialog(root,model,overview=null){
       const context=window.nubemoProfessionalContext||{};
       const profile=context.profile||{};
       const pro=context.professional||{};
+      // Caricamento on demand: il PDF deve usare i dati aggiornati anche
+      // quando il profilo professionista non è stato ancora aperto.
+      if(profile.id && pro.id && window.nubemoSupabase){
+        const client=window.nubemoSupabase;
+        const [profileResult,professionalResult]=await Promise.all([
+          client.from("profiles").select("first_name,last_name,email").eq("id",profile.id).single(),
+          client.from("professionals").select("display_name,qualification,tax_code,vat_number,phone,address,zip,city,province").eq("id",pro.id).single()
+        ]);
+        if(profileResult.error||professionalResult.error)
+          throw new Error("Dati professionista non disponibili per la cartella PDF.");
+        Object.assign(profile,profileResult.data);
+        Object.assign(pro,professionalResult.data);
+      }
       const identity={
         firstName:profile.first_name||professionalProfile.firstName,
         surname:profile.last_name||professionalProfile.surname,
