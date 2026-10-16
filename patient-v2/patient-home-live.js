@@ -66,7 +66,7 @@ export async function mountPatientHome(ctx){
  const first=chartPoints[0]?.weight??null,last=chartPoints.at(-1)?.weight??null,goal=num(clinical?.goal_weight_kg),diff=first!=null&&last!=null?last-first:null;
  const dateFormat=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
  const h=new Date();const greeting=h.getHours()<12?"Buongiorno":h.getHours()<18?"Buon pomeriggio":"Buonasera";
- setText(".patient-welcome h1",greeting+", "+(ctx.profile.first_name||"")+" 👋");
+ setText(".patient-welcome h1",greeting+", "+[ctx.profile.first_name,ctx.profile.last_name].filter(Boolean).join(" ").trim()||"Paziente"+" 👋");
  const welcome=el(".patient-welcome p");if(welcome)welcome.textContent=dateFormat.format(h)+" · Ecco come sta andando il tuo percorso";
  setText("#patientDailyQuote","“"+dailyMotivationalQuote(h)+"”");
  metric(1,last==null?"—":fmt(last)+" kg",diff==null?"Nessun confronto":(diff>0?"+":"")+fmt(diff)+" kg dall'inizio");
