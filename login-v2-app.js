@@ -91,6 +91,45 @@
     toggle.querySelector('[data-password-eye="hide"]').hidden = !reveal;
     password.focus({ preventScroll: true });
   });
+  // Il recupero è separato dall'attivazione: non abilita account ancora da attivare.
+  const recoveryButton = $('login-reset-password');
+  const recoveryPanel = $('login-recovery');
+  const recoveryEmail = $('recovery-email');
+  const recoverySend = $('login-recovery-send');
+  const recoveryCancel = $('login-recovery-cancel');
+  recoveryButton.addEventListener('click', () => {
+    recoveryEmail.value = email.value.trim();
+    recoveryPanel.hidden = false;
+    recoveryButton.hidden = true;
+    recoveryEmail.focus();
+    message();
+  });
+  recoveryCancel.addEventListener('click', () => {
+    recoveryPanel.hidden = true;
+    recoveryButton.hidden = false;
+    message();
+  });
+  recoverySend.addEventListener('click', async () => {
+    const address = recoveryEmail.value.trim();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)) {
+      message('Inserisci un indirizzo email valido.', true);
+      return;
+    }
+    recoverySend.disabled = true;
+    recoverySend.textContent = 'Invio in corso…';
+    message();
+    try {
+      const redirectTo = new URL('recovery-password2.html', window.location.href).href;
+      const { error } = await window.nubemoSupabase.auth.resetPasswordForEmail(address, { redirectTo });
+      if (error) throw error;
+      message('Se questo indirizzo è associato a un account, riceverai un link per reimpostare la password. Controlla anche lo spam.');
+    } catch (_) {
+      message('Non è stato possibile inviare il link. Riprova tra qualche minuto.', true);
+    } finally {
+      recoverySend.disabled = false;
+      recoverySend.textContent = 'Invia link di recupero';
+    }
+  });
   logoutButton.addEventListener('click', async () => {
     if (busy || !services) return;
     const current = ++generation;
