@@ -42,7 +42,7 @@
     const { data: { user }, error: userError } = await client.auth.getUser();
     if (userError || !user) return null;
     const { data, error } = await client.from('profiles')
-      .select('id,auth_user_id,first_name,last_name,email,role,status')
+      .select('id,auth_user_id,first_name,last_name,email,role,status,activation_completed_at')
       .eq('auth_user_id', user.id).single();
     if (error || !data) throw error || new Error('Profilo NUBEMO non disponibile.');
     return data;
@@ -107,6 +107,7 @@
       if (!client) throw new Error('Servizio di accesso non disponibile.');
       profile = await loadProfile();
       if (!profile || profile.status !== 'active') return window.location.replace('index2.html');
+      if (profile.role === 'patient' && !profile.activation_completed_at) { await client.auth.signOut({scope:'local'}); return window.location.replace('index2.html'); }
       if (profile.role === 'admin') return routeArea('admin');
       if (!['professional','patient'].includes(profile.role)) return window.location.replace('index2.html');
 
