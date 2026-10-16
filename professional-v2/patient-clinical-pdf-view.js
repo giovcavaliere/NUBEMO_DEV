@@ -60,36 +60,27 @@ function openClinicalPdfDialog(root,model,overview=null){
     try{
       // Never use the demo model when the patient is loaded from Supabase DEV.
       const source=overview?await loadLiveClinicalPdfData(overview,{diaryMode}):model.data;
-      const context=window.nubemoProfessionalContext||{};
-      const profile=context.profile||{};
-      const pro=context.professional||{};
-      // Caricamento on demand: il PDF deve usare i dati aggiornati anche
-      // quando il profilo professionista non è stato ancora aperto.
-      if(!profile.id||!pro.id||!window.nubemoSupabase) throw new Error("Identità professionista non disponibile. Ricarica la pagina e riprova.");
-      {
-        const client=window.nubemoSupabase;
-        const [profileResult,professionalResult]=await Promise.all([
-          client.from("profiles").select("first_name,last_name,email").eq("id",profile.id).single(),
-          client.from("professionals").select("display_name,qualification,tax_code,vat_number,phone,address,zip,city,province").eq("id",pro.id).single()
-        ]);
-        if(profileResult.error||professionalResult.error)
-          throw new Error("Dati professionista non disponibili per la cartella PDF.");
-        Object.assign(profile,profileResult.data);
-        Object.assign(pro,professionalResult.data);
-      }
+      const owner=window.NUBEMO_PRO2_PROFILE;
+      const client=window.nubemoSupabase;
+      if(!owner?.id||!client)throw new Error("Sessione professionista non disponibile.");
+      const {data:professional,error:professionalError}=await client.from("professionals")
+        .select("display_name,qualification,tax_code,vat_number,phone,address,zip,city,province,status")
+        .eq("profile_id",owner.id).single();
+      if(professionalError||!professional||professional.status!=="active")
+        throw new Error("Dati professionista non disponibili per la cartella PDF.");
       const identity={
-        firstName:profile.first_name||professionalProfile.firstName,
-        surname:profile.last_name||professionalProfile.surname,
-        displayName:pro.display_name||professionalProfile.displayName,
-        qualification:pro.qualification||professionalProfile.qualification,
-        taxCode:pro.tax_code||professionalProfile.taxCode,
-        vat:pro.vat_number||professionalProfile.vat,
-        phone:pro.phone||professionalProfile.phone,
-        email:profile.email||professionalProfile.email,
-        address:pro.address||professionalProfile.address,
-        zip:pro.zip||professionalProfile.zip,
-        city:pro.city||professionalProfile.city,
-        province:pro.province||professionalProfile.province
+        firstName:owner.first_name||"",
+        surname:owner.last_name||"",
+        displayName:professional.display_name||[owner.first_name,owner.last_name].filter(Boolean).join(" ")||"",
+        qualification:professional.qualification||"",
+        taxCode:professional.tax_code||"",
+        vat:professional.vat_number||"",
+        phone:professional.phone||"",
+        email:owner.email||"",
+        address:professional.address||"",
+        zip:professional.zip||"",
+        city:professional.city||"",
+        province:professional.province||""
       };
       const normalized=buildClinicalPdfData(source,identity,{diaryMode});
       const blob=createClinicalPdf(normalized);
