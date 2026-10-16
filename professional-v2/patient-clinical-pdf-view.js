@@ -65,7 +65,8 @@ function openClinicalPdfDialog(root,model,overview=null){
       const pro=context.professional||{};
       // Caricamento on demand: il PDF deve usare i dati aggiornati anche
       // quando il profilo professionista non è stato ancora aperto.
-      if(profile.id && pro.id && window.nubemoSupabase){
+      if(!profile.id||!pro.id||!window.nubemoSupabase) throw new Error("Identità professionista non disponibile. Ricarica la pagina e riprova.");
+      {
         const client=window.nubemoSupabase;
         const [profileResult,professionalResult]=await Promise.all([
           client.from("profiles").select("first_name,last_name,email").eq("id",profile.id).single(),
