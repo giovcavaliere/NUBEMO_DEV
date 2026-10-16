@@ -231,7 +231,7 @@ function weightChart(rows){
   return s;
 }
 function trendPages(doc){
-  const su=doc.weightTrend,f=new Flow("Andamento peso",doc.activePathway?"Evoluzione del peso dall’inizio del percorso":"Evoluzione longitudinale delle rilevazioni disponibili","05");
+  const su=doc.weightTrend,f=new Flow("Andamento peso","Evoluzione del peso nelle rilevazioni disponibili","05");
   f.page+=metrics([["Prima rilevazione",weight(su.firstWeight)],["Ultima rilevazione",weight(su.currentWeight)],["Variazione",delta(su.delta),C.sage]]);f.y=TOP+100;
   const chart=weightChart(su.measurements);
   if(chart){f.page+=chart;f.y=674;f.note(su.measurements.length===1?"Una sola rilevazione disponibile: il punto indica il peso registrato, senza stimare un andamento.":"Il grafico mantiene le date reali delle rilevazioni. La scala verticale segue l’intervallo dei pesi disponibili.")}
