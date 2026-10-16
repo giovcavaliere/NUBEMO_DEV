@@ -337,32 +337,35 @@
           </section>
 
           <section class="patient-home-grid">
-            <article class="module patient-progress-card">
-              <div class="patient-progress-copy">
-                <div class="module-title">
-                  <span class="module-icon"><svg class="icon"><use href="#icon-target"/></svg></span>
-                  <h2>Il tuo progresso</h2>
+            <article class="module patient-progress-card" aria-labelledby="patient-goal-title">
+              <div class="patient-progress-header">
+                <div class="patient-progress-intro">
+                  <div class="module-title">
+                    <span class="module-icon"><svg class="icon"><use href="#icon-target"/></svg></span>
+                    <h2 id="patient-goal-title">Il tuo obiettivo</h2>
+                  </div>
+                  <p class="patient-progress-note">Avanzamento verso il traguardo concordato con il professionista.</p>
                 </div>
-                <p class="patient-progress-note">Avanzamento verso l'obiettivo concordato per il percorso attivo.</p>
-
-                <div class="patient-progress-body">
-                  <div class="patient-progress-metric">
-                    <span>Peso iniziale</span>
-                    <strong>109,4 kg</strong>
-                  </div>
-                  <div class="patient-progress-metric">
-                    <span>Variazione</span>
-                    <strong>−2,8 kg</strong>
-                  </div>
-                  <div class="patient-progress-metric">
-                    <span>Da raggiungere</span>
-                    <strong>21,6 kg</strong>
-                  </div>
+                <div class="patient-progress-ring" style="--progress:0" aria-label="Percentuale obiettivo raggiunta">
+                  <strong data-goal-progress-percent>—</strong>
+                  <span>completato</span>
                 </div>
               </div>
-              <div class="patient-progress-ring" style="--progress:11.5">
-                <strong>11,5%</strong>
-                <span>completato</span>
+              <div class="patient-progress-journey">
+                <div class="patient-progress-endpoint">
+                  <span>Peso iniziale</span>
+                  <strong data-goal-start>—</strong>
+                </div>
+                <svg class="icon patient-progress-arrow" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h16m-7-7 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="patient-progress-endpoint patient-progress-destination">
+                  <span>Peso obiettivo</span>
+                  <strong data-goal-target>—</strong>
+                </div>
+              </div>
+              <div class="patient-progress-body">
+                <div class="patient-progress-metric"><span>Peso attuale</span><strong data-goal-current>—</strong></div>
+                <div class="patient-progress-metric"><span>Persi finora</span><strong data-goal-lost>—</strong></div>
+                <div class="patient-progress-metric"><span>Da raggiungere</span><strong data-goal-remaining>—</strong></div>
               </div>
             </article>
 
