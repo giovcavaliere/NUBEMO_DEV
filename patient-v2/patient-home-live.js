@@ -24,13 +24,13 @@ function drawChart(){
  const x=i=>left+(i*(right-left)/(points.length-1)),y=v=>top+(max-v)*(bottom-top)/(max-min);
  const coords=points.map((p,i)=>[x(i),y(p.weight)]),path=coords.map(([x,y],i)=>(i?"L ":"M ")+x.toFixed(2)+" "+y.toFixed(2)).join(" ");
  const area=path+" L "+right+" "+bottom+" L "+left+" "+bottom+" Z";
- const selected=[0,Math.floor((points.length-1)/2),points.length-1];
+ const selected=points.length>=5&&host.clientWidth>=380?[0,Math.floor((points.length-1)/2),points.length-1]:[0,points.length-1];
  host.innerHTML='<div class="patient-chart-core" role="img" aria-label="Andamento reale del peso"><span class="patient-chart-axis-title">Peso (kg)</span><div class="patient-chart-plot"><svg viewBox="46 34 408 191" preserveAspectRatio="none" aria-hidden="true">'+
  Array.from({length:5},(_,i)=>{const v=min+(max-min)*i/4,yy=y(v);return '<line x1="46" x2="454" y1="'+yy+'" y2="'+yy+'" class="patient-chart-grid"/>';}).join("")+
  '<path d="'+area+'" class="patient-chart-area"/><path d="'+path+'" class="patient-chart-line"/></svg>'+
  Array.from({length:5},(_,i)=>{const v=min+(max-min)*i/4;return '<span class="patient-chart-axis patient-chart-tick" style="--patient-y:'+y(v).toFixed(2)+'">'+fmt(v)+'</span>';}).join("")+
  coords.map(([xx,yy],i)=>'<span class="patient-chart-dot" style="--patient-x:'+xx.toFixed(2)+';--patient-y:'+yy.toFixed(2)+'" title="'+fmt(points[i].weight)+' kg"></span>').join("")+
- selected.map((index,i)=>'<span class="patient-chart-axis patient-chart-date patient-chart-date-'+(i===0?"start":i===2?"end":"middle")+'" style="--patient-x:'+x(index).toFixed(2)+'">'+date(points[index].day)+'</span>').join("")+'</div></div>'+
+ selected.map((index,i)=>'<span class="patient-chart-axis patient-chart-date patient-chart-date-'+(i===0?"start":i===selected.length-1?"end":"middle")+'" style="--patient-x:'+x(index).toFixed(2)+'">'+date(points[index].day)+'</span>').join("")+'</div></div>'+
  '<div class="patient-chart-latest"><span><i class="patient-chart-legend-dot"></i>Peso <strong>'+fmt(points.at(-1).weight)+' kg</strong></span></div>';
 }
 let bound=false;
