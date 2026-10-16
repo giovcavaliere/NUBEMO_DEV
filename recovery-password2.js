@@ -14,7 +14,8 @@
   const message = $('recovery-password-message');
   const entry = window.nubemoRecoveryPasswordEntry || { search: '', hash: '' };
   const raw = String(entry.search || '') + String(entry.hash || '');
-  const hasMarker = /(?:^|[?&#])(access_token|refresh_token|code|token_hash|error|error_code|type)=/i.test(raw);
+  const isRecoveryLink = /(?:^|[?&#])type=recovery(?:&|$)/i.test(raw);
+  const hasMarker = /(?:^|[?&#])(access_token|refresh_token|code|token_hash)=/i.test(raw);
   function show(element) {
     [loading, invalid, view, success].forEach(node => { node.hidden = node !== element; });
   }
@@ -26,28 +27,24 @@
   $('recovery-password-back-login').addEventListener('click', login);
   $('recovery-password-login').addEventListener('click', login);
   async function initialize() {
-    if (!client || !hasMarker || /(?:^|[?&#])error(?:_code|_description)?=/i.test(raw)) {
+    if (!client || !hasMarker || !isRecoveryLink || /(?:^|[?&#])error(?:_code|_description)?=/i.test(raw)) {
       fail('Il link è scaduto o non è valido. Richiedine uno nuovo dal login.');
       return;
     }
     // Il client Supabase elabora automaticamente il link di recupero e crea la sessione.
-    let session = (await client.auth.getSession()).data?.session;
-    if (!session) {
-      session = await new Promise(resolve => {
-        let done = false;
-        let listener;
-        const timer = setTimeout(() => finish(null), 3000);
-        function finish(value) {
-          if (done) return;
-          done = true;
-          clearTimeout(timer);
-          listener?.subscription?.unsubscribe();
-          resolve(value);
-        }
-        listener = client.auth.onAuthStateChange((_event, value) => { if (value) finish(value); }).data;
-      });
+    // Il token deve provenire dal redirect di recupero, mai da una sessione
+    // preesistente del browser. Supabase consuma i token durante l'inizializzazione.
+    const { data, error } = await client.auth.getSession();
+    if (error || !data?.session) {
+      fail('Non è stato possibile verificare il link. Richiedine uno nuovo.');
+      return;
     }
-    if (!session) { fail('Non è stato possibile verificare il link. Richiedine uno nuovo.'); return; }
+    const verified = await client.auth.getUser();
+    if (verified.error || !verified.data?.user) {
+      fail('Non è stato possibile verificare il link. Richiedine uno nuovo.');
+      return;
+    }
+    window.history.replaceState(null, '', window.location.pathname);
     show(view);
   }
   form.addEventListener('click', event => {
