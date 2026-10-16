@@ -11,7 +11,20 @@ const ageAt=(birth,now=new Date())=>{
   if(now.getMonth()<d.getMonth()||(now.getMonth()===d.getMonth()&&now.getDate()<d.getDate())) age--;
   return age;
 };
-const objective=item=>item?.objectiveLabel||item?.customObjective||"Percorso nutrizionale";
+const objectiveLabels=Object.freeze({
+  weight_loss:"Perdita di peso",
+  weight_gain:"Aumento di peso",
+  maintenance:"Mantenimento del peso",
+  muscle_gain:"Aumento della massa muscolare",
+  recomposition:"Ricomposizione corporea",
+  healthy_eating:"Educazione alimentare",
+  nutrition_education:"Educazione alimentare"
+});
+const objective=item=>{
+  const key=String(item?.objectiveLabel||"").trim();
+  if(key==="other"||key==="custom")return item?.customObjective||"Obiettivo personalizzato";
+  return objectiveLabels[key]||item?.customObjective||key.replace(/_/g," ")||"Percorso nutrizionale";
+};
 const normalizedFFM=row=>calculateFFM({bcm:finite(row.bcm)?Number(row.bcm):null,ecm:finite(row.ecm)?Number(row.ecm):null,ffm:finite(row.ffm)?Number(row.ffm):null});
 const bmiCategory=value=>value==null?null:value<18.5?"Sottopeso":value<25?"Normopeso":value<30?"Sovrappeso":value<35?"Obesità I":value<40?"Obesità II":"Obesità III";
 
