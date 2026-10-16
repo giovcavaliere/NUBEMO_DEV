@@ -87,63 +87,40 @@
 .patient-home-grid + .patient-support-card{margin-top:16px}
 
 .patient-progress-card{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 128px;
-  gap:22px;
-  align-items:center;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:18px;
+  min-width:0;
 }
-.patient-progress-copy{min-width:0}
+.patient-progress-header{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:start;
+}
+.patient-progress-intro{min-width:0}
 .patient-progress-note{
-  margin:7px 0 0 35px;
+  margin:9px 0 0 35px;
   color:var(--muted);
   font-size:11px;
   line-height:1.55;
 }
-.patient-progress-body{
-  margin-top:18px;
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
-}
-.patient-progress-metric{
-  display:grid;
-  grid-template-rows:1fr auto;
-  row-gap:5px;
-  padding:12px 13px;
-  border-radius:14px;
-  background:rgba(237,242,233,.72);
-  border:1px solid rgba(41,106,86,.06);
-}
-.patient-progress-metric span{
-  display:block;
-  min-height:2.7em;
-  color:var(--muted);
-  font-size:10px;
-  line-height:1.35;
-}
-.patient-progress-metric strong{
-  display:block;
-  font-size:17px;
-  font-weight:650;
-  line-height:1.3;
-  white-space:nowrap;
-  font-variant-numeric:tabular-nums;
-}
 .patient-progress-ring{
-  --progress:11.5;
-  width:116px;
-  height:116px;
-  justify-self:end;
+  --progress:0;
+  width:108px;
+  height:108px;
+  flex:none;
   border-radius:50%;
   display:grid;
   place-items:center;
   position:relative;
   background:conic-gradient(var(--green-700) calc(var(--progress)*1%),var(--green-soft) 0);
 }
-.patient-progress-ring:before{
+.patient-progress-ring::before{
   content:"";
   position:absolute;
-  inset:11px;
+  inset:10px;
   border-radius:50%;
   background:var(--surface-2);
   box-shadow:inset 0 0 0 1px rgba(41,106,86,.06);
@@ -151,16 +128,65 @@
 .patient-progress-ring strong{
   position:relative;
   z-index:1;
-  font-size:26px;
+  font-size:25px;
   letter-spacing:-.04em;
   font-weight:650;
 }
 .patient-progress-ring span{
   position:absolute;
   z-index:1;
-  margin-top:34px;
+  margin-top:32px;
   color:var(--muted);
   font-size:9px;
+}
+.patient-progress-journey{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+}
+.patient-progress-endpoint{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:12px 14px;
+  border:1px solid rgba(41,106,86,.09);
+  border-radius:15px;
+  background:rgba(237,242,233,.54);
+}
+.patient-progress-endpoint span{color:var(--muted);font-size:10px;line-height:1.35}
+.patient-progress-endpoint strong{
+  font-size:21px;
+  font-weight:680;
+  line-height:1.2;
+  font-variant-numeric:tabular-nums;
+}
+.patient-progress-destination{background:rgba(230,241,229,.78)}
+.patient-progress-arrow{width:24px;height:24px;color:var(--muted)}
+.patient-progress-body{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  padding-top:14px;
+  border-top:1px solid rgba(41,106,86,.12);
+}
+.patient-progress-metric{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:0;
+  padding:12px 13px;
+  border-radius:14px;
+  background:rgba(237,242,233,.72);
+  border:1px solid rgba(41,106,86,.06);
+}
+.patient-progress-metric span{color:var(--muted);font-size:10px;line-height:1.35}
+.patient-progress-metric strong{
+  font-size:17px;
+  font-weight:650;
+  line-height:1.3;
+  font-variant-numeric:tabular-nums;
 }
 
 .patient-chart-card{min-width:0}
@@ -434,7 +460,6 @@
 
 @media (min-width:721px) and (max-width:1100px){
   .patient-home-grid{grid-template-columns:1fr}
-  .patient-progress-card{grid-template-columns:minmax(0,1fr) 120px}
 }
 
 @media (max-width:720px){
@@ -446,26 +471,20 @@
   .patient-home-grid{grid-template-columns:1fr;gap:14px}
   .patient-home-grid + .patient-home-grid,
   .patient-home-grid + .patient-support-card{margin-top:14px}
-  .patient-progress-card{
-    grid-template-columns:minmax(0,1fr) 90px;
-    gap:12px;
-  }
-  .patient-progress-copy{display:contents}
-  .patient-progress-copy .module-title{grid-column:1;grid-row:1}
-  .patient-progress-note{grid-column:1;grid-row:2;margin-left:31px}
-  .patient-progress-ring{grid-column:2;grid-row:1 / span 2;width:86px;height:86px}
-  .patient-progress-ring:before{inset:9px}
+  .patient-progress-card{gap:15px}
+  .patient-progress-header{gap:10px}
+  .patient-progress-note{margin-left:0}
+  .patient-progress-ring{width:86px;height:86px}
+  .patient-progress-ring::before{inset:9px}
   .patient-progress-ring strong{font-size:21px}
   .patient-progress-ring span{margin-top:28px;font-size:8px}
-  .patient-progress-body{
-    grid-column:1 / -1;
-    grid-row:3;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:6px;
-    margin-top:2px;
-  }
+  .patient-progress-journey{grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);gap:6px}
+  .patient-progress-endpoint{padding:11px 8px}
+  .patient-progress-endpoint strong{font-size:clamp(14px,4vw,20px);white-space:nowrap}
+  .patient-progress-arrow{width:18px;height:18px}
+  .patient-progress-body{gap:6px;padding-top:12px}
   .patient-progress-metric{padding:10px 8px}
-  .patient-progress-metric strong{font-size:14px}
+  .patient-progress-metric strong{font-size:clamp(12px,3.7vw,17px);white-space:nowrap}
   .patient-chart-head{display:block}
   .patient-range{width:max-content;margin-top:12px}
   .patient-weight-chart{margin-top:9px}
