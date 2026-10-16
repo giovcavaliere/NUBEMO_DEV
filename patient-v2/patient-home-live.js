@@ -80,7 +80,16 @@ export async function mountPatientHome(ctx){
   progress.querySelector("[data-goal-start]").textContent=showWeight(first);
   progress.querySelector("[data-goal-target]").textContent=showWeight(goal);
   progress.querySelector("[data-goal-current]").textContent=showWeight(last);
-  progress.querySelector("[data-goal-lost]").textContent=first==null||last==null?"—":showWeight(Math.max(0,first-last));
+  const change=first==null||last==null?null:last-first;
+  const changeElement=progress.querySelector("[data-goal-change]");
+  changeElement.textContent=change==null?"—":(change>0?"+":change<0?"−":"")+showWeight(Math.abs(change));
+  const changeIcon=progress.querySelector(".patient-progress-metric:nth-child(2) .patient-progress-metric-icon");
+  if(changeIcon){
+   changeIcon.classList.toggle("is-increase",change!=null&&change>0);
+   changeIcon.classList.toggle("is-decrease",change!=null&&change<0);
+   const arrow=changeIcon.querySelector("svg");
+   if(arrow)arrow.style.transform=change!=null&&change>0?"rotate(180deg)":"";
+  }
   progress.querySelector("[data-goal-remaining]").textContent=goal==null||last==null?"—":showWeight(Math.max(0,last-goal));
   const ratio=first!=null&&last!=null&&goal!=null&&first>goal?Math.max(0,Math.min(100,(first-last)/(first-goal)*100)):null;
   const ring=progress.querySelector(".patient-progress-ring");
