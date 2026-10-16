@@ -1,3 +1,4 @@
+import {loadLiveClinicalPdfData} from "./patient-clinical-pdf-live-service.js?v=clinical-pdf-live-20261016";
 import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=clinical-pdf-editorial-20261009";
 import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js?v=clinical-pdf-editorial-20261009";
 import {professionalProfile} from "./profile-view.js";
@@ -13,13 +14,13 @@ export function renderClinicalPdfAction({disabled=false}={}){
   </button>`;
 }
 
-export function bindClinicalPdf(root,model){
-  root.querySelector("[data-clinical-pdf]")?.addEventListener("click",()=>openClinicalPdfDialog(root,model));
+export function bindClinicalPdf(root,model,overview=null){
+  root.querySelector("[data-clinical-pdf]")?.addEventListener("click",()=>openClinicalPdfDialog(root,model,overview));
 }
 
-function openClinicalPdfDialog(root,model){
+function openClinicalPdfDialog(root,model,overview=null){
   const identity=model.data.identity;
-  const hasActive=!!activePathway(model);
+  const hasActive=overview?overview.pathways?.some(item=>item.status==="active"):!!activePathway(model);
   const dialog=document.createElement("dialog");
   dialog.className="detail-dialog clinical-pdf-dialog";
   dialog.innerHTML=`<form method="dialog">
@@ -50,17 +51,30 @@ function openClinicalPdfDialog(root,model){
   </form>`;
   root.append(dialog);
   dialog.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",()=>dialog.close()));
-  dialog.addEventListener("close",()=>{
-    if(dialog.returnValue==="save"){
-      const values=new FormData(dialog.querySelector("form"));
-      const diaryMode=hasActive?String(values.get("diaryMode")||"none"):"none";
-      const normalized=buildClinicalPdfData(model.data,professionalProfile,{diaryMode});
+  dialog.addEventListener("close",async()=>{
+    if(dialog.returnValue!=="save"){dialog.remove();return;}
+    const values=new FormData(dialog.querySelector("form"));
+    const diaryMode=hasActive?String(values.get("diaryMode")||"none"):"none";
+    const submit=dialog.querySelector('button[type="submit"]');
+    if(submit)submit.disabled=true;
+    try{
+      // Never use the demo model when the patient is loaded from Supabase DEV.
+      const source=overview?await loadLiveClinicalPdfData(overview,{diaryMode}):model.data;
+      const normalized=buildClinicalPdfData(source,professionalProfile,{diaryMode});
       const blob=createClinicalPdf(normalized);
       const safe=normalized.patient.name.replace(/[^A-Za-z0-9_-]+/g,"_")||"Paziente";
       const stamp=new Date().toISOString().slice(0,10).replace(/-/g,"");
       openClinicalPdf(blob,`Cartella_NUBEMO_${safe}_${stamp}.pdf`);
+      dialog.remove();
+    }catch(error){
+      dialog.remove();
+      const message=document.createElement("p");
+      message.setAttribute("role","alert");
+      message.className="detail-empty";
+      message.textContent="Generazione cartella PDF non riuscita: "+(error.message||"Errore");
+      root.querySelector(".detail-pdf-action")?.after(message);
+      console.error("Cartella PDF Professional 2.0:",error);
     }
-    dialog.remove();
   },{once:true});
   dialog.showModal();
 }
