@@ -50,6 +50,17 @@
     if (!session) { fail('Non è stato possibile verificare il link. Richiedine uno nuovo.'); return; }
     show(view);
   }
+  form.addEventListener('click', event => {
+    const button = event.target.closest('[data-password-toggle]');
+    if (!button) return;
+    const input = $(button.dataset.passwordToggle);
+    const reveal = input.type === 'password';
+    input.type = reveal ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(reveal));
+    button.setAttribute('aria-label', (reveal ? 'Nascondi ' : 'Mostra ') + (input.id === 'new-password' ? 'nuova password' : 'conferma password'));
+    button.querySelector('[data-password-eye="show"]').hidden = reveal;
+    button.querySelector('[data-password-eye="hide"]').hidden = !reveal;
+  });
   form.addEventListener('submit', async event => {
     event.preventDefault();
     message.textContent = '';
