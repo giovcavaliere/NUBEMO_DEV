@@ -90,13 +90,20 @@
             </div>
 
             <button id="login-submit" class="login-primary" type="submit">Accedi</button>
-            <button id="login-reset-password" class="login-secondary" type="button" disabled title="Recupero password 2.0 non ancora disponibile">Reimposta password</button>
+            <button id="login-reset-password" class="login-secondary" type="button">Reimposta password</button>
+
+            <section id="login-recovery" hidden>
+              <label class="login-field-label" for="recovery-email">Email di recupero</label>
+              <div class="login-input-wrap"><input id="recovery-email" type="email" autocomplete="email" inputmode="email" placeholder="La tua email"></div>
+              <button id="login-recovery-send" class="login-primary" type="button">Invia link di recupero</button>
+              <button id="login-recovery-cancel" class="login-secondary" type="button">Torna al login</button>
+            </section>
 
             <p id="login-message" class="nubemo-login-message" aria-live="polite"></p>
 
             <div class="login-help">
               <span class="login-help-icon" aria-hidden="true">i</span>
-              <span>Se non hai mai impostato una password, il tuo account potrebbe non essere ancora attivo. Il recupero password da questa pagina non è ancora disponibile: per problemi di accesso contatta l’assistenza NUBEMO.</span>
+              <span>Se non hai mai impostato una password, il tuo account potrebbe non essere ancora attivo. Se hai già attivato il tuo account ma hai dimenticato la password, richiedi un link di recupero tramite email. Se non hai mai attivato l’account, utilizza il link di invito.</span>
             </div>
           </form>
         </div>
@@ -127,7 +134,7 @@
   <script src="config.js?v=nubemo-env-20260919"></script>
   <script src="supabase-client.js?v=nubemo-runtime-clean2"></script>
   <script src="auth-v2.js?v=patient-activation-gate-20261016"></script>
-  <script src="login-v2-app.js?v=patient-direct-home-20261015"></script>
+  <script src="login-v2-app.js?v=recovery-20261016"></script>
 </body>
 </html>
 
