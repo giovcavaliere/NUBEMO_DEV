@@ -111,7 +111,7 @@
   });
   recoverySend.addEventListener('click', async () => {
     const address = recoveryEmail.value.trim();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
       message('Inserisci un indirizzo email valido.', true);
       return;
     }
