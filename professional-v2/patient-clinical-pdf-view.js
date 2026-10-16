@@ -64,10 +64,34 @@ function openClinicalPdfDialog(root,model,overview=null){
       const client=window.nubemoSupabase;
       if(!owner?.id||!client)throw new Error("Sessione professionista non disponibile.");
       const {data:professional,error:professionalError}=await client.from("professionals")
-        .select("display_name,qualification,tax_code,vat_number,phone,address,zip,city,province,status")
+        .select("id,display_name,qualification,tax_code,vat_number,phone,address,zip,city,province,logo_storage_path,status")
         .eq("profile_id",owner.id).single();
       if(professionalError||!professional||professional.status!=="active")
         throw new Error("Dati professionista non disponibili per la cartella PDF.");
+      const {data:settings,error:settingsError}=await client.from("professional_settings")
+        .select("settings_json").eq("professional_id",professional.id).maybeSingle();
+      if(settingsError)throw new Error("Sedi professionali non disponibili per la cartella PDF.");
+      const studios=Array.isArray(settings?.settings_json?.studios)?settings.settings_json.studios:[];
+      const studio=studios.find(item=>item.primary)||studios[0]||null;
+      let logoData=null;
+      if(professional.logo_storage_path){
+        const path=professional.logo_storage_path;
+        if(!path.startsWith(professional.id+"/"))throw new Error("Percorso logo professionale non valido.");
+        const {data:asset,error:assetError}=await client.storage.from("professional-assets").download(path);
+        if(assetError)throw new Error("Logo professionale non disponibile per la cartella PDF.");
+        const image=await createImageBitmap(asset);
+        try{
+          const canvas=document.createElement("canvas");
+          const ratio=Math.min(1,640/Math.max(image.width,image.height));
+          canvas.width=Math.max(1,Math.round(image.width*ratio));
+          canvas.height=Math.max(1,Math.round(image.height*ratio));
+          const context=canvas.getContext("2d");
+          context.fillStyle="#ffffff";
+          context.fillRect(0,0,canvas.width,canvas.height);
+          context.drawImage(image,0,0,canvas.width,canvas.height);
+          logoData={jpeg:canvas.toDataURL("image/jpeg",0.88).split(",")[1],width:canvas.width,height:canvas.height};
+        }finally{image.close();}
+      }
       const identity={
         firstName:owner.first_name||"",
         surname:owner.last_name||"",
@@ -80,7 +104,15 @@ function openClinicalPdfDialog(root,model,overview=null){
         address:professional.address||"",
         zip:professional.zip||"",
         city:professional.city||"",
-        province:professional.province||""
+        province:professional.province||"",
+        studio:studio?{
+          name:studio.name||"",
+          address:studio.address||"",
+          zip:studio.zip||"",
+          city:studio.city||"",
+          province:studio.province||""
+        }:null,
+        logo:logoData
       };
       const normalized=buildClinicalPdfData(source,identity,{diaryMode});
       const blob=createClinicalPdf(normalized);
