@@ -29,8 +29,9 @@ async function load(){
  if(!client)throw Error("Connessione NUBEMO non disponibile");
  const {data:{user},error:authError}=await client.auth.getUser();
  if(authError||!user){location.replace("index2.html");return;}
- const {data:profile,error:profileError}=await client.from("profiles").select("id,auth_user_id,role,status,first_name,last_name,email,phone,patient_avatar_path").eq("auth_user_id",user.id).single();
+ const {data:profile,error:profileError}=await client.from("profiles").select("id,auth_user_id,role,status,first_name,last_name,email,phone,patient_avatar_path,activation_completed_at").eq("auth_user_id",user.id).single();
  if(profileError||!profile||profile.role!=="patient"||profile.status!=="active")throw Error("Account paziente non autorizzato.");
+ if(!profile.activation_completed_at){await client.auth.signOut({scope:"local"});location.replace("index2.html");return;}
  const {data:patient,error:patientError}=await client.from("patients").select("id,profile_id,birth_date,sex,height_cm").eq("profile_id",profile.id).single();
  if(patientError||!patient)throw Error("Anagrafica paziente non disponibile.");
  const {data:docs,error:docsError}=await client.from("privacy_documents").select("id,title,version,storage_bucket,storage_path").eq("document_type","nubemo").eq("active",true).order("published_at",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false}).limit(1);
