@@ -155,6 +155,17 @@
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && services && !loggingOut) void access(() => services.restore());
   });
+  // Un token di recupero non equivale a un accesso alla piattaforma.
+  // Se il provider rimanda erroneamente al login, non eseguire il restore.
+  const incomingAuthParams = window.location.search + window.location.hash;
+  if (/(?:[?&#])type=recovery(?:&|$)/i.test(incomingAuthParams) ||
+      (/(?:[?&#])(?:access_token|token_hash|code)=/i.test(incomingAuthParams) &&
+       /(?:[?&#])type=recovery/i.test(incomingAuthParams))) {
+    history.replaceState(null, '', window.location.pathname);
+    window.nubemoSupabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    message('Link di recupero ricevuto su una pagina non corretta. Richiedi un nuovo link dopo la configurazione del redirect.', true);
+    return;
+  }
   try {
     services = window.NubemoAuthV2.create(window.nubemoSupabase);
     services.onAuthChange(event => {
