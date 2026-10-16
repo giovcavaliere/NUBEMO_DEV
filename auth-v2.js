@@ -25,7 +25,7 @@
       const user = result.data?.user;
       if (!user?.id) throw new AccessError('Accedi con il tuo account NUBEMO.', 'unauthenticated');
       const { data: profile, error } = await request(client.from('profiles')
-        .select('id,auth_user_id,first_name,last_name,email,role,status')
+        .select('id,auth_user_id,first_name,last_name,email,role,status,activation_completed_at')
         .eq('auth_user_id', user.id).single());
       if (error || !profile) throw new Error('Profilo NUBEMO non disponibile per questo account.');
       if (profile.auth_user_id !== user.id) throw new AccessError('Accesso non autorizzato.', 'forbidden');
@@ -34,6 +34,7 @@
         throw new AccessError(label ? `Account ${label}. Accesso a NUBEMO non consentito.` : 'Account non attivo. Accesso a NUBEMO non consentito.', 'forbidden');
       }
       if (!['admin', 'professional', 'patient'].includes(profile.role)) throw new AccessError('Ruolo NUBEMO non riconosciuto.', 'forbidden');
+      if (profile.role === 'patient' && !profile.activation_completed_at) throw new AccessError('Attivazione incompleta: usa il link email per impostare la password.', 'forbidden');
       return profile;
     }
     async function restore() {
