@@ -60,8 +60,10 @@ export async function mountPatientHome(ctx){
  });
  const [measurements,diary,clinical,plans,docs,reads,appointmentLinks]=values;
  const map=new Map();
- for(const d of diary||[])if(num(d.weight_kg)>0)map.set(d.entry_date,{day:d.entry_date,weight:num(d.weight_kg),priority:0});
+ // Le pesate annotate dal paziente nel Diario prevalgono sulla misurazione professionale nello stesso giorno.
+ // Le misurazioni professionali completano soltanto le giornate prive di peso nel Diario.
  for(const m of measurements||[])if(num(m.weight_kg)>0)map.set(m.measured_at,{day:m.measured_at,weight:num(m.weight_kg),priority:1});
+ for(const d of diary||[])if(num(d.weight_kg)>0)map.set(d.entry_date,{day:d.entry_date,weight:num(d.weight_kg),priority:0});
  chartPoints=[...map.values()].sort((a,b)=>a.day.localeCompare(b.day));
  const first=chartPoints[0]?.weight??null,last=chartPoints.at(-1)?.weight??null,goal=num(clinical?.goal_weight_kg),diff=first!=null&&last!=null?last-first:null;
  const dateFormat=new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
