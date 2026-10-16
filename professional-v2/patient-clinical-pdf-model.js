@@ -90,7 +90,9 @@ export function buildClinicalPdfData(data,professional,options={}){
       vat:professional?.vat||"",
       phone:professional?.phone||"",
       email:professional?.email||"",
-      address:[professional?.address,[professional?.zip,professional?.city].filter(Boolean).join(" "),professional?.province].filter(Boolean).join(" - ")
+      address:[professional?.address,[professional?.zip,professional?.city].filter(Boolean).join(" "),professional?.province].filter(Boolean).join(" - "),
+      studio:professional?.studio||null,
+      logo:professional?.logo||null
     },
     summary:{
       firstWeight:finite(firstWeight)?Number(firstWeight):null,
