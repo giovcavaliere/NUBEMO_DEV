@@ -8,7 +8,7 @@ await window.NUBEMO_PRO2_AUTH_READY;
 import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=lab-dialog-fix-20261015";
 import {loadOwnPatients} from "./patients-service.js?v=weight-kpi-20261015";
 import {loadPatientOverview,loadPatientRecentActivity,loadOverviewMetrics,loadOverviewComposition} from "./patient-overview-live.js?v=overview-bia-20261015";
-import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=clinical-pdf-live-20261016";
+import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=clinical-pdf-cover-20261016";
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=patient-profile-shared-20261015";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
