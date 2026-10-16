@@ -115,7 +115,7 @@ function renderComposition(model){
 function renderNextActions(model,{live=false}={}){
   const actions=[["Apri visita","visite","calendar"],["Leggi referti","documenti","document"],["Controlla diario","diario","check"],["Aggiungi misure","misure","chart"]];
   return `<section class="detail-panel">${sectionHeading("leaf","Prossime azioni","Accessi rapidi alla scheda.")}
-    ${renderClinicalPdfAction({disabled:live})}<div class="detail-actions">${actions.map(([label,target,symbol])=>`<a href="${route(model.data.identity.id,target)}">${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
+    ${renderClinicalPdfAction()}<div class="detail-actions">${actions.map(([label,target,symbol])=>`<a href="${route(model.data.identity.id,target)}">${icon(symbol)}<span>${label}</span><span aria-hidden="true">›</span></a>`).join("")}</div>
   </section>`;
 }
 
@@ -581,6 +581,7 @@ export function renderLivePatientOverview(root,{patient,link,pathways,notes=[],c
   </div>`;
   if(activeTab==="note")bindLiveNotes(root,notes,active,actions);
   if(activeTab==="panoramica")bindRealPathway(root,patient.id,pathways,actions.pathwaySaved||(()=>{}));
+  if(activeTab==="panoramica")bindClinicalPdf(root,model,{patient,link,pathways});
 }
 export function renderPatientDetail(root,model,activeTab="panoramica",onIdentityChange=()=>{}){
   const {id,firstName,lastName}=model.data.identity;
