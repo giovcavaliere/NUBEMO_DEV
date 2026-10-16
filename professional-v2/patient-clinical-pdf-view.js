@@ -1,6 +1,6 @@
 import {loadLiveClinicalPdfData} from "./patient-clinical-pdf-live-service.js?v=clinical-pdf-live-20261016";
-import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=clinical-pdf-identity-20261016";
-import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js?v=clinical-pdf-cover-20261016";
+import {buildClinicalPdfData} from "./patient-clinical-pdf-model.js?v=weight-history-20261016";
+import {createClinicalPdf,openClinicalPdf} from "./patient-clinical-pdf.js?v=weight-history-20261016";
 import {professionalProfile} from "./profile-view.js";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[char]));
