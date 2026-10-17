@@ -3,6 +3,8 @@ const icon=name=>`<svg class="icon" aria-hidden="true" focusable="false"><use hr
 const dateLong=value=>value?new Intl.DateTimeFormat("it-IT",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date(`${value}T12:00:00`)):"—";
 const dateShort=value=>value?new Intl.DateTimeFormat("it-IT",{weekday:"short",day:"numeric",month:"short"}).format(new Date(`${value}T12:00:00`)):"—";
 const rangeDate=value=>value?new Intl.DateTimeFormat("it-IT",{day:"numeric",month:"short",year:"numeric"}).format(new Date(`${value}T12:00:00`)):"—";
+let mobileDetailOpen=false;
+let mobileListScrollY=0;
 const confidenceLabels={high:"Buona",medium:"Media",low:"Bassa",none:"Non disponibile"};
 
 function confidenceBadge(value){
@@ -70,7 +72,7 @@ function renderSelected(day){
 
 export function renderDiary(model){
   const {summary,range,days,selected}=model;
-  return `<div class="patient-diary">
+  return `<div class="patient-diary ${mobileDetailOpen?"diary-mobile-detail-open":""}">
     <header class="diary-titlebar">
       <div><h2>Diario alimentare</h2><p>Consulta il diario compilato dal paziente e la stima calorica NUBEMO. I dati sono in sola lettura.</p></div>
       ${range?`<span class="diary-range">${icon("calendar")} ${escapeHtml(rangeDate(range.from))} – ${escapeHtml(rangeDate(range.to))}</span>`:""}
@@ -92,13 +94,28 @@ export function renderDiary(model){
         <div class="diary-days-head"><span>Data</span><span>Totale kcal <small>(stima)</small></span><span>Attendibilità</span><span>Note</span></div>
         <div class="diary-day-list">${days.length?days.map(day=>renderDayRow(day,day.date===selected?.date)).join(""):'<p class="diary-no-analysis">Nessuna giornata registrata.</p>'}</div>
       </section>
-      ${renderSelected(selected)}
+      <div class="diary-mobile-detail-wrap"><button type="button" class="diary-mobile-back" data-diary-back>← Tutte le giornate</button>${renderSelected(selected)}</div>
     </div>
   </div>`;
 }
 
 export function bindDiary(root,model,onSelect){
   root.querySelectorAll("[data-diary-date]").forEach(button=>button.addEventListener("click",()=>{
+    const mobile=window.matchMedia("(max-width:760px)").matches;
+    if(mobile){
+      mobileListScrollY=window.scrollY;
+      mobileDetailOpen=true;
+    }
     onSelect?.(button.dataset.diaryDate);
+    if(mobile) requestAnimationFrame(()=>{
+      const diary=document.querySelector(".patient-diary");
+      diary?.classList.add("diary-mobile-detail-open");
+      diary?.querySelector(".diary-mobile-detail-wrap")?.scrollIntoView({block:"start"});
+    });
   }));
+  root.querySelector("[data-diary-back]")?.addEventListener("click",()=>{
+    mobileDetailOpen=false;
+    root.querySelector(".patient-diary")?.classList.remove("diary-mobile-detail-open");
+    requestAnimationFrame(()=>window.scrollTo({top:mobileListScrollY,behavior:"instant"}));
+  });
 }
