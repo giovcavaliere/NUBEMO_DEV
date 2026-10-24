@@ -66,6 +66,30 @@ function calorieValues(){
   calorie_calculated_at:new Date().toISOString()
  };
 }
+function calculateBmr(){
+ const patient=context?.patient;
+ const weight=number(root().querySelector('[data-diary-edit-field="weight"]')?.value);
+ const height=Number(patient?.height_cm);
+ const birth=patient?.birth_date;
+ const day=active;
+ const sex=String(patient?.sex??"").trim().toLowerCase();
+ const male=["m","male","maschio","uomo"].includes(sex);
+ const female=["f","female","femmina","donna"].includes(sex);
+ if(!(weight>0&&weight<500&&height>0&&height<300)||!/^\d{4}-\d{2}-\d{2}$/.test(birth||"")||!/^\d{4}-\d{2}-\d{2}$/.test(day||"")||(!male&&!female))return null;
+ const born=new Date(birth+"T12:00:00Z"), dated=new Date(day+"T12:00:00Z");
+ if(!Number.isFinite(born.getTime())||!Number.isFinite(dated.getTime())||born.toISOString().slice(0,10)!==birth||dated.toISOString().slice(0,10)!==day)return null;
+ let age=dated.getUTCFullYear()-born.getUTCFullYear();
+ if(dated.getUTCMonth()<born.getUTCMonth()||(dated.getUTCMonth()===born.getUTCMonth()&&dated.getUTCDate()<born.getUTCDate()))age--;
+ if(age<0||age>120)return null;
+ return Math.round(10*weight+6.25*height-5*age+(male?5:-161));
+}
+function updateBmr(){
+ const node=root().querySelector(".patient-diary-energy-row > div:nth-child(2) strong");
+ if(!node)return;
+ const bmr=calculateBmr();
+ node.textContent=bmr==null?"—":bmr.toLocaleString("it-IT")+" kcal";
+ node.title=bmr==null?"Stima non disponibile: verifica peso, data di nascita, sesso e altezza nel profilo.":"Metabolismo basale stimato con formula Mifflin-St Jeor, kcal/giorno.";
+}
 function updateEnergy(){
  const calories=root().querySelector("#patientDiaryCalories");
  const label=root().querySelector("#patientDiaryQuality");
@@ -96,7 +120,7 @@ function openEditor(date){
  keys.forEach(([field,key])=>{root().querySelector('[data-diary-meal-text="'+field+'"]').value=day?.[key]||"";});
  // Values shown only when already calculated and saved; no demo estimates.
  const bmr=root().querySelector(".patient-diary-energy-row > div:nth-child(2) strong");
- if(bmr)bmr.textContent="—";
+ updateBmr();
  syncFavoriteButtons();
  updateEnergy();
 }
@@ -242,6 +266,7 @@ export async function mountPatientDiary(ctx,{openToday=false}={}){
  wrapper.addEventListener("input",e=>{
   if(e.target.matches("[data-diary-history-search]")){filter=e.target.value.toLowerCase().trim();renderHistory();}
   if(e.target.matches("[data-diary-meal-text]")){updateEnergy();syncFavoriteButtons();}
+   if(e.target.matches('[data-diary-edit-field="weight"]'))updateBmr();
  });
  wrapper.addEventListener("click",async e=>{
   const mode=e.target.closest("[data-patient-diary-mode]");
