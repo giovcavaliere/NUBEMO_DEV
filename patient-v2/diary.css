@@ -196,6 +196,10 @@
   gap:10px;padding:0 0 4px;
 }
 
+.patient-diary-export-options{display:grid;gap:10px;margin-top:18px}
+.patient-diary-export-options button{min-height:46px;padding:11px 14px;text-align:left;font-size:14px}
+.patient-diary-export-options button:focus-visible{outline:2px solid var(--green-700);outline-offset:2px}
+
 /* Dialogs */
 .patient-diary-overlay{
   position:fixed;inset:0;z-index:110;display:grid;place-items:center;padding:18px;
