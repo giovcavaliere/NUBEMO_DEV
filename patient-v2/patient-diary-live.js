@@ -207,6 +207,27 @@ async function refresh(){
  if(req!==latestRequest)return;
  days=rows||[];updateSummary();renderHistory();
 }
+function exportDiaryPdf(button){
+ if(!days.length){toast("Nessuna giornata da esportare.");return;}
+ if(!window.NubemoDiaryPdf?.create){toast("Generatore PDF non disponibile.");return;}
+ const rows=[...days].sort((a,b)=>a.entry_date.localeCompare(b.entry_date)).map(d=>[
+  d.entry_date,d.weight_kg,d.water,d.coffee,d.sweetener,d.breakfast,d.morning_snack,d.lunch,d.afternoon_snack,d.dinner,[d.sport,d.notes].filter(Boolean).join(" · ")
+ ]);
+ const original=button.textContent;
+ try{
+  button.disabled=true;
+  const blob=window.NubemoDiaryPdf.create({rows,origin:"patient"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;
+  link.download="NUBEMO_Diario_"+localDate()+".pdf";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+ }catch(error){console.error("Esportazione diario PDF:",error);toast("Impossibile esportare il diario.");}
+ finally{button.disabled=false;}
+}
 function showSaveReview(onConfirm){
  const meals=Object.fromEntries(keys.map(([form])=>[form,root().querySelector('[data-diary-meal-text="'+form+'"]')?.value.trim()||""]));
  const hasMeals=Object.values(meals).some(Boolean);
