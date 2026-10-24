@@ -137,7 +137,7 @@
 .patient-diary-habits-grid label>span{color:#62756f;font-size:10.5px;font-weight:650}
 .patient-diary-habits-grid input{
   width:100%;min-width:0;height:42px;box-sizing:border-box;border:1px solid #dde3dd;border-radius:10px;
-  background:#fff;padding:0 11px;color:var(--text);font:inherit;font-size:12px;
+  background:#fff;padding:0 11px;color:var(--text);font:inherit;font-size:16px;
 }
 .patient-diary-unit-input{display:grid;grid-template-columns:minmax(0,1fr) 34px}
 .patient-diary-unit-input input{border-radius:10px 0 0 10px}
@@ -182,11 +182,11 @@
 .patient-diary-meal-actions button:last-child{padding:0 8px}
 .patient-diary-meal-card textarea{
   display:block;width:100%;min-width:0;box-sizing:border-box;min-height:76px;border:0;padding:11px;
-  background:#fff;color:var(--text);font:inherit;font-size:11.5px;line-height:1.5;resize:vertical;outline:0;
+  background:#fff;color:var(--text);font:inherit;font-size:16px;line-height:1.5;resize:vertical;outline:0;
 }
 .patient-diary-notes-input{
   width:100%;min-height:90px;box-sizing:border-box;border:1px solid #dde3dd;border-radius:10px;background:#fff;
-  padding:11px;color:var(--text);font:inherit;font-size:11.5px;line-height:1.5;resize:vertical;
+  padding:11px;color:var(--text);font:inherit;font-size:16px;line-height:1.5;resize:vertical;
 }
 .patient-diary-save-actions{
   display:grid;grid-template-columns:minmax(120px,.5fr) minmax(180px,1fr);
@@ -210,7 +210,7 @@
 }
 .patient-diary-dialog-search{
   width:100%;height:40px;margin-top:13px;box-sizing:border-box;border:1px solid #dfe5df;border-radius:10px;
-  background:#fff;padding:0 11px;color:var(--text);font:inherit;font-size:11px;
+  background:#fff;padding:0 11px;color:var(--text);font:inherit;font-size:16px;
 }
 .patient-diary-dialog-list{display:grid;margin-top:8px}
 .patient-diary-dialog-option{
