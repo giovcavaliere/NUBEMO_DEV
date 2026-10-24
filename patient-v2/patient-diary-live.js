@@ -210,23 +210,45 @@ async function refresh(){
 function exportDiaryPdf(button){
  if(!days.length){toast("Nessuna giornata da esportare.");return;}
  if(!window.NubemoDiaryPdf?.create){toast("Generatore PDF non disponibile.");return;}
- const rows=[...days].sort((a,b)=>a.entry_date.localeCompare(b.entry_date)).map(d=>[
-  d.entry_date,d.weight_kg,d.water,d.coffee,d.sweetener,d.breakfast,d.morning_snack,d.lunch,d.afternoon_snack,d.dinner,[d.sport,d.notes].filter(Boolean).join(" · ")
- ]);
- const original=button.textContent;
- try{
-  button.disabled=true;
-  const blob=window.NubemoDiaryPdf.create({rows,origin:"patient"});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement("a");
-  link.href=url;
-  link.download="NUBEMO_Diario_"+localDate()+".pdf";
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
- }catch(error){console.error("Esportazione diario PDF:",error);toast("Impossibile esportare il diario.");}
- finally{button.disabled=false;}
+ const overlay=dialog("Esporta diario","Seleziona il periodo da includere nel PDF.",
+  '<div class="patient-diary-export-options">'+
+  '<button type="button" class="patient-secondary" data-diary-pdf-period="1">Ultimo mese</button>'+
+  '<button type="button" class="patient-secondary" data-diary-pdf-period="3">Ultimi 3 mesi</button>'+
+  '<button type="button" class="patient-secondary" data-diary-pdf-period="all">Tutto il diario</button>'+
+  '</div>');
+ overlay.querySelectorAll("[data-diary-pdf-period]").forEach(option=>option.addEventListener("click",()=>{
+  const period=option.dataset.diaryPdfPeriod;
+  // Rolling calendar months ending today, not a fixed number of days.
+  const today=localDate();
+  let earliest=null;
+  if(period!=="all"){
+   const date=new Date(today+"T12:00:00");
+   const months=Number(period);
+   const dayOfMonth=date.getDate();
+   date.setDate(1);
+   date.setMonth(date.getMonth()-months);
+   const lastDay=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();
+   date.setDate(Math.min(dayOfMonth,lastDay));
+   earliest=[date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-");
+  }
+  const selected=days.filter(d=>d.entry_date<=today&&(!earliest||d.entry_date>=earliest));
+  if(!selected.length){toast("Nessuna giornata registrata nel periodo selezionato.");return;}
+  const rows=[...selected].sort((a,b)=>a.entry_date.localeCompare(b.entry_date)).map(d=>[
+   d.entry_date,d.weight_kg,d.water,d.coffee,d.sweetener,d.breakfast,d.morning_snack,d.lunch,d.afternoon_snack,d.dinner,[d.sport,d.notes].filter(Boolean).join(" · ")
+  ]);
+  try{
+   const blob=window.NubemoDiaryPdf.create({rows,origin:"patient"});
+   const url=URL.createObjectURL(blob);
+   const link=document.createElement("a");
+   link.href=url;
+   link.download="NUBEMO_Diario_"+(period==="all"?"completo":period+"m")+"_"+today+".pdf";
+   document.body.append(link);
+   link.click();
+   link.remove();
+   overlay.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(error){console.error("Esportazione diario PDF:",error);toast("Impossibile esportare il diario.");}
+ }));
 }
 function showSaveReview(onConfirm){
  const meals=Object.fromEntries(keys.map(([form])=>[form,root().querySelector('[data-diary-meal-text="'+form+'"]')?.value.trim()||""]));
