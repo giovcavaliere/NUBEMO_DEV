@@ -290,6 +290,8 @@ export async function mountPatientDiary(ctx,{openToday=false}={}){
    if(e.target.matches('[data-diary-edit-field="weight"]'))updateBmr();
  });
  wrapper.addEventListener("click",async e=>{
+  const exportButton=e.target.closest("[data-diary-export-pdf]");
+  if(exportButton){exportDiaryPdf(exportButton);return;}
   const mode=e.target.closest("[data-patient-diary-mode]");
   if(mode){if(mode.dataset.patientDiaryMode==="overview")live("overview");else if(context.activePathway)openEditor(localDate());else alert("Non è presente un percorso attivo.");return;}
   const row=e.target.closest("[data-diary-history-date]");
