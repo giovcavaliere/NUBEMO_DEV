@@ -87,7 +87,10 @@
 
 /* History */
 .patient-diary-history-card{overflow:hidden}
-.patient-diary-history-card>header{padding:17px 18px;border-bottom:1px solid var(--line)}
+.patient-diary-history-card>header{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.patient-diary-export-pdf{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 12px;white-space:nowrap;font-size:12px}
+.patient-diary-export-pdf .icon{width:16px;height:16px}
+.patient-diary-export-pdf:disabled{opacity:.6;cursor:wait}
 .patient-diary-history-card>header p{margin:4px 0 0;color:var(--muted);font-size:11px}
 .patient-diary-search-row{
   margin:12px 18px;
