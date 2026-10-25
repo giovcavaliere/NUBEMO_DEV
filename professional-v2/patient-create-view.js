@@ -30,10 +30,10 @@ function formMarkup(){
 
       <div class="new-patient-account">
         <label class="new-patient-account-toggle">
-          <input name="activateNubemo" type="checkbox" data-new-patient-activate disabled>
+          <input name="activateNubemo" type="checkbox" data-new-patient-activate>
           <span>
             <strong>Attiva profilo NUBEMO</strong>
-            <small>Attivazione temporaneamente sospesa: è necessario correggere il reindirizzamento degli inviti.</small>
+            <small>Se selezionato, il paziente riceverà un invito email per attivare il proprio account NUBEMO.</small>
           </span>
         </label>
       </div>
