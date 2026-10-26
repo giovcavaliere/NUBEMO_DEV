@@ -83,7 +83,7 @@ export function openNewPatientDialog(root,{onCreate}){
     error.hidden=true;
     if(!firstName||!lastName){fail("Nome e cognome sono obbligatori.");return;}
     if(activateNubemo&&!emailValue){fail("L'email è obbligatoria per attivare NUBEMO.");return;}
-    if(emailValue&&!email.checkValidity()){fail("Indirizzo email non valido.");return;}
+    if(emailValue&&!email.checkValidity()){fail("Indirizzo email non valido.");return;}\n    const heightValue=String(values.get("height")||"").trim();\n    if(heightValue){\n      const cm=Number(heightValue.replace(",","."));\n      if(!Number.isFinite(cm)||cm<80||cm>250){fail("Inserisci l’altezza in centimetri (esempio: 166, non 1,66).");return;}\n    }
     const submit=form.querySelector('[type="submit"]');
     form.dataset.saving="1";submit.disabled=true;submit.textContent="Creazione in corso…";
     try{
@@ -92,7 +92,7 @@ export function openNewPatientDialog(root,{onCreate}){
         phone:String(values.get("phone")||"").trim(),
         birth_date:String(values.get("birthDate")||"").trim(),
         sex:String(values.get("sex")||"").trim(),
-        height_cm:String(values.get("height")||"").trim(),
+        height_cm:heightValue,
         activate_patient_area:activateNubemo
       });
       dialog.close("save");
