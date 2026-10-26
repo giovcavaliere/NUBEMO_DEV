@@ -275,7 +275,7 @@ function showView(route){
 async function createRealPatient(values){
   const client=window.nubemoSupabase;
   const {data,error}=await client.functions.invoke("pro2-create-patient",{body:values});
-  if(error)throw new Error("Creazione paziente non riuscita: "+error.message);
+  if(error){\n    let detail=null;\n    try{detail=await error.context?.json?.();}catch{}\n    throw new Error(detail?.error||"Creazione paziente non riuscita: "+error.message);\n  }
   if(!data?.ok)throw new Error(data?.error||"Creazione paziente non riuscita.");
   patientRecords=await loadOwnPatients();
   patientState.status=data.invited?"pending":"active";
