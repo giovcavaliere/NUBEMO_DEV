@@ -83,7 +83,12 @@ export function openNewPatientDialog(root,{onCreate}){
     error.hidden=true;
     if(!firstName||!lastName){fail("Nome e cognome sono obbligatori.");return;}
     if(activateNubemo&&!emailValue){fail("L'email è obbligatoria per attivare NUBEMO.");return;}
-    if(emailValue&&!email.checkValidity()){fail("Indirizzo email non valido.");return;}\n    const heightValue=String(values.get("height")||"").trim();\n    if(heightValue){\n      const cm=Number(heightValue.replace(",","."));\n      if(!Number.isFinite(cm)||cm<80||cm>250){fail("Inserisci l’altezza in centimetri (esempio: 166, non 1,66).");return;}\n    }
+    if(emailValue&&!email.checkValidity()){fail("Indirizzo email non valido.");return;}
+    const heightValue=String(values.get("height")||"").trim();
+    if(heightValue){
+      const cm=Number(heightValue.replace(",","."));
+      if(!Number.isFinite(cm)||cm<80||cm>250){fail("Inserisci l’altezza in centimetri (esempio: 166, non 1,66).");return;}
+    }
     const submit=form.querySelector('[type="submit"]');
     form.dataset.saving="1";submit.disabled=true;submit.textContent="Creazione in corso…";
     try{
