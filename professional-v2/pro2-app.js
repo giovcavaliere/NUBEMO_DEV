@@ -12,7 +12,7 @@ import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeas
 import {loadLiveMeasurements,saveLiveMeasurement,deleteLiveMeasurement} from "./patient-measurements-live-service.js";
 import {loadLivePatientProfile,saveLivePatientIdentity,saveLiveClinical} from "./patient-profile-live-service.js?v=patient-profile-shared-20261015";
 import {loadRealNotes,saveRealNote,deleteRealNote} from "./patient-notes-service.js?v=note-delete-fix-20261014";
-import {openNewPatientDialog} from "./patient-create-view.js?v=height-validation-20261026";
+import {openNewPatientDialog} from "./patient-create-view.js?v=syntax-fix-20261027-d20305f";
 let patientRecords=[];
 let patientsPhase="loading";
 let patientsError="";
