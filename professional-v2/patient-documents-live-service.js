@@ -1,3 +1,4 @@
+import {openStoredDocument} from "./document-open.js?v=pdf-open-20261104";
 const db=()=>window.nubemoSupabase;
 const fileName=n=>String(n||"documento").normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g,"_").slice(0,120);
 async function userId(){const {data,error}=await db().auth.getUser();if(error||!data.user)throw Error("Sessione non valida.");return data.user.id;}
@@ -35,8 +36,7 @@ export async function uploadDocument(patientId,pathway,file,title,date,category)
  if(error){await bucket.remove([path]);throw error;}
 }
 export async function openDocument(doc){
- const {data,error}=await db().storage.from(doc.storage_bucket).createSignedUrl(doc.storage_path,120);if(error)throw error;
- window.open(data.signedUrl,"_blank","noopener,noreferrer");
+ await openStoredDocument(doc);
  const uid=await userId();if(doc.uploaded_by_user_id===uid)return;
  const profile=window.NUBEMO_PRO2_PROFILE?.id;if(!profile)throw Error("Profilo professionista mancante.");
  const {error:readError}=await db().from("document_read_status").upsert({document_id:doc.id,profile_id:profile,read_at:new Date().toISOString()},{onConflict:"document_id,profile_id"});
