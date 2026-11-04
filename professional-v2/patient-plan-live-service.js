@@ -1,3 +1,4 @@
+import {openStoredDocument} from "./document-open.js?v=pdf-open-20261104";
 const client=()=>window.nubemoSupabase;
 async function query(promise){const {data,error}=await promise;if(error)throw error;return data;}
 async function auth(){const {data,error}=await client().auth.getUser();if(error||!data.user)throw Error("Sessione non valida");return data.user;}
@@ -41,9 +42,7 @@ export async function publishPlan(patientId,pathway,file,title,validFrom,note,pa
 }
 export async function openPlanFile(plan){
  if(!plan.document)throw Error("Il PDF non è disponibile.");
- const {data,error}=await client().storage.from(plan.document.storage_bucket).createSignedUrl(plan.document.storage_path,120);
- if(error)throw error;
- window.open(data.signedUrl,"_blank","noopener,noreferrer");
+ await openStoredDocument(plan.document);
 }
 export async function updatePlanNote(plan,note){
  const {error}=await client().from("nutrition_plan_private_notes").upsert({plan_id:plan.id,note:note.trim(),updated_at:new Date().toISOString()},{onConflict:"plan_id"});if(error)throw error;
