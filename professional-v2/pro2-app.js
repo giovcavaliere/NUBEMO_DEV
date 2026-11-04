@@ -2,10 +2,10 @@ import {loadPatientWeightSnapshots} from "./patient-weight-live.js?v=weights-202
 import {openDraftConversion} from "./patient-draft-convert-view.js?v=convert-draft-20261015";
 import {renderLiveDashboard} from "./dashboard-live-view.js?v=dashboard-live-20261015";
 import {renderLivePatientDiary} from "./patient-diary-live-view.js?v=food-breakdown-20261015";
-import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=patient-note-20261015";
+import {renderLivePatientPlans} from "./patient-plan-live-view.js?v=pdf-open-20261104";
 await window.NUBEMO_PRO2_AUTH_READY;
 
-import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=lab-dialog-fix-20261015";
+import {renderLivePatientDocuments} from "./patient-documents-live-view.js?v=pdf-open-20261104";
 import {loadOwnPatients} from "./patients-service.js?v=weight-kpi-20261015";
 import {loadPatientOverview,loadPatientRecentActivity,loadOverviewMetrics,loadOverviewComposition} from "./patient-overview-live.js?v=overview-bia-20261015";
 import {renderLivePatientOverview,renderLivePatientProfile,renderLivePatientMeasures,renderLivePatientProgress,renderLivePatientVisits} from "./patient-detail-view.js?v=weight-history-20261016";
