@@ -1,5 +1,5 @@
 // Apertura documenti per l'area professionista: la scheda nasce nel gesto utente.
-export async function openStoredDocument(document){
+export async function openStoredDocument(fileRecord){
   // Nessuna richiesta asincrona prima di questa istruzione: Safari iOS può
   // bloccare window.open se invocata dopo createSignedUrl().
   const preview=window.open("about:blank","_blank");
@@ -10,8 +10,8 @@ export async function openStoredDocument(document){
   }
   try{
     const {data,error}=await window.nubemoSupabase.storage
-      .from(document.storage_bucket)
-      .createSignedUrl(document.storage_path,120);
+      .from(fileRecord.storage_bucket)
+      .createSignedUrl(fileRecord.storage_path,120);
     if(error)throw error;
     if(!data?.signedUrl)throw Error("Collegamento al documento non disponibile.");
 
